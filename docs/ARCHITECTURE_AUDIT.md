@@ -457,3 +457,29 @@ the hydration-quest finale and reminders. Added on top:
 Tests: `tests/14-water.test.mjs` (scene by stage, discoveries on the page, the original log flow plus ripples, reduced
 motion, a full keyboard game with XP once and no water logged, labelled patches, a reduced-motion 360 px run). The framework test that expected no registered games now checks the hub and the stats empty state. 102 tests in total.
 
+## 22. v6.15: nutrition mini-game (§50–51, §59–60, §68, §85, §97 step 16)
+
+`js/v6-food.js` (`HWFood`). The original Nutrition page (food menu, servings, portion sizes, custom foods, macros,
+7-day log) is unchanged. Added:
+* **Market Kitchen (§51):** a market square with five stalls (vegetables, fruit, grains, protein, drinks), a kitchen pot,
+  a cook and a table with a plate and a cup. Tap a stall (or press 1–5) and choose one of three foods (1–3). The hero
+  walks to the stall, picks the food up, cooks it at the pot (steam) and serves it onto the plate; the cook reacts.
+  Picking again from a stall swaps that part.
+* **Real foods, inspected (§50):** choices come from the original menu (`MENU.foods`), grouped by the original dish types
+  (`fcat`). Each choice shows its serving, kcal and estimated macros from the original `estMac()`, tagged EST.
+  Choices favour foods not tried yet (variety); water is always offered at the drinks stall.
+* **Balance, not restriction (§51, §60):** the plate follows the Malaysian Healthy Plate idea (half vegetables and fruit,
+  a quarter grains, a quarter protein). Serving needs the four parts; a drink is optional. No score, timer, calorie
+  target or "bad" food. The result card lists the plate, its estimated total and how many foods were new.
+* **World:** the square follows the Nutrition Village state (days with a meal logged, never what was eaten): torn
+  awnings while Ruined, then villagers, flower boxes and festival lights when Flourishing.
+* **Rewards:** framework XP (10, once a day) and one discovery per first daily completion: spice rack, bunting, a market
+  cat, herb pots, then lore. Discoveries appear in the market. The game never logs food, and its note says so.
+* **Motion:** static under reduced motion (no steam, no particles, instant moves); Performance mode halves the steam.
+* **State:** `st.mg.c.food` = `{f: discoveries, m: meals served, t: food names tried}`, so no schema step.
+
+Tests: `tests/15-food.test.mjs` (stall groups from the real menu and variety-first choices, a full keyboard game with
+XP once and no food logged, swapping and labelled stalls, the square by region state, a reduced-motion 360 px run).
+
+Also: the title screen's mist (§15) is drawn inside the scene below the knight's boots instead of as a full-screen
+overlay, so it no longer covers the knight; `tests/11-title.test.mjs` checks the boot line at three screen sizes. 108 tests in total.

@@ -23,8 +23,8 @@ HWUI.css('title',`
 .v6tod.evening{background:linear-gradient(#ff8a5c,#7a3b6a 70%);mix-blend-mode:soft-light;opacity:.5}
 .v6tod.night{background:#0b1030;mix-blend-mode:multiply;opacity:.35}
 .v6wx.cloudy{background:linear-gradient(rgba(120,130,160,.35),transparent 55%)}
-.v6wx.mist{left:-24px;right:-24px;background:linear-gradient(transparent 45%,rgba(230,236,255,.45) 75%,rgba(230,236,255,.2));animation:v6mist 18s ease-in-out infinite alternate}
-@keyframes v6mist{to{transform:translateX(18px)}}
+.v6mist{animation:v6mist 18s ease-in-out infinite alternate}
+@keyframes v6mist{to{transform:translateX(4px)}}
 .v6wx i{position:absolute;top:-10%;width:1px;height:14px;background:rgba(200,225,255,.7);animation:v6rain .9s linear infinite}
 @keyframes v6rain{to{transform:translate(-18px,115vh)}}
 .v6rib{display:inline-block;margin-top:12px;padding:5px 10px;font:8px/1.8 var(--fh);color:#fff;background:rgba(20,32,79,.72);border:2px solid #f2c14e;text-shadow:1px 1px 0 #000}
@@ -35,7 +35,7 @@ HWUI.css('title',`
 .wl.v6px .tt{transform:translate(calc(var(--px,0)*3px),calc(var(--py,0)*2px));transition:transform .4s ease-out}
 .wl.v6go .bg{animation:v6zoom .45s ease-in forwards}.wl.v6go .tt,.wl.v6go .ct,.wl.v6go .ft{animation:v6fade .3s ease-in forwards}
 @keyframes v6zoom{to{transform:scale(1.15);filter:brightness(1.6);opacity:0}}@keyframes v6fade{to{opacity:0}}
-@media(prefers-reduced-motion:reduce){.v6wx,.v6wx i,.v6pop{animation:none!important}.v6wx i{display:none}.wl.v6px .zsv,.wl.v6px .tt{transform:none}}`);
+@media(prefers-reduced-motion:reduce){.v6wx,.v6wx i,.v6pop,.v6mist{animation:none!important}.v6wx i{display:none}.wl.v6px .zsv,.wl.v6px .tt{transform:none}}`);
 
 const REACT={castle:['🏰 The castle bells ring for you!','🏰 A guard waves from the ramparts.'],tower:['⚡ The dark tower rumbles… restored regions keep it at bay.','⚡ Its red eye flickers, then dims.'],
   village:['🏘️ Villagers wave hello!','🏘️ Someone is baking bread. It smells wonderful.'],falls:['💧 The waterfall sparkles.','💧 Cool spray drifts across the meadow.']};
@@ -47,12 +47,17 @@ function ambient(){const bird='<path d="M0,0 l1.6,1.2 l1.6,-1.2" stroke="#2b2418
   const flock=[[22,0,0],[25,4,1.6],[24,7,-1.4]].map(([y,dx,dy])=>'<g transform="translate('+dx+' '+(y+dy)+')"><g class="zw">'+bird+'</g></g>').join('');
   const fly=(x,y,c,d)=>'<g class="zff" style="--x:7px;--y:4px;--d:'+d+'s"><g class="zw"><rect x="'+x+'" y="'+y+'" width="1.4" height="1.2" fill="'+c+'"/><rect x="'+(x+1.6)+'" y="'+y+'" width="1.4" height="1.2" fill="'+c+'"/></g></g>';
   return '<g class="v6amb"><g class="zd" style="--d:46s;animation-delay:-20s">'+flock+'</g>'+fly(96,124,'#ff9be0',9)+fly(150,128,'#ffe27a',12)+'</g>'}
+// Mist lies in the valley below the knight: drawn in scene units so its top edge stays at the knight's
+// boots (y 109.2 of the 240×160 scene) at every screen size, and never covers him.
+const MIST_TOP=109.2;
+function mist(){return '<defs><linearGradient id="v6mg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#e6ecff" stop-opacity="0"/><stop offset=".18" stop-color="#e6ecff" stop-opacity=".45"/><stop offset="1" stop-color="#e6ecff" stop-opacity=".22"/></linearGradient></defs>'
+  +'<rect class="v6mist" x="-700" y="'+MIST_TOP+'" width="1640" height="'+(160-MIST_TOP+40)+'" fill="url(#v6mg)" pointer-events="none"/>'}
 function restored(){try{return KR.filter(r=>klv(r[3])>0).length}catch(e){return 0}}
 function ribbon(){if(!(st.e.length||st.xp))return '';const L=lvl();let g=0;try{g=HWStreaks.gentle().days}catch(e){}
   return '<div class="v6rib">⭐ LV '+(L.i+1)+' · '+L.n.toUpperCase()+' · 🏰 '+restored()+'/8 RESTORED'+(g>=2?' · 🌿 '+g+'-DAY STREAK':'')+'</div>'}
 {const p=pages.welcome;pages.welcome=(...a)=>{let h=p(...a);const ph=phase(),wx=weather();
   const hot=HOT.map(([k,x,y,w,hh])=>'<rect class="v6hot" data-a="tspot" data-k="'+k+'" x="'+x+'" y="'+y+'" width="'+w+'" height="'+hh+'" fill="transparent"/>').join('');
-  const i=h.indexOf('</svg>');if(i>0)h=h.slice(0,i)+lanterns(restored())+(HWMotion.level()==='high'?ambient():'')+hot+h.slice(i);
+  const i=h.indexOf('</svg>');if(i>0)h=h.slice(0,i)+lanterns(restored())+(HWMotion.level()==='high'?ambient():'')+(wx==='mist'?mist():'')+hot+h.slice(i);
   const rain=wx==='rain'?Array.from({length:HWMotion.level()==='performance'?14:40},(_,k)=>'<i style="left:'+(k*2.6%100).toFixed(1)+'%;animation-delay:-'+(k*.07%0.9).toFixed(2)+'s;animation-duration:'+(.7+k%5*.08).toFixed(2)+'s"></i>').join(''):'';
   h=h.replace('</svg></div>','</svg><div class="v6tod '+ph+'"></div><div class="v6wx '+wx+'">'+rain+'</div></div>');
   h=h.replace('<p class="by t2">BY GROUP 14</p>','<p class="by t2">BY GROUP 14</p><div class="t2" data-tod="'+ph+'" data-wx="'+wx+'" style="margin-top:6px;font:8px var(--fh);color:#fff;text-shadow:1px 1px 0 #000">'+PH[ph].toUpperCase()+' IN THE KINGDOM · '+WN[wx].toUpperCase()+'</div>'+ribbon());
@@ -73,4 +78,4 @@ let raf=0;document.addEventListener('pointermove',e=>{if(S.v!=='welcome')return;
 
 /* short transition when entering from the title screen */
 {const g=acts.go;acts.go=function(d,t,e){if(S.v==='welcome'&&d&&d.v!=='set'&&!reduced()){const w=document.querySelector('.wl');if(w&&!w.classList.contains('v6go')){w.classList.add('v6go');if(typeof sfx==='function')[392,523,659].forEach((f,i)=>setTimeout(()=>sfx(f,.08),i*90));setTimeout(()=>g.call(this,d,t,e),420);return}}return g.apply(this,arguments)}}
-return{phase,weather,restored}})();
+return{phase,weather,restored,MIST_TOP}})();

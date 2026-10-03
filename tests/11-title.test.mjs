@@ -27,6 +27,23 @@ test('weather is deterministic per date and covers all four kinds', async () => 
   await ctx.close();
 });
 
+test('mist stays in the valley: its top edge is at the knight\'s boots, never over the knight', async () => {
+  const wxf = d => { let x = 0; for (const c of d) x = (x * 31 + c.charCodeAt(0)) >>> 0; x = (x ^ (x >>> 7)) % 10; return x < 5 ? 'sunny' : x < 7 ? 'cloudy' : x < 9 ? 'rain' : 'mist'; };
+  let day; for (let i = 1; i <= 28 && !day; i++) { const d = '2026-02-' + String(i).padStart(2, '0'); if (wxf(d) === 'mist') day = d; }
+  assert.ok(day, 'a mist day exists');
+  for (const viewport of [{ width: 1100, height: 900 }, { width: 360, height: 800 }, { width: 1920, height: 1080 }]) {
+    // reduced motion holds the knight still so his boots can be measured
+    const { page, ctx, errors } = await openApp({ viewport, seed: { ...RETURNING, s: { ...RETURNING.s, rm: 1 } }, before: p => p.clock.setFixedTime(new Date(day + 'T14:00:00')) });
+    await page.waitForSelector('.wl');
+    assert.equal(await page.getAttribute('[data-wx]', 'data-wx'), 'mist');
+    const r = await page.evaluate(() => { const k = document.querySelector('.kbd').getBoundingClientRect(); const m = document.querySelector('.v6mist').getBoundingClientRect(); return { boot: k.top + k.height * 210 / 216, top: m.top, wxBg: getComputedStyle(document.querySelector('.v6wx')).backgroundImage }; });
+    assert.ok(Math.abs(r.top - r.boot) <= 2, viewport.width + ': mist top ' + r.top + ' vs boot ' + r.boot);
+    assert.equal(r.wxBg, 'none', 'no full-screen mist overlay');
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  }
+});
+
 test('returning player: progress ribbon and one lantern per restored region; new player: none', async () => {
   let o = await openApp({ fresh: true });
   await o.page.waitForSelector('.wl');
