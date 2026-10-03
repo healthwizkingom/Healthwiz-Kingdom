@@ -17,6 +17,7 @@ take precedence over payload fields with the same name.
 
 * **Timing:** listeners run synchronously, right after the action that caused the event.
 * **Errors:** a listener that throws is logged with `console.error` and never breaks the app or other listeners.
+* **Loops:** a listener that keeps re-emitting is cut off after 5000 deliveries in one flush (logged with `console.error`).
 * **Order:** delivery is breadth-first, cause → effect. Logging water gives `entry:added` → `xp:gained`,
   then reactions to those (`insights:updated`, …), then `quest:completed` / `badge:unlocked` after the next render.
 
@@ -42,6 +43,7 @@ take precedence over payload fields with the same name.
 | `kingdom:state` | `key, name, from, to, up` | a log, edit or delete changes a region's state (`js/v6-kingdom.js`) |
 | `medius:said` | `kind, text` | Medius shows a speech bubble (`js/v6-medius.js`) |
 | `insights:updated` | `ids` (top 3) | insights recomputed after a data change (`js/v6-insights.js`) |
+| `title:interact` | `k` (castle, tower, village, falls) | a scene object on the title screen is tapped (`js/v6-title.js`) |
 | `insight:new` | `insight` | an insight newly reaches the top 3 after a log, edit or delete (never at boot) |
 
 Import, reset and the initial load update the award baselines **silently**, so badges and

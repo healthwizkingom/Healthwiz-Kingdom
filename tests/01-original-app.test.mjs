@@ -31,7 +31,7 @@ test('returning user: every page renders with no error card and no console error
   const { page, ctx, errors } = await openApp();
   for (const v of PAGES) {
     await go(page, v);
-    assert.equal(await page.$('.card.warn h3'), null, v + ' shows the safety error card');
+    assert.equal(await page.locator('.card.warn h3').count(), 0, v + ' shows the safety error card');
     assert.ok((await page.$eval('#main', e => e.innerHTML.length)) > 200, v + ' is empty');
   }
   assert.deepEqual(errors, []);

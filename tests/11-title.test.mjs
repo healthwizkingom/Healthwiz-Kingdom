@@ -30,7 +30,7 @@ test('weather is deterministic per date and covers all four kinds', async () => 
 test('returning player: progress ribbon and one lantern per restored region; new player: none', async () => {
   let o = await openApp({ fresh: true });
   await o.page.waitForSelector('.wl');
-  assert.equal(await o.page.$('.v6rib'), null);
+  assert.equal(await o.page.locator('.v6rib').count(), 0);
   assert.equal((await o.page.$$('.v6lan')).length, 0);
   await o.ctx.close();
   o = await openApp({ seed: { ...RETURNING, xp: 420, e: [entry('water', 250, 0), entry('pulse', 70, 1, { st: 'Resting' }), entry('sleep', 8, 0, { bed: '23:00', wake: '07:00' })] } });
@@ -60,12 +60,26 @@ test('entry transition plays briefly, then enters; reduced motion enters at once
   assert.ok(await o.page.$('.wl.v6go'), 'transition class applied');
   await o.page.waitForFunction(() => S.v === 'home', null, { timeout: 3000 });
   await o.ctx.close();
-  o = await openApp();
-  await o.page.emulateMedia({ reducedMotion: 'reduce' });
+  // Reduced motion from the first paint (set before the page loads, as for a real user).
+  o = await openApp({ before: p => p.emulateMedia({ reducedMotion: 'reduce' }) });
   await o.page.waitForSelector('.wl');
   await o.page.mouse.move(50, 50); await o.page.mouse.move(400, 300);
-  assert.equal(await o.page.$('.wl.v6px'), null, 'no parallax');
+  assert.equal(await o.page.locator('.wl.v6px').count(), 0, 'no parallax');
   await o.page.click('.wl .ct button:not(.v6set)');
   assert.equal(await o.page.evaluate(() => S.v), 'home', 'immediate');
   await o.ctx.close();
+});
+
+test('switching to reduced motion mid-session drops parallax already applied', async () => {
+  const { page, ctx, errors } = await openApp();
+  await page.waitForSelector('.wl');
+  await page.mouse.move(50, 50); await page.mouse.move(400, 300);
+  await page.waitForSelector('.wl.v6px');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.waitForFunction(() => !document.querySelector('.wl.v6px'), null, { timeout: 3000 });
+  await page.mouse.move(600, 500);
+  await page.waitForTimeout(100);
+  assert.equal(await page.locator('.wl.v6px').count(), 0);
+  assert.deepEqual(errors, []);
+  await ctx.close();
 });

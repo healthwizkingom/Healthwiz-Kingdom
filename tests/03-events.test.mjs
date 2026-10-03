@@ -127,3 +127,18 @@ test('import and reset: one bulk event each, no re-announced old badges or quest
   assert.deepEqual(errors, []);
   await ctx.close();
 });
+
+test('bus: a listener that re-emits its own event is cut off instead of freezing the page', async () => {
+  const { page, ctx, errors } = await openApp();
+  const r = await page.evaluate(() => {
+    let n = 0; const stop = HWEvents.on('t:loop', () => { n++; HWEvents.emit('t:loop'); });
+    HWEvents.emit('t:loop'); stop();
+    let ok = 0; HWEvents.on('t:after', () => ok++); HWEvents.emit('t:after');
+    return { n, ok };
+  });
+  assert.equal(r.n, 5000);
+  assert.equal(r.ok, 1, 'bus keeps working afterwards');
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /event loop detected/);
+  await ctx.close();
+});

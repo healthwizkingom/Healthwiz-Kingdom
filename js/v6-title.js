@@ -58,7 +58,10 @@ acts.tspot=(d,t,e)=>{const r=REACT[d.k];if(!r)return;const w=document.querySelec
   if(typeof sfx==='function')sfx({castle:784,tower:196,village:523,falls:659}[d.k],.12);HWEvents.emit('title:interact',{k:d.k})};
 
 /* parallax (pointer only, gentle) */
-let raf=0;document.addEventListener('pointermove',e=>{if(S.v!=='welcome'||reduced())return;if(raf)return;raf=requestAnimationFrame(()=>{raf=0;const w=document.querySelector('.wl');if(!w)return;w.classList.add('v6px');w.style.setProperty('--px',((e.clientX/innerWidth)-.5).toFixed(3));w.style.setProperty('--py',((e.clientY/innerHeight)-.5).toFixed(3))})});
+// If reduced motion is switched on mid-session, any parallax already applied is dropped.
+const still=()=>{const w=document.querySelector('.wl.v6px');if(w)w.classList.remove('v6px')};
+try{matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',q=>{if(q.matches)still()})}catch(e){}
+let raf=0;document.addEventListener('pointermove',e=>{if(S.v!=='welcome')return;if(reduced())return still();if(raf)return;raf=requestAnimationFrame(()=>{raf=0;if(reduced())return still();const w=document.querySelector('.wl');if(!w)return;w.classList.add('v6px');w.style.setProperty('--px',((e.clientX/innerWidth)-.5).toFixed(3));w.style.setProperty('--py',((e.clientY/innerHeight)-.5).toFixed(3))})});
 
 /* short transition when entering from the title screen */
 {const g=acts.go;acts.go=function(d,t,e){if(S.v==='welcome'&&d&&d.v!=='set'&&!reduced()){const w=document.querySelector('.wl');if(w&&!w.classList.contains('v6go')){w.classList.add('v6go');if(typeof sfx==='function')[392,523,659].forEach((f,i)=>setTimeout(()=>sfx(f,.08),i*90));setTimeout(()=>g.call(this,d,t,e),420);return}}return g.apply(this,arguments)}}
