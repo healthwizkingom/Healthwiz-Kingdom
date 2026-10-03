@@ -6,7 +6,7 @@
    * Offline (§74): sw.js keeps a copy of the whole app (network first, so online visits stay current). Logging, quests,
      XP, statistics, mini-games, the Kingdom, Medius's own lines and achievements already run in the browser with
      localStorage, so they all work offline. Only the Wizard's Counsel AI chat needs internet (it already has an offline
-     message). There is no cloud sync yet, so there is nothing to queue; step 22 adds that.
+     message). Cloud sync (js/v6-cloud.js) keeps unsynced changes and sends them when the device is back online.
    * Offline status (§87): a small OFFLINE badge while the device has no connection, saying logs are still saved.
    Only on the multi-file site served over https (or http://localhost). Opened from a file, or as the single-file
    standalone build, it adds nothing and loads nothing, since those already run without internet.

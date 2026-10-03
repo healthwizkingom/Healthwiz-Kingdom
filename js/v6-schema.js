@@ -65,4 +65,4 @@ from=m.from;const[o,fix]=sanitize(m.data,DEF);
 if(m.from<V||fix){stash(raw,fix?'repaired':'pre-v'+V);try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}if(fix)tell('🛠️ Some saved data was damaged and has been repaired. The original was kept as a backup copy on this device.')}
 return o}
 
-return{V,migrate,sanitize,load,get notice(){return notice},get migratedFrom(){return from}}})();
+return{V,migrate,sanitize,load,stash,get notice(){return notice},get migratedFrom(){return from}}})();

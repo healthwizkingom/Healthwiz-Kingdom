@@ -109,7 +109,7 @@ test('import and reset: one bulk event each, no re-announced old badges or quest
   const backup = { app: 'HealthWiz', data: { ...RETURNING, xp: 300, b: { 'First Sip': '2026-08-01' }, qx: { '2026-08-01:0': 1 },
     e: [{ id: 'w9', c: 'water', v: 500, m: {}, n: '', d: '2026-08-01', t: '09:00' }] } };
   await go(page, 'set');
-  await page.click('details summary').catch(() => {});
+  await page.click('#bkp details summary').catch(() => {});
   await page.fill('#imptx', JSON.stringify(backup));
   await page.click('[data-a="impt"]');
   await page.click('[data-a="impm"]');

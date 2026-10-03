@@ -56,7 +56,7 @@ E('quest:completed',e=>say(e.kind==='daily'?'quest-daily':'quest-big',e));
 E('badge:unlocked',e=>setTimeout(()=>say('badge',e),4600)); // after the original badge popup
 E('kingdom:state',e=>{if(e.up)say('kingdom',e)});
 E('insight:new',e=>{if(e.insight.tone==='notice'||e.insight.tone==='good')say('insight',e)});
-E('data:imported',()=>say('restored'));
+E('data:imported',e=>say(e.mode==='cloud'?'cloud':'restored'));
 E('entry:added',e=>{const c=e.entry.c;if(st.e.filter(x=>x.c===c).length===1)say('first',{c});else say('log',{c});
   try{const g=HWStreaks.gentle().days,M=md();[3,7,14,30,60,100].forEach(n=>{if(g===n&&!M.ms[n]){M.ms[n]=today();save();say('milestone',{days:n})}})}catch(err){}});
 E('app:ready',()=>{const ds=dys(),last=ds[ds.length-1],gap=last?Math.round((new Date(today()+'T12:00:00')-new Date(last+'T12:00:00'))/864e5):0,M=md();

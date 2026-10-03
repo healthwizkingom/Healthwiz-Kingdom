@@ -45,6 +45,8 @@ js/v6-grove.js             Calming Grove mini-game (follow a light over the pond
 js/v6-night.js             Night Watch mini-game (match star-chart constellations in the night sky)
 js/v6-gps.js               GPS check-in on the Stair Quest page (one reading on tap, nearest stairway, confirm, discovery)
 js/v6-pwa.js               install as an app + offline: manifest/icon links, service worker, offline badge, Settings card
+js/v6-cloud.js             optional Supabase cloud save: sign-in, sync with offline queue, three-way merge, Settings card
+supabase/migrations/       SQL for the cloud save table (Row Level Security) — run once in the Supabase project
 sw.js                      service worker: pre-caches the app, network first, works offline (keep PRECACHE in sync)
 manifest.webmanifest       web app manifest (name, colours, standalone display, icons)
 js/v6-safety.js            an error card instead of a blank screen
@@ -73,6 +75,21 @@ To change the data format, add a step to `STEPS` in `js/v6-schema.js`, raise `V`
 **Why the split:** the original was a 1 MB single file with five 57–250 KB lines of embedded
 images. Pasting it into GitHub cut it off at ~100 KB and left a blank site. No file here is
 larger than 64 KB.
+
+## Cloud save (optional)
+
+Without setup, HealthWiz stays local-only and makes no cloud requests. To let users sign in and sync between devices:
+
+1. Create a Supabase project and run `supabase/migrations/20261003000000_hw_cloud_save.sql` once (SQL editor).
+   It creates `hw_saves` (one private row per account, Row Level Security on) and `hw_delete_account()`.
+2. Put the project URL and its **publishable** key (`sb_publishable_…`, or the legacy anon key) in `CFG` at the top of
+   `js/v6-cloud.js`, or paste them in **Settings → Cloud Save → Connect a Supabase project**. The app refuses secret /
+   service_role keys; never commit one.
+3. In Supabase → Authentication → URL Configuration, add the site address (e.g. the GitHub Pages URL) to the redirect
+   URLs, so the email confirmation link brings users back signed in.
+
+Logs are always saved on the device first. Changes made offline wait and sync later; edits from two devices are merged
+(details in `docs/ARCHITECTURE_AUDIT.md` §26). The session is kept in `healthwiz_cloud`, never in the save or backups.
 
 ## Medius AI
 

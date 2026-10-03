@@ -611,3 +611,55 @@ file in `assets/` is missing from it, or when it lists a file that does not exis
 icon sizes, the file:// behaviour, and on a localhost server: the cached shell, a reload and a water log with the
 network off, a never-fetched image served offline, the badge and event, the install prompt used once, and a 360 px badge.
 128 tests in total.
+
+## 26. v6.19: cloud save with Supabase (§74–76, §79, §83, §88, §91, §97 step 22)
+
+`js/v6-cloud.js` (`HWCloud`) adds an optional cloud save. Until a project is configured and the user signs in, it makes
+no network request and the app stays local-only, exactly as before. No schema change: the cloud stores the same save
+the device keeps in `healthwiz` (schema 8), and the cloud's own state lives in separate keys.
+
+* *Server (§75, §91):* `supabase/migrations/20261003000000_hw_cloud_save.sql` creates `hw_saves` = one row per account
+  (`user_id`, `rev`, `sv`, `data` jsonb, `device`, timestamps) with Row Level Security (own row only, `authenticated`
+  role only, nothing for `anon`), shape and 4 MB size checks, a trigger that owns `rev` and the timestamps, and
+  `hw_delete_account()` (security definer, deletes only the caller). The app needs only the publishable key, and
+  refuses a pasted `sb_secret_…` or service_role key. No library: Supabase Auth and PostgREST are called with `fetch`.
+* *Accounts (§75, §79):* email + password. Sign-up with email confirmation returns through the address hash, which is
+  read once and removed. Access tokens are refreshed; a refused refresh signs out and keeps all data. The session is in
+  `healthwiz_cloud`, never in `healthwiz` or backups. Settings → CLOUD SAVE (above App & Offline): connect a project,
+  sign in / create account, status, SYNC NOW, SIGN OUT, and under *Manage cloud data* DELETE CLOUD SAVE and DELETE
+  ACCOUNT (two taps each; the device keeps its data). The card says health data goes only to the user's own save.
+* *When it syncs:* when the app opens, 4 s after a change, every 30 s if something changed, every 5 min while visible,
+  when the device comes back online, when the app comes back to the front and when it is hidden.
+* *Offline queue (§74):* logs are always saved locally first. The copy from the last good sync is kept in
+  `healthwiz_cloud_base`; whatever differs from it is the queue, and is sent on the next sync. The card shows
+  *Offline… will sync when you are back online* / *Changes waiting to sync* / *Synced n min ago*.
+* *Conflicts (§76):* every write is `PATCH …&rev=eq.<n>`, so a write based on an old copy changes no row; the app then
+  reads again, merges, and retries (3 tries). The merge is three-way against the base copy:
+  entries by id (adds from both kept; a delete on one side carried over; an edit on one side carried over; edited on
+  one side and deleted on the other → kept; edited on both → this device), counters added (`xp`, `xd`, `mg.n`, `xl`:
+  gains from both devices count once each), other values (targets, profile, badges, quests…) take the side that
+  changed (this device if both did), lists (game history, Medius memory) are joined.
+* *First sign-in on a device (§76):* an empty device just takes the cloud save; a device with data while the account
+  also has a cloud save shows CLOUD vs THIS DEVICE (entries, XP, when and from which device) with MERGE BOTH
+  (recommended; XP takes the larger side, since the two have no shared history), USE CLOUD SAVE or KEEP THIS DEVICE.
+  Automatic syncs wait for the choice.
+* *No silent loss (§76):* before a sync drops entries from this device, or writes a cloud save with fewer entries than
+  the one it replaces, the replaced copy is stored as `healthwiz_backup_cloud_<time>` (same rotation as the schema
+  backups: newest 3). RESET on a signed-in device signs it out and leaves the cloud save alone; restoring a backup
+  with REPLACE starts the first-sign-in choice again instead of deleting cloud entries.
+* *Validation (§83, §88):* cloud data goes through `HWSchema.migrate` + `sanitize` like a backup. Data from a newer app
+  version or a damaged save is refused and nothing changes on either side. Every error says what happened, that
+  nothing on the device was lost, and what to do (SYNC NOW, sign in again, run the setup SQL…).
+* *Other:* a pull that changes the device emits `data:imported {mode:'cloud'}`, so insights, the Kingdom, GPS and an
+  open mini-game refresh as after a restore; Medius gets a one-line `cloud` reaction (30 min cooldown) instead of the
+  restore line. `sw.js` never touches Supabase requests. `HWSchema.stash` is now exported for the backups above.
+* *Events:* `cloud:signed-in`, `cloud:signed-out {why}`, `cloud:synced {how, rev}`, `cloud:choose`, `cloud:error {code}`.
+* *Not in this step:* leaderboard and public profiles (step 23); password reset by email.
+
+Tests: `tests/21-cloud.test.mjs` and `tests/22-cloud-sync.test.mjs`, against a fake Supabase in `tests/cloud-fake.mjs`
+that applies the same `rev` and RLS rules. They cover: no requests before sign-in, refused secret keys, sign-up and
+first upload, no tokens in the save or backups, two devices with concurrent adds, deletes and XP, a lost write race,
+the first-sign-in choice and its backup copy, offline queue and unreachable cloud, newer / damaged / older cloud data,
+reset and two-tap deletes, the merge rules, email confirmation, token refresh and expiry, and a 360 px layout.
+The SQL was also run twice against a local PostgreSQL 16 with a stub `auth` schema: rev is set by the server, a stale
+write updates no row, RLS hides other accounts, `anon` has no access, and `hw_delete_account()` removes the save. 136 tests in total.
