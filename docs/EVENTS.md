@@ -61,6 +61,7 @@ take precedence over payload fields with the same name.
 | `board:joined` | — | the player joined the Hall of Heroes leaderboard (`js/v6-board.js`) |
 | `board:left` | — | the player left the leaderboard; the server entry was removed |
 | `board:updated` | `hidden` | the player hid or showed their hero name |
+| `storage:failed` | `bytes` | the save could not be written to this device's storage (full or blocked), even after freeing superseded pre-upgrade copies; the user is told and the data stays in the open tab (`js/hw-02-core.js`) |
 
 Import, reset and the initial load update the award baselines **silently**, so badges and
 quests that already existed are never announced as new.

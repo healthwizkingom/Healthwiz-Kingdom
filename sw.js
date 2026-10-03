@@ -10,7 +10,7 @@
    Saved health data is in localStorage and never passes through here.
 
    Keep PRECACHE in sync with index.html and assets/: tests/20-pwa.test.mjs fails when a file is missing. */
-const CACHE = 'hwk-shell-v1', FONTS = 'hwk-fonts-v1', WAIT = 4000;
+const CACHE = 'hwk-shell-v2', FONTS = 'hwk-fonts-v1', WAIT = 4000;
 const PRECACHE = [
   './', 'index.html', 'manifest.webmanifest',
   'js/hw-01-menu-data.js', 'js/v6-schema.js', 'js/hw-02-core.js', 'js/hw-03-part.js', 'js/hw-04-part.js',
@@ -21,8 +21,8 @@ const PRECACHE = [
   'js/v6-cloud.js', 'js/v6-board.js', 'js/v6-safety.js', 'js/hw-07-boot.js',
   'assets/img/avatar-kg.webp', 'assets/img/avatar-kgf.webp', 'assets/img/avatar-kn.webp', 'assets/img/avatar-knf.webp',
   'assets/img/avatar-sk.webp', 'assets/img/avatar-wz.webp', 'assets/img/avatar-wzf.webp', 'assets/img/bedimg.jpg',
-  'assets/img/kn.png', 'assets/img/knight-kbd.png', 'assets/img/knight-kcp.png', 'assets/img/knight-khr.png',
-  'assets/img/orc.png', 'assets/img/study.jpg', 'assets/img/wiz.png',
+  'assets/img/kn.webp', 'assets/img/knight-kbd.webp', 'assets/img/knight-kcp.webp', 'assets/img/knight-khr.webp',
+  'assets/img/orc.webp', 'assets/img/study.jpg', 'assets/img/wiz.webp',
   'assets/icons/icon-32.png', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png',
   'assets/icons/icon-maskable-512.png', 'assets/icons/apple-touch-icon.png',
 ];

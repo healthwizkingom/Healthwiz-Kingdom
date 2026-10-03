@@ -710,3 +710,85 @@ with two taps, the joined state found again on a new device, sign-out, offline, 
 and a 360 px layout. The SQL was run twice against a local PostgreSQL 16 with a stub `auth` schema: direct inserts and
 updates are refused, XP and badges come from `hw_saves`, out-of-range values are clamped, hidden names are masked for
 others, `anon` cannot read or call anything, and deleting the user removes the row. 141 tests in total.
+
+## 28. v6.21: optimisation (§92, §65–67, §88, §97 step 24)
+
+Measured first, with a Playwright profiler (CPU profiles, `Performance.getMetrics`, storage-write and timer counters), on an
+empty save and on a busy year of logs (≈5,000 entries, a 590 KB save: `yearOfLogs()` in `tests/helpers.mjs`). With an
+empty save everything was already fast (1–4 ms per page). With a long history it was not: every page took 50–145 ms to
+draw on a desktop CPU (several times that on a phone), and three quarters of it was the badge check scanning every entry
+for every badge on every draw. Results (desktop Chromium, year of logs):
+
+| | before | after |
+|---|---|---|
+| Draw Home / slowest other page / most pages | 144 / 110 / 51–100 ms | 11 / 7 / 2–5 ms |
+| Log a pulse and redraw | 137 ms | 8 ms |
+| Log water (tap → well animation starts) | 35 ms, 2 storage writes | 3 ms + 1 write (≈6 ms) |
+| Storage writes per action (entry + XP + badge + quest) | 2–5 × the whole save | 1 |
+| Main-thread work while idle on Home, 390×844 phone | 83 ms/s | 10 ms/s |
+| The six PNG artworks | 354 KB | 179 KB (lossless WebP, same pixels) |
+| 60 navigations: listeners / DOM nodes / timers | flat | flat (now guarded by a test) |
+
+* *Entry index (`js/hw-02-core.js`):* `A(category, day)` filtered all entries on each call, and a page makes thousands of
+  calls. `IX()` groups entries by category and day once per synchronous run (one render, one action) and is rebuilt when
+  `st.e`, its length or `SV` (every `save()`) changes, then dropped at the end of the run, so it can never serve stale
+  data. `A`, `ALL`, `LC`, `dys`, `cnt`, `tot` and the last-n-days lists (`rng`) use it; callers still get fresh arrays in the
+  original order. A test compares every answer with a full scan, including edits in the same run.
+* *Badges:* `chkB()` no longer re-evaluates badges already earned (same awards, same order).
+* *One write per action:* `save()` still counts every call in `SV`, but writes `localStorage` once, at the end of the
+  synchronous run, before the browser handles anything else (so nothing can be lost in between).
+* *Storage full or blocked (§88):* the original silently kept data only in memory. Now the write is retried after removing
+  the superseded `healthwiz_backup_pre-v…` copies (their entries are all in the current save); if it still fails, a toast says
+  the change is not saved on this device, stays in the open tab, and to download a backup now (at most every 2 minutes),
+  and `storage:failed` is emitted. Other safety copies (cloud, unreadable, newer) are never removed.
+* *Battery (§92, §66):* looping scenery in a part of the page scrolled more than 200 px out of view is paused
+  (`.hw-off`, one IntersectionObserver over the page's top-level cards, the same CSS rule as the hidden-tab pause). Position is
+  compared directly, because the page-enter wipe briefly clips the page. Nothing visible changes; on Home the kingdom map's
+  52 animations were running below the fold. Idle pages run no `requestAnimationFrame` loop (tested).
+* *Assets:* `wiz`, `kn`, `knight-kbd/kcp/khr` and `orc` are lossless WebP (every visible pixel identical, checked with
+  Pillow, with Chromium canvas reads at 1×, 0.37× and 2.6×, and with full-page screenshots before/after). WebP works on every
+  target browser (Safari 14+). `sw.js` cache is now `hwk-shell-v2`, so installed copies drop the old PNGs.
+  Re-running `tools/import-original.mjs` would bring the PNGs back (it already overwrites later edits, see its header).
+* *Checked and left as is:* first load (≈330 ms to DOMContentLoaded from a cold local file; 33 small scripts, served by the
+  service worker afterwards), renders per action (one), cloud and leaderboard requests (already throttled, none while signed
+  out), the title scene (≈3,000 SVG nodes, ≈580 CSS animations; its cost is what step 13's Performance mode already reduces:
+  ≈470 → ≈230 ms/s of main-thread work in headless software rendering).
+
+Tests: `tests/24-performance.test.mjs` (page budgets with a year of logs, the index against full scans, one write per action
+and a reload, storage full with and without freeable copies, off-screen pause and no idle frame loop, no leaks over 60
+navigations, image formats and sizes). `tests/20-pwa.test.mjs` follows the new file names and cache. 148 tests in total.
+
+## 29. v6.22: the test matrix (§77, §81–82, §93–96, §97 step 25)
+
+Three new test files cover what the matrix in §93–96 asks for and the earlier per-feature tests did not; `docs/TESTING.md`
+maps every item to its test and lists what still needs real devices.
+
+* `tests/25-matrix.test.mjs`: every page at the seven §82 sizes (360×800 to 1920×1080) with a busy save and a 20-character
+  name: no overflow, no error card, bottom navigation on phones (nothing hidden under it), side navigation on wider screens, a
+  centred column on large displays; rotation and an open keyboard; both themes (device default, saved choice, every page,
+  text contrast); touch (taps, swipes, edit/delete/undo, every control ≥ 24×24 px); keyboard (Tab order, focus ring, dialogs);
+  long text; safe-area insets; window resizing.
+* `tests/26-journey.test.mjs`: no broken references (handlers, page links, images, asset paths) on every page, onboarding
+  step, dialog and game; a new player's first day on a phone end to end (registry, tutorial skip, every log type, edit, delete,
+  undo, every page, every game, settings, backup, reload) with zero console errors; an old v5.4.3 save on every page; all five
+  mini-games opened by tap and keyboard, closed by ✕ and Escape, restarted, with no timer or frame loop left; and the code's
+  JavaScript level (ES2018, no newer APIs: Safari 12+, Chrome 64+, Firefox 78+, Samsung Internet 9+).
+
+Found by these tests and fixed:
+* **SKIP TUTORIAL did not work by mouse or touch.** The shared pressed style (`button:active{transform:translate(2px,2px)}`)
+  replaced the button's centring transform, so it jumped half its width away under the pointer and the click landed on the
+  overlay ("next step"). `.tsk:active` now keeps the centring (`js/v6-ui.js`).
+* **Title screen in landscape:** the scene's 540 px minimum height pushed START below a landscape phone's screen. Short
+  landscape screens now use their own height, with the title text capped by height (`js/v6-title.js`), down to 568×320.
+* **Long unbroken notes or food names** widened the Food page by 878 px on a phone; entry rows now wrap them.
+* **The edit dialog** (shared `#mo`, also the region panel) did not scroll, so SAVE could be off screen in landscape or with
+  the keyboard open; it now scrolls. It is now labelled as a dialog, takes focus, keeps Tab inside, closes on Escape and
+  returns focus to the button that opened it (§81).
+* **The THEME choice was forgotten on reload;** it is now saved (`st.s.theme`, optional, no schema step; missing = follow
+  the device as before).
+* **The mini-game ✕** (the way out) is now at least 40×40 px on touch screens (was 27×32).
+
+Known and left for the team: two original colour pairs are just under WCAG AA 4.5:1 — muted text on the darker parchment
+(`--mut` on `--p2`, 4.45:1, light theme) and white on the violet badge chip (4.37:1). Body text is 8.9–15:1 everywhere.
+Only Chromium is available here; the Safari, Firefox and Samsung Internet checks in `docs/TESTING.md` need real devices.
+167 tests in total.
