@@ -25,7 +25,7 @@ test('schema v7 adds mini-game state to older saves', async () => {
   const { page, ctx, errors } = await openApp({ seed: { ...RETURNING, sv: 6, mg: undefined } });
   await page.waitForSelector('.wl');
   const s = await state(page);
-  assert.equal(s.sv, 7);
+  assert.equal(s.sv, await page.evaluate(() => HWSchema.V));
   assert.deepEqual(s.mg, { xp: {}, n: {}, h: [], c: {} });
   assert.deepEqual(errors, []);
   await ctx.close();

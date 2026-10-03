@@ -48,6 +48,7 @@ take precedence over payload fields with the same name.
 | `motion:changed` | `level, reduced, enabled, choice` | the effective animation level changes: a settings choice, the device's reduced-motion setting, or Auto downgrading after its frame probe (`js/v6-motion.js`) |
 | `game:started` | `id, name` | a mini-game opens (`js/v6-games.js`) |
 | `game:completed` | `id, name, xp, ok, result, found` | a mini-game reaches its result card. `xp` is 0 for replays the same day; `found` names a new discovery |
+| `activity:checkin` | `sid, name, cat, first` | a GPS check-in at a stairway is confirmed (`js/v6-gps.js`); `first` = first GPS check-in there (a discovery) |
 | `game:cancelled` | `id, name, seconds` | a mini-game is left before finishing (✕, Escape, navigation, reset or import) |
 
 Import, reset and the initial load update the award baselines **silently**, so badges and

@@ -42,6 +42,7 @@ js/v6-food.js              Market Kitchen mini-game (pick foods from stalls, coo
 js/v6-trail.js             Adventure Trail mini-game (follow trail blazes at forks, climb the stairs in rhythm)
 js/v6-grove.js             Calming Grove mini-game (follow a light over the pond as it grows and shrinks with your breath)
 js/v6-night.js             Night Watch mini-game (match star-chart constellations in the night sky)
+js/v6-gps.js               GPS check-in on the Stair Quest page (one reading on tap, nearest stairway, confirm, discovery)
 js/v6-safety.js            an error card instead of a blank screen
 assets/img/                the 15 images that were embedded as base64 in the original
 legacy/HealthWiz_Kingdom_5-4-3.html   the complete original single file (source of truth)
@@ -57,7 +58,7 @@ no original function, constant, page or action has been removed.
 
 ## Saved data and versions
 
-Saved data carries a schema version (`sv`, currently **7**). On load, `js/v6-schema.js` upgrades
+Saved data carries a schema version (`sv`, currently **8**). On load, `js/v6-schema.js` upgrades
 older data step by step, and restored backups go through the same steps. Before anything is
 upgraded, repaired or discarded, the raw stored text is copied to a `healthwiz_backup_<reason>_<time>`
 key (the newest 3 are kept). If data was saved by a newer app version, it is left as it is.
