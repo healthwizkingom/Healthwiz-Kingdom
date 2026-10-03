@@ -56,5 +56,7 @@ wrapAct('impm',(o,d,t,e)=>{const n0=st.e.length,had=!!S.imp;E.hush(()=>o(d,t,e))
 wrapAct('impr',(o,d,t,e)=>{const s0=st;E.hush(()=>o(d,t,e));snap();if(st!==s0)E.emit('data:imported',{mode:'replace',added:st.e.length,total:st.e.length})});
 wrapAct('rst',(o,d,t,e)=>{const s0=st;E.hush(()=>o(d,t,e));snap();if(st!==s0)E.emit('data:reset',{})});
 
-// after boot: report migration (if any) and readiness
-setTimeout(()=>{if(HWSchema.migratedFrom&&HWSchema.migratedFrom<HWSchema.V)E.emit('data:migrated',{from:HWSchema.migratedFrom,to:HWSchema.V});E.emit('app:ready',{view:S.v,entries:st.e.length,xp:st.xp,schema:st.sv})},0)}
+// after boot: report migration (if any) and readiness. Wait for DOMContentLoaded (every script has run, incl. boot's
+// first render): a bare timer can fire between two script files, before later add-ons (insights, Medius…) subscribe.
+const ready=()=>setTimeout(()=>{if(HWSchema.migratedFrom&&HWSchema.migratedFrom<HWSchema.V)E.emit('data:migrated',{from:HWSchema.migratedFrom,to:HWSchema.V});E.emit('app:ready',{view:S.v,entries:st.e.length,xp:st.xp,schema:st.sv})},0);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready()}

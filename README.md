@@ -39,6 +39,9 @@ js/v6-title.js             title screen: time of day, weather, returning-player 
 js/v6-games.js             mini-game framework: scene, HUD, character, timers, rewards, completion
 js/v6-water.js             Well Garden mini-game + living well scene (scenery by well stage, ripples, discoveries)
 js/v6-food.js              Market Kitchen mini-game (pick foods from stalls, cook, build a balanced plate)
+js/v6-trail.js             Adventure Trail mini-game (follow trail blazes at forks, climb the stairs in rhythm)
+js/v6-grove.js             Calming Grove mini-game (follow a light over the pond as it grows and shrinks with your breath)
+js/v6-night.js             Night Watch mini-game (match star-chart constellations in the night sky)
 js/v6-safety.js            an error card instead of a blank screen
 assets/img/                the 15 images that were embedded as base64 in the original
 legacy/HealthWiz_Kingdom_5-4-3.html   the complete original single file (source of truth)

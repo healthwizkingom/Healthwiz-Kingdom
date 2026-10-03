@@ -483,3 +483,61 @@ XP once and no food logged, swapping and labelled stalls, the square by region s
 
 Also: the title screen's mist (§15) is drawn inside the scene below the knight's boots instead of as a full-screen
 overlay, so it no longer covers the knight; `tests/11-title.test.mjs` checks the boot line at three screen sizes. 108 tests in total.
+
+## 23. v6.16: activity, stress and sleep mini-games (§52–57, §68, §84–85, §97 steps 17–19)
+
+Each region game now exists. All three use the mini-game framework (§20) for the scene, HUD, hero, timers, particles,
+sound, XP (10, once a day) and the result card. None of them logs health data, and each says so in its note. Each
+first daily completion unlocks the next of five discoveries (four decorations, then a piece of lore), shown in the game's
+scene. Each scene follows its region's state, which counts *days logged*, never amounts. Class names are prefixed
+(`v6t…`, `v6o…`, `v6n…`) because the original stylesheet already styles generic names such as `.orb`, `.sky` and `.bg`.
+
+**Adventure Trail** (`js/v6-trail.js`, `HWTrail`, Stair Quest page, §52–53). A top-down trail: forest, a river bridge, a
+hill and a short stone stairway to a lookout, with four checkpoints.
+* *Navigation:* at three forks, three posts carry trail blazes (shape, colour and name, never colour alone). Follow
+  today's blaze by tapping a post, a button, ← ↑ → or 1–3. A wrong path loops back to the sign and is marked
+  "leads back here". There is no penalty; the result card calls it a friendly detour.
+* *Rhythm:* tap STEP UP (or ↑) eight times to climb the stairs. A lantern glows on a slow beat, and a step taken with it
+  shows "In step!". Any pace works and nothing is timed. Under reduced motion there is no beat ("step when ready").
+* *World:* Ruined has a missing bridge plank, a broken rail, a fallen log and bare trees. Later states add sprouts,
+  checkpoint flags, hikers and flowers. Discoveries: signposts, butterflies, a hilltop bench, stair lanterns, lore.
+* *State:* `st.mg.c.trail` = `{f, r: trails walked}`.
+
+**Calming Grove** (`js/v6-grove.js`, `HWGrove`, Stress page, §54–55). The original Storm Within check-in and its tools
+are unchanged. Added: a pond at dusk with trees, a moon and its reflection, fireflies and slow drifting motes.
+* *Breathing:* a soft light over the pond grows on the in-breath and shrinks on the out-breath, with a countdown.
+  You can choose a pace (Gentle: in 4, out 6; or Even: in 4, out 4) and a length (3, 5 or 8 breaths). Pause/Resume and
+  End here are always available. Each breath opens a water lily, sends a ripple across the pond and wakes a firefly.
+* *No pressure:* no score and no streak. Ending early still counts, and the XP needs only one breath. Ending before the
+  first breath shows a kind card with no XP. The result never comments on how the player feels. It points to the real
+  check-in, and the note suggests talking to someone you trust or a qualified professional.
+* *World:* Ruined is a murky pond with heavy mist and bare trees. The mist thins as the region recovers, and reeds,
+  fireflies, a deer and flowers appear. Discoveries: water lilies, an owl, a wind chime, stepping stones, lore.
+* *Motion:* under reduced motion the light stays still and shows only the countdown, with no motes or ripples.
+* *State:* `st.mg.c.grove` = `{f, b: breaths, s: sessions}`.
+
+**Night Watch** (`js/v6-night.js`, `HWNight`, Sleep page, §56–57). A night over the village: moon, stars, clouds,
+rooftops, lanterns and fireflies.
+* *Observation:* a star chart shows a constellation (its shape, name and a plain description). The sky holds three
+  star groups. Find the matching one by tapping it or pressing 1–3. Each group's label carries the same kind of
+  description, so the game also works with a screen reader. A wrong group just dims. There is no timer and no fast
+  reaction.
+* *Memory and exploration:* there are seven original constellations. A watch has three, and charts favour ones not
+  charted yet. A found constellation draws its lines, reveals its name and lights a village lantern. The result card
+  shows a line of its lore and the star atlas (n of 7).
+* *World:* Ruined has clouds low over the village and dark windows. Later states clear the clouds and light the
+  windows, then add fireflies and night flowers. Discoveries: an owl, a telescope, a moon garden, sheep, lore. The
+  note says the stars are not a sleep measurement, and that a short, quiet play is kindest near bedtime.
+* *State:* `st.mg.c.night` = `{f, w: watches, n: [constellations charted]}`.
+
+None of the games needs a schema step. Their records live in the existing mini-game record (`st.mg.c`). Medius already
+had a line for each of them (§20). The Kingdom Games hub and the Statistics card now list all five region games.
+
+Tests: `tests/16-trail.test.mjs`, `tests/17-grove.test.mjs`, `tests/18-night.test.mjs`. They cover a full keyboard game with
+XP once a day and no health data logged, the wrong-choice behaviour, labelled controls, scenery by region state, pause
+and early ending (grove), atlas variety (night), and a reduced-motion run at 360 px. 119 tests in total.
+
+Also fixed: `app:ready` was emitted from a zero-delay timer set by `js/v6-events.js`. The browser may run that timer
+between two script files, before later add-ons (insights, Medius…) have subscribed. When it did, the day's first
+insights and the Medius greeting were silently skipped, which made `tests/08-medius.test.mjs` fail now and then. It
+now waits for `DOMContentLoaded`, which comes after every script and the first render, as `docs/EVENTS.md` describes.
