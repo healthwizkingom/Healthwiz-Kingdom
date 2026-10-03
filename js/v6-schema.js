@@ -35,7 +35,7 @@ if(!(+o.xp>=0)){o.xp=0;fix++}else o.xp=+o.xp;return[o,fix]}
 
 function stash(raw,why){try{localStorage.setItem(BK+why+'_'+Date.now(),raw);
   const ks=Object.keys(localStorage).filter(k=>k.startsWith(BK)).sort();ks.slice(0,Math.max(0,ks.length-KEEP)).forEach(k=>localStorage.removeItem(k))}catch(e){}}
-let notice='';const tell=m=>{notice=m;setTimeout(()=>{if(typeof toast==='function')toast(m)},900)};
+let notice='',from=0;const tell=m=>{notice=m;setTimeout(()=>{if(typeof toast==='function')toast(m)},900)};
 
 /** Reads, migrates and repairs the stored state. Replaces the original `JSON.parse` + `Object.assign(DEF(), st)`. */
 function load(DEF){let raw=null;try{raw=localStorage.getItem(KEY)}catch(e){}
@@ -44,8 +44,8 @@ let d;try{d=JSON.parse(raw)}catch(e){d=undefined}
 if(!isObj(d)){stash(raw,'unreadable');tell('⚠️ Saved data could not be read, so HealthWiz started fresh. A copy was kept on this device (healthwiz_backup_…).');return DEF()}
 const m=migrate(d);
 if(m.err){stash(raw,'newer');tell('⚠️ '+m.err+' A copy of your data was kept on this device.');return sanitize(d,DEF)[0]}
-const[o,fix]=sanitize(m.data,DEF);
+from=m.from;const[o,fix]=sanitize(m.data,DEF);
 if(m.from<V||fix){stash(raw,fix?'repaired':'pre-v'+V);try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}if(fix)tell('🛠️ Some saved data was damaged and has been repaired. The original was kept as a backup copy on this device.')}
 return o}
 
-return{V,migrate,sanitize,load,get notice(){return notice}}})();
+return{V,migrate,sanitize,load,get notice(){return notice},get migratedFrom(){return from}}})();
