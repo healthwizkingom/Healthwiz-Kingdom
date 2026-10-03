@@ -77,6 +77,7 @@ const bkJSON=()=>JSON.stringify({app:'HealthWiz',ver:'5.3',exported:new Date().t
 acts.expj=()=>{try{const b=new Blob([bkJSON()],{type:'application/json'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='healthwiz-backup-'+today()+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);st.s.bk=today();save();toast('💾 Backup downloaded');render()}catch(e){acts.exp()}};
 function impParse(txt){let o;try{o=JSON.parse(txt)}catch(e){return 'That is not valid JSON. Check that the whole backup was copied.'}
 if(o&&o.app==='HealthWiz'&&o.data)o=o.data;if(!o||typeof o!=='object'||!Array.isArray(o.e))return 'This does not look like a HealthWiz backup (no entry list found).';
+const mg=HWSchema.migrate(o);if(mg.err)return mg.err;o=mg.data; // v6: upgrade older backups
 const C=['food','water','sleep','pulse','stair','stress','bmi'],D=DEF(),ok=[];
 o.e.forEach((x,i)=>{if(x&&C.includes(x.c)&&/^\d{4}-\d{2}-\d{2}$/.test(x.d)&&x.v!==''&&x.v!=null&&isFinite(+x.v))ok.push({id:String(x.id||('i'+Date.now()+i)),c:x.c,v:+x.v,m:x.m&&typeof x.m==='object'?x.m:{},n:String(x.n||''),d:x.d,t:/^\d{2}:\d{2}$/.test(x.t)?x.t:'12:00'})});
 const n=Object.assign(D,o,{e:ok,s:Object.assign(D.s,o.s&&typeof o.s==='object'?o.s:{}),p:Object.assign(D.p,o.p&&typeof o.p==='object'?o.p:{}),xp:Math.max(0,+o.xp||0)});
