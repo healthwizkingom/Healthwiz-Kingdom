@@ -43,8 +43,8 @@ HWUI.css('kingdom',`.kn.kf .ki{filter:drop-shadow(0 0 6px #ff9be0) drop-shadow(0
 {const k=kmap;kmap=function(mini){let h=k.apply(this,arguments);all().forEach(x=>{if(x.flourish)h=h.replace('class="kn k3" style="left:'+KR[x.i][5]+'%','class="kn k3 kf" style="left:'+KR[x.i][5]+'%')});return h}}
 
 /* events: announce state changes caused by logging */
-let last=null;const snap=()=>all().map(x=>x.lv);
-HWEvents.on('app:ready',()=>{last=snap()});
-['entry:added','entry:deleted','entry:restored','entry:edited','energy:rated'].forEach(t=>HWEvents.on(t,()=>{if(!last)last=snap();const now=snap();now.forEach((lv,i)=>{if(lv!==last[i])HWEvents.emit('kingdom:state',{key:KR[i][0],name:KR[i][2],from:NAMES[last[i]],to:NAMES[lv],up:lv>last[i]})});last=now}));
+// baseline taken now (saved data is already loaded), not on app:ready — a log before app:ready would otherwise be missed
+const snap=()=>all().map(x=>x.lv);let last=snap();
+['entry:added','entry:deleted','entry:restored','entry:edited','energy:rated'].forEach(t=>HWEvents.on(t,()=>{const now=snap();now.forEach((lv,i)=>{if(lv!==last[i])HWEvents.emit('kingdom:state',{key:KR[i][0],name:KR[i][2],from:NAMES[last[i]],to:NAMES[lv],up:lv>last[i]})});last=now}));
 ['data:imported','data:reset'].forEach(t=>HWEvents.on(t,()=>{last=snap()}));
 return{NAMES,level,info,all,panel}})();
