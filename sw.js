@@ -18,7 +18,7 @@ const PRECACHE = [
   'js/v6-particles.js', 'js/v6-insights.js', 'js/v6-quests.js', 'js/v6-streaks.js', 'js/v6-xp.js', 'js/v6-kingdom.js',
   'js/v6-medius.js', 'js/v6-charts.js', 'js/v6-world.js', 'js/v6-title.js', 'js/v6-games.js', 'js/v6-water.js',
   'js/v6-food.js', 'js/v6-trail.js', 'js/v6-grove.js', 'js/v6-night.js', 'js/v6-gps.js', 'js/v6-pwa.js',
-  'js/v6-cloud.js', 'js/v6-safety.js', 'js/hw-07-boot.js',
+  'js/v6-cloud.js', 'js/v6-board.js', 'js/v6-safety.js', 'js/hw-07-boot.js',
   'assets/img/avatar-kg.webp', 'assets/img/avatar-kgf.webp', 'assets/img/avatar-kn.webp', 'assets/img/avatar-knf.webp',
   'assets/img/avatar-sk.webp', 'assets/img/avatar-wz.webp', 'assets/img/avatar-wzf.webp', 'assets/img/bedimg.jpg',
   'assets/img/kn.png', 'assets/img/knight-kbd.png', 'assets/img/knight-kcp.png', 'assets/img/knight-khr.png',

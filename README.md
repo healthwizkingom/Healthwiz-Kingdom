@@ -46,7 +46,8 @@ js/v6-night.js             Night Watch mini-game (match star-chart constellation
 js/v6-gps.js               GPS check-in on the Stair Quest page (one reading on tap, nearest stairway, confirm, discovery)
 js/v6-pwa.js               install as an app + offline: manifest/icon links, service worker, offline badge, Settings card
 js/v6-cloud.js             optional Supabase cloud save: sign-in, sync with offline queue, three-way merge, Settings card
-supabase/migrations/       SQL for the cloud save table (Row Level Security) — run once in the Supabase project
+js/v6-board.js             Hall of Heroes: opt-in leaderboard of game progress only (Quest Board card + Settings privacy card)
+supabase/migrations/       SQL for the cloud save and the leaderboard (Row Level Security) — run each file once in the Supabase project
 sw.js                      service worker: pre-caches the app, network first, works offline (keep PRECACHE in sync)
 manifest.webmanifest       web app manifest (name, colours, standalone display, icons)
 js/v6-safety.js            an error card instead of a blank screen
@@ -86,6 +87,8 @@ between devices (Settings → Cloud Save).
   design; Row Level Security keeps every save private. The app refuses secret / service_role keys; never commit one.
 * Database: `supabase/migrations/20261003000000_hw_cloud_save.sql` (table `hw_saves`, RLS policies, `rev` trigger,
   `hw_delete_account()`). It must have been run once in the project (SQL editor, or `supabase db push`).
+* Leaderboard: `supabase/migrations/20261004000000_hw_leaderboard.sql` (table `hw_board`, written only by
+  `hw_board_publish()` and read only through `hw_board_top()`). Run it after the cloud-save SQL.
 * Auth → URL Configuration: set the Site URL / redirect URLs to the GitHub Pages address, so the email confirmation link
   brings users back signed in.
 * Free plan limits: 500 MB database, 50,000 monthly active users, and a project paused after 7 days without activity

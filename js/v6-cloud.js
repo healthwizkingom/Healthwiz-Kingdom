@@ -259,4 +259,6 @@ acts.clacct=async()=>{if(arm!=='acct'){arm='acct';return paint()}arm='';
 D.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target&&e.target.id==='clpw'){e.preventDefault();acts.clin()}});
 HWEvents.on('cloud:choose',()=>{paint();if(S.v!=='set')toast('☁️ This account already has a cloud save. Choose how to combine it in Settings → Cloud Save.')});
 
-return{card,sync,merge,checkProject,status:()=>({configured:configured(),signed:signed(),phase,rev:C.rev==null?null:C.rev,last:C.last||null,choose:!!C.choose,error:lastErr,pending:signed()&&J(st)!==base()})}})();
+// for js/v6-board.js: signed-in requests to the same project (errors carry .code like http())
+const api=(path,o)=>http(path,o),who=()=>signed()?C.ses.uid:null;
+return{card,sync,merge,checkProject,api,who,status:()=>({configured:configured(),signed:signed(),phase,rev:C.rev==null?null:C.rev,last:C.last||null,choose:!!C.choose,error:lastErr,pending:signed()&&J(st)!==base()})}})();
