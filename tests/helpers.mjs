@@ -30,6 +30,8 @@ export async function closeBrowser() {
 export async function openApp({ seed, viewport } = {}) {
   const b = await getBrowser();
   const ctx = await b.newContext({ viewport: viewport || { width: 1100, height: 900 } });
+  // Tests run offline: stub the only external resource (Google Fonts stylesheet).
+  await ctx.route(/^https?:/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
