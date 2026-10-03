@@ -541,3 +541,32 @@ Also fixed: `app:ready` was emitted from a zero-delay timer set by `js/v6-events
 between two script files, before later add-ons (insights, Medius…) have subscribed. When it did, the day's first
 insights and the Medius greeting were silently skipped, which made `tests/08-medius.test.mjs` fail now and then. It
 now waits for `DOMContentLoaded`, which comes after every script and the first render, as `docs/EVENTS.md` describes.
+
+## 24. v6.17: GPS activity check-in (§43–47, §79, §88, §97 step 20)
+
+`js/v6-gps.js` (`HWGps`) adds a **GPS CHECK-IN** card under the Stair Quest heading. It uses the original `STAIRS`
+list in `js/hw-02-core.js`, so there is only one place for stairway data. A stairway with `lat`/`lng` can be found by
+GPS. A stairway whose coordinates are still `null` (ST01, ST02, ST08, ST16, ST29 today) is listed for manual logging
+only, and joins GPS check-in as soon as its coordinates are filled in there.
+
+* *Flow (§44):* FIND STAIRS NEAR ME → the first time, a short explanation (why, read once, never stored) with ALLOW
+  LOCATION / NOT NOW → the browser asks for permission → one `getCurrentPosition` reading (never `watchPosition`) →
+  up to five stairways within 400 m with their approximate distance → CHECK IN on one marked "you are here" → steps
+  per climb (remembered from the last visit there), climbs and pace → CONFIRM. This saves a normal stair entry
+  (`m.chk = 'gps'`, note "GPS check-in", 25 XP within the daily allowance), so quests, statistics and Stair Mountain
+  update exactly as for a manual log. The manual form below then points at that stairway.
+* *Accuracy (§45):* the activation radius is 35 m plus the reported accuracy, capped at 100 m in total. A reading worse
+  than ±150 m lists distances but pauses check-in, with a tip about indoor signal. A reading older than 10 minutes
+  must be refreshed before confirming. Denied permission, no fix, a timeout, no geolocation support and a non-https
+  page each show a plain message that says nothing was saved and points to the manual form.
+* *Safety and privacy (§46, §79):* the confirm step asks the user to stand still and not use the phone on the stairs.
+  The user's position stays in memory for the card only. It is never saved, logged, sent or shown, and it is dropped
+  on leaving the page, import or reset. TURN OFF LOCATION forgets the agreement, so the explanation shows again.
+* *Exploration (§47):* the first GPS-verified check-in at each stairway is a discovery: +5 XP once, a banner, and a
+  "discovered n / 28" count. Manual logs never count as discoveries.
+* *State:* `st.gp` = `{ok, v: {stairId: firstCheckInDate}}`, added by schema step 7 → 8.
+* *Event:* `activity:checkin {sid, name, cat, first}`.
+
+Tests: `tests/19-gps.test.mjs` (Playwright geolocation): the full flow with the explanation, input checks, XP and the
+discovery once, and no stored position; weak signal, far away and denied permission; stairways without coordinates,
+the distance and radius maths, v7 → v8 migration and a 360 px layout. 122 tests in total.
