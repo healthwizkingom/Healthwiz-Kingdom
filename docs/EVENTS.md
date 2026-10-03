@@ -32,7 +32,7 @@ Every event is `{ type, at, ...payload }`, where `at` is an ISO timestamp.
 | `entry:restored` | `entry` | UNDO after a delete |
 | `xp:gained` | `amount, reason, total` | every XP award (logging, quests, badges, games…) |
 | `level:up` | `level, name, total` | an XP award crosses a level threshold |
-| `quest:completed` | `date, index, name, xp` | the original awards a daily quest (`st.qx`) |
+| `quest:completed` | `kind, name, xp, date` + `index` (daily) or `id` (focus/weekly) | `kind:'daily'`: the original awards one of the 5 daily quests (`st.qx`). `kind:'focus'`/`'weekly'`: an adaptive quest is completed (`js/v6-quests.js`) |
 | `quests:all-completed` | `date` | all daily quests done (`st.claimed[date]`) |
 | `badge:unlocked` | `name, icon, date` | the original awards a badge (`st.b`) |
 | `energy:rated` | `value, first, date` | daily energy check-in (`first` = first rating today) |
