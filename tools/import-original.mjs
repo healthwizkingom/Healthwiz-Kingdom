@@ -97,7 +97,7 @@ const files = parts.map((p, i) => {
 
 /* ---------- 3. index.html ---------- */
 // js/v6-safety.js must run after every page is defined and before the boot call.
-const tags = files.map(f => (f.file.endsWith('-boot.js') ? '<script src="js/v6-safety.js"></script>\n' : '') + `<script src="js/${f.file}"></script>` + (f.file.endsWith('-menu-data.js') ? '\n<script src="js/v6-schema.js"></script>' : '')).join('\n');
+const tags = files.map(f => (f.file.endsWith('-boot.js') ? '<script src="js/v6-events.js"></script>\n<script src="js/v6-safety.js"></script>\n' : '') + `<script src="js/${f.file}"></script>` + (f.file.endsWith('-menu-data.js') ? '\n<script src="js/v6-schema.js"></script>' : '')).join('\n');
 fs.writeFileSync(path.join(root, 'index.html'), head + tags + '\n</body></html>\n');
 
 console.log(`images: ${byData.size} → assets/img/ (${[...used].join(', ')})`);

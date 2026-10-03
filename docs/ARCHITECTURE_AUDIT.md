@@ -197,3 +197,24 @@ handler removed". Markup and CSS are still checked byte-for-byte.
 Tests: `tests/02-schema.test.mjs` covers fresh install, v1→v2 upgrade (with an exact backup
 copy and no re-award), unreadable data, damaged shapes, newer-version data, old and newer
 backup restore, and the rename in code and UI. 25 tests in total.
+
+## 10. v6.3: event system (§97 step 4)
+
+`js/v6-events.js` adds `HWEvents`, an in-browser event bus. It is the connection point for
+the master prompt's loop (data → insight → Medius → quest → XP → kingdom → statistics), so
+the coming systems subscribe to events instead of being wired into the original code.
+
+* **Zero behaviour change:** it wraps the original global functions (`add`, `gain`, `go`,
+  `render`) and `acts.esave/del/undo/ener/impm/impr/rst`. No original line was edited, and all
+  25 earlier tests pass unchanged.
+* **Awards made inside `render()`:** quests (`st.qx`), all-quests (`st.claimed`) and badges
+  (`st.b`) are detected by comparing against a baseline. Imports, resets and the initial load
+  update that baseline silently, so old awards are never announced as new.
+* **Ordering:** events raised during an action are delivered cause → effect.
+* **Isolation:** a listener that throws is logged and never breaks the app.
+* 15 event types, documented in `docs/EVENTS.md`. `tests/03-events.test.mjs` covers the bus API,
+  boot/migration, logging order, quests, level-up, edit/delete/undo, navigation, energy,
+  import and reset. 31 tests in total.
+
+The event log is in memory only (last 200). Persistent history for Medius cooldowns
+(§41) and inactivity detection will be added with those features, through a schema step.

@@ -41,7 +41,7 @@ test('no original function, constant, page or action has been removed', () => {
 });
 
 test('load order: original parts in sequence, v6 additions in their slots, files ≤ 64 KB', () => {
-  assert.deepEqual(scripts.filter(f => !/js\/hw-/.test(f)), ['js/v6-schema.js', 'js/v6-safety.js']);
+  assert.deepEqual(scripts.filter(f => !/js\/hw-/.test(f)), ['js/v6-schema.js', 'js/v6-events.js', 'js/v6-safety.js']);
   assert.equal(scripts[1], 'js/v6-schema.js', 'schema loads before core reads storage');
   assert.equal(scripts.at(-2), 'js/v6-safety.js', 'safety wraps pages just before boot');
   const hw = scripts.filter(f => /js\/hw-/.test(f));
