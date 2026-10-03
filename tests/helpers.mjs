@@ -26,7 +26,7 @@ export async function closeBrowser() {
   browser = undefined;
 }
 
-export const RETURNING = { sv: 4, q6: { f: {}, w: {} }, ex: { p: {} }, b: {}, e: [], s: { kcal: 2200, water: 2000, sound: 0, set: 0, onb: 1 }, p: { w: 60, h: 165, age: 16, sex: 'm', act: 1.375, days: 3, goal: 'm', name: 'Tester' }, xp: 0, claimed: {} };
+export const RETURNING = { sv: 5, xl: {}, q6: { f: {}, w: {} }, ex: { p: {} }, b: {}, e: [], s: { kcal: 2200, water: 2000, sound: 0, set: 0, onb: 1 }, p: { w: 60, h: 165, age: 16, sex: 'm', act: 1.375, days: 3, goal: 'm', name: 'Tester' }, xp: 0, claimed: {} };
 
 /**
  * Opens the app in a fresh browser context.

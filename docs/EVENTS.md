@@ -38,6 +38,7 @@ Every event is `{ type, at, ...payload }`, where `at` is an ISO timestamp.
 | `energy:rated` | `value, first, date` | daily energy check-in (`first` = first rating today) |
 | `data:imported` | `mode: merge\|replace, added, total` | a backup is merged or restored |
 | `data:reset` | — | all data erased (second tap) |
+| `kingdom:state` | `key, name, from, to, up` | a log, edit or delete changes a region's state (`js/v6-kingdom.js`) |
 | `insights:updated` | `ids` (top 3) | insights recomputed after a data change (`js/v6-insights.js`) |
 | `insight:new` | `insight` | an insight newly reaches the top 3 after a log, edit or delete (never at boot) |
 
