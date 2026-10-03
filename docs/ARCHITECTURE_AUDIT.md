@@ -339,3 +339,19 @@ averages on days with data, stair steps as totals, neutral ▲ higher / ▼ lowe
 It fits a 360 px screen without sideways scrolling.
 
 Tests: `tests/09-charts.test.mjs`. 67 in total.
+
+## 17. v6.10: world progression (§18, §20, §21, §97 step 11)
+
+`js/v6-world.js` adds a decoration layer inside the original map's SVG (map, nodes and paths
+unchanged). Each region's surroundings follow its state: cracked stones and a bare tree (Ruined),
+sprouts (Recovering), a cottage and a young tree (Developing), a flag, flowers and a strolling
+villager (Thriving), and a flower ring, sparkles and a second villager (Flourishing). A fog over the
+map thins as regions recover. The props sit beside each icon, mirrored near the right edge, so the
+original labels stay readable. The home mini-map shows the same world.
+
+**Kingdom chronicle:** region changes are recorded in `st.ex.ch` (last 20, inside the existing
+`ex` object, so no schema step) and listed on the Kingdom page. A region going quiet is
+described kindly ("It will recover when you return").
+
+Animations reuse the original classes, so the original reduced-motion rule turns them off.
+Tests: `tests/10-world.test.mjs`. 70 in total.
