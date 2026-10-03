@@ -25,8 +25,8 @@ index.html                 original markup + stylesheet (byte-identical), loads 
 js/hw-01..07-*.js          the original script, cut only between top-level statements
 js/v6-schema.js            saved-data versioning, migrations and damaged-data recovery
 js/v6-events.js            event bus observing the app (catalog: docs/EVENTS.md)
-js/v6-ui.js                shared UI helpers (injected styles, completion banner)
-js/v6-motion.js            animation settings + performance modes (High / Balanced / Performance)
+js/v6-ui.js                shared UI helpers (injected styles, completion banner, keyboard-friendly dialogs, saved theme)
+js/v6-motion.js            animation settings + performance modes (High / Balanced / Performance), off-screen pause
 js/v6-particles.js         one shared canvas particle system (level-up, badges, quests)
 js/v6-insights.js          "Medius notices": insights from your own baselines and trends
 js/v6-quests.js            adaptive daily focus quest + weekly quests
@@ -51,14 +51,14 @@ supabase/migrations/       SQL for the cloud save and the leaderboard (Row Level
 sw.js                      service worker: pre-caches the app, network first, works offline (keep PRECACHE in sync)
 manifest.webmanifest       web app manifest (name, colours, standalone display, icons)
 js/v6-safety.js            an error card instead of a blank screen
-assets/img/                the 15 images that were embedded as base64 in the original
+assets/img/                the 15 images that were embedded as base64 in the original (the PNG art re-encoded as lossless WebP)
 assets/icons/              app icons (original pixel art, drawn by tools/make-icons.mjs)
 legacy/HealthWiz_Kingdom_5-4-3.html   the complete original single file (source of truth)
 tools/import-original.mjs  one-time import of the original (re-running it overwrites later edits)
 tools/build-standalone.mjs bundles everything back into one HTML file
 tools/make-icons.mjs       redraws the app icons
-tests/                     browser tests (Playwright + node:test), incl. a fidelity check
-docs/                      architecture audit and plan
+tests/                     browser tests (Playwright + node:test): fidelity, every feature, performance budgets, device matrix
+docs/                      architecture audit and plan, event catalog, testing guide (docs/TESTING.md)
 ```
 
 The scripts are classic `<script>` tags that share one global scope, so keep them in order.
@@ -111,3 +111,6 @@ its built-in offline message. A real deployment needs a small backend that holds
 npm install   # only if Playwright / acorn are not already available
 npm test      # builds the standalone file, then runs every browser test
 ```
+
+`docs/TESTING.md` maps the master prompt's test matrix (§92–96) to the test files and lists the checks that still
+need real phones and browsers (Safari, Firefox, Samsung Internet, screen readers, GPS outdoors).

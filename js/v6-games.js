@@ -30,6 +30,7 @@ HWUI.css('games',`
 @keyframes v6gin{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 0 0)}}@keyframes v6gout{to{clip-path:inset(100% 0 0 0)}}
 .v6ghud{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--pn);border-bottom:4px solid var(--ln);flex:0 0 auto}
 .v6ghud .ic{font-size:22px;line-height:1}.v6ghud b{font:9px/1.5 var(--fh);flex:1 1 auto;min-width:0}
+.v6ghud .v6gx{min-width:40px;min-height:40px;flex:0 0 auto} /* step 25 (§81, §94): the way out is a comfortable touch target */
 .v6gst{font:7px/1.6 var(--fh);color:var(--mut);text-align:right;max-width:46%}
 .v6gbody{flex:1 1 auto;overflow:auto;display:flex;flex-direction:column;align-items:center;padding:10px;gap:10px}
 .v6gs{position:relative;flex:0 0 auto;width:min(720px,100%,calc((100vh - 230px) * 1.45));min-width:min(280px,100%);aspect-ratio:3/2;border:4px solid var(--ln);box-shadow:4px 4px 0 var(--ln);overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:manipulation;background:#5c9e4a}

@@ -13,7 +13,7 @@
                   1× canvas resolution, particles at 25%
    The original only had the device's prefers-reduced-motion rules. Those rules are mirrored under
    html.hw-rm, so the in-app switch gives exactly the original reduced-motion look. All animation
-   also pauses while the tab is hidden (battery). Emits `motion:changed`. */
+   also pauses while the tab is hidden, and looping scenery pauses while scrolled out of view (battery). Emits `motion:changed`. */
 const HWMotion=(()=>{
 const LV=['high','balanced','performance'],NAME={auto:'Auto',high:'High',balanced:'Balanced',performance:'Performance'};
 const mq=q=>{try{return matchMedia(q).matches}catch(e){return false}};
@@ -44,6 +44,7 @@ HWUI.css('motion',`
 html.hw-still *,html.hw-still *:before,html.hw-still *:after{animation:none!important;transition:none!important}
 html.hw-still .fx u,html.hw-still .fl2 u,html.hw-still .fl2 .flf,html.hw-still .v6cel u{display:none}
 html.hw-hidden *,html.hw-hidden *:before,html.hw-hidden *:after{animation-play-state:paused!important}
+.hw-off,.hw-off *,.hw-off *:before,.hw-off *:after{animation-play-state:paused!important}
 html.hw-q-performance .wl .zt,html.hw-q-performance .wl .zs,html.hw-q-performance .wl .zss,html.hw-q-performance .wl .zg,
 html.hw-q-performance .wl .zh,html.hw-q-performance .wl .zr,html.hw-q-performance .km .zt,html.hw-q-performance .km .zwk{animation:none!important}
 html.hw-q-performance .wl .zl,html.hw-q-performance .wl .zff:not(:nth-of-type(4n)),html.hw-q-performance .wl .zv:nth-of-type(2n){display:none}
@@ -58,6 +59,12 @@ function apply(quiet){const h=document.documentElement,L=level(),r=reduced(),off
   const k=[L,r,off].join();if(k!==last){const was=last;last=k;if(was&&!quiet)HWEvents.emit('motion:changed',{level:L,reduced:r,enabled:!off,choice:choice()})}}
 try{matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',()=>apply())}catch(e){}
 document.addEventListener('visibilitychange',()=>document.documentElement.classList.toggle('hw-hidden',document.hidden));
+// §92 battery: looping scenery in a part of the page that is scrolled well out of view pauses until it comes back
+// (the page's top-level cards and scenes, watched by one observer). Like the hidden-tab rule, nothing visible changes.
+// Position is compared directly: the page-enter wipe clips the new page for a moment, which is not "out of view".
+const near=e=>{const b=e.boundingClientRect,r=e.rootBounds;return r?b.bottom>r.top&&b.top<r.bottom&&b.right>r.left&&b.left<r.right:e.isIntersecting};
+const offIO=typeof IntersectionObserver==='function'?new IntersectionObserver(es=>es.forEach(e=>e.target.classList.toggle('hw-off',!near(e))),{rootMargin:'200px 0px'}):null;
+{const m=document.querySelector('#main');if(offIO&&m&&typeof MutationObserver==='function')new MutationObserver(()=>{offIO.disconnect();m.querySelectorAll(':scope > .pg > *').forEach(el=>offIO.observe(el))}).observe(m,{childList:true})}
 
 /* auto mode: one short frame probe after boot (only ever downgrades) */
 function probe(n=45){return new Promise(res=>{if(document.hidden)return res(null);const d=[];let t0=0;

@@ -35,7 +35,11 @@ HWUI.css('title',`
 .wl.v6px .tt{transform:translate(calc(var(--px,0)*3px),calc(var(--py,0)*2px));transition:transform .4s ease-out}
 .wl.v6go .bg{animation:v6zoom .45s ease-in forwards}.wl.v6go .tt,.wl.v6go .ct,.wl.v6go .ft{animation:v6fade .3s ease-in forwards}
 @keyframes v6zoom{to{transform:scale(1.15);filter:brightness(1.6);opacity:0}}@keyframes v6fade{to{opacity:0}}
-@media(prefers-reduced-motion:reduce){.v6wx,.v6wx i,.v6pop,.v6mist{animation:none!important}.v6wx i{display:none}.wl.v6px .zsv,.wl.v6px .tt{transform:none}}`);
+@media(prefers-reduced-motion:reduce){.v6wx,.v6wx i,.v6pop,.v6mist{animation:none!important}.v6wx i{display:none}.wl.v6px .zsv,.wl.v6px .tt{transform:none}}
+/* step 25 (§77, §94): a phone in landscape is shorter than the scene's 540 px minimum, which pushed the Start button
+   below the screen. Short landscape screens use their own height, and the title text is capped by height too. */
+@media(orientation:landscape) and (max-height:539px){.wl{min-height:0}.wl .tt h1{font-size:clamp(20px,min(6.4vw,9vh),52px)}
+.wl .tt p{font-size:clamp(9px,min(2.2vw,3.4vh),14px);margin-top:min(14px,2.5vh)}.wl .tt p.by{font-size:clamp(10px,min(2.8vw,4.2vh),18px);margin-top:min(18px,3vh)}}`);
 
 const REACT={castle:['🏰 The castle bells ring for you!','🏰 A guard waves from the ramparts.'],tower:['⚡ The dark tower rumbles… restored regions keep it at bay.','⚡ Its red eye flickers, then dims.'],
   village:['🏘️ Villagers wave hello!','🏘️ Someone is baking bread. It smells wonderful.'],falls:['💧 The waterfall sparkles.','💧 Cool spray drifts across the meadow.']};

@@ -3,12 +3,22 @@ const F=MENU.foods,DAYS=MENU.days;
 const $=s=>document.querySelector(s),pad=n=>String(n).padStart(2,'0');
 const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 const today=()=>ymd(new Date()),nowT=()=>{const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())};
-const rng=n=>Array.from({length:n},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(n-1-i));return ymd(d)});
+let RNc=null; // v6 (§92): the last-n-days lists are built once per synchronous run, like IX() below
+const rng=n=>{if(!RNc){RNc=new Map();queueMicrotask(()=>{RNc=null})}let a=RNc.get(n);if(!a)RNc.set(n,a=Array.from({length:n},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(n-1-i));return ymd(d)}));return a.slice()};
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let mem=null;
 const DEF=()=>({sv:HWSchema.V,q6:{f:{},w:{}},ex:{p:{}},xl:{},md:{last:{},day:{},seen:{},ms:{},log:[]},mg:{xp:{},n:{},h:[],c:{}},b:{},e:[],s:{kcal:2200,water:2000,sound:1,set:0},p:{w:60,h:165,age:16,sex:'m',act:1.375,days:3,goal:'m'},xp:0,claimed:{}});
 let st=HWSchema.load(DEF); // v6: versioned load with migrations (js/v6-schema.js)
-let SV=0;const save=()=>{SV++;try{localStorage.setItem('healthwiz',JSON.stringify(st))}catch(e){mem=st}};
+// v6 (§92): one action often saves several times (entry, XP, badge, quest…). SV still counts every save(), but storage
+// is written once, at the end of that synchronous run, before the browser handles anything else.
+// §88: if the write fails (storage full or blocked), superseded pre-upgrade copies are freed and the write retried;
+// if it still fails, the user is told (again at most every 2 minutes) that the change is not saved on this device.
+let SV=0,SVq=0,SVwarn=0;const save=()=>{SV++;if(!SVq){SVq=1;queueMicrotask(persist)}};
+function persist(){SVq=0;const j=JSON.stringify(st),w=()=>localStorage.setItem('healthwiz',j);try{w();SVwarn=0;return}catch(e){}
+  try{Object.keys(localStorage).filter(k=>k.startsWith('healthwiz_backup_pre-v')).forEach(k=>localStorage.removeItem(k));w();SVwarn=0;return}catch(e){}
+  mem=st;if(Date.now()-SVwarn<120e3)return;SVwarn=Date.now();
+  toast('⚠️ Your latest changes could not be saved on this device (storage is full or blocked). They stay in this tab until you close it. Download a backup in Settings → Backup now.');
+  if(typeof HWEvents!=='undefined')HWEvents.emit('storage:failed',{bytes:j.length})}
 const S={v:'welcome',meal:'breakfast',src:'d'+new Date().getDate(),q:'',sel:null,qty:1,pm:1,ck:'',cf:0,loc:0,cat:'MILD',rg:'w',sq:{ph:0,n:0},pb:{pace:1,on:0,k:0},fc:'all',tm:0};
 const acts={},INP={},CH={};let UD=null,ac;
 function sfx(f,d){if(!st.s.sound)return;try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();const o=ac.createOscillator(),g=ac.createGain();o.type='square';o.frequency.value=f||440;g.gain.value=.04;o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+(d||.1))}catch(e){}}
@@ -20,9 +30,17 @@ const bar=(p,c)=>'<div class="bar" style="--c:'+c+'"><i style="width:'+Math.min(
 const LV=[['Beginner Adventurer',0],['Trail Walker',150],['Health Explorer',400],['Fitness Knight',800],['Wellness Hero',1400],['Sage of Balance',2200]];
 function lvl(){let i=0;LV.forEach((l,k)=>{if(st.xp>=l[1])i=k});const n=LV[i+1];return{i,n:LV[i][0],lo:LV[i][1],hi:n?n[1]:0}}
 function gain(x,m){const l0=lvl().i;st.xp+=x;st.xd=st.xd||{};st.xd[today()]=(st.xd[today()]||0)+x;save();toast('+'+x+' XP '+(m||''));sfx(660,.08);if(lvl().i>l0){toast('LEVEL UP! '+lvl().n);setTimeout(()=>sfx(880,.3),200)}}
-const ALL=()=>[...st.e].sort((a,b)=>(a.d+a.t).localeCompare(b.d+b.t));
-const LC=c=>ALL().filter(x=>x.c===c);
-const A=(c,d)=>st.e.filter(x=>x.c===c&&x.d===(d||today()));
+// v6 (§92, step 24): entries grouped by category and day, built at most once per synchronous run (one render or
+// one action) instead of scanning every entry on each of the thousands of A() calls a page makes. It is dropped at
+// the end of the run, and rebuilt whenever st.e, its length or SV (every save()) changes, so it is never stale.
+// Callers still get fresh arrays, in the original order.
+let IXc=null;
+function IX(){const e=st.e;if(IXc&&IXc.e===e&&IXc.n===e.length&&IXc.sv===SV)return IXc;if(!IXc)queueMicrotask(()=>{IXc=null});
+  const c=new Map(),cd=new Map();for(const x of e){let a=c.get(x.c);if(!a){c.set(x.c,a=[]);cd.set(x.c,new Map())}a.push(x);const m=cd.get(x.c);let b=m.get(x.d);if(!b)m.set(x.d,b=[]);b.push(x)}
+  return IXc={e,n:e.length,sv:SV,c,cd,all:null,lc:new Map(),dys:null}}
+const ALL=()=>{const I=IX();if(!I.all)I.all=[...st.e].sort((a,b)=>(a.d+a.t).localeCompare(b.d+b.t));return I.all.slice()};
+const LC=c=>{const I=IX();let a=I.lc.get(c);if(!a)I.lc.set(c,a=ALL().filter(x=>x.c===c));return a.slice()};
+const A=(c,d)=>{const m=IX().cd.get(c),b=m&&m.get(d||today());return b?b.slice():[]};
 const sum=(c,d)=>A(c,d).reduce((a,x)=>a+(+x.v||0),0);
 const kc=d=>sum('food',d),wt=d=>sum('water',d),sp=d=>sum('stair',d);
 const cl=d=>A('stair',d).reduce((a,x)=>a+(+x.m.climbs||0),0);

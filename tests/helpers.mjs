@@ -33,10 +33,11 @@ export const RETURNING = { sv: 8, gp: { ok: 0, v: {} }, xl: {}, md: { last: {}, 
  *  - default: a returning user (onboarding done, tutorial seen, sound off)
  *  - { fresh: true }: brand-new user with empty storage (onboarding + tutorial flow)
  *  - { seed }: custom saved state (tutorial marked seen)
+ *  - { context }: extra browser-context options (hasTouch, isMobile, colorScheme, reducedMotion…)
  */
-export async function openApp({ seed, fresh = false, viewport, before } = {}) {
+export async function openApp({ seed, fresh = false, viewport, before, context } = {}) {
   const b = await getBrowser();
-  const ctx = await b.newContext({ viewport: viewport || { width: 1100, height: 900 }, acceptDownloads: true });
+  const ctx = await b.newContext({ viewport: viewport || { width: 1100, height: 900 }, acceptDownloads: true, ...context });
   // Tests run offline: stub external requests (Google Fonts stylesheet, AI endpoint).
   await ctx.route(/^https?:/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
   const page = await ctx.newPage();
@@ -65,3 +66,22 @@ export const state = page => page.evaluate(() => JSON.parse(localStorage.getItem
 export const daysAgo = (n, from = new Date()) => { const d = new Date(from); d.setDate(d.getDate() - n); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
 let _id = 0;
 export const entry = (c, v, n, m = {}, t = '12:00') => ({ id: 't' + (++_id), c, v, m, n: '', d: daysAgo(n), t });
+
+/** A long, busy history for performance and compatibility tests: `days` days of water, meals, sleep, pulse,
+ *  stairs and stress (≈13 entries a day, so a year is ≈5,000 entries and a ≈590 KB save). */
+export function yearOfLogs(days = 365, base = RETURNING) {
+  const e = [], en = {}, xd = {}; let id = 0;
+  const add = (c, v, d, t, m = {}) => e.push({ id: 'y' + (++id), c, v, m, n: '', d, t });
+  for (let n = days; n >= 0; n--) {
+    const d = daysAgo(n);
+    for (let k = 0; k < 6; k++) add('water', 250, d, String(8 + k * 2).padStart(2, '0') + ':00');
+    ['breakfast', 'lunch', 'dinner', 'snack'].forEach((meal, k) => add('food', 400 + k * 50, d, String(8 + k * 4).padStart(2, '0') + ':30', { name: 'Nasi Lemak', por: '1 plate', qty: 1, pm: 1, meal, src: 'KOLEJ MARA KULIM', u: 0 }));
+    add('sleep', 7 + (n % 3) * 0.5, d, '07:00', { bed: '23:00', wake: '06:30', aw: 1, lat: 15, rest: 3, score: 75 });
+    add('pulse', 70 + (n % 10), d, '09:00', { st: 'Resting' });
+    if (n % 2 === 0) add('stair', 120, d, '17:00', { sid: 'ST03', loc: 'Block', diff: 'MILD', steps: 60, climbs: 2, dur: 5, pace: 'steady' });
+    add('stress', 3 + (n % 4), d, '20:00', { feel: 'ok', end: 2, why: [], tech: [] });
+    if (n % 7 === 0) add('bmi', 22.1, d, '08:00', { h: 165, w: 60 });
+    en[d] = { v: 3, t: '21:00' }; xd[d] = 120;
+  }
+  return Object.assign(JSON.parse(JSON.stringify(base)), { e, en, xd, xp: 30000 });
+}
