@@ -355,3 +355,25 @@ described kindly ("It will recover when you return").
 
 Animations reuse the original classes, so the original reduced-motion rule turns them off.
 Tests: `tests/10-world.test.mjs`. 70 in total.
+
+## 18. v6.11: title screen (§5, §9–15, §97 step 12)
+
+The original layered title scene and its Start/Continue button are unchanged. `js/v6-title.js` adds on top:
+* **Time of day (§14):** morning, afternoon, evening or night light over the scene, from the local clock.
+* **Weather (§15):** sunny, cloudy, light rain or mist, fixed for each calendar day. It is only visual.
+* **Returning players (§13):** a ribbon with level, regions restored and gentle streak, plus a lantern on the
+  riverbank for every restored region. New players see the original screen.
+* **Interaction (§9, §10):** tap the castle, dark tower, village or waterfall for a short reaction
+  (`title:interact`). A Settings button sits beside Start/Continue.
+* **Motion (§5, §12):** gentle pointer parallax and a short zoom transition on entering. Both are skipped under
+  reduced motion, and parallax already applied is dropped if reduced motion is switched on mid-session.
+
+**Test-runner OOM fixed.** `tests/11-title.test.mjs` sometimes made Node use ~14 GB. Cause: in a browser that
+had already been clicked in by earlier tests, Chromium sends a pointer move at (0,0) as a new page loads.
+The test turned on reduced motion only after loading, so that move applied parallax first. The check
+`assert.equal(await page.$(sel), null)` then failed, and Node's assertion diff walked the whole Playwright
+`ElementHandle` object graph, synchronously and without end. Fixes: tests now compare element counts
+(`locator(sel).count()`), never handles (10 places); the reduced-motion test emulates before loading; the
+app drops parallax when reduced motion turns on; error capture in `tests/helpers.mjs` is capped at 50 messages.
+
+Tests: `tests/11-title.test.mjs`, plus an event-loop guard test in `tests/03-events.test.mjs`. 77 in total.

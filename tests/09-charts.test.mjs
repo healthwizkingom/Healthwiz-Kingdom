@@ -64,7 +64,7 @@ test('every page with charts still renders without errors', async () => {
   const { page, ctx, errors } = await openApp({ seed: seeded() });
   for (const v of ['home', 'food', 'water', 'sleep', 'stats', 'quests', 'guide']) {
     await go(page, v);
-    assert.equal(await page.$('.card.warn h3'), null, v);
+    assert.equal(await page.locator('.card.warn h3').count(), 0, v);
   }
   assert.deepEqual(errors, []);
   await ctx.close();

@@ -12,7 +12,7 @@ test('every region shows props for its state; fog thick when all regions are rui
   assert.deepEqual(lv, Array(8).fill('0'));
   const fog = +(await page.getAttribute('#kmap .v6fog', 'opacity'));
   assert.ok(fog > 0.3, 'fog ' + fog);
-  assert.equal(await page.$('#kmap .v6prop .zwk'), null, 'no villagers in ruined regions');
+  assert.equal(await page.locator('#kmap .v6prop .zwk').count(), 0, 'no villagers in ruined regions');
   assert.deepEqual(errors, []);
   await ctx.close();
 });

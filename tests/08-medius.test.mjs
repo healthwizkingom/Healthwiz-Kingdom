@@ -10,7 +10,7 @@ const said = page => page.evaluate(() => HWEvents.recent('medius:said').map(e =>
 test('quiet on the title screen; the daily greeting appears once the user enters', async () => {
   const { page, ctx, errors } = await openApp({ seed: withMed(2, { e: [entry('water', 250, 1)] }) });
   await page.waitForTimeout(300);
-  assert.equal(await page.$('#v6md'), null, 'nothing over the title screen');
+  assert.equal(await page.locator('#v6md').count(), 0, 'nothing over the title screen');
   await go(page, 'home');
   await page.waitForSelector('#v6md', { timeout: 4000 });
   assert.match(await bubble(page), /^MEDIUSGood (morning|afternoon|evening)|Still awake/);
@@ -63,7 +63,7 @@ test('Calm mode skips small comments but keeps firsts; Off mode says nothing', a
   await go(o.page, 'home');
   await o.page.evaluate(() => { st.xp = 145; gain(10, 'x'); add('pulse', 70, { st: 'Resting' }, '', 0, 0, 15, 'p'); });
   await o.page.waitForTimeout(500);
-  assert.equal(await o.page.$('#v6md'), null);
+  assert.equal(await o.page.locator('#v6md').count(), 0);
   assert.deepEqual(await said(o.page), []);
   await o.ctx.close();
 });
@@ -73,7 +73,7 @@ test('held back while the tutorial overlay is open', async () => {
   await go(page, 'home');
   await page.evaluate(() => { const t = document.createElement('div'); t.id = 'tut'; document.body.appendChild(t); HWMedius.say('first', { c: 'stair' }); });
   await page.waitForTimeout(300);
-  assert.equal(await page.$('#v6md'), null);
+  assert.equal(await page.locator('#v6md').count(), 0);
   await page.evaluate(() => document.getElementById('tut').remove());
   await page.waitForSelector('#v6md', { timeout: 10000 });
   assert.match(await bubble(page), /Stair Mountain/);

@@ -12,7 +12,7 @@ test('new user: welcome → onboarding (Medius registry) instead of home', async
   const { page, ctx, errors } = await openApp({ fresh: true });
   await page.waitForSelector('.wl');
   await page.click('.wl .ct button');
-  await page.waitForTimeout(150);
+  await page.waitForFunction(() => S.v !== 'welcome', null, { timeout: 3000 });   // short entry transition
   assert.equal(await page.evaluate(() => S.v), 'onb');
   assert.match(await page.textContent('#main'), /MEDIUS/i);
   assert.deepEqual(errors, []);
@@ -31,7 +31,7 @@ test('returning user: every page renders with no error card and no console error
   const { page, ctx, errors } = await openApp();
   for (const v of PAGES) {
     await go(page, v);
-    assert.equal(await page.$('.card.warn h3'), null, v + ' shows the safety error card');
+    assert.equal(await page.locator('.card.warn h3').count(), 0, v + ' shows the safety error card');
     assert.ok((await page.$eval('#main', e => e.innerHTML.length)) > 200, v + ' is empty');
   }
   assert.deepEqual(errors, []);

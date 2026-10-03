@@ -10,9 +10,9 @@ const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
 test('no data: no Medius card, original guide still works', async () => {
   const { page, ctx, errors } = await openApp();
   await go(page, 'home');
-  assert.equal(await page.$('#insh'), null);
+  assert.equal(await page.locator('#insh').count(), 0);
   await go(page, 'guide');
-  assert.equal(await page.$('#insg'), null);
+  assert.equal(await page.locator('#insg').count(), 0);
   assert.match(await page.textContent('#main'), /Start Logging/);   // original insights() card
   assert.deepEqual(errors, []);
   await ctx.close();

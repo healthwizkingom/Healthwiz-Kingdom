@@ -18,7 +18,9 @@ function once(t,f){const u=on(t,e=>{u();f(e)});return u}
 function deliver(ev){LOG.push(ev);if(LOG.length>MAX)LOG.shift();for(const f of [...(L[ev.type]||[]),...(L['*']||[])]){try{f(ev)}catch(err){console.error('[HWEvents] listener for "'+ev.type+'" failed:',err)}}}
 // Breadth-first: events raised while others are being delivered join the end of the queue,
 // so every direct effect of an action is delivered before reactions to those effects.
-let flushing=0;function flush(){if(flushing)return;flushing=1;try{while(queue.length)deliver(queue.shift())}finally{flushing=0}}
+// Guard: an accidental event loop (a listener re-emitting what it handles) is cut off after
+// 5000 deliveries in one flush instead of freezing the page.
+let flushing=0;function flush(){if(flushing)return;flushing=1;let n=0;try{while(queue.length){if(++n>5000){console.error('[HWEvents] event loop detected; dropped',queue.length,'events, last type:',queue[queue.length-1].type);queue=[];break}deliver(queue.shift())}}finally{flushing=0}}
 // the event name always wins over payload fields
 function emit(type,p){const ev=Object.assign({},p||{},{type,at:new Date().toISOString()});queue.push(ev);if(!depth)flush();return ev}
 // Runs fn; events raised inside are held, then delivered after `lead()`'s events, so
