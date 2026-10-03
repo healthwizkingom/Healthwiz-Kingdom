@@ -4,7 +4,8 @@
 You log water, meals, sleep, pulse, stairs and stress, and Medius, the Wizard King, guides you
 as your actions restore the kingdom. It is a wellness tracker, not a medical device.
 
-The app is the team's original **v5.4.3** build, unchanged, split into files so it can live safely in git.
+The app is the team's original **v5.4.3** build, split into files so it can live safely in git.
+Changes since then are small, tested and listed in `docs/ARCHITECTURE_AUDIT.md`.
 
 ## Run it
 
@@ -21,18 +22,27 @@ Data is stored in the browser's `localStorage` (`healthwiz`). Use **Settings →
 ```
 index.html                 original markup + stylesheet (byte-identical), loads js/ in order
 js/hw-01..07-*.js          the original script, cut only between top-level statements
-js/v6-safety.js            the one addition: an error card instead of a blank screen
+js/v6-schema.js            saved-data versioning, migrations and damaged-data recovery
+js/v6-safety.js            an error card instead of a blank screen
 assets/img/                the 15 images that were embedded as base64 in the original
 legacy/HealthWiz_Kingdom_5-4-3.html   the complete original single file (source of truth)
-tools/import-original.mjs  regenerates index.html, js/hw-*.js and assets/img from the original
+tools/import-original.mjs  one-time import of the original (re-running it overwrites later edits)
 tools/build-standalone.mjs bundles everything back into one HTML file
 tests/                     browser tests (Playwright + node:test), incl. a fidelity check
 docs/                      architecture audit and plan
 ```
 
 The scripts are classic `<script>` tags that share one global scope, so keep them in order.
-`tests/00-fidelity.test.mjs` fails if the split code no longer matches the original. Once you
-start editing `js/hw-*.js` on purpose, update or retire that check in the same change.
+`tests/00-fidelity.test.mjs` checks that the markup and stylesheet still match the original, and that
+no original function, constant, page or action has been removed.
+
+## Saved data and versions
+
+Saved data carries a schema version (`sv`, currently **2**). On load, `js/v6-schema.js` upgrades
+older data step by step, and restored backups go through the same steps. Before anything is
+upgraded, repaired or discarded, the raw stored text is copied to a `healthwiz_backup_<reason>_<time>`
+key (the newest 3 are kept). If data was saved by a newer app version, it is left as it is.
+To change the data format, add a step to `STEPS` in `js/v6-schema.js`, raise `V`, and add a test.
 
 **Why the split:** the original was a 1 MB single file with five 57–250 KB lines of embedded
 images. Pasting it into GitHub cut it off at ~100 KB and left a blank site. No file here is

@@ -7,7 +7,8 @@
 //   2. The single <script> is cut ONLY between top-level statements (parsed with acorn)
 //      into files of ≤ ~60 KB, so no file is large enough to be truncated by a paste again.
 //   3. index.html keeps the original markup + stylesheet byte-for-byte and loads the parts in order.
-// Re-running it overwrites index.html, js/hw-*.js and assets/img/.
+// Re-running it overwrites index.html, js/hw-*.js and assets/img/ — including every intentional
+// edit made to js/hw-*.js since the import (see git history / docs). Only re-run on a fresh original.
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
@@ -96,7 +97,7 @@ const files = parts.map((p, i) => {
 
 /* ---------- 3. index.html ---------- */
 // js/v6-safety.js must run after every page is defined and before the boot call.
-const tags = files.map(f => (f.file.endsWith('-boot.js') ? '<script src="js/v6-safety.js"></script>\n' : '') + `<script src="js/${f.file}"></script>`).join('\n');
+const tags = files.map(f => (f.file.endsWith('-boot.js') ? '<script src="js/v6-safety.js"></script>\n' : '') + `<script src="js/${f.file}"></script>` + (f.file.endsWith('-menu-data.js') ? '\n<script src="js/v6-schema.js"></script>' : '')).join('\n');
 fs.writeFileSync(path.join(root, 'index.html'), head + tags + '\n</body></html>\n');
 
 console.log(`images: ${byData.size} → assets/img/ (${[...used].join(', ')})`);

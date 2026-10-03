@@ -171,3 +171,29 @@ replaced with the original, imported by `tools/import-original.mjs`:
 * Medius AI calls `api.anthropic.com` directly from the browser. It works only inside
   Claude and needs a backend for real deployment (§42).
 * No schema version in saved data yet (§23). This is the next step.
+
+## 9. v6.2: schema versioning (§23–24) and neutral place names (§16)
+
+**Schema versioning** (`js/v6-schema.js`, loaded before core):
+* State is stamped `sv` (current **2**). `HWSchema.load(DEF)` replaces the original
+  `JSON.parse` + `Object.assign(DEF(), st)` in `hw-02-core.js`. `DEF()` includes `sv`, so a reset also gets a version.
+* Ordered migrations in `STEPS`, applied one after another. Version 1 means unversioned v5.4.3 data.
+* Safety: the raw stored text is copied to `healthwiz_backup_<reason>_<time>` (newest 3 kept)
+  before an upgrade (`pre-v2`), a repair (`repaired`), an unreadable reset (`unreadable`) or
+  newer-version data (`newer`). The original silently overwrote unreadable data with defaults on the next save; now it is kept and the user is told.
+* Shape repair: non-object entries are dropped; missing ids, `m` and notes are filled in; `s`/`p` are merged
+  with defaults instead of replaced wholesale; bad maps and negative XP are reset.
+* Backups: `impParse` (hw-06) runs the same migration and refuses backups from a newer app version.
+
+**Rename** (no religious framing): Heart Temple → **Heartstone Hall**, Balance Shrine →
+**Balance Tower**, badges Shrine Visitor/Regular → **Tower Visitor/Regular**. Earned badges
+are keyed by name in `st.b`, so migration step 1→2 moves those keys and keeps their unlock
+dates. Without it, the badges would be awarded again with today's date and extra XP.
+
+**Fidelity guard changed:** now that the original is edited on purpose, the byte-for-byte JS
+check is replaced by "no original top-level function/constant, page, action, input or change
+handler removed". Markup and CSS are still checked byte-for-byte.
+
+Tests: `tests/02-schema.test.mjs` covers fresh install, v1→v2 upgrade (with an exact backup
+copy and no re-award), unreadable data, damaged shapes, newer-version data, old and newer
+backup restore, and the rename in code and UI. 25 tests in total.
