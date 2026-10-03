@@ -45,6 +45,7 @@ take precedence over payload fields with the same name.
 | `insights:updated` | `ids` (top 3) | insights recomputed after a data change (`js/v6-insights.js`) |
 | `title:interact` | `k` (castle, tower, village, falls) | a scene object on the title screen is tapped (`js/v6-title.js`) |
 | `insight:new` | `insight` | an insight newly reaches the top 3 after a log, edit or delete (never at boot) |
+| `motion:changed` | `level, reduced, enabled, choice` | the effective animation level changes: a settings choice, the device's reduced-motion setting, or Auto downgrading after its frame probe (`js/v6-motion.js`) |
 
 Import, reset and the initial load update the award baselines **silently**, so badges and
 quests that already existed are never announced as new.

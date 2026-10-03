@@ -377,3 +377,27 @@ The test turned on reduced motion only after loading, so that move applied paral
 app drops parallax when reduced motion turns on; error capture in `tests/helpers.mjs` is capped at 50 messages.
 
 Tests: `tests/11-title.test.mjs`, plus an event-loop guard test in `tests/03-events.test.mjs`. 77 in total.
+
+## 19. v6.12: animation system and performance modes (§64–67, §97 step 13)
+
+The original title scene runs about 580 CSS animations at once (240 of them twinkling stars), and its only
+motion control was the device's reduced-motion setting. `js/v6-motion.js` adds one place that decides how much moves:
+* **Settings (§66):** Animations On/Off, Motion Follow device/Reduce, Visual quality Auto/High/Balanced/Performance.
+  Stored as optional `st.s.anim`, `st.s.rm`, `st.s.perf` (missing or invalid = default), so no schema step.
+* **Performance modes (§67):** *Balanced* is the original look. *High* adds a few birds and butterflies to the title
+  and draws particles at full count and resolution. *Performance* stops the busiest decorative loops (stars, pine sway,
+  lightning, shooting stars, most fireflies, map villagers), cuts title rain from 40 to 14 drops, drops parallax,
+  thins the original water and quest confetti through CSS, and draws particles at 25% and 1× resolution. On the title
+  screen that is ≈200 animations instead of ≈580. *Auto* uses Performance on weak devices (≤2 cores, ≤2 GB, data saver,
+  or a slow frame probe after boot, which can only downgrade) and Balanced elsewhere.
+* **Reduced motion:** every `prefers-reduced-motion` block, original and v6, is mirrored under `html.hw-rm`, so the
+  in-app switch gives exactly the original reduced look. `HWUI.reduced()` now follows it. Animations Off also drops transitions.
+* **Battery (§92):** all animation pauses while the tab is hidden.
+* **Particles (§64):** `js/v6-particles.js` is one canvas with one `requestAnimationFrame` loop that runs only while particles
+  are alive, then removes the canvas. Counts are scaled and capped per mode (300 / 150 / 50) and are zero under reduced
+  motion. Used for level-up, badge, quest and all-quests moments and title-scene taps. The original effects keep their CSS particles.
+* **Choice of technique (§65):** CSS for looping scenery (as the original), canvas for bursts of many short-lived particles,
+  no new per-frame JavaScript while idle.
+* **Event:** `motion:changed`.
+
+Tests: `tests/12-motion.test.mjs`. 87 in total.
