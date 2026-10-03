@@ -27,13 +27,15 @@ export async function closeBrowser() {
 }
 
 /** Fresh page with empty storage. `seed` (optional) is written to localStorage before load. */
-export async function openApp({ seed, viewport } = {}) {
+export async function openApp({ seed, viewport, popups = false } = {}) {
   const b = await getBrowser();
   const ctx = await b.newContext({ viewport: viewport || { width: 1100, height: 900 } });
   // Tests run offline: stub the only external resource (Google Fonts stylesheet).
   await ctx.route(/^https?:/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
   const page = await ctx.newPage();
   const errors = [];
+  // Badge popups cover the screen; tests opt in explicitly with { popups: true }.
+  if (!popups) await page.addInitScript(() => { window.HW_NO_POPUPS = 1; });
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
   if (seed) await page.addInitScript(s => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('healthwiz', s); sessionStorage.setItem('seeded', '1'); } }, JSON.stringify(seed));
