@@ -570,3 +570,44 @@ only, and joins GPS check-in as soon as its coordinates are filled in there.
 Tests: `tests/19-gps.test.mjs` (Playwright geolocation): the full flow with the explanation, input checks, XP and the
 discovery once, and no stored position; weak signal, far away and denied permission; stairways without coordinates,
 the distance and radius maths, v7 → v8 migration and a 360 px layout. 122 tests in total.
+
+## 25. v6.18: installable app and offline support (§73–74, §87–88, §97 step 21)
+
+HealthWiz can now be installed like an app and opens without internet. Nothing about saved data changes (no schema step):
+it was already in `localStorage`, so logging, quests, XP, statistics, mini-games, the Kingdom, Medius's own lines and
+achievements already worked offline once the page was open. What was missing was opening the page with no connection.
+
+* *Manifest (§73):* `manifest.webmanifest` sets standalone display, `start_url`/`scope` `./` (works under the GitHub
+  Pages sub-path), and the `#14204f` theme and background colours the original `theme-color` meta already used, which
+  Android uses for the splash screen. The icons in `assets/icons/` are original pixel art (a heart wearing a wizard hat)
+  drawn by `tools/make-icons.mjs` with no dependencies: 32 px favicon, 192/512 px, a 512 px maskable icon with the art
+  inside the safe circle, and a 180 px Apple touch icon. `index.html` must stay byte-identical, so `js/v6-pwa.js` adds
+  the `<link>` tags. The existing `apple-mobile-web-app-*` metas already cover iOS standalone mode.
+* *Service worker (§74):* `sw.js` at the site root. Install pre-caches the whole app shell (every script, image, icon
+  and the manifest), so the app opens offline even if some pages were never visited. App files are **network first**:
+  with no build step to stamp versions, this keeps online visits on the latest deploy, and every good response refreshes
+  the offline copy. If the network fails or takes more than 4 s, the cached copy is used. Google Fonts are
+  stale-while-revalidate, with an empty response when offline and not yet cached (the system fonts take over). Other
+  requests, including the Wizard's Counsel AI call (a POST), are never touched or cached. A navigation that fails before
+  the first copy is saved gets a plain page that says what happened, that logs are safe, and what to do (§88).
+* *Where it runs:* only on the multi-file site served over https or `http://localhost`. Opened from a file, or as the
+  standalone single-file build (where the scripts are inline), `js/v6-pwa.js` adds no links and registers nothing.
+  Those copies already run without internet, and the Settings card says so.
+* *Offline status (§87):* an OFFLINE badge in the bottom-left corner while the device is offline (above the bottom
+  navigation on phones; the longer "Your logs are still saved" text shows on wider screens and is in its label for
+  screen readers). Medius gets one calm line when the connection drops (priority 50, 30 min cooldown, `HWMedius.rules`).
+  A short toast confirms when the offline copy is first saved and when the connection returns.
+* *Settings → APP & OFFLINE* (above Backup & Restore): connection, offline copy status, install, and storage.
+  INSTALL HEALTHWIZ appears when the browser offers its install prompt (used once, as browsers require); iPhone/iPad get
+  the Share → Add to Home Screen steps; installed copies say so. KEEP MY DATA asks the browser to persist storage, so
+  site data is not cleared to free space (also requested quietly after install). The card reminds that backups are
+  still the way to move devices.
+* *Cloud queue:* §74 asks to queue cloud changes for later. There is no cloud sync yet, so there is nothing to queue;
+  step 22 adds sync and its offline queue.
+* *Events:* `network:changed {online}`, `app:offline-ready {first}`, `app:installed`.
+
+Keep `PRECACHE` in `sw.js` in step with new files: `tests/20-pwa.test.mjs` fails when a script in `index.html` or a
+file in `assets/` is missing from it, or when it lists a file that does not exist. The tests also check the manifest and
+icon sizes, the file:// behaviour, and on a localhost server: the cached shell, a reload and a water log with the
+network off, a never-fetched image served offline, the badge and event, the install prompt used once, and a 360 px badge.
+128 tests in total.

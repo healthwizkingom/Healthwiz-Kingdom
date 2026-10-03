@@ -13,6 +13,7 @@ It is a static site with no build step and no server code.
 
 * **Open locally:** open `index.html` in a browser.
 * **GitHub Pages:** serve the repository root.
+* **Install / offline:** on the GitHub Pages site, use the browser's *Install app* / *Add to Home Screen* (or Settings → App & Offline). After the first visit it opens without internet.
 * **One shareable file:** `npm run build` writes `dist/healthwiz-standalone.html`, with all scripts and images inlined.
 
 Data is stored in the browser's `localStorage` (`healthwiz`). Use **Settings → Backup** to download or restore it.
@@ -43,11 +44,16 @@ js/v6-trail.js             Adventure Trail mini-game (follow trail blazes at for
 js/v6-grove.js             Calming Grove mini-game (follow a light over the pond as it grows and shrinks with your breath)
 js/v6-night.js             Night Watch mini-game (match star-chart constellations in the night sky)
 js/v6-gps.js               GPS check-in on the Stair Quest page (one reading on tap, nearest stairway, confirm, discovery)
+js/v6-pwa.js               install as an app + offline: manifest/icon links, service worker, offline badge, Settings card
+sw.js                      service worker: pre-caches the app, network first, works offline (keep PRECACHE in sync)
+manifest.webmanifest       web app manifest (name, colours, standalone display, icons)
 js/v6-safety.js            an error card instead of a blank screen
 assets/img/                the 15 images that were embedded as base64 in the original
+assets/icons/              app icons (original pixel art, drawn by tools/make-icons.mjs)
 legacy/HealthWiz_Kingdom_5-4-3.html   the complete original single file (source of truth)
 tools/import-original.mjs  one-time import of the original (re-running it overwrites later edits)
 tools/build-standalone.mjs bundles everything back into one HTML file
+tools/make-icons.mjs       redraws the app icons
 tests/                     browser tests (Playwright + node:test), incl. a fidelity check
 docs/                      architecture audit and plan
 ```
