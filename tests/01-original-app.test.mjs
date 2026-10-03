@@ -12,7 +12,7 @@ test('new user: welcome → onboarding (Medius registry) instead of home', async
   const { page, ctx, errors } = await openApp({ fresh: true });
   await page.waitForSelector('.wl');
   await page.click('.wl .ct button');
-  await page.waitForTimeout(150);
+  await page.waitForFunction(() => S.v !== 'welcome', null, { timeout: 3000 });   // short entry transition
   assert.equal(await page.evaluate(() => S.v), 'onb');
   assert.match(await page.textContent('#main'), /MEDIUS/i);
   assert.deepEqual(errors, []);

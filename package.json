@@ -7,7 +7,7 @@
   "scripts": {
     "build": "node tools/build-standalone.mjs",
     "import": "node tools/import-original.mjs legacy/HealthWiz_Kingdom_5-4-3.html",
-    "test": "node tools/build-standalone.mjs && node --test --test-concurrency=1 tests/*.test.mjs"
+    "test": "node tools/build-standalone.mjs && node --test --test-concurrency=1 --test-timeout=90000 tests/*.test.mjs"
   },
   "devDependencies": {
     "acorn": "^8.14.0",

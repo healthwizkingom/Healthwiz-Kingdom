@@ -41,8 +41,11 @@ export async function openApp({ seed, fresh = false, viewport, before } = {}) {
   await ctx.route(/^https?:/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
   const page = await ctx.newPage();
   const errors = [];
-  page.on('pageerror', e => errors.push('pageerror: ' + e.message));
-  page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
+  // Keep at most 50 messages so a runaway page can't exhaust the test runner's memory; flag floods.
+  let seen = 0;
+  const keep = s => { seen++; if (errors.length < 50) errors.push(s); else if (seen === 51) errors.push('… error flood: more than 50 errors (first ones above)'); };
+  page.on('pageerror', e => keep('pageerror: ' + e.message));
+  page.on('console', m => { if (m.type() === 'error') keep('console: ' + m.text().slice(0, 300)); });
   const init = fresh ? null : JSON.stringify(seed || RETURNING);
   if (init) await page.addInitScript(s => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('healthwiz', s); localStorage.setItem('hwtut', '1'); sessionStorage.setItem('seeded', '1'); } }, init);
   if (before) await before(page);
