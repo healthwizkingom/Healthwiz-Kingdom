@@ -303,3 +303,23 @@ Tests: `tests/06-streaks.test.mjs`. 48 in total.
 * **Event:** `kingdom:state` when a log, edit or delete changes a region's state (for Medius in step 9).
 
 Tests: `tests/07-xp-kingdom.test.mjs`. 54 in total.
+
+## 15. v6.8: Medius reacts (§39–41, §97 step 9)
+
+Medius already guides onboarding, the tutorial and the Wizard's Counsel AI chat; those are
+unchanged. `js/v6-medius.js` adds short speech bubbles (his portrait plus one line) driven by
+events: level-ups, all-daily-quests, focus/weekly quests, badges (shown after the original
+popup), new insights, region improvements, first logs per region, gentle-streak milestones
+(3/7/14/30/60/100), comebacks after a gap, restored backups and a once-a-day greeting.
+
+* **Personality (§40):** concise and playful, in the original's "thee/thy" voice. A test runs every
+  rule and checks that no line contains guilt, shame or diagnostic language.
+* **Restraint (§41):** priorities, per-type cooldowns, an 8-second minimum gap (important moments queue
+  rather than drop), 12 bubbles a day, the same line at most once a day, one waiting line per type, and
+  nothing on the title screen, onboarding or tutorial.
+* **Settings:** Chatty / Calm (default: important moments only) / Off. The guide shows his recent words.
+* **Schema v6:** `st.md` stores the cooldown and seen-line memory and the last 20 lines.
+* **Event bus fix:** a payload field named `type` could overwrite the event's name. The event name now always wins.
+
+Tests: `tests/08-medius.test.mjs`. 62 in total. (General tests run with Medius off so bubbles
+never cover the controls being tested.)
