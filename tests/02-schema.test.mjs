@@ -101,7 +101,7 @@ test('data from a newer app version is kept, not upgraded or overwritten', async
 test('restoring an old backup migrates it; a newer backup is refused with a clear message', async () => {
   const { page, ctx, errors } = await openRaw(JSON.stringify({ ...V1, sv: 2, b: {}, e: [] }));
   await go(page, 'set');
-  await page.click('details summary').catch(() => {});
+  await page.click('#bkp details summary').catch(() => {});
   await page.fill('#imptx', JSON.stringify({ app: 'HealthWiz', ver: '5.3', data: V1 }));
   await page.click('[data-a="impt"]');
   await page.click('[data-a="impm"]');
@@ -111,7 +111,7 @@ test('restoring an old backup migrates it; a newer backup is refused with a clea
   assert.equal(st.e.length, 2);
 
   await go(page, 'set');
-  await page.click('details summary').catch(() => {});
+  await page.click('#bkp details summary').catch(() => {});
   await page.fill('#imptx', JSON.stringify({ app: 'HealthWiz', data: { ...V1, sv: 99 } }));
   await page.click('[data-a="impt"]');
   assert.match(await page.textContent('#impo'), /newer version of HealthWiz/);

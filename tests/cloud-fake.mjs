@@ -1,0 +1,70 @@
+// Shared by tests/21-cloud and 22-cloud-sync: a small fake Supabase (auth + the hw_saves table, with the same rev rules as
+// supabase/migrations) answering through Playwright routes, so several "devices" can share one account.
+import assert from 'node:assert/strict';
+import { openApp, go, state } from './helpers.mjs';
+
+export const URL0 = 'https://hwtest.supabase.co';
+export const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url');
+export const tok = o => b64({ alg: 'HS256', typ: 'JWT' }) + '.' + b64(o) + '.sig';
+export const ANON = tok({ role: 'anon', iss: 'supabase' });
+export const CLOUD = JSON.stringify({ url: URL0, key: ANON });
+
+export function fakeSupabase() {
+  const S = { users: {}, rows: {}, down: false, confirm: false, calls: [], race: 0, n: 0 };
+  const session = u => ({ access_token: tok({ sub: u.id, email: u.email, role: 'authenticated' }), refresh_token: 'r-' + u.id, expires_in: 3600, user: { id: u.id, email: u.email } });
+  S.handle = async route => {
+    const req = route.request(), u = new URL(req.url()), m = req.method();
+    S.calls.push(m + ' ' + u.pathname);
+    if (S.down) return route.abort('internetdisconnected');
+    const send = (status, body) => route.fulfill({ status, contentType: 'application/json', body: body === undefined ? '' : JSON.stringify(body) });
+    if (req.headers().apikey !== ANON) return send(401, { message: 'bad apikey' });
+    const body = req.postData() ? JSON.parse(req.postData()) : null;
+    if (u.pathname === '/auth/v1/signup') {
+      if (S.users[body.email]) return send(422, { msg: 'User already registered' });
+      const usr = S.users[body.email] = { id: 'u' + (++S.n) + '-0000', email: body.email, pw: body.password };
+      return send(200, S.confirm ? { id: usr.id, email: usr.email } : session(usr));
+    }
+    if (u.pathname === '/auth/v1/token') {
+      if (u.searchParams.get('grant_type') === 'password') { const usr = S.users[body.email]; return usr && usr.pw === body.password ? send(200, session(usr)) : send(400, { error_description: 'Invalid login credentials' }); }
+      const usr = Object.values(S.users).find(x => 'r-' + x.id === body.refresh_token); return usr ? send(200, session(usr)) : send(400, { error_description: 'Invalid Refresh Token' });
+    }
+    if (u.pathname === '/auth/v1/logout') return send(204);
+    const auth = (req.headers().authorization || '').replace('Bearer ', ''), sub = auth.split('.').length === 3 ? JSON.parse(Buffer.from(auth.split('.')[1], 'base64url')).sub : null;
+    if (!sub || !Object.values(S.users).some(x => x.id === sub)) return send(401, { message: 'JWT invalid' });
+    if (u.pathname === '/rest/v1/rpc/hw_delete_account') { for (const k in S.users) if (S.users[k].id === sub) delete S.users[k]; delete S.rows[sub]; return send(204); }
+    if (u.pathname !== '/rest/v1/hw_saves') return send(404, { code: 'PGRST205', message: 'Could not find the table' });
+    const who = (u.searchParams.get('user_id') || '').replace('eq.', '');
+    if (m === 'POST') { if (body.user_id !== sub) return send(403, { message: 'RLS' }); if (S.rows[sub]) return send(409, { code: '23505', message: 'duplicate key' }); S.rows[sub] = { rev: 1, sv: body.sv, data: body.data, device: body.device, updated_at: new Date().toISOString() }; return send(201, [S.rows[sub]]); }
+    if (who !== sub) return send(200, []); // RLS: other rows are invisible
+    const row = S.rows[sub];
+    if (m === 'GET') return send(200, row ? [row] : []);
+    if (m === 'PATCH') {
+      if (S.race > 0 && row) { S.race--; row.rev++; } // another device wrote in between
+      const rev = +(u.searchParams.get('rev') || '').replace('eq.', '');
+      if (!row || row.rev !== rev) return send(200, []);
+      Object.assign(row, { sv: body.sv, data: body.data, device: body.device, rev: row.rev + 1, updated_at: new Date().toISOString() });
+      return send(200, [row]);
+    }
+    if (m === 'DELETE') { delete S.rows[sub]; return send(204); }
+    return send(405, {});
+  };
+  return S;
+}
+
+export async function device(S, { seed, cloud = CLOUD, viewport } = {}) {
+  const r = await openApp({ seed, viewport, before: async page => {
+    await page.route(URL0 + '/**', S.handle);
+    if (cloud) await page.addInitScript(c => { if (!sessionStorage.getItem('cl')) { localStorage.setItem('healthwiz_cloud', c); sessionStorage.setItem('cl', '1'); } }, cloud);
+  } });
+  await r.page.waitForSelector('.wl');
+  await r.page.evaluate(() => { window.__ev = []; HWEvents.on('*', e => { if (/^cloud:|^data:imported/.test(e.type)) window.__ev.push(e.type + (e.mode ? ':' + e.mode : '') + (e.how ? ':' + e.how : '')); }); });
+  return r;
+}
+export const st = page => page.evaluate(() => HWCloud.status());
+export const synced = page => page.waitForFunction(() => { const s = HWCloud.status(); return s.phase === 'ok' && !s.pending; }, null, { timeout: 15000 });
+export async function signUp(page, email = 'hero@example.com', pw = 'kingdom123', create = true) {
+  await go(page, 'set');
+  await page.fill('#clem', email); await page.fill('#clpw', pw);
+  await page.click(create ? '[data-a="clup"]' : '[data-a="clin"]');
+}
+export const water = (page, ml = 250) => page.evaluate(v => { add('water', v, {}, ''); render(); }, ml);

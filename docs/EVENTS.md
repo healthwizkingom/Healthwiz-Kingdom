@@ -38,7 +38,7 @@ take precedence over payload fields with the same name.
 | `quests:all-completed` | `date` | all daily quests done (`st.claimed[date]`) |
 | `badge:unlocked` | `name, icon, date` | the original awards a badge (`st.b`) |
 | `energy:rated` | `value, first, date` | daily energy check-in (`first` = first rating today) |
-| `data:imported` | `mode: merge\|replace, added, total` | a backup is merged or restored |
+| `data:imported` | `mode: merge\|replace\|cloud, added, total` | a backup is merged or restored, or a cloud sync changed this device's data (`cloud`) |
 | `data:reset` | — | all data erased (second tap) |
 | `kingdom:state` | `key, name, from, to, up` | a log, edit or delete changes a region's state (`js/v6-kingdom.js`) |
 | `medius:said` | `kind, text` | Medius shows a speech bubble (`js/v6-medius.js`) |
@@ -53,6 +53,11 @@ take precedence over payload fields with the same name.
 | `network:changed` | `online` | the device goes offline or comes back online (`js/v6-pwa.js`) |
 | `app:offline-ready` | `first` | the offline copy is in place (on every served visit; `first` = it was just saved for the first time) |
 | `app:installed` | — | the browser reports the app was installed |
+| `cloud:signed-in` | — | the user signed in to the cloud save (`js/v6-cloud.js`) |
+| `cloud:signed-out` | `why: user\|reset\|deleted\|expired` | the device left the cloud save (data on the device is kept) |
+| `cloud:synced` | `how: up\|down\|merge\|none, rev` | a sync finished; `rev` is the cloud save's revision |
+| `cloud:choose` | — | first sign-in with data on both sides: waiting for the user's MERGE / USE CLOUD / KEEP THIS DEVICE choice |
+| `cloud:error` | `code: net\|auth\|setup\|newer\|bad\|busy\|size\|http` | a sync or account action failed (nothing local was changed) |
 
 Import, reset and the initial load update the award baselines **silently**, so badges and
 quests that already existed are never announced as new.
