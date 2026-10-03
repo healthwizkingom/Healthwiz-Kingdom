@@ -16,8 +16,8 @@ Every event is `{ type, at, ...payload }`, where `at` is an ISO timestamp.
 
 * **Timing:** listeners run synchronously, right after the action that caused the event.
 * **Errors:** a listener that throws is logged with `console.error` and never breaks the app or other listeners.
-* **Order:** events raised inside an action are delivered cause → effect. Logging water gives
-  `entry:added` → `xp:gained` → `quest:completed` / `badge:unlocked` (after the next render).
+* **Order:** delivery is breadth-first, cause → effect. Logging water gives `entry:added` → `xp:gained`,
+  then reactions to those (`insights:updated`, …), then `quest:completed` / `badge:unlocked` after the next render.
 
 ## Catalog
 
@@ -38,6 +38,8 @@ Every event is `{ type, at, ...payload }`, where `at` is an ISO timestamp.
 | `energy:rated` | `value, first, date` | daily energy check-in (`first` = first rating today) |
 | `data:imported` | `mode: merge\|replace, added, total` | a backup is merged or restored |
 | `data:reset` | — | all data erased (second tap) |
+| `insights:updated` | `ids` (top 3) | insights recomputed after a data change (`js/v6-insights.js`) |
+| `insight:new` | `insight` | an insight newly reaches the top 3 after a log, edit or delete (never at boot) |
 
 Import, reset and the initial load update the award baselines **silently**, so badges and
 quests that already existed are never announced as new.

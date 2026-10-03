@@ -218,3 +218,24 @@ the coming systems subscribe to events instead of being wired into the original 
 
 The event log is in memory only (last 200). Persistent history for Medius cooldowns
 (§41) and inactivity detection will be added with those features, through a schema step.
+
+## 11. v6.4: insight engine (§25–27, §97 step 5)
+
+The original already has `insights()` (7-day averages vs targets), `anomalies()` (unusual
+entries), an end-of-day report and "tomorrow's quest". All of them are kept unchanged.
+`js/v6-insights.js` adds what the master prompt asks for on top:
+
+* **Personal baselines (§27):** this week vs the previous week (water, sleep, stress, stair
+  sessions), today vs your own typical day (water, only after 15:00, never as a morning nag),
+  consistency (target days met, bedtime spread), the strongest pattern from the original 30-day
+  health connections, and a logging streak. Comparisons use completed days only, because today is partial.
+* **Priority (§26):** each insight has a priority. The top list keeps at most one per area.
+  Home shows 2 and the guide shows 5 ("Medius notices"), above the original guide cards.
+* **Wording (§25, §84):** observational and grounded in your data ("based on 7 + 7 logged days").
+  No diagnoses, no praise for eating less, no guilt after gaps ("Nothing was lost"), estimates labelled.
+* **Events:** `insights:updated` after any data change, and `insight:new` when an insight newly
+  enters the top 3 (never at boot). Medius reactions (step 9) will subscribe to it. Event
+  delivery is now breadth-first, so direct effects of an action come before reactions to them.
+
+Tests: `tests/04-insights.test.mjs` (empty state, baseline comparison, priority and per-area limit,
+sleep/stress wording, time-of-day guard with a fixed clock, insight events and ordering). 37 tests in total.

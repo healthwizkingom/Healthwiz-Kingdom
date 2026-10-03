@@ -34,7 +34,7 @@ export const RETURNING = { sv: 2, b: {}, e: [], s: { kcal: 2200, water: 2000, so
  *  - { fresh: true }: brand-new user with empty storage (onboarding + tutorial flow)
  *  - { seed }: custom saved state (tutorial marked seen)
  */
-export async function openApp({ seed, fresh = false, viewport } = {}) {
+export async function openApp({ seed, fresh = false, viewport, before } = {}) {
   const b = await getBrowser();
   const ctx = await b.newContext({ viewport: viewport || { width: 1100, height: 900 }, acceptDownloads: true });
   // Tests run offline: stub external requests (Google Fonts stylesheet, AI endpoint).
@@ -45,6 +45,7 @@ export async function openApp({ seed, fresh = false, viewport } = {}) {
   page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
   const init = fresh ? null : JSON.stringify(seed || RETURNING);
   if (init) await page.addInitScript(s => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('healthwiz', s); localStorage.setItem('hwtut', '1'); sessionStorage.setItem('seeded', '1'); } }, init);
+  if (before) await before(page);
   await page.goto(APP_URL);
   return { page, ctx, errors };
 }
@@ -56,3 +57,8 @@ export async function go(page, view) {
 }
 
 export const state = page => page.evaluate(() => JSON.parse(localStorage.getItem('healthwiz') || 'null'));
+
+/** Local YYYY-MM-DD for n days ago (same timezone as the browser under test). */
+export const daysAgo = (n, from = new Date()) => { const d = new Date(from); d.setDate(d.getDate() - n); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+let _id = 0;
+export const entry = (c, v, n, m = {}, t = '12:00') => ({ id: 't' + (++_id), c, v, m, n: '', d: daysAgo(n), t });
