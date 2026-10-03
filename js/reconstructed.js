@@ -153,7 +153,7 @@ let h;try{h=pages[v]?pages[v]():missing(v)}catch(e){console.error('[render '+v+'
 $('#main').innerHTML=wel?h:'<div class="pg tr-'+v+'">'+(v==='home'?'':hbar()+banner(v))+h+(DIS[v]?'<p class="dis">'+DIS[v]+'</p>':'')+'</div>';
 $('#nav').innerHTML=wel?'':NAV.map(n=>'<button class="'+(n[0]===v?'on':'')+'" data-a="go" data-v="'+n[0]+'"'+(n[0]===v?' aria-current="page"':'')+'><span class="ni">'+n[1]+'</span>'+n[2]+'</button>').join('');
 musBtn();if(after_[v])try{after_[v]()}catch(e){console.error(e)}if(typeof afterRender==='function')afterRender(v)}
-function goto(v){S.v=v;mclose();render();try{window.scrollTo(0,0)}catch(e){}}
+function goto(v){if(typeof stopAll==='function')stopAll();if(S.v==='stress'&&v!=='stress'){S.cs=null;S.csh=0}S.v=v;mclose();render();try{window.scrollTo(0,0)}catch(e){}}
 acts.go=d=>goto(d.v);
 
 /* ---------- delegated events ---------- */
