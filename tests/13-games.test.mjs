@@ -31,13 +31,14 @@ test('schema v7 adds mini-game state to older saves', async () => {
   await ctx.close();
 });
 
-test('no games registered: no hub or stats card', async () => {
+test('hub lists the registered games; stats card has a useful empty state', async () => {
   const { page, ctx, errors } = await openApp();
   await page.waitForSelector('.wl');
   await go(page, 'kingdom');
-  assert.equal(await page.locator('#v6ghub').count(), 0);
+  assert.match(await page.textContent('#v6ghub'), /Well Garden/);
   await go(page, 'stats');
-  assert.equal(await page.locator('#v6gstat').count(), 0);
+  assert.match(await page.textContent('#v6gstat'), /No games played yet/);
+  assert.equal(await page.locator('#v6gstat [data-a="game"][data-g="water"]').count(), 1);
   assert.deepEqual(errors, []);
   await ctx.close();
 });
