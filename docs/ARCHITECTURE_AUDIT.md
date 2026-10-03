@@ -323,3 +323,19 @@ popup), new insights, region improvements, first logs per region, gentle-streak 
 
 Tests: `tests/08-medius.test.mjs`. 62 in total. (General tests run with Medius off so bubbles
 never cover the controls being tested.)
+
+## 16. v6.9: interactive statistics (§61–62, §89, §97 step 10)
+
+Every chart in the app comes from the original `chart()`. `js/v6-charts.js` wraps it once, so
+all charts (stats, home trends, food, water, sleep, quests…) gain:
+* **Reading values:** tap or hover a bar, or focus the chart and use ← → Home End, to read "Tue 30 Sep: 1,200 mL"
+  in a live region. The original only showed values in a desktop hover tooltip.
+* **Labels:** sparse date labels (first, middle, last) on charts with more than 7 bars.
+* **Accessibility:** `role="img"` plus a spoken summary (days with data, average, peak, target).
+* **Empty state:** an explanation ("NO STAIR STEPS YET — log stair steps…") instead of an empty box.
+
+The Statistics page keeps Day/Week/Month and gains **This week vs last week** (completed days,
+averages on days with data, stair steps as totals, neutral ▲ higher / ▼ lower / → about the same).
+It fits a 360 px screen without sideways scrolling.
+
+Tests: `tests/09-charts.test.mjs`. 67 in total.

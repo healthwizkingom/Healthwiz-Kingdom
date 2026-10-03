@@ -31,6 +31,7 @@ js/v6-streaks.js           current + gentle streaks, week view, new achievements
 js/v6-xp.js                fair XP: daily logging allowance, exploration reward
 js/v6-kingdom.js           five region states (incl. Flourishing) and region detail panel
 js/v6-medius.js            Medius reacts to events (speech bubbles with cooldowns)
+js/v6-charts.js            touch/keyboard/screen-reader charts, empty states, week-vs-week stats
 js/v6-safety.js            an error card instead of a blank screen
 assets/img/                the 15 images that were embedded as base64 in the original
 legacy/HealthWiz_Kingdom_5-4-3.html   the complete original single file (source of truth)
