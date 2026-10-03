@@ -12,7 +12,8 @@ stop();                                           // unsubscribe
 HWEvents.recent('xp:gained', 10);                 // last 10 (in-memory log, max 200)
 ```
 
-Every event is `{ type, at, ...payload }`, where `at` is an ISO timestamp.
+Every event is `{ type, at, ...payload }`, where `at` is an ISO timestamp. `type` and `at` always
+take precedence over payload fields with the same name.
 
 * **Timing:** listeners run synchronously, right after the action that caused the event.
 * **Errors:** a listener that throws is logged with `console.error` and never breaks the app or other listeners.
@@ -39,6 +40,7 @@ Every event is `{ type, at, ...payload }`, where `at` is an ISO timestamp.
 | `data:imported` | `mode: merge\|replace, added, total` | a backup is merged or restored |
 | `data:reset` | — | all data erased (second tap) |
 | `kingdom:state` | `key, name, from, to, up` | a log, edit or delete changes a region's state (`js/v6-kingdom.js`) |
+| `medius:said` | `kind, text` | Medius shows a speech bubble (`js/v6-medius.js`) |
 | `insights:updated` | `ids` (top 3) | insights recomputed after a data change (`js/v6-insights.js`) |
 | `insight:new` | `insight` | an insight newly reaches the top 3 after a log, edit or delete (never at boot) |
 

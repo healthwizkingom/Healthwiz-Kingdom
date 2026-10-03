@@ -6,7 +6,7 @@ const today=()=>ymd(new Date()),nowT=()=>{const d=new Date();return pad(d.getHou
 const rng=n=>Array.from({length:n},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(n-1-i));return ymd(d)});
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let mem=null;
-const DEF=()=>({sv:HWSchema.V,q6:{f:{},w:{}},ex:{p:{}},xl:{},b:{},e:[],s:{kcal:2200,water:2000,sound:1,set:0},p:{w:60,h:165,age:16,sex:'m',act:1.375,days:3,goal:'m'},xp:0,claimed:{}});
+const DEF=()=>({sv:HWSchema.V,q6:{f:{},w:{}},ex:{p:{}},xl:{},md:{last:{},day:{},seen:{},ms:{},log:[]},b:{},e:[],s:{kcal:2200,water:2000,sound:1,set:0},p:{w:60,h:165,age:16,sex:'m',act:1.375,days:3,goal:'m'},xp:0,claimed:{}});
 let st=HWSchema.load(DEF); // v6: versioned load with migrations (js/v6-schema.js)
 let SV=0;const save=()=>{SV++;try{localStorage.setItem('healthwiz',JSON.stringify(st))}catch(e){mem=st}};
 const S={v:'welcome',meal:'breakfast',src:'d'+new Date().getDate(),q:'',sel:null,qty:1,pm:1,ck:'',cf:0,loc:0,cat:'MILD',rg:'w',sq:{ph:0,n:0},pb:{pace:1,on:0,k:0},fc:'all',tm:0};
