@@ -144,3 +144,30 @@ Still open / future (Phase 5): guided tutorial overlay (`#tut` CSS exists), onbo
 flow (`.onbm` CSS exists), study/bedroom photo scenes (`.cns2`, images lost), optional
 `src/` module split. If the complete original file turns up, compare each
 `RECONSTRUCTED` block against it and keep whichever behaviour the team prefers.
+
+## 8. v6.1: the complete original restored (supersedes §5–§7)
+
+The team later provided the complete original, `HealthWiz_Kingdom_5-4-3.html` (1.06 MB).
+The repo's broken first half is an exact prefix of it (apart from the injected MENU line
+breaks), and the old tail fragment is its exact ending. It contains every page that §3b
+listed as lost, plus onboarding (Traveller's Registry), the tutorial, Medius, the
+study/bedroom scenes and all artwork.
+
+**Change:** all reconstructed code (`js/reconstructed.js`, `js/rc-*.js`) was removed and
+replaced with the original, imported by `tools/import-original.mjs`:
+
+* 15 base64 images (804 KB) → `assets/img/` (no canvas reads them, so file paths are safe).
+* The 204 KB script is split with a JS parser only between top-level statements: 7 files,
+  each ≤ 58 KB. Load order is preserved. All 18 original pages render with no load-time errors.
+* Markup and stylesheet are byte-identical. `tests/00-fidelity.test.mjs` proves that the
+  files reassemble into exactly the original code.
+* Only addition: `js/v6-safety.js` (error card if a page or `render()` throws). From the
+  v6 rebuild, the tests and the standalone build were kept; the original already stops
+  its timers in `go()`.
+
+**Known issues in the original, left unchanged for later phases** (master prompt §97 order):
+* Region names "Heart Temple" / "Balance Shrine" conflict with master prompt §16 (no
+  religious framing). Rename early in the next phase.
+* Medius AI calls `api.anthropic.com` directly from the browser. It works only inside
+  Claude and needs a backend for real deployment (§42).
+* No schema version in saved data yet (§23). This is the next step.
