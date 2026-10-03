@@ -36,6 +36,7 @@ js/v6-medius.js            Medius reacts to events (speech bubbles with cooldown
 js/v6-charts.js            touch/keyboard/screen-reader charts, empty states, week-vs-week stats
 js/v6-world.js             visible world progression on the map + kingdom chronicle
 js/v6-title.js             title screen: time of day, weather, returning-player ribbon, tap reactions
+js/v6-games.js             mini-game framework: scene, HUD, character, timers, rewards, completion
 js/v6-safety.js            an error card instead of a blank screen
 assets/img/                the 15 images that were embedded as base64 in the original
 legacy/HealthWiz_Kingdom_5-4-3.html   the complete original single file (source of truth)
@@ -51,7 +52,7 @@ no original function, constant, page or action has been removed.
 
 ## Saved data and versions
 
-Saved data carries a schema version (`sv`, currently **6**). On load, `js/v6-schema.js` upgrades
+Saved data carries a schema version (`sv`, currently **7**). On load, `js/v6-schema.js` upgrades
 older data step by step, and restored backups go through the same steps. Before anything is
 upgraded, repaired or discarded, the raw stored text is copied to a `healthwiz_backup_<reason>_<time>`
 key (the newest 3 are kept). If data was saved by a newer app version, it is left as it is.
