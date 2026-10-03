@@ -68,4 +68,21 @@ acts.medm=d=>{st.s.med=+d.m;save();render();if(+d.m)toast('Medius: '+['','calm �
 const setCard=()=>'<div class="card" id="v6medset"><h3>🧙 MEDIUS COMPANION</h3><div class="row">'+[[2,'Chatty'],[1,'Calm'],[0,'Off']].map(m=>'<button class="chip'+(mode()===m[0]?' on':'')+'" data-a="medm" data-m="'+m[0]+'" aria-pressed="'+(mode()===m[0])+'">'+m[1]+'</button>').join('')+'</div><small class="mut">Calm shows only important moments (level-ups, quests, milestones). Medius never scolds.</small></div>';
 {const p=pages.set;pages.set=(...a)=>{const h=p(...a),k='<h2>⚙️ SETTINGS</h2>';return h.indexOf(k)>=0?h.replace(k,k+setCard()):h+setCard()}}
 {const p=pages.guide;pages.guide=(...a)=>{const h=p(...a),L=md().log.slice(-5).reverse();return L.length?h+'<div class="card" id="v6medlog"><h3>📜 MEDIUS\'S RECENT WORDS</h3>'+L.map(x=>'<p>“'+esc(x.t)+'” <small class="mut">'+esc(x.at.slice(5,16).replace('T',' '))+'</small></p>').join('')+'</div>':h}}
-return{say,mode,rules:R,history:()=>md().log.slice()}})();
+/* §42 the Wizard's Counsel AI: replies come from supabase/functions/medius-chat (Gemini; the key stays on the server,
+   the persona and safety rules are set there). Signed-in players only, with a daily allowance. Messages are never stored.
+   ask() throws an Error with .code: signin · offline · limit · busy · nokey · blocked · ai, and askError() words it (§88). */
+async function ask(msgs){const no=c=>Object.assign(new Error(c),{code:c});
+  if(typeof HWCloud==='undefined'||!HWCloud.who())throw no('signin');
+  if(navigator.onLine===false)throw no('offline');
+  let d;try{d=await HWCloud.api('/functions/v1/medius-chat',{method:'POST',body:{name:name(),messages:msgs.map(m=>({role:m.role,content:m.content}))}})}
+  catch(e){const k=String(e&&e.message);throw no(/^(limit|busy|nokey|blocked|signin)$/.test(k)?k:k==='setup'||(e&&e.code==='setup')?'nokey':e&&e.code==='net'?'offline':e&&e.code==='auth'?'signin':'ai')}
+  const t=String(d&&d.reply||'').trim();if(!t)throw no('ai');return t}
+const ASKERR={signin:'Medius\'s spellbook (the AI) opens for adventurers signed in to Cloud Save. Sign in under Settings → Cloud Save, then speak again.',
+  offline:'You are offline, so Medius cannot reach his spellbook. Try again when you are back online.',
+  limit:'Medius has listened to many words today: your daily allowance of messages is used up. He will be back tomorrow.',
+  busy:'Many adventurers are speaking with Medius right now and his free spellbook needs a short rest. Please try again in a few minutes.',
+  nokey:'Medius\'s spellbook is not set up on the server yet (the AI key is missing), so he cannot answer here.',
+  blocked:'Medius could not answer that one. If you are having a hard time, tap “Need help now?” to reach a real person.',
+  ai:'The candle flickers… Medius could not get an answer just now. Try again in a moment.'};
+const askError=e=>'🕯️ '+(ASKERR[e&&e.code]||ASKERR.ai)+' Nothing you wrote was saved. Meanwhile: a few slow breaths, write your thoughts down, and if you need someone now, tap “Need help now?”.';
+return{say,mode,rules:R,history:()=>md().log.slice(),ask,askError}})();

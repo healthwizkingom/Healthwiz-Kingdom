@@ -47,7 +47,8 @@ js/v6-gps.js               GPS check-in on the Stair Quest page (one reading on 
 js/v6-pwa.js               install as an app + offline: manifest/icon links, service worker, offline badge, Settings card
 js/v6-cloud.js             optional Supabase cloud save: sign-in, sync with offline queue, three-way merge, Settings card
 js/v6-board.js             Hall of Heroes: opt-in leaderboard of game progress only (Quest Board card + Settings privacy card)
-supabase/migrations/       SQL for the cloud save and the leaderboard (Row Level Security) — run each file once in the Supabase project
+supabase/migrations/       SQL for the cloud save, the leaderboard and Medius's daily AI allowance (Row Level Security) — run each file once
+supabase/functions/        medius-chat: Edge Function for Medius's AI counsel (Gemini key kept as a secret)
 sw.js                      service worker: pre-caches the app, network first, works offline (keep PRECACHE in sync)
 manifest.webmanifest       web app manifest (name, colours, standalone display, icons)
 js/v6-safety.js            an error card instead of a blank screen
@@ -100,10 +101,19 @@ Logs are always saved on the device first; offline changes sync later and edits 
 
 ## Medius AI
 
-The Wizard's Counsel calls the Anthropic API directly from the browser, with no key. That only
-works when the page runs inside Claude. Elsewhere (GitHub Pages, opened locally) it shows
-its built-in offline message. A real deployment needs a small backend that holds the key
-(master prompt §42); the key must never go into this repo.
+The Wizard's Counsel (Stress page → ENTER THE STUDY) talks through the Supabase Edge Function
+`supabase/functions/medius-chat`, which calls Google's Gemini API (free tier). Only players signed in to
+Cloud Save can use it, with a daily allowance (30 messages, `MEDIUS_DAILY`). The Gemini key is an Edge Function
+secret (`GEMINI_API_KEY`) and never goes into the app or this repo; Medius's persona and safety rules are set in the
+function. Messages are not stored anywhere. Signed out, offline, or when the free quota runs out, Medius says so
+and points to the offline coping tips and the help numbers.
+
+Setup (already done for `healthwiz-kingdom`, repeat for another project):
+1. Edge Functions → Secrets: add `GEMINI_API_KEY` (optional: `GEMINI_MODEL`, default `gemini-3.5-flash-lite`; `MEDIUS_DAILY`).
+2. Run `supabase/migrations/20261005000000_hw_medius.sql` once (SQL editor or `supabase db push`).
+3. Deploy: `supabase functions deploy medius-chat --no-verify-jwt` (the function checks the player itself).
+4. Check: open `https://<project>.supabase.co/functions/v1/medius-chat?check=1`; it shows whether the key was found
+   and whether Gemini accepts it (no text is generated, nothing secret is shown).
 
 ## Test
 

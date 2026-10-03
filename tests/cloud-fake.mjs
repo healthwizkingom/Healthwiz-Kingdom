@@ -31,6 +31,15 @@ export function fakeSupabase() {
     if (u.pathname === '/auth/v1/logout') return send(204);
     const auth = (req.headers().authorization || '').replace('Bearer ', ''), sub = auth.split('.').length === 3 ? JSON.parse(Buffer.from(auth.split('.')[1], 'base64url')).sub : null;
     if (!sub || !Object.values(S.users).some(x => x.id === sub)) return send(401, { message: 'JWT invalid' });
+    if (u.pathname === '/functions/v1/medius-chat') { // supabase/functions/medius-chat: S.ai = 'ok' | 'busy' | 'nokey' | 'blocked' | 'setup'
+      S.ai = S.ai || 'ok'; S.aiUsed = S.aiUsed || {}; S.aiSent = S.aiSent || []; S.aiSent.push({ sub, body });
+      if (S.ai === 'setup') return send(503, { error: 'setup' });
+      const n = S.aiUsed[sub] = (S.aiUsed[sub] || 0) + 1, daily = S.aiDaily || 30;
+      if (n > daily) return send(429, { error: 'limit', left: 0 });
+      if (S.ai !== 'ok') return send(S.ai === 'blocked' ? 502 : 503, { error: S.ai });
+      const last = body.messages[body.messages.length - 1].content;
+      return send(200, { reply: 'Medius hears thee, ' + body.name + ': ' + last, left: daily - n });
+    }
     if (u.pathname === '/rest/v1/rpc/hw_delete_account') { for (const k in S.users) if (S.users[k].id === sub) delete S.users[k]; delete S.rows[sub]; delete S.board[sub]; return send(204); }
     if (u.pathname.startsWith('/rest/v1/rpc/hw_board_') || u.pathname === '/rest/v1/hw_board') return board(S, u, m, sub, body, send);
     if (u.pathname !== '/rest/v1/hw_saves') return send(404, { code: 'PGRST205', message: 'Could not find the table' });

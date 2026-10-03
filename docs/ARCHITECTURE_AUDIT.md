@@ -792,3 +792,25 @@ Known and left for the team: two original colour pairs are just under WCAG AA 4.
 (`--mut` on `--p2`, 4.45:1, light theme) and white on the violet badge chip (4.37:1). Body text is 8.9–15:1 everywhere.
 Only Chromium is available here; the Safari, Firefox and Samsung Internet checks in `docs/TESTING.md` need real devices.
 167 tests in total.
+
+## 30. v6.23: Medius's AI counsel through Supabase and Gemini (§39–42, §88, §91)
+
+The Wizard's Counsel called `api.anthropic.com` straight from the browser with no key, so outside Claude it always
+showed its offline message. It now asks the Edge Function `supabase/functions/medius-chat`, which calls Google's Gemini
+API (free tier; the team chose a free option).
+
+* *Keys (§42, §91):* the Gemini key is the Edge Function secret `GEMINI_API_KEY`; the app has no key and no direct AI call
+  (a test scans `js/`). Medius's persona and safety rules (no diagnosis, crisis numbers) are set in the function, and the
+  app sends only the player's first name and the conversation, so the key cannot be used as a general chatbot.
+* *Who (§79):* signed-in Cloud Save players only. The function checks the player's own access token with Supabase Auth.
+  A daily allowance (30 messages, `MEDIUS_DAILY`) is counted by `hw_medius_take()`
+  (`supabase/migrations/20261005000000_hw_medius.sql`: one row per player per day, the count only, kept a week; security
+  definer, `authenticated` only).
+* *Privacy:* messages are passed to Gemini and the reply returned; nothing is stored or logged by HealthWiz. The Counsel
+  card says the words go to Google's Gemini AI while signed in (free-tier terms may let Google use them to improve its products).
+* *Model:* `gemini-3.5-flash-lite` (`GEMINI_MODEL`), falling back to `gemini-3.1-flash-lite` if the first is unavailable.
+* *States (§88):* signed out, offline, allowance used, free quota used (Gemini 429), not set up, a blocked reply and other
+  errors each have their own line, all saying nothing was saved and pointing to the offline tips and "Need help now?".
+  `GET …/medius-chat?check=1` shows whether the key is found and accepted, without generating text or revealing it.
+
+Tests: `tests/27-medius-ai.test.mjs` with the fake Supabase (`tests/cloud-fake.mjs` now answers `medius-chat`). 171 tests in total.

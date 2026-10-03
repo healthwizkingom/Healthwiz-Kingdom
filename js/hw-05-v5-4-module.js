@@ -105,7 +105,7 @@ function counsel(){const c=S.cs,nn=nm();let b;
 if(!c)b='<p>“Ah, '+nn+'… come in from the cold. Sit by the candle and rest thy weary bones. Before we speak, let us breathe together with my magic bubble.”</p><div class="row"><button data-a="csgo">🕯️ ENTER THE STUDY</button></div>';
 else if(c.ph==='br')b='<p class="big" style="text-align:center" id="cnsec">'+(20-c.sec)+'<small> s</small></p><p style="text-align:center">Breathe in as the bubble grows (4 s), out as it shrinks (6 s).</p><button class="g" data-a="csskip" style="width:100%">SKIP BREATHING</button>';
 else b='<div class="cslog" id="cslog" aria-live="polite">'+cslog()+'</div><div class="csin"><textarea id="csin" rows="2" maxlength="1500" placeholder="Speak freely, '+nn+'… (Enter to send)"'+(c.busy?' disabled':'')+'></textarea><button data-a="cssend"'+(c.busy?' disabled':'')+'>SEND</button></div><div class="row" style="margin-top:8px"><button class="g sm" data-a="cshelp">🆘 NEED HELP NOW?</button><button class="g sm" data-a="csend">END SESSION</button></div>'+(c.help?HELP:'');
-return '<div class="card" id="counsel"><h3>🕯️ THE WIZARD\'S COUNSEL</h3>'+counselScene()+b+'<small class="mut">Medius is an AI listener, not a therapist or crisis service. Your words are not saved.</small></div>'}
+return '<div class="card" id="counsel"><h3>🕯️ THE WIZARD\'S COUNSEL</h3>'+counselScene()+b+'<small class="mut">Medius is an AI listener, not a therapist or crisis service. Your words are not saved; while you are signed in to Cloud Save they are sent to Google\'s Gemini AI only to write his reply.</small></div>'}
 function qcalm(){return counsel()}
 const cslog=()=>S.cs.m.map(x=>'<div class="csm '+x.r+'">'+(x.r==='a'?'<b>MEDIUS</b>':x.r==='u'?'<b>'+nm().toUpperCase()+'</b>':'')+esc(x.t).replace(/\n/g,'<br>')+'</div>').join('')+(S.cs.busy?'<div class="csm a typing"><b>MEDIUS</b>🕯️ Medius is thinking…</div>':'');
 function csPaint(){const c=S.cs,el=$('#counsel');if(!el||!c)return;const v=($('#csin')||{}).value||'';el.outerHTML=counsel();const t=$('#csin');if(t){t.value=c.busy?'':v;if(!c.busy)try{t.focus({preventScroll:true})}catch(e){}}const lg=$('#cslog');if(lg)lg.scrollTop=lg.scrollHeight}
@@ -120,8 +120,9 @@ acts.cshelp=()=>{if(S.cs){S.cs.help=!S.cs.help;csPaint()}};
 acts.csend=()=>{csStop();S.cs=null;render();musSync()};
 async function csAsk(){const c=S.cs;c.busy=1;csPaint();
 let msgs=c.m.filter(x=>x.r!=='sys').slice(-30).map(x=>({role:x.r==='u'?'user':'assistant',content:x.t}));while(msgs.length&&msgs[0].role!=='user')msgs.shift();msgs=msgs.reduce((a,x)=>{const l=a[a.length-1];if(l&&l.role===x.role)l.content+='\n\n'+x.content;else a.push(Object.assign({},x));return a},[]);
-try{const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:CSP(),messages:msgs})});if(!r.ok)throw new Error('http '+r.status);const d=await r.json(),t=(d.content||[]).filter(i=>i.type==='text').map(i=>i.text).join('\n').trim();if(!t)throw new Error('empty');c.m.push({r:'a',t})}
-catch(e){c.m.push({r:'sys',t:'The candle flickers… Medius cannot reach his spellbook right now (the AI is not connected here or you are offline). Try a few slow breaths, write your thoughts down, and if you need someone now, tap “Need help now?”.'})}
+// v6 (§42): the reply comes from Gemini through the medius-chat Edge Function (key kept on the server), for signed-in players
+try{const t=await HWMedius.ask(msgs);c.m.push({r:'a',t})}
+catch(e){c.m.push({r:'sys',t:HWMedius.askError(e)})}
 c.busy=0;if(S.cs===c)csPaint()}
 
 /* ---------- Adaptive music (original WebAudio melodies) ---------- */
