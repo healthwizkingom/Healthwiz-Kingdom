@@ -8,7 +8,8 @@
      §9  tap the castle, dark tower, village or waterfall for a short reaction
      §10 a Settings button next to the original Start/Continue button
      §5  gentle pointer parallax          §12 short entry transition
-   §5/§12 are skipped under reduced motion; all animation follows the original reduced-motion rule. */
+   §5/§12 are skipped under reduced motion; all animation follows the original reduced-motion rule.
+   Visual quality (js/v6-motion.js): High adds birds and butterflies; Performance uses less rain and no parallax. */
 const HWTitle=(()=>{
 const reduced=()=>HWUI.reduced();
 const phase=(h=new Date().getHours())=>h>=5&&h<11?'morning':h>=11&&h<17?'afternoon':h>=17&&h<20?'evening':'night';
@@ -40,13 +41,19 @@ const REACT={castle:['🏰 The castle bells ring for you!','🏰 A guard waves f
   village:['🏘️ Villagers wave hello!','🏘️ Someone is baking bread. It smells wonderful.'],falls:['💧 The waterfall sparkles.','💧 Cool spray drifts across the meadow.']};
 const HOT=[['castle',150,8,70,34],['tower',8,0,58,76],['falls',140,38,20,62],['village',0,100,124,44]];
 function lanterns(n){return Array.from({length:n},(_,i)=>{const x=14+i*12,y=104-(i%2)*3;return '<g class="v6lan"><rect x="'+x+'" y="'+(y-6)+'" width=".6" height="6" fill="#3a2a1a"/><rect x="'+(x-1)+'" y="'+(y-8)+'" width="2.6" height="2.6" fill="#ffd76a" class="zpl"/><circle cx="'+(x+.3)+'" cy="'+(y-6.7)+'" r="3.2" fill="#ffcf6a" opacity=".22"/></g>'}).join('')}
+// High quality only (§66): a small flock of birds crossing the sky and two butterflies by the meadow.
+// Reuses the original drift (zd), wing-flap (zw) and firefly-float (zff) animations.
+function ambient(){const bird='<path d="M0,0 l1.6,1.2 l1.6,-1.2" stroke="#2b2418" stroke-width=".5" fill="none"/>';
+  const flock=[[22,0,0],[25,4,1.6],[24,7,-1.4]].map(([y,dx,dy])=>'<g transform="translate('+dx+' '+(y+dy)+')"><g class="zw">'+bird+'</g></g>').join('');
+  const fly=(x,y,c,d)=>'<g class="zff" style="--x:7px;--y:4px;--d:'+d+'s"><g class="zw"><rect x="'+x+'" y="'+y+'" width="1.4" height="1.2" fill="'+c+'"/><rect x="'+(x+1.6)+'" y="'+y+'" width="1.4" height="1.2" fill="'+c+'"/></g></g>';
+  return '<g class="v6amb"><g class="zd" style="--d:46s;animation-delay:-20s">'+flock+'</g>'+fly(96,124,'#ff9be0',9)+fly(150,128,'#ffe27a',12)+'</g>'}
 function restored(){try{return KR.filter(r=>klv(r[3])>0).length}catch(e){return 0}}
 function ribbon(){if(!(st.e.length||st.xp))return '';const L=lvl();let g=0;try{g=HWStreaks.gentle().days}catch(e){}
   return '<div class="v6rib">⭐ LV '+(L.i+1)+' · '+L.n.toUpperCase()+' · 🏰 '+restored()+'/8 RESTORED'+(g>=2?' · 🌿 '+g+'-DAY STREAK':'')+'</div>'}
 {const p=pages.welcome;pages.welcome=(...a)=>{let h=p(...a);const ph=phase(),wx=weather();
   const hot=HOT.map(([k,x,y,w,hh])=>'<rect class="v6hot" data-a="tspot" data-k="'+k+'" x="'+x+'" y="'+y+'" width="'+w+'" height="'+hh+'" fill="transparent"/>').join('');
-  const i=h.indexOf('</svg>');if(i>0)h=h.slice(0,i)+lanterns(restored())+hot+h.slice(i);
-  const rain=wx==='rain'?Array.from({length:40},(_,k)=>'<i style="left:'+(k*2.6%100).toFixed(1)+'%;animation-delay:-'+(k*.07%0.9).toFixed(2)+'s;animation-duration:'+(.7+k%5*.08).toFixed(2)+'s"></i>').join(''):'';
+  const i=h.indexOf('</svg>');if(i>0)h=h.slice(0,i)+lanterns(restored())+(HWMotion.level()==='high'?ambient():'')+hot+h.slice(i);
+  const rain=wx==='rain'?Array.from({length:HWMotion.level()==='performance'?14:40},(_,k)=>'<i style="left:'+(k*2.6%100).toFixed(1)+'%;animation-delay:-'+(k*.07%0.9).toFixed(2)+'s;animation-duration:'+(.7+k%5*.08).toFixed(2)+'s"></i>').join(''):'';
   h=h.replace('</svg></div>','</svg><div class="v6tod '+ph+'"></div><div class="v6wx '+wx+'">'+rain+'</div></div>');
   h=h.replace('<p class="by t2">BY GROUP 14</p>','<p class="by t2">BY GROUP 14</p><div class="t2" data-tod="'+ph+'" data-wx="'+wx+'" style="margin-top:6px;font:8px var(--fh);color:#fff;text-shadow:1px 1px 0 #000">'+PH[ph].toUpperCase()+' IN THE KINGDOM · '+WN[wx].toUpperCase()+'</div>'+ribbon());
   h=h.replace('</button></div><div class="ft">','</button><button class="g v6set" data-a="go" data-v="set" aria-label="Settings">⚙️ SETTINGS</button></div><div class="ft">');
@@ -61,7 +68,8 @@ acts.tspot=(d,t,e)=>{const r=REACT[d.k];if(!r)return;const w=document.querySelec
 // If reduced motion is switched on mid-session, any parallax already applied is dropped.
 const still=()=>{const w=document.querySelector('.wl.v6px');if(w)w.classList.remove('v6px')};
 try{matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',q=>{if(q.matches)still()})}catch(e){}
-let raf=0;document.addEventListener('pointermove',e=>{if(S.v!=='welcome')return;if(reduced())return still();if(raf)return;raf=requestAnimationFrame(()=>{raf=0;if(reduced())return still();const w=document.querySelector('.wl');if(!w)return;w.classList.add('v6px');w.style.setProperty('--px',((e.clientX/innerWidth)-.5).toFixed(3));w.style.setProperty('--py',((e.clientY/innerHeight)-.5).toFixed(3))})});
+HWEvents.on('motion:changed',e=>{if(e.reduced||e.level==='performance')still()});
+let raf=0;document.addEventListener('pointermove',e=>{if(S.v!=='welcome')return;if(reduced()||HWMotion.level()==='performance')return still();if(raf)return;raf=requestAnimationFrame(()=>{raf=0;if(reduced())return still();const w=document.querySelector('.wl');if(!w)return;w.classList.add('v6px');w.style.setProperty('--px',((e.clientX/innerWidth)-.5).toFixed(3));w.style.setProperty('--py',((e.clientY/innerHeight)-.5).toFixed(3))})});
 
 /* short transition when entering from the title screen */
 {const g=acts.go;acts.go=function(d,t,e){if(S.v==='welcome'&&d&&d.v!=='set'&&!reduced()){const w=document.querySelector('.wl');if(w&&!w.classList.contains('v6go')){w.classList.add('v6go');if(typeof sfx==='function')[392,523,659].forEach((f,i)=>setTimeout(()=>sfx(f,.08),i*90));setTimeout(()=>g.call(this,d,t,e),420);return}}return g.apply(this,arguments)}}

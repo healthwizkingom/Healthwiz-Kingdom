@@ -25,6 +25,8 @@ js/hw-01..07-*.js          the original script, cut only between top-level state
 js/v6-schema.js            saved-data versioning, migrations and damaged-data recovery
 js/v6-events.js            event bus observing the app (catalog: docs/EVENTS.md)
 js/v6-ui.js                shared UI helpers (injected styles, completion banner)
+js/v6-motion.js            animation settings + performance modes (High / Balanced / Performance)
+js/v6-particles.js         one shared canvas particle system (level-up, badges, quests)
 js/v6-insights.js          "Medius notices": insights from your own baselines and trends
 js/v6-quests.js            adaptive daily focus quest + weekly quests
 js/v6-streaks.js           current + gentle streaks, week view, new achievements
