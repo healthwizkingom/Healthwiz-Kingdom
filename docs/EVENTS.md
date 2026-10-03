@@ -50,6 +50,9 @@ take precedence over payload fields with the same name.
 | `game:completed` | `id, name, xp, ok, result, found` | a mini-game reaches its result card. `xp` is 0 for replays the same day; `found` names a new discovery |
 | `activity:checkin` | `sid, name, cat, first` | a GPS check-in at a stairway is confirmed (`js/v6-gps.js`); `first` = first GPS check-in there (a discovery) |
 | `game:cancelled` | `id, name, seconds` | a mini-game is left before finishing (✕, Escape, navigation, reset or import) |
+| `network:changed` | `online` | the device goes offline or comes back online (`js/v6-pwa.js`) |
+| `app:offline-ready` | `first` | the offline copy is in place (on every served visit; `first` = it was just saved for the first time) |
+| `app:installed` | — | the browser reports the app was installed |
 
 Import, reset and the initial load update the award baselines **silently**, so badges and
 quests that already existed are never announced as new.

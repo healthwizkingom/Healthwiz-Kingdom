@@ -1,0 +1,19 @@
+{
+  "name": "HealthWiz Kingdom",
+  "short_name": "HealthWiz",
+  "description": "A pixel-art fantasy kingdom powered by your own health logs. A wellness tracker, not a medical device.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#14204f",
+  "theme_color": "#14204f",
+  "lang": "en",
+  "categories": ["health", "lifestyle", "games"],
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
