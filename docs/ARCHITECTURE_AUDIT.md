@@ -431,3 +431,29 @@ Tests: `tests/12-motion.test.mjs`. 87 in total.
 Tests: `tests/13-games.test.mjs` registers a small test game and checks the v6→v7 migration, open/inert/Escape, XP and
 discovery once a day, replay counting, events, launch/hub/stats cards, timers stopping on navigation, reduced motion, the
 snag card, a 360 px layout and the Medius timing. 95 tests in total.
+
+## 21. v6.14: water mini-game and well scene (§48–49, §68, §85, §97 step 15)
+
+`js/v6-water.js` (`HWWater`). The original water logging is unchanged: the +100/+250/+500/+750 mL buttons, custom input,
+the Well of Life scene (#wq) and its animation (walk, fill, carry, pour, splash, flood), the fill screen used elsewhere,
+the hydration-quest finale and reminders. Added on top:
+* **Living well scene (§49):** the scene follows the original six well stages, which count water *tracking days* and never
+  the amount in one day: a bare tree and dry cracks (Old Well), sprouts, trees and bushes, fireflies, a deer and a rabbit,
+  then flowers. The well's stones are cracked at first, gain moss, and get a flower ring once restored. Two slow clouds drift by.
+* **Pour feedback (§49, §85):** when the bucket is poured, rings spread across the well, water droplets jump (shared `HWFX`
+  canvas) and the plants and animals hop. Filling the bucket at the spring gives a small splash. Done by wrapping the
+  original `splashAt()`, so the original timing decides when they appear.
+* **Well Garden mini-game (§49, §68):** a top-down garden with the well and five dry patches. Tap a patch (or press 1–5, or
+  *Water the next patch*) and the hero walks to the well, fills the bucket, carries it over and pours; the soil darkens,
+  sprouts, then blooms. Taps queue, so nothing is lost or doubled. No timer and no score. Patches are labelled buttons whose
+  names report their state; the HUD status reads *Watered n / 5*.
+* **Rewards:** framework XP (10, once a day) and one discovery per first daily completion: a frog, a herb planter,
+  butterflies, a path lantern, then a piece of lore. Discoveries appear in the game and in the Water page scene.
+  The garden's scenery follows the same well stage. The game never logs water, and its note says so.
+* **Motion:** static scenery under reduced motion (no ripples, no particles, instant moves); Performance mode stops the
+  looping clouds, sway and butterflies and halves the fireflies.
+* **State:** `st.mg.c.water` = `{f: discoveries, b: gardens bloomed}` inside the existing mini-game record, so no schema step.
+
+Tests: `tests/14-water.test.mjs` (scene by stage, discoveries on the page, the original log flow plus ripples, reduced
+motion, a full keyboard game with XP once and no water logged, labelled patches, a reduced-motion 360 px run). The framework test that expected no registered games now checks the hub and the stats empty state. 102 tests in total.
+
