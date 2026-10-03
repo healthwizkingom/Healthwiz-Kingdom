@@ -24,6 +24,7 @@ index.html                 original markup + stylesheet (byte-identical), loads 
 js/hw-01..07-*.js          the original script, cut only between top-level statements
 js/v6-schema.js            saved-data versioning, migrations and damaged-data recovery
 js/v6-events.js            event bus observing the app (catalog: docs/EVENTS.md)
+js/v6-insights.js          "Medius notices": insights from your own baselines and trends
 js/v6-safety.js            an error card instead of a blank screen
 assets/img/                the 15 images that were embedded as base64 in the original
 legacy/HealthWiz_Kingdom_5-4-3.html   the complete original single file (source of truth)

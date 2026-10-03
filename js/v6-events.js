@@ -16,12 +16,15 @@ function on(t,f){(L[t]=L[t]||[]).push(f);return()=>off(t,f)}
 function off(t,f){L[t]=(L[t]||[]).filter(x=>x!==f)}
 function once(t,f){const u=on(t,e=>{u();f(e)});return u}
 function deliver(ev){LOG.push(ev);if(LOG.length>MAX)LOG.shift();for(const f of [...(L[ev.type]||[]),...(L['*']||[])]){try{f(ev)}catch(err){console.error('[HWEvents] listener for "'+ev.type+'" failed:',err)}}}
-function emit(type,p){const ev=Object.assign({type,at:new Date().toISOString()},p||{});if(depth)queue.push(ev);else deliver(ev);return ev}
+// Breadth-first: events raised while others are being delivered join the end of the queue,
+// so every direct effect of an action is delivered before reactions to those effects.
+let flushing=0;function flush(){if(flushing)return;flushing=1;try{while(queue.length)deliver(queue.shift())}finally{flushing=0}}
+function emit(type,p){const ev=Object.assign({type,at:new Date().toISOString()},p||{});queue.push(ev);if(!depth)flush();return ev}
 // Runs fn; events raised inside are held, then delivered after `lead()`'s events, so
 // effects follow their cause (entry:added → xp:gained → quest:completed).
 function cause(fn,lead){depth++;let r,leads=[];try{r=fn()}finally{depth--;try{leads=(lead&&lead(r))||[]}catch(e){console.error(e)}
-  if(!depth){const q=queue;queue=[];leads.forEach(([t,p])=>deliver(Object.assign({type:t,at:new Date().toISOString()},p||{})));q.forEach(deliver)}
-  else leads.forEach(([t,p])=>emit(t,p))}return r}
+  const L2=leads.map(([t,p])=>Object.assign({type:t,at:new Date().toISOString()},p||{}));
+  if(!depth){queue=L2.concat(queue);flush()}else L2.forEach(ev=>queue.push(ev))}return r}
 const recent=(t,n)=>LOG.filter(e=>!t||e.type===t).slice(-(n||MAX));
 return{on,off,once,emit,cause,recent,get log(){return LOG.slice()},get quiet(){return quiet},hush(fn){quiet++;try{return fn()}finally{quiet--}}}})();
 
