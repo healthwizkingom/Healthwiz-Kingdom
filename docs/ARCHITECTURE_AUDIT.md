@@ -401,3 +401,33 @@ motion control was the device's reduced-motion setting. `js/v6-motion.js` adds o
 * **Event:** `motion:changed`.
 
 Tests: `tests/12-motion.test.mjs`. 87 in total.
+
+## 20. v6.13: mini-game framework (§63, §68, §96, §97 step 14)
+
+`js/v6-games.js` (`HWGames`) holds the parts every mini-game shares, so the five region games
+(steps 15–19) only describe their own scene and rules:
+* **GameScene / GameHUD:** a full-screen dialog with a short pixel-wipe in and out. It has a title, a live status line for
+  screen readers, and a ✕ button (Escape works too). While it is open the app behind it is `inert` and focus stays inside.
+  On leaving, focus goes back to where it was. Navigation, reset and import close it first.
+* **GameCharacter:** the original hero sprite (`HERO()`) with idle, walk, carry, full-bucket, celebrate and calm poses. Moves
+  are stepped CSS transitions.
+* **GameTimer:** `after`, `every` (skips while the tab is hidden) and `frame`. All three stop when the game ends or is left,
+  so nothing keeps running in the background. `T()` gives pacing time and `A()` gives animation waits (0 under reduced
+  motion). `HWGames.timeScale` speeds pacing up for tests.
+* **GameParticles / GameAudio:** bursts go through the shared `HWFX` canvas, so quality scaling applies and reduced motion
+  shows none. Sound cues go through the original `sfx()`, so they follow the Sound setting.
+* **GameReward (§37, §68):** modest XP (default 10) for the first completion of each game per day. Replays are free and
+  still counted. The first daily completion also unlocks the game's next discovery (lore or a decoration). Nothing rewards
+  drinking more, eating less or pushing harder, and games never log health data.
+* **GameCompletion:** a result card with the hero celebrating, a particle burst, XP (or a kind note that today's XP is
+  already earned), the discovery, and Play again / Done. A game that throws on start shows a snag card instead of a blank screen.
+* **Entry points:** each registered game adds a launch card to its region page, a Kingdom Games hub on the Kingdom page
+  and a Mini-games card on Statistics (plays this week, days played). Both appear only once a game exists.
+* **Medius:** a new `game` reaction (shown in Calm mode, 30-min cooldown). Bubbles stay quiet while a game is open and
+  appear after the player leaves it.
+* **Schema v7:** `st.mg` = `{xp, n, h, c}` (daily XP record kept for 14 days, play counts, last 60 plays, per-game discoveries).
+* **Events:** `game:started`, `game:completed`, `game:cancelled`.
+
+Tests: `tests/13-games.test.mjs` registers a small test game and checks the v6→v7 migration, open/inert/Escape, XP and
+discovery once a day, replay counting, events, launch/hub/stats cards, timers stopping on navigation, reduced motion, the
+snag card, a 360 px layout and the Medius timing. 95 tests in total.

@@ -31,7 +31,7 @@ const R={
 'log':{p:15,cd:1200e3,line:e=>pick(({water:['Splash! The well grows deeper.','Hydration noted. The Water Valley ripples with joy.'],food:['A meal recorded. The village cooks nod approvingly.','Noted in the great food ledger.'],sleep:['Rest logged. Even wizards need their sleep.','The Dream Realm thanks thee for the report.'],stair:['Up the mountain! Mind thy pace.','Step by step, the summit nears.'],stress:['Thank thee for checking in with thyself.','The Mind Forest listens. Well done for pausing.'],pulse:['The Heartstone glows in rhythm.','Pulse noted. Steady as a drum.'],bmi:['Noted at Balance Tower.']})[e.c]||['Noted!'])}};
 
 let showing=null,pending=null,lastShown=0;
-const quiet=()=>S.v==='welcome'||S.v==='onb'||!!document.getElementById('tut');
+const quiet=()=>S.v==='welcome'||S.v==='onb'||!!document.getElementById('tut')||!!document.querySelector('.v6g');
 function say(type,e){const r=R[type];if(!r||!mode())return false;if(pending&&pending.type===type)return false;if(mode()===1&&r.p<CALM)return false;
   const M=md(),now=Date.now(),d=today();if(r.cd&&M.last[type]&&now-M.last[type]<r.cd)return false;if((M.day[d]||0)>=DAILY&&r.p<90)return false;
   let text;try{text=r.line(e||{})}catch(err){return false}if(!text)return false;const key=type+':'+text;if(M.seen[key]===d)return false;
