@@ -7,12 +7,12 @@ const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
 const seed = (e, extra = {}) => ({ ...RETURNING, e, ...extra });
 const waterDown = () => [...range(8, 14).map(n => entry('water', 2000, n)), ...range(1, 7).map(n => entry('water', 1000, n))];
 
-test('schema v2 → v3 adds quest state, keeping a pre-upgrade copy', async () => {
+test('schema v2 → current adds quest state, keeping a pre-upgrade copy', async () => {
   const { page, ctx, errors } = await openApp({ seed: { ...RETURNING, sv: 2, q6: undefined } });
   const st = await state(page);
-  assert.equal(st.sv, 3);
+  assert.equal(st.sv, await page.evaluate(() => HWSchema.V));
   assert.deepEqual(Object.keys(st.q6).sort(), ['f', 'w']);
-  assert.ok(await page.evaluate(() => Object.keys(localStorage).some(k => /^healthwiz_backup_pre-v3_/.test(k))));
+  assert.ok(await page.evaluate(() => Object.keys(localStorage).some(k => /^healthwiz_backup_pre-v\d+_/.test(k))));
   assert.deepEqual(errors, []);
   await ctx.close();
 });

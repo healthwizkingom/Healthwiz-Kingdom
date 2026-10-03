@@ -6,20 +6,22 @@
      2  adds `sv`; badges "Shrine Visitor"/"Shrine Regular" renamed to "Tower Visitor"/"Tower Regular"
         (earned badges are keyed by name in st.b, so the keys move with their unlock dates)
      3  adds `q6` = {f:{date:{id,t,done}}, w:{week:{ids,done}}} for focus/weekly quests (js/v6-quests.js)
+     4  adds `ex` = {p:{view:firstVisitDate}} for feature discovery (js/v6-streaks.js)
 
    Rules: migrations only ever move or add data, never drop entries. Before upgrading,
    repairing or discarding anything, the raw stored text is copied to a
    `healthwiz_backup_<reason>_<time>` key, so nothing is lost. */
 const HWSchema=(()=>{
-const V=3,KEY='healthwiz',BK='healthwiz_backup_',KEEP=3;
+const V=4,KEY='healthwiz',BK='healthwiz_backup_',KEEP=3;
 const isObj=x=>!!x&&typeof x==='object'&&!Array.isArray(x);
-const MAPS=['b','claimed','en','xd','qx','qd','ck','q6'];
+const MAPS=['b','claimed','en','xd','qx','qd','ck','q6','ex'];
 
 // STEPS[n] upgrades a copy of the data from schema n to n+1.
 const STEPS={
 1:d=>{const R={'Shrine Visitor':'Tower Visitor','Shrine Regular':'Tower Regular'};
   if(isObj(d.b))Object.keys(R).forEach(o=>{if(d.b[o]!=null){if(d.b[R[o]]==null)d.b[R[o]]=d.b[o];delete d.b[o]}});return d},
-2:d=>{if(!isObj(d.q6))d.q6={f:{},w:{}};return d}};
+2:d=>{if(!isObj(d.q6))d.q6={f:{},w:{}};return d},
+3:d=>{if(!isObj(d.ex))d.ex={p:{}};return d}};
 
 /** → {data, from} on success, {err, from, data} when the data is from a newer app. Never mutates `d`. */
 function migrate(d){if(!isObj(d))return{data:null,from:0};
@@ -30,6 +32,7 @@ let x=JSON.parse(JSON.stringify(d));for(let v=from;v<V;v++)x=STEPS[v](x)||x;x.sv
 /** Repairs the shape the app relies on (shallow defaults, entry fields). Returns [state, repairsMade]. */
 function sanitize(x,DEF){const D=DEF();let fix=0;const o=Object.assign(D,x);
 if(isObj(o.q6)){if(!isObj(o.q6.f)){o.q6.f={};fix++}if(!isObj(o.q6.w)){o.q6.w={};fix++}}
+if(isObj(o.ex)&&!isObj(o.ex.p)){o.ex.p={};fix++}
 if(!Array.isArray(x.e)){o.e=[];fix++}else{o.e=x.e.filter(e=>isObj(e));fix+=x.e.length-o.e.length;
   o.e.forEach((e,i)=>{if(e.id==null){e.id='m'+Date.now()+i;fix++}else e.id=String(e.id);if(!isObj(e.m)){e.m={};fix++}if(typeof e.n!=='string')e.n=e.n==null?'':String(e.n)})}
 o.s=Object.assign(DEF().s,isObj(x.s)?x.s:(fix++,{}));o.p=Object.assign(DEF().p,isObj(x.p)?x.p:(fix++,{}));
