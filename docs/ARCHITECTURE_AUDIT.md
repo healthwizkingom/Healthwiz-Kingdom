@@ -263,3 +263,22 @@ them are unchanged. `js/v6-quests.js` adds alongside them:
 
 Tests: `tests/05-quests.test.mjs` (v2→v3 migration, adaptive pick and target, stable for the day,
 difficulty guard, award once with banner and event, weekly picks and completion, variety pick). 43 total.
+
+## 13. v6.6: streaks and achievements (§34–36, §97 step 7)
+
+The original `streak()` (your best run of consecutive days), its "best streak" card and the
+streak badges are unchanged. `js/v6-streaks.js` adds:
+
+* **Current streak:** consecutive logged days ending today. While today is still open, yesterday
+  keeps it alive.
+* **Gentle streak (§36):** one rest day per Monday–Sunday week doesn't break it; two missed days in
+  a row end it. Missed days are called rest days ("Rest days are part of the journey — nothing is lost").
+* **Consistency card** under the original streak card on the Quest Board: current streak, gentle
+  streak, days logged this week, and a 7-day view (logged / rest / today / upcoming, with an accessible label).
+* **8 new achievements (§34),** added to the original `BG` list so the original `chkB` awards them
+  with its popup and +30 XP: Focus Finder, Focused Adventurer, Week Warden, Steady Seasons, Rest Is
+  Strength, Returning Hero, Curious Scholar (feature discovery) and Kingdom Steward. A test checks
+  that no badge rewards body size, weight or eating less.
+* **Schema v4:** adds `st.ex.p` (first visit per feature page) for discovery.
+
+Tests: `tests/06-streaks.test.mjs`. 48 in total.
