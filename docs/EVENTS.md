@@ -58,6 +58,9 @@ take precedence over payload fields with the same name.
 | `cloud:synced` | `how: up\|down\|merge\|none, rev` | a sync finished; `rev` is the cloud save's revision |
 | `cloud:choose` | — | first sign-in with data on both sides: waiting for the user's MERGE / USE CLOUD / KEEP THIS DEVICE choice |
 | `cloud:error` | `code: net\|auth\|setup\|newer\|bad\|busy\|size\|http` | a sync or account action failed (nothing local was changed) |
+| `board:joined` | — | the player joined the Hall of Heroes leaderboard (`js/v6-board.js`) |
+| `board:left` | — | the player left the leaderboard; the server entry was removed |
+| `board:updated` | `hidden` | the player hid or showed their hero name |
 
 Import, reset and the initial load update the award baselines **silently**, so badges and
 quests that already existed are never announced as new.

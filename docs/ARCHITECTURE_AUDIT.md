@@ -654,7 +654,7 @@ the device keeps in `healthwiz` (schema 8), and the cloud's own state lives in s
   open mini-game refresh as after a restore; Medius gets a one-line `cloud` reaction (30 min cooldown) instead of the
   restore line. `sw.js` never touches Supabase requests. `HWSchema.stash` is now exported for the backups above.
 * *Events:* `cloud:signed-in`, `cloud:signed-out {why}`, `cloud:synced {how, rev}`, `cloud:choose`, `cloud:error {code}`.
-* *Not in this step:* leaderboard and public profiles (step 23); password reset by email.
+* *Not in this step:* leaderboard (step 23, §27 below); password reset by email.
 * *Project:* the app ships with the free-plan project `healthwiz-kingdom` (`wghkbrtwrdrejmoswhza`, ap-southeast-1) in `CFG`, so
   users do not paste anything; the Settings "Connect a Supabase project" form only shows when `CFG` is empty.
 
@@ -665,3 +665,48 @@ the first-sign-in choice and its backup copy, offline queue and unreachable clou
 reset and two-tap deletes, the merge rules, email confirmation, token refresh and expiry, and a 360 px layout.
 The SQL was also run twice against a local PostgreSQL 16 with a stub `auth` schema: rev is set by the server, a stale
 write updates no row, RLS hides other accounts, `anon` has no access, and `hw_delete_account()` removes the save. 136 tests in total.
+
+## 27. v6.20: the Hall of Heroes leaderboard (§78–80, §36, §59–60, §88, §91, §97 step 23)
+
+`js/v6-board.js` (`HWBoard`) adds an optional leaderboard, the **Hall of Heroes**, at the end of the Quest Board. It
+builds on the cloud save: only signed-in players can join or see it, and a player who never joins is never shown. No
+schema change; the board's local state is the device-only key `healthwiz_board` (never in the save or backups).
+
+* *What is ranked (§78):* game progress only. Seven boards: **THIS WEEK** (XP since Monday, the default, so new players
+  start level), ALL-TIME XP, QUESTS (daily + focus + weekly), BADGES, KINGDOM (% of region states restored), EXPLORER
+  (regions, features, GPS stairways and mini-game finds discovered) and GENTLE STREAK (rest days allowed, §36). There is
+  no column for BMI, weight, calories, entries, sleep, pulse, stress or location, so none can be ranked or shown (§59–60).
+  Each row shows rank (🥇🥈🥉 for the top three, shared ranks for ties), hero name, level title and value.
+* *Server (§91):* `supabase/migrations/20261004000000_hw_leaderboard.sql` creates `hw_board` (one row per joined
+  account, cascade-deleted with the account). Nobody can insert or update it directly. `hw_board_publish(name, hidden,
+  stats)` (security definer) writes only the caller's row: **XP and badges are read from the caller's own cloud save**,
+  the other counts are clamped (kingdom ≤ 100, week XP ≤ total XP, sensible maxima), the name is checked again (3–20
+  letters, numbers, spaces, `. _ ' -`), and it refuses a caller without a cloud save. `hw_board_top(board, week, limit)`
+  returns the top 20 (max 50) plus the caller's own place, as `rank, name, value, xp, me`: never user ids, e-mail
+  addresses or timestamps, and `name` is null for a hidden player unless it is the caller. Both functions are for the
+  `authenticated` role only; `anon` has no access. RLS lets a player read and delete only their own row.
+* *Privacy (§79):* joining is a deliberate step with a list of what is and is not shared, and a suggested fantasy hero
+  name (never the profile name; the field says "not your real name"). HIDE MY NAME keeps the place but shows
+  "🕶️ Hidden adventurer" to others. LEAVE THE BOARD (two taps) deletes the server entry. These controls are on the card
+  (*Name & privacy*) and in Settings → **LEADERBOARD PRIVACY**, right under Cloud Save. Signing out forgets the board on
+  that device but leaves the entry; DELETE ACCOUNT removes it.
+* *Fairness and safety (§80, §30):* no prizes and no XP for rank. Week XP is the default view, the streak board uses the
+  gentle streak, and the card is labelled GAME PROGRESS ONLY · NO HEALTH DATA · NO PRIZES. XP still follows the daily
+  allowance from step 8, so the board cannot be climbed by logging more than the app already rewards.
+* *Honest limit:* a player controls their own save, so a determined player could inflate their own numbers by editing
+  it. The server limits what any entry can claim, the board has no rewards, and the project owner can delete a row.
+* *Updates:* after each cloud sync (at most every 2 minutes), on JOIN, on REFRESH and on name/privacy changes. A board
+  read is cached for a minute. A new sign-in asks the server whether the account has already joined (from another device).
+* *States (§87–88):* checking, loading, offline ("updates when you are back online; your progress is saved on this
+  device"), the cloud save not synced yet, the project without the leaderboard SQL, and network errors each say what
+  happened and that nothing on the device changed.
+* *Events:* `board:joined`, `board:left`, `board:updated {hidden}`. `HWCloud` now also exports `api()` and `who()` for
+  signed-in requests.
+
+Tests: `tests/23-board.test.mjs`, with the fake Supabase in `tests/cloud-fake.mjs` extended to apply the same rules.
+They cover: no requests while signed out, name checks, the exact payload (no health values, profile name or e-mail),
+XP and badges from the cloud save, ranks and tabs between two players, hidden names, the Settings privacy card, leaving
+with two taps, the joined state found again on a new device, sign-out, offline, a project without the leaderboard SQL,
+and a 360 px layout. The SQL was run twice against a local PostgreSQL 16 with a stub `auth` schema: direct inserts and
+updates are refused, XP and badges come from `hw_saves`, out-of-range values are clamped, hidden names are masked for
+others, `anon` cannot read or call anything, and deleting the user removes the row. 141 tests in total.
