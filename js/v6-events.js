@@ -33,7 +33,7 @@ return{on,off,once,emit,cause,recent,get log(){return LOG.slice()},get quiet(){r
 // baselines for awards made inside render() (quests in st.qx, badges in st.b)
 let bQX={},bB={},bClaimed={};const snap=()=>{bQX=Object.assign({},st.qx||{});bB=Object.assign({},st.b||{});bClaimed=Object.assign({},st.claimed||{})};snap();
 function awards(){if(E.quiet){snap();return[]}const ev=[];
-  Object.keys(st.qx||{}).filter(k=>!bQX[k]).forEach(k=>{const[d,i]=k.split(':'),q=(()=>{try{return QD(d)[+i]}catch(e){return null}})();ev.push(['quest:completed',{date:d,index:+i,name:q?q.n:'',xp:q?q.x:0}])});
+  Object.keys(st.qx||{}).filter(k=>!bQX[k]).forEach(k=>{const[d,i]=k.split(':'),q=(()=>{try{return QD(d)[+i]}catch(e){return null}})();ev.push(['quest:completed',{kind:'daily',date:d,index:+i,name:q?q.n:'',xp:q?q.x:0}])});
   Object.keys(st.claimed||{}).filter(k=>!bClaimed[k]&&/^\d{4}-\d{2}-\d{2}$/.test(k)).forEach(d=>ev.push(['quests:all-completed',{date:d}]));
   Object.keys(st.b||{}).filter(k=>!bB[k]).forEach(n=>{const b=BG.find(x=>x[1]===n);ev.push(['badge:unlocked',{name:n,icon:b?b[0]:'',date:st.b[n]}])});
   snap();return ev}

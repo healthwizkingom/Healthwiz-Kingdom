@@ -35,8 +35,8 @@ test('boot: app:ready once; data:migrated for old saves', async () => {
   await page.waitForTimeout(100);
   const r = await page.evaluate(() => ({ ready: HWEvents.recent('app:ready'), mig: HWEvents.recent('data:migrated') }));
   assert.equal(r.ready.length, 1);
-  assert.equal(r.ready[0].schema, 2);
-  assert.deepEqual([r.mig[0].from, r.mig[0].to], [1, 2]);
+  assert.equal(r.ready[0].schema, await page.evaluate(() => HWSchema.V));
+  assert.deepEqual([r.mig[0].from, r.mig[0].to], [1, await page.evaluate(() => HWSchema.V)]);
   assert.deepEqual(errors, []);
   await ctx.close();
 });

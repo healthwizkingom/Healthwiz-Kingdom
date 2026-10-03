@@ -32,24 +32,24 @@ const V1 = {
 
 test('fresh install: state carries the current schema version', async () => {
   const { page, ctx, errors } = await openRaw(null);
-  assert.equal(await page.evaluate(() => st.sv), 2);
+  assert.equal(await page.evaluate(() => st.sv), await page.evaluate(() => HWSchema.V));
   assert.deepEqual(await backups(page), [], 'nothing to back up on a fresh install');
   assert.deepEqual(errors, []);
   await ctx.close();
 });
 
-test('v1 → v2: badge keys renamed with their dates, no re-award, pre-upgrade copy kept', async () => {
+test('v1 → current: badge keys renamed with their dates, no re-award, pre-upgrade copy kept', async () => {
   const raw = JSON.stringify(V1);
   const { page, ctx, errors } = await openRaw(raw);
   const st = await state(page);   // migrated data is written back immediately
-  assert.equal(st.sv, 2);
+  assert.equal(st.sv, await page.evaluate(() => HWSchema.V));
   assert.equal(st.b['Tower Visitor'], '2026-09-01');
   assert.equal(st.b['Shrine Visitor'], undefined);
   assert.equal(st.b['First Sip'], '2026-08-30');
   assert.equal(st.e.length, 2);
   const bk = await backups(page);
   assert.equal(bk.length, 1);
-  assert.match(bk[0][0], /^healthwiz_backup_pre-v2_\d+$/);
+  assert.match(bk[0][0], /^healthwiz_backup_pre-v\d+_\d+$/);
   assert.equal(bk[0][1], raw, 'exact original text kept');
 
   await go(page, 'badges');

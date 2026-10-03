@@ -239,3 +239,27 @@ entries), an end-of-day report and "tomorrow's quest". All of them are kept unch
 
 Tests: `tests/04-insights.test.mjs` (empty state, baseline comparison, priority and per-area limit,
 sleep/stress wording, time-of-day guard with a fixed clock, insight events and ordering). 37 tests in total.
+
+## 12. v6.5: adaptive quests (§29–33, §97 step 6)
+
+The original five daily quests, their XP, the +100 "all five" bonus and the badges built on
+them are unchanged. `js/v6-quests.js` adds alongside them:
+
+* **Daily focus quest (§29):** picked from the insight engine's notices (low water → a personal
+  water goal halfway between your most recent week and your target; partial meal logging →
+  log 3 meals; low fiber (estimated) → one fiber-rich food; short or irregular sleep → a
+  wind-down ritual; high stress → a calming practice; quiet stairs → two easy climbs). With
+  nothing to address, it picks a quiet corner of the kingdom. Fixed for the day once chosen.
+  Each quest shows why it was chosen.
+* **Weekly quests:** three per Monday–Sunday week, picked from the areas logged least last week.
+* **Difficulty (§30):** the water goal is never above your plan and never below 750 mL. Activity
+  is one or two easy sessions. Nothing rewards eating less or extra intake.
+* **UI (§32) and feedback (§33):** title, quest type, description, reason, progress, reward and
+  completion state, shown under the original adventure card on Quests and Home. Completion
+  shows a short banner with XP sparkles (no sparkles under reduced motion) and emits
+  `quest:completed` with `kind:'focus'|'weekly'`. The original daily quests now emit `kind:'daily'`.
+* **Schema v3:** adds `st.q6` (focus picks and weekly state). Older saves are upgraded with a backup copy.
+* `js/v6-ui.js`: shared helpers. Styles are injected from JS so index.html stays identical to the original.
+
+Tests: `tests/05-quests.test.mjs` (v2→v3 migration, adaptive pick and target, stable for the day,
+difficulty guard, award once with banner and event, weekly picks and completion, variety pick). 43 total.
