@@ -38,6 +38,7 @@ js/v6-world.js             visible world progression on the map + kingdom chroni
 js/v6-title.js             title screen: time of day, weather, returning-player ribbon, tap reactions
 js/v6-games.js             mini-game framework: scene, HUD, character, timers, rewards, completion
 js/v6-water.js             Well Garden mini-game + living well scene (scenery by well stage, ripples, discoveries)
+js/v6-food.js              Market Kitchen mini-game (pick foods from stalls, cook, build a balanced plate)
 js/v6-safety.js            an error card instead of a blank screen
 assets/img/                the 15 images that were embedded as base64 in the original
 legacy/HealthWiz_Kingdom_5-4-3.html   the complete original single file (source of truth)
