@@ -24,7 +24,7 @@
    Events: cloud:signed-in · cloud:signed-out · cloud:synced {how, rev} · cloud:choose · cloud:error {code}
    (docs/EVENTS.md). A pull that changes this device's data also emits data:imported {mode:'cloud'}. */
 const HWCloud=(()=>{
-const CFG={url:'',key:''}; // ← deployers: Supabase project URL + publishable key (never a secret or service_role key)
+const CFG={url:'https://wghkbrtwrdrejmoswhza.supabase.co',key:'sb_publishable_nE2qzRG3W-fhd4EPFuELQQ_krPNAScU'}; // ← deployers: Supabase project URL + publishable key (never a secret or service_role key)
 const D=document,N=navigator,K='healthwiz_cloud',KB='healthwiz_cloud_base';
 const isObj=x=>!!x&&typeof x==='object'&&!Array.isArray(x);
 const J=x=>JSON.stringify(x),clone=x=>x===undefined?undefined:JSON.parse(J(x));

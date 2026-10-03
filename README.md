@@ -76,20 +76,24 @@ To change the data format, add a step to `STEPS` in `js/v6-schema.js`, raise `V`
 images. Pasting it into GitHub cut it off at ~100 KB and left a blank site. No file here is
 larger than 64 KB.
 
-## Cloud save (optional)
+## Cloud save (optional for users)
 
-Without setup, HealthWiz stays local-only and makes no cloud requests. To let users sign in and sync between devices:
+The app is connected to the free-plan Supabase project **healthwiz-kingdom** (`wghkbrtwrdrejmoswhza`, Singapore).
+Users who never sign in stay local-only: no cloud request is made. Signed-in users get a private cloud save that syncs
+between devices (Settings → Cloud Save).
 
-1. Create a Supabase project and run `supabase/migrations/20261003000000_hw_cloud_save.sql` once (SQL editor).
-   It creates `hw_saves` (one private row per account, Row Level Security on) and `hw_delete_account()`.
-2. Put the project URL and its **publishable** key (`sb_publishable_…`, or the legacy anon key) in `CFG` at the top of
-   `js/v6-cloud.js`, or paste them in **Settings → Cloud Save → Connect a Supabase project**. The app refuses secret /
-   service_role keys; never commit one.
-3. In Supabase → Authentication → URL Configuration, add the site address (e.g. the GitHub Pages URL) to the redirect
-   URLs, so the email confirmation link brings users back signed in.
+* Project URL and **publishable** key are in `CFG` at the top of `js/v6-cloud.js`. The publishable key is public by
+  design; Row Level Security keeps every save private. The app refuses secret / service_role keys; never commit one.
+* Database: `supabase/migrations/20261003000000_hw_cloud_save.sql` (table `hw_saves`, RLS policies, `rev` trigger,
+  `hw_delete_account()`). It must have been run once in the project (SQL editor, or `supabase db push`).
+* Auth → URL Configuration: set the Site URL / redirect URLs to the GitHub Pages address, so the email confirmation link
+  brings users back signed in.
+* Free plan limits: 500 MB database, 50,000 monthly active users, and a project paused after 7 days without activity
+  (restore it from the dashboard; nothing is lost, and the app keeps working offline meanwhile).
 
-Logs are always saved on the device first. Changes made offline wait and sync later; edits from two devices are merged
-(details in `docs/ARCHITECTURE_AUDIT.md` §26). The session is kept in `healthwiz_cloud`, never in the save or backups.
+To use another project, replace `CFG` (or clear it and paste a project in Settings → Cloud Save).
+Logs are always saved on the device first; offline changes sync later and edits from two devices are merged
+(`docs/ARCHITECTURE_AUDIT.md` §26). The session is kept in `healthwiz_cloud`, never in the save or backups.
 
 ## Medius AI
 

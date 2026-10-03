@@ -655,6 +655,8 @@ the device keeps in `healthwiz` (schema 8), and the cloud's own state lives in s
   restore line. `sw.js` never touches Supabase requests. `HWSchema.stash` is now exported for the backups above.
 * *Events:* `cloud:signed-in`, `cloud:signed-out {why}`, `cloud:synced {how, rev}`, `cloud:choose`, `cloud:error {code}`.
 * *Not in this step:* leaderboard and public profiles (step 23); password reset by email.
+* *Project:* the app ships with the free-plan project `healthwiz-kingdom` (`wghkbrtwrdrejmoswhza`, ap-southeast-1) in `CFG`, so
+  users do not paste anything; the Settings "Connect a Supabase project" form only shows when `CFG` is empty.
 
 Tests: `tests/21-cloud.test.mjs` and `tests/22-cloud-sync.test.mjs`, against a fake Supabase in `tests/cloud-fake.mjs`
 that applies the same `rev` and RLS rules. They cover: no requests before sign-in, refused secret keys, sign-up and

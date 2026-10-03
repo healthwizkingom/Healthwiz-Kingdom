@@ -6,27 +6,30 @@ import { URL0, ANON, tok, fakeSupabase, device, st, synced, signUp, water } from
 
 after(closeBrowser);
 
-test('not configured or signed out: local-only, no network; project checks refuse secret keys', async () => {
+test('built-in project, signed out: local-only, no network; project checks refuse secret keys', async () => {
   const S = fakeSupabase();
   const { page, errors } = await device(S, { cloud: null });
+  const sent = [];
+  page.on('request', r => { if (/supabase\.co/.test(r.url())) sent.push(r.url()); });
   await water(page);
   await go(page, 'set');
   const txt = await page.textContent('#v6cl');
-  assert.match(txt, /CLOUD SAVE[\s\S]*Optional[\s\S]*everything stays in this browser/);
+  assert.match(txt, /CLOUD SAVE[\s\S]*Sign in to back up your kingdom[\s\S]*Email[\s\S]*Password[\s\S]*SIGN IN[\s\S]*CREATE ACCOUNT/);
+  assert.doesNotMatch(txt, /Connect a Supabase project|CHANGE/, 'the built-in project needs no setup by users');
   const order = await page.evaluate(() => { const h = document.querySelector('#main').innerHTML; return [h.indexOf('id="v6cl"'), h.indexOf('id="v6pwa"'), h.indexOf('id="bkp"')]; });
   assert.ok(order[0] > 0 && order[0] < order[1] && order[1] < order[2], 'card sits above App & Offline and Backup');
-  await page.click('#v6cl summary');
-  const tryKey = async (u, k) => { await page.fill('#clurl', u); await page.fill('#clkey', k); await page.click('[data-a="clproj"]'); return page.textContent('#v6cl'); };
-  assert.match(await tryKey(URL0, tok({ role: 'service_role' })), /secret \(service_role\) key[\s\S]*must never be put in an app/);
-  assert.match(await tryKey(URL0, 'sb_secret_abc'), /secret \(service_role\) key/);
-  assert.match(await tryKey('http://evil.example.com', ANON), /must start with https/);
-  assert.match(await tryKey(URL0 + '/rest/v1', ANON), /Use only the project address/);
-  assert.match(await tryKey(URL0, 'hello'), /does not look like a publishable key/);
-  assert.equal(await page.evaluate(() => localStorage.getItem('healthwiz_cloud')), null, 'nothing stored for refused keys');
-  await tryKey(URL0 + '/', 'sb_publishable_xyz');
-  assert.deepEqual(JSON.parse(await page.evaluate(() => localStorage.getItem('healthwiz_cloud'))), { url: URL0, key: 'sb_publishable_xyz' });
-  assert.match(await page.textContent('#v6cl'), /Email[\s\S]*Password[\s\S]*SIGN IN[\s\S]*CREATE ACCOUNT/);
-  assert.deepEqual(S.calls, [], 'no request is made until the user signs in');
+  const check = (u, k) => page.evaluate(([u, k]) => { const r = HWCloud.checkProject(u, k); return typeof r === 'string' ? r : 'ok ' + r.u; }, [u, k]);
+  assert.match(await check(URL0, tok({ role: 'service_role' })), /secret \(service_role\) key[\s\S]*must never be put in an app/);
+  assert.match(await check(URL0, 'sb_secret_abc'), /secret \(service_role\) key/);
+  assert.match(await check('http://evil.example.com', ANON), /must start with https/);
+  assert.match(await check(URL0 + '/rest/v1', ANON), /Use only the project address/);
+  assert.match(await check(URL0, 'hello'), /does not look like a publishable key/);
+  assert.equal(await check(URL0 + '/', 'sb_publishable_xyz'), 'ok ' + URL0);
+  const src = (await import('node:fs')).readFileSync(new URL('../js/v6-cloud.js', import.meta.url), 'utf8').match(/const CFG=\{url:'([^']*)',key:'([^']*)'\}/);
+  assert.ok(src, 'CFG is a plain url/key pair');
+  if (src[1]) assert.match(await check(src[1], src[2]), /^ok https:\/\//, 'the built-in key is a publishable key, never a secret');
+  assert.equal(await page.evaluate(() => localStorage.getItem('healthwiz_cloud')), null, 'nothing stored before sign-in');
+  assert.deepEqual(S.calls, []); assert.deepEqual(sent, [], 'no request is made until the user signs in');
   assert.deepEqual(errors, []);
 });
 
