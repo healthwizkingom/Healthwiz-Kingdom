@@ -26,27 +26,33 @@ export async function closeBrowser() {
   browser = undefined;
 }
 
-/** Fresh page with empty storage. `seed` (optional) is written to localStorage before load. */
-export async function openApp({ seed, viewport, popups = false } = {}) {
+export const RETURNING = { b: {}, e: [], s: { kcal: 2200, water: 2000, sound: 0, set: 0, onb: 1 }, p: { w: 60, h: 165, age: 16, sex: 'm', act: 1.375, days: 3, goal: 'm', name: 'Tester' }, xp: 0, claimed: {} };
+
+/**
+ * Opens the app in a fresh browser context.
+ *  - default: a returning user (onboarding done, tutorial seen, sound off)
+ *  - { fresh: true }: brand-new user with empty storage (onboarding + tutorial flow)
+ *  - { seed }: custom saved state (tutorial marked seen)
+ */
+export async function openApp({ seed, fresh = false, viewport } = {}) {
   const b = await getBrowser();
-  const ctx = await b.newContext({ viewport: viewport || { width: 1100, height: 900 } });
-  // Tests run offline: stub the only external resource (Google Fonts stylesheet).
+  const ctx = await b.newContext({ viewport: viewport || { width: 1100, height: 900 }, acceptDownloads: true });
+  // Tests run offline: stub external requests (Google Fonts stylesheet, AI endpoint).
   await ctx.route(/^https?:/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
   const page = await ctx.newPage();
   const errors = [];
-  // Badge popups cover the screen; tests opt in explicitly with { popups: true }.
-  if (!popups) await page.addInitScript(() => { window.HW_NO_POPUPS = 1; });
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
-  if (seed) await page.addInitScript(s => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('healthwiz', s); sessionStorage.setItem('seeded', '1'); } }, JSON.stringify(seed));
+  const init = fresh ? null : JSON.stringify(seed || RETURNING);
+  if (init) await page.addInitScript(s => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('healthwiz', s); localStorage.setItem('hwtut', '1'); sessionStorage.setItem('seeded', '1'); } }, init);
   await page.goto(APP_URL);
   return { page, ctx, errors };
 }
 
-/** Navigate inside the app via its own router. */
+/** Navigate with the app's own router. */
 export async function go(page, view) {
-  await page.evaluate(v => window.HW.go(v), view);
-  await page.waitForTimeout(50);
+  await page.evaluate(v => go(v), view);
+  await page.waitForTimeout(60);
 }
 
 export const state = page => page.evaluate(() => JSON.parse(localStorage.getItem('healthwiz') || 'null'));
