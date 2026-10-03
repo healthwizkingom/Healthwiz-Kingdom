@@ -282,3 +282,24 @@ streak badges are unchanged. `js/v6-streaks.js` adds:
 * **Schema v4:** adds `st.ex.p` (first visit per feature page) for discovery.
 
 Tests: `tests/06-streaks.test.mjs`. 48 in total.
+
+## 14. v6.7: fair XP and the living kingdom (§16–19, §37, §97 step 8)
+
+**XP (`js/v6-xp.js`):** the original awarded XP for every saved entry, so add/delete loops farmed XP.
+* **Daily allowance** of XP-earning logs per category (water 8, food 6, sleep 2, pulse 3, stairs 4,
+  stress 3, BMI 1). It's counted by when the log happens, so backfilling old days can't farm, and
+  deleting never refunds. Over the allowance the entry is still saved, with one gentle note per category per day.
+* `gain(0)` is now silent (no "+0 XP" toast, no event).
+* **Exploration:** +5 XP once for the first visit to each region page.
+* **Schema v5:** `st.xl` stores the allowance used per day (kept for 14 days).
+
+**Kingdom (`js/v6-kingdom.js`):**
+* **State names (§16):** Ruined → Recovering → Developing → Thriving (original `KS` labels renamed, same
+  thresholds), plus a fifth tier, **Flourishing**, for regions Thriving this week and last week.
+  Balance Tower (BMI) and the Energy Forge (calories) top out at Thriving, so nothing rewards
+  weighing more often or calorie control. Flourishing regions glow on the map (✿).
+* **Region detail (§19):** ℹ on each region opens state, progress to the next state, a 7-day view,
+  related stats, related daily/focus/weekly quests, and an Enter button (which closes the panel first).
+* **Event:** `kingdom:state` when a log, edit or delete changes a region's state (for Medius in step 9).
+
+Tests: `tests/07-xp-kingdom.test.mjs`. 54 in total.

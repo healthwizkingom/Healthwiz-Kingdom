@@ -7,21 +7,23 @@
         (earned badges are keyed by name in st.b, so the keys move with their unlock dates)
      3  adds `q6` = {f:{date:{id,t,done}}, w:{week:{ids,done}}} for focus/weekly quests (js/v6-quests.js)
      4  adds `ex` = {p:{view:firstVisitDate}} for feature discovery (js/v6-streaks.js)
+     5  adds `xl` = {date:{category:awardedLogs}} daily XP allowance (js/v6-xp.js)
 
    Rules: migrations only ever move or add data, never drop entries. Before upgrading,
    repairing or discarding anything, the raw stored text is copied to a
    `healthwiz_backup_<reason>_<time>` key, so nothing is lost. */
 const HWSchema=(()=>{
-const V=4,KEY='healthwiz',BK='healthwiz_backup_',KEEP=3;
+const V=5,KEY='healthwiz',BK='healthwiz_backup_',KEEP=3;
 const isObj=x=>!!x&&typeof x==='object'&&!Array.isArray(x);
-const MAPS=['b','claimed','en','xd','qx','qd','ck','q6','ex'];
+const MAPS=['b','claimed','en','xd','qx','qd','ck','q6','ex','xl'];
 
 // STEPS[n] upgrades a copy of the data from schema n to n+1.
 const STEPS={
 1:d=>{const R={'Shrine Visitor':'Tower Visitor','Shrine Regular':'Tower Regular'};
   if(isObj(d.b))Object.keys(R).forEach(o=>{if(d.b[o]!=null){if(d.b[R[o]]==null)d.b[R[o]]=d.b[o];delete d.b[o]}});return d},
 2:d=>{if(!isObj(d.q6))d.q6={f:{},w:{}};return d},
-3:d=>{if(!isObj(d.ex))d.ex={p:{}};return d}};
+3:d=>{if(!isObj(d.ex))d.ex={p:{}};return d},
+4:d=>{if(!isObj(d.xl))d.xl={};return d}};
 
 /** → {data, from} on success, {err, from, data} when the data is from a newer app. Never mutates `d`. */
 function migrate(d){if(!isObj(d))return{data:null,from:0};
