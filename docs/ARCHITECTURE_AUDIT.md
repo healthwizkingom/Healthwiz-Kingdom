@@ -121,3 +121,26 @@ Pages (named in `DIS` / CSS but missing): `home`, `pulse`, `stair`, `stress`,
 **If the complete original `index.html` still exists on someone's device**,
 it should replace the reconstructed sections; the `RECONSTRUCTED` markers make
 that swap mechanical.
+
+## 7. Status after the v6 repair (2026-10-03)
+
+| Phase | Result | Tests |
+|---|---|---|
+| 0 | Fragments in `legacy/` (verified byte-identical to `bd53041` / `4316ee3`); this audit; harness | baseline documented blank page |
+| 1 | App boots; welcome, food (incl. custom food + macros), water, sleep restored | `00-boot`, `01-core-pages` |
+| 2 | Home: profile, attributes, today tiles, 6 daily quests, kingdom map, hub, badges + popup; original energy/trends/connections shown | `02-home` |
+| 3 | Pulse, stairs, mind forest + calm games + counsel, BMI/profile, goal forge | `03-trackers` |
+| 4 | Stats, guide, settings, backup UI (original logic), reset, standalone bundle | `04-system`, `05-standalone` |
+
+25 browser tests, zero page/console errors, no horizontal overflow at 360 px on any page.
+
+Behaviour fixes made while rebuilding (all in reconstructed code):
+* A page that throws now shows an error card rather than a blank screen.
+* Choice chips (goal, pulse context, stair pace) update in place so typed form values survive.
+* Page timers (pulse count, pacing beat) stop when you navigate away.
+* Counsel chat is session-only and never written to storage.
+
+Still open / future (Phase 5): guided tutorial overlay (`#tut` CSS exists), onboarding
+flow (`.onbm` CSS exists), study/bedroom photo scenes (`.cns2`, images lost), optional
+`src/` module split. If the complete original file turns up, compare each
+`RECONSTRUCTED` block against it and keep whichever behaviour the team prefers.
