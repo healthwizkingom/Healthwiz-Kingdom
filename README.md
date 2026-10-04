@@ -53,6 +53,7 @@ js/v6-trail.js             Adventure Trail mini-game (follow trail blazes at for
 js/v6-grove.js             Calming Grove mini-game (follow a light over the pond as it grows and shrinks with your breath)
 js/v6-night.js             Night Watch mini-game (match star-chart constellations in the night sky)
 js/v6-badges.js            badge audit: duplicates retired, own icons, running / workout / Dream Battle badges
+js/v6-looks.js             themes (THEMES map, Settings swatches), the onboarding chamber, the Shadow Keep (title + Kingdom)
 js/v6-gps.js               GPS check-in on the Stairs page (one reading on tap, nearest stairway, confirm, discovery)
 js/v6-pwa.js               install as an app + offline: manifest/icon links, service worker, offline badge, Settings card
 js/v6-cloud.js             optional Supabase cloud save: sign-in, sync with offline queue, three-way merge, Settings card

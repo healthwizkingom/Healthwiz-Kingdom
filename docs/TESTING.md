@@ -33,7 +33,7 @@ compatibility tests.
 | statistics | `09-charts` |
 | backup, restore | `01-original-app` (download, erase, restore from file), `02-schema` (old and newer backups) |
 | reset | `01-original-app` (two taps), `03-events` |
-| theme | `25-matrix` (device default, saved choice, every page, contrast) |
+| theme | `25-matrix` (device default, saved choice, every page, contrast), `35-looks` (every theme's contrast and health colours, swatches, Match system) |
 | responsive layouts | `01-original-app`, `25-matrix` (seven sizes), the 360 px checks in `13`–`23` |
 | touch | `25-matrix-input`, `26-journey`, the game tests |
 | authentication, cloud sync | `21-cloud`, `22-cloud-sync` |
