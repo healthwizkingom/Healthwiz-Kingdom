@@ -41,7 +41,10 @@ js/v6-charts.js            touch/keyboard/screen-reader charts, empty states, we
 js/v6-world.js             visible world progression on the map + kingdom chronicle
 js/v6-title.js             title screen: time of day, weather, returning-player ribbon, tap reactions
 js/v6-games.js             mini-game framework: scene, HUD, character, timers, rewards, completion
-js/v6-water.js             Well Garden mini-game + living well scene (scenery by well stage, ripples, discoveries)
+js/v6-water.js             Well Garden mini-game; well stage, discoveries, ripples and sprites used by the Water Quest scene
+js/v6-rig.js               character rig: the knight and orc cut into jointed parts with pose classes; pixel-art scene painter
+js/v6-waterquest.js        Water Quest: layered valley scene by time of day and the knight's walk → drink → carry → pour sequence
+js/v6-dream.js             Dream Battle: continuous sleep → strength, torch-lit dungeon, princess, deterministic battle
 js/v6-food.js              Market Kitchen mini-game (pick foods from stalls, cook, build a balanced plate)
 js/v6-trail.js             Adventure Trail mini-game (follow trail blazes at forks, climb the stairs in rhythm)
 js/v6-grove.js             Calming Grove mini-game (follow a light over the pond as it grows and shrinks with your breath)

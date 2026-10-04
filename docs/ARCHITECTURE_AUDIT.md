@@ -961,3 +961,43 @@ The device matrix is now two files, `tests/25-matrix.test.mjs` (sizes, rotation,
 Tests: `tests/30-emoji.test.mjs` (no emoji drawn as text on the title screen, any page, a toast, a celebration, changed
 text, the region dialog or any mini-game; the text is kept; hand-drawn icons used for the same objects; pixelated
 pictures are 16×16, palette-only and outlined; sizes in 8 px steps; no overflow at 360 px). 190 tests in total.
+
+## 33. RPG upgrades: Water Quest scene and Dream Battle
+
+**Character rig (`js/v6-rig.js`).** The existing knight (`kn.webp`) and orc (`orc.webp`) are animated as cut-out puppets:
+one image per character, cut by SVG clip paths into parts (knight: cape, body, legs, shield, head, sword hand; orc: body,
+legs, head, axe hand). Parts rotate on their joints, and the body layer has the parts cut out (even-odd clip), so nothing
+is drawn twice. Poses are CSS classes (`s-idle`, `s-walk`, `s-kneel`, `s-scoop`, `s-drink`, `s-carry`, `s-pour`, `s-cel`,
+`s-ready`, `s-attack`, `s-block`, `s-hurt`, `s-tired`, `s-down`, `s-win`; orc `s-idle`, `s-walk`, `s-attack`, `s-hurt`,
+`s-taunt`, `s-defeat`), so idle animation costs no JavaScript and reduced motion shows the pose still. Turning is a short
+stepped squash through the middle. Class names are prefixed (`hwr`, `r-*`, `rgk`, `rgo`, `rgw`, `rgl`) because the
+original stylesheet already uses `.rg`, `.sw`, `.pp`, `.bd`, `.ax` and `.fl`.
+`HWRig.paint()` draws scene layers as real pixel art: hard-edged polygons and ellipses on a 320×180 canvas, cached as a
+data: URL for the session and shown scaled up with `image-rendering: pixelated`.
+
+**Water Quest (`js/v6-waterquest.js`).** The Well of Life block (`#wq`) is replaced by a 16:9 stage (bottom-anchored,
+cropped at the sides on narrow screens and at the sky on short landscape ones): painted far / mid / foreground layers
+(sky by time of day from `HWTitle.phase`, mountains, tree line, cliff and waterfall, a pond with shallows, depths and
+reflections, a jetty, a path and a stone well), animated life on top (waterfall, foam, shimmer, a fish, mist, motes or
+fireflies, sun rays, clouds, birds), the original well stages and Well Garden discoveries (`js/v6-water.js` keeps
+`stage()`, `finds()`, `ripple()` and the sprites), the knight and his reflection, a tint and a vignette.
+`wqFlow` is replaced: idle → turn → walk to the jetty → kneel → scoop (ripples, splash) → drink → carry → turn → walk to
+the well → pour (stream, ripples, the well's water and gauge rise) → celebrate → the original `flood2` and re-render. A
+second log during the sequence only updates the meters. The original `complete()` banner waits until the sequence ends.
+Leaving the page stops the sequence (every step checks the scene is still on the page).
+
+**Dream Battle (`js/v6-dream.js`).** `dbat()` and `dbState()` are replaced. Strength is continuous (formula in the file
+header): duration against the age goal (blended 75/25 with up to two earlier nights) × (0.7 + 0.3 × quality from
+restfulness, awakenings and time to fall asleep). The battle is deterministic: up to four swings of 25·S/0.70 damage, so
+S ≥ 0.70 defeats the orc and stronger knights win in fewer swings; below that the orc keeps what is left. Swing speed,
+reach, hit size, glow and blocking also scale with S. The dungeon has torchlight baked into each wall block plus flickering
+glow (opacity and scale only) and swaying shadows; the original princess (Princess Lyra of the Dream Realm, a 32×48
+sprite drawn in the file) waits behind a portcullis that rises when the knight wins. The card shows the strength, a
+five-zone scale with the winning line, a REPLAY button and "How sleep becomes strength". It plays once per logged night
+per visit; nothing is saved.
+
+Tests: `tests/31-dream-battle.test.mjs` (the five sleep levels rise gradually and only adequate and very good sleep
+win; every quarter hour changes strength without a jump; quality, earlier nights and age matter; each level's battle on
+the page ends as planned; replay; reduced motion; no sleep logged; phone portrait and landscape) and
+`tests/32-water-quest.test.mjs` (painted layers and lighting by time of day; the full knight sequence; saved once and
+after a reload; a second log mid-sequence; the target banner waits; six screen sizes; leaving mid-sequence; reduced motion).
