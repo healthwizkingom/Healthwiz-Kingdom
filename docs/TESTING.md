@@ -40,6 +40,7 @@ compatibility tests.
 | leaderboard | `23-board` |
 | location permissions, GPS fallback | `19-gps` |
 | offline mode | `20-pwa` |
+| reminders (§72) | `28-reminder` (runs after a reload, quiet hours, no reminder after a drink or with the goal met) |
 | console errors | every test; `26-journey` runs a whole first day without one |
 | broken references | `26-journey` (handlers, page links, images, asset paths), `20-pwa` (the offline file list) |
 | existing data compatibility | `02-schema`, `26-journey` (an old v5.4.3 save on every page) |

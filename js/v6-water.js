@@ -145,4 +145,22 @@ HWGames.register({id:'water',name:'Well Garden',icon:'🪣',page:'water',area:'W
     g.button('💧 WATER THE NEXT PATCH',()=>{const i=P.findIndex((b,j)=>!took.has(j));if(i>=0)ask(i)});
     g.pop(30,34,'Tap a dry patch!');upd()}});
 
-return{stage,finds,scenery,rim,SP}})();
+/* §72 smart water reminder (found in the recheck): the original timer (wqRemind) only started when SAVE REMINDER was
+   tapped, so it never ran again after a reload, and it fired at any hour, even right after a drink or with the goal met.
+   It now starts on load, stays silent during quiet hours (st.s.qh = [fromHour, toHour], default 22–7, [0,0] = none;
+   optional, no schema step) and skips a reminder when water was logged within the interval or today's goal is reached. */
+const QHS=[[[22,7],'22:00–07:00'],[[23,8],'23:00–08:00'],[[21,6],'21:00–06:00'],[[0,0],'None']];
+const qh=()=>{const q=st.s.qh;return Array.isArray(q)&&q.length===2&&q.every(h=>Number.isInteger(h)&&h>=0&&h<24)?q:[22,7]};
+const quiet=(h=new Date().getHours())=>{const[a,b]=qh();return a===b?false:a<b?h>=a&&h<b:h>=a||h<b};
+function due(m){if(quiet())return false;const d=today();if(wt(d)>=st.s.water)return false;
+  const t=st.e.reduce((x,e)=>e.c==='water'&&e.d===d&&e.t>x?e.t:x,'');if(!/^\d\d:\d\d$/.test(t))return true;
+  const n=new Date();return n.getHours()*60+n.getMinutes()-(+t.slice(0,2)*60+ +t.slice(3))>=m}
+wqRemind=function(){clearTimeout(S.wrT);const m=st.s.wrem||0;if(!m)return;
+  S.wrT=setTimeout(()=>{if(due(m))toast('💧 THE WELL NEEDS YOU! Time for a hydration check? <button class="sm" data-a="go" data-v="water">LOG WATER</button>');wqRemind()},m*60000)};
+{const p=pages.water;pages.water=(...a)=>{const h=p(...a),k='<button data-a="wrems">',i=h.indexOf(k);if(i<0)return h;const q=qh().join();
+  return h.slice(0,i)+'<div class="row"><label>Quiet hours<select id="wqh">'+QHS.map(o=>'<option value="'+o[0]+'"'+(o[0].join()===q?' selected':'')+'>'+o[1]+'</option>').join('')+'</select></label></div>'
+    +'<p class="mut" id="v6wqh">No reminder during quiet hours, within the interval after you log water, or once today\'s goal is reached.</p>'+h.slice(i)}}
+{const o=acts.wrems;acts.wrems=function(){const s=$('#wqh');if(s){const v=s.value.split(',').map(Number);if(v.length===2&&v.every(h=>Number.isInteger(h)&&h>=0&&h<24))st.s.qh=v}return o.apply(this,arguments)}}
+wqRemind();
+
+return{stage,finds,scenery,rim,SP,remindDue:due,quiet}})();

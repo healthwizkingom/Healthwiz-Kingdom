@@ -15,6 +15,8 @@ css('ui',`
 #mo{overflow-y:auto}#mo>.card{margin:auto}
 .er>span:nth-child(2){word-break:break-word;overflow-wrap:anywhere}
 .tsk:active{transform:translate(calc(-50% + 2px),2px)}
+:root{--mut:#655839}@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--mut:#a9b8c4}}:root[data-theme="dark"]{--mut:#a9b8c4}
+.badge{background:#7d5cc0}
 .v6q .aq .an small.why{display:block;font-size:11px;color:var(--mut)}.v6q .tagk{display:inline-block;font:7px/1.6 var(--fh);border:2px solid var(--ln);padding:1px 4px;margin-left:4px;background:var(--p2);vertical-align:1px}
 `);
 // Short, tappable completion banner (§33/§85). Queued so several never stack.
@@ -31,7 +33,10 @@ if(typeof sfx==='function')[659,784,988].forEach((f,i)=>setTimeout(()=>sfx(f,.09
    - Long unbroken notes or food names in entry rows wrap instead of widening the page on phones (CSS above).
    - SKIP TUTORIAL works by mouse and touch: the shared pressed style (translate 2px) replaced its centring transform,
      so the button jumped half its width away under the finger and the click landed on "next step" (CSS above).
-   - The THEME button's choice is remembered (st.s.theme, optional; missing = follow the device as before). */
+   - The THEME button's choice is remembered (st.s.theme, optional; missing = follow the device as before).
+   Found in the recheck (§81): light-theme muted text on the darker parchment (--mut on --p2) was 4.45:1 and white on
+   the violet badge chip 4.37:1, just under WCAG AA. Muted text is now #655839 (4.8–6.3:1 on every parchment) and the
+   badge chip #7d5cc0 (5.0:1); the dark theme is unchanged (CSS above). */
 {const mo=document.querySelector('#mo');let back=null,out=null,open=false;
 document.addEventListener('focusin',e=>{if(mo&&!mo.contains(e.target))out=e.target});
 const focusables=()=>[...mo.querySelectorAll('button,input,select,textarea,a[href],[tabindex]:not([tabindex="-1"])')].filter(e=>!e.disabled&&e.offsetParent!==null);

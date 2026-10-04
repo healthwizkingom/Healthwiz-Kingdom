@@ -83,7 +83,10 @@ test('rotation and an open keyboard: title, pages and the edit dialog adapt; SAV
 const contrast = () => { const v = k => getComputedStyle(document.documentElement).getPropertyValue(k).trim();
   const L = h => { const c = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(x => x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
   const cr = (a, b) => { const [x, y] = [L(v(a)), L(v(b))].sort((p, q) => q - p); return +((x + 0.05) / (y + 0.05)).toFixed(2); };
-  return { bg: v('--bg'), ink: ['--bg', '--pn', '--p2'].map(b => cr('--ink', b)), mut: ['--bg', '--pn'].map(b => cr('--mut', b)) }; };
+  const chip = document.createElement('span'); chip.className = 'badge'; document.body.appendChild(chip);
+  const rgb = getComputedStyle(chip).backgroundColor.match(/\d+/g).slice(0, 3).map(Number); chip.remove();
+  const Lc = c => { const l = c.map(x => x / 255).map(x => x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4); return 0.2126 * l[0] + 0.7152 * l[1] + 0.0722 * l[2]; };
+  return { bg: v('--bg'), ink: ['--bg', '--pn', '--p2'].map(b => cr('--ink', b)), mut: ['--bg', '--pn', '--p2'].map(b => cr('--mut', b)), badge: +(1.05 / (Lc(rgb) + 0.05)).toFixed(2) }; };
 
 test('themes: follows the device until chosen, the choice survives a reload, every page works and reads well in both', async () => {
   for (const scheme of ['light', 'dark']) {
@@ -99,6 +102,9 @@ test('themes: follows the device until chosen, the choice survives a reload, eve
   await page.click('[data-a="theme"]');
   assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'dark');
   assert.equal((await state(page)).s.theme, 'dark', 'choice saved');
+  // Chromium commits storage writes to the browser process asynchronously; an instant reload can read the copy from
+  // before the click (the app saved it: checked above). Give the write a moment, as any real reload would.
+  await page.waitForTimeout(300);
   await page.reload();
   await page.waitForSelector('.wl');
   assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'dark', 'still dark after a reload');
@@ -108,6 +114,7 @@ test('themes: follows the device until chosen, the choice survives a reload, eve
     const c = await page.evaluate(contrast);
     assert.ok(c.ink.every(x => x >= 7), `${theme}: body text contrast ${c.ink} (AAA 7:1)`);
     assert.ok(c.mut.every(x => x >= 4.5), `${theme}: muted text contrast ${c.mut} (AA 4.5:1)`);
+    assert.ok(c.badge >= 4.5, `${theme}: badge chip contrast ${c.badge} (AA 4.5:1)`);
   }
   await go(page, 'set');
   await page.click('[data-a="theme"]');

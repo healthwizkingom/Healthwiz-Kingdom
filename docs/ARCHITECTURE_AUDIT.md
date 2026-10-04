@@ -788,7 +788,26 @@ Found by these tests and fixed:
   the device as before).
 * **The mini-game ✕** (the way out) is now at least 40×40 px on touch screens (was 27×32).
 
-Known and left for the team: two original colour pairs are just under WCAG AA 4.5:1 — muted text on the darker parchment
+Known and left for the team (fixed in §30): two original colour pairs are just under WCAG AA 4.5:1 — muted text on the darker parchment
 (`--mut` on `--p2`, 4.45:1, light theme) and white on the violet badge chip (4.37:1). Body text is 8.9–15:1 everywhere.
 Only Chromium is available here; the Safari, Firefox and Samsung Internet checks in `docs/TESTING.md` need real devices.
 167 tests in total.
+
+## 30. v6.23: recheck against the master prompt
+
+The whole app was re-checked section by section against the master prompt and the full suite was run. Fixed:
+
+* **Water reminder (§72).** The original timer only started when SAVE REMINDER was tapped, so after any reload the reminder
+  never ran; it also fired at any hour, right after a drink, or with the day's goal met. It now starts on load, has quiet
+  hours (Water page → Reminders, default 22:00–07:00, saved as optional `st.s.qh`, no schema step) and stays silent within
+  the interval after a water log or once the goal is reached (`js/v6-water.js`, `tests/28-reminder.test.mjs`).
+* **Contrast (§81).** The two pairs left in §29 now pass WCAG AA: light-theme muted text `#655839` (4.8:1 on the darker
+  parchment) and the violet badge chip `#7d5cc0` (5.0:1 with white). The dark theme is unchanged (`js/v6-ui.js`); the
+  theme test now also checks muted text on `--p2` and the badge chip.
+* **Flaky theme test.** `25-matrix` reloaded in the same instant as the save; Chromium commits storage writes
+  asynchronously, so one run in a few read the old copy. The test now lets the write settle first (the app was right).
+
+Found and not changed here: commit `0f59a84` (Medius's AI counsel through the `medius-chat` Edge Function, §42) was pushed
+after PR #22 merged, so it never reached `main`, while its Edge Function and `hw_medius_take()` are already live in the
+Supabase project. Until it is merged, the Wizard's Counsel still calls `api.anthropic.com` without a key and shows its
+offline message outside Claude.
