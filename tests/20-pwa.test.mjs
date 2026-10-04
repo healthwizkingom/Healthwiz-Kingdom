@@ -73,6 +73,8 @@ async function served(viewport) {
   const b = await getBrowser();
   const ctx = await b.newContext({ viewport: viewport || { width: 1100, height: 900 } });
   await ctx.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+  // live weather / haze (js/v6-live.js): no real network in tests; an empty answer reads as "unavailable"
+  await ctx.route(/open-meteo\.com/, r => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
   await ctx.addInitScript(s => { if (!localStorage.getItem('healthwiz')) { localStorage.setItem('healthwiz', s); localStorage.setItem('hwtut', '1'); } }, JSON.stringify(RETURNING));
   const page = await ctx.newPage();
   const errors = [];

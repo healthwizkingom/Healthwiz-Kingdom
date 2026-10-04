@@ -163,7 +163,8 @@ body.hw-haze .amb .amfar{opacity:.3}body.hw-haze .amb .amcl{opacity:.35}`);
 {const p=pages.home;pages.home=(...a)=>{const h=p(...a),i=h.indexOf('<div class="hbar">'),j=i<0?-1:h.indexOf('</button></div>',i);const c=homeWeather()+hazeCard();
   return j<0?c+h:h.slice(0,j+15)+c+h.slice(j+15)}}
 {const p=pages.stair;pages.stair=(...a)=>{const h=p(...a),k='<h2>🧗 STAIR QUEST</h2>';return h.indexOf(k)===0?k+hazeBanner()+h.slice(k.length):hazeBanner()+h}}
-{const p=pages.set;pages.set=(...a)=>{const h=p(...a),k='<div class="card" id="bkp">';return h.indexOf(k)>=0?h.replace(k,card()+k):h+card()}}
+// above APP & OFFLINE (which sits just above Backup & Restore)
+{const p=pages.set;pages.set=(...a)=>{const h=p(...a),k=['<div class="card" id="v6pwa">','<div class="card" id="bkp">'].find(x=>h.indexOf(x)>=0);return k?h.replace(k,card()+k):h+card()}}
 
 /* ---------- schedule: start, every 30 min while visible, back online ---------- */
 prime();
