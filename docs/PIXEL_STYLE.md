@@ -74,17 +74,20 @@ All opt-in by class; nothing existing is restyled by them. Existing pieces stay 
 per colour. `s` is a whole-number scale (1 = 16 px, 2 = 32 px); fractions are rounded so the grid holds. Without
 `label` the icon is hidden from screen readers (the text next to it says it); with `label` it is `role="img"`.
 
-| Required set | Also drawn (page banners) |
+| Required set | Also drawn (page banners, headings) |
 |---|---|
-| heart, water, food, sleep, stairs, running, stress, energy, achievement, warning, success, wizard, monster | balance, chart, scroll, gear, quest, map |
+| heart, water, food, sleep, stairs, running, stress, energy, achievement, warning, success, wizard, monster | balance, chart, scroll, gear, quest, map, bell |
 
 * `HWPixel.names`: every icon. `HWPixel.grid(name)`: its 16 rows with the outline added, which the original sprite
   helper can draw on a canvas: `spr(HWPixel.grid('heart'), HWPixel.PAL, 3)`.
 * `HWPixel.forEmoji('💧')` → `'water'`: the emoji used today, mapped to icons. Only unambiguous ones are mapped: 🔥 means
   streak, vigorous pace *and* the Energy Forge, and 📊 both the Health Hall and Statistics, so pick those by meaning.
-* `HWPixel.glyph(emojiOrName, s)`: the pixel icon when there is one, otherwise the emoji unchanged. Use it to move a
-  screen over without breaking the places that have no icon yet.
-* `HWPixel.region(view)`: the icon for a page's banner. In use since session 1: `ban()` draws it at 2×.
+* `HWPixel.glyph(emojiOrName, s)`: the pixel icon when there is one, otherwise the emoji unchanged; a list draws each in
+  turn. Use it to move a screen over without breaking the places that have no icon yet.
+* `HWPixel.region(view)`: the icon (or list of icons) for a page's banner. `ban()` draws it at 2× (since session 1); the
+  Nutrition & Hydration page shows both of its systems, `['food', 'water']`.
+* Card headings with an icon: `'<h3>'+HWPixel.icon('water')+' ADD WATER</h3>'`, laid out as a row by the page's CSS
+  (first used on Nutrition & Hydration, `js/v6-provisions.js`).
 
 ### Adding an icon
 

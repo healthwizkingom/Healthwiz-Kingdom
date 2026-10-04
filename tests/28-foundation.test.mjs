@@ -31,7 +31,7 @@ test('no decorative hearts at the top of any page; the title, level bar and regi
     assert.equal(top.h1, 'HEALTHWIZ', v);
     assert.ok(top.tag && top.bar && top.lv && top.h2, v + ': title, tagline, level, XP bar and page heading stay');
     assert.equal(top.title, top.want, v + ': banner keeps its region name');
-    assert.equal(top.icon, 1, v + ': banner shows the region pixel icon');
+    assert.equal(top.icon, v === 'food' || v === 'water' ? 2 : 1, v + ': banner shows the region pixel icon (both systems on Nutrition & Hydration)');
   }
   await go(page, 'home');   // Home's hero card keeps its labelled quest hearts (n/5 quests): those carry meaning
   assert.equal(await page.locator('#pcard .hrts img.px').count(), 5);
@@ -69,7 +69,8 @@ test('navigation audit: tabs, every Health Hall tile there and BACK again, Storm
   await page.click('#nav [data-v="health"]');
   const tiles = await page.$$eval('#hub [data-a="go"]', b => b.map(x => [x.dataset.v, x.querySelector('b').textContent]));
   const names = Object.fromEntries(tiles);
-  for (const [v, n] of [['food', 'Nutrition'], ['water', 'Water'], ['pulse', 'Pulse'], ['stair', 'Stairs'], ['run', 'Running'], ['sleep', 'Sleep'], ['stress', 'Stress']]) assert.equal(names[v], n, n + ' tile');
+  for (const [v, n] of [['food', 'Food & Water'], ['pulse', 'Pulse'], ['stair', 'Stairs'], ['run', 'Running'], ['sleep', 'Sleep'], ['stress', 'Stress']]) assert.equal(names[v], n, n + ' tile');
+  assert.equal(names.water, undefined, 'Nutrition and Water share one tile (§31)');
   for (const [v] of tiles) {
     await page.click(`#hub [data-v="${v}"]`);
     assert.equal(await page.evaluate(() => S.v), v, 'tile ' + v);
@@ -87,7 +88,7 @@ test('navigation audit: tabs, every Health Hall tile there and BACK again, Storm
 
 test('pixel icons: the required set, crisp whole-pixel SVG, a full outline, accessible, emoji mapping and fallback', async () => {
   const { page, ctx, errors } = await openApp();
-  const r = await page.evaluate(names => {
+  const r = await page.evaluate(() => {
     const out = { names: HWPixel.names, bad: [] };
     for (const n of HWPixel.names) {
       const g = HWPixel.grid(n), d = document.createElement('div');
@@ -108,9 +109,9 @@ test('pixel icons: the required set, crisp whole-pixel SVG, a full outline, acce
     out.map = ['❤️', '💧', '🍗', '🌙', '🧗', '🏃', '🧠', '⚡', '🏆', '⚠️', '✅', '🧙', '👹', '🔥'].map(HWPixel.forEmoji);
     out.fallback = HWPixel.glyph('🔥'); out.named = /^<svg class="pxi pxi-water/.test(HWPixel.glyph('water'));
     out.canvas = /^<img class="px"/.test(spr(HWPixel.grid('heart'), HWPixel.PAL, 2));
-    out.regions = Object.keys(BN).filter(k => k !== 'home').filter(k => !names.concat(HWPixel.names).includes(HWPixel.region(k)));
+    out.regions = Object.keys(BN).filter(k => k !== 'home').filter(k => !HWPixel.region(k) || ![].concat(HWPixel.region(k)).every(n => HWPixel.names.includes(n)));
     return out;
-  }, REQUIRED);
+  });
   assert.deepEqual(REQUIRED.filter(n => !r.names.includes(n)), [], 'every required icon exists');
   assert.deepEqual(r.bad, []);
   assert.equal(r.scaled, '16', 'scales are whole numbers, so the pixel grid holds');

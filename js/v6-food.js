@@ -117,7 +117,7 @@ function square(lv,n){let h='';
 HWGames.register({id:'food',name:'Market Kitchen',icon:'🍲',page:'food',area:'Nutrition',xp:10,
   blurb:'Pick foods from the market stalls and build a balanced, colourful plate.',
   note:'A game only. It does not log food, and its kcal and macros are estimates. Log what you actually eat on the Nutrition page.',
-  before:['<div class="card"><h3>📋 7-DAY NUTRITION LOG</h3>'],
+  before:['<div class="card" id="fwk">'],
   finds:[['🧂','Spice rack','A rack of turmeric, lemongrass and chilli now hangs in the market kitchen.'],['🎏','Market bunting','Colourful bunting now hangs across the market square.'],['🐈','Market cat','A sleepy cat now naps by the stalls and stretches when a plate is served.'],['🪴','Herb pots','Pots of pandan and curry leaves now sit on the kitchen counter.'],['📜','Lore: the shared table','The village cooks say no single dish makes a feast. It is the mix on the table, day after day, that does.']],
   progress(){const d=D(),m=+d.m||0,t=tried().length;return m?m+(m===1?' meal':' meals')+' served · '+t+' foods tried':''},
   start(g){const lv=region(),n=finds(),S=g.stage;S.classList.add('v6gf');

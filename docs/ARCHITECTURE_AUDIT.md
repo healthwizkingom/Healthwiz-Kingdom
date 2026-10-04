@@ -877,3 +877,56 @@ Known, not caused by this session: `tests/08-medius.test.mjs` "new insight and k
 Sundays. Its six seeded stress entries (1–6 days ago) then all fall in the current Monday–Sunday week, so the water log
 completes the weekly "w-mind" quest and a level-up, whose higher-priority bubbles fill the 9.5 s window the test waits.
 Fix in the test: seed the entries outside the current week, or wait for the queued bubble.
+
+## 31. Visual redesign, session 2: Nutrition and Hydration as one page
+
+The Nutrition page and the Water page are now one page, **Nutrition & Hydration** (banner: *Provisions Hall*), built by
+`js/v6-provisions.js` (`HWProvisions`). No saved data changed (no schema step).
+
+**Routes.** The two old routes stay, as the page's two halves: `food` (Nutrition Village) and `water` (Water Valley and the
+Well of Life). `pages.food` and `pages.water` both draw the whole page, each with its own half. So everything that already
+linked to them now opens the right half with no change: Home's Water and Calories tiles and *Log a glass of water* / *Open
+nutrition log*, the Kingdom map (Water Valley and Nutrition Village stay two regions with their own states), the region
+panel's ENTER button, daily, focus and weekly quests, insights, the water reminder toast and the tutorial. The original
+code that checks `S.v==='water'` keeps its meaning: `drink()` still plays the walk-fill-carry-pour animation (`wqFlow`)
+instead of the full-screen fallback, the water music still plays, exploration XP is still given once per region, and the
+mini-game launch cards still refresh. No old route can break, because none was removed.
+
+**Layout.** Shared by both halves: the title, the banner (both systems' pixel icons), BACK, and two **system cards**:
+today's calories against the target with meals logged, and today's water against the target with what is left. Each
+card is the switch to its half (`aria-current="page"` on the open one, gold frame and pointer). Below them: a section
+header (the system's title, its region and kingdom state, one line), then the system's cards, a GO TO button for the other
+half, and one footnote with both disclaimers.
+* *Nutrition* (`pages.food` body in `js/hw-02-core.js`, rearranged): Calories and Macronutrients side by side on wide
+  screens, stacked on phones; Pick a food; Today's food log; Market Kitchen; 7-day nutrition log. Same content, ids and
+  actions as before; headings use pixel icons.
+* *Hydration* (`pages.water` body): the Water Quest exactly as before (progress, Well of Life scene, Add water, stats,
+  history, graph, Well Garden, world progression, Well Keeper, achievements, reminders). Only its title and line moved
+  into the section header and its headings use pixel icons. Its redesign is session 3.
+* *Switching* is a navigation (`page:viewed`), but the system cards stay at the same place on screen, focus moves to the
+  card just chosen, and the page does not replay its enter animation: only the content below the cards animates in (the
+  water half keeps the original water wipe, `trw`). Reduced motion and Animations Off are honoured.
+* Every card stays a direct child of the page, so `js/v6-motion.js` still pauses the well's scenery when it is scrolled
+  away. (Wrapping the half in a container would have stopped that.) A `<nav>` element is not used for the switch: the
+  original stylesheet makes every `nav` the bottom bar on phones.
+
+**Navigation.** The Health Hall's Nutrition and Water tiles are replaced by one **Food & Water** tile (first, showing
+today's kcal and mL). Bottom navigation had no entry for either. The tutorial's Health Hall line now names the one tile,
+and its first Nutrition and first Water steps explain the two halves. Its other steps, and all spotlight targets, are
+unchanged.
+
+**Anchors.** The mini-game launch cards were placed by searching for emoji headings (`📋 7-DAY NUTRITION LOG`,
+`🌱 WORLD PROGRESSION`, see §30). They now use card ids: `#fwk` and `#wworld`. New ids on the page: `#fcal`, `#fpick`,
+`#flog`, `#fwk`, `#wworld` (plus the existing `#fmac`, `#det`, `#fl`, `#fprev`, `#wq`, `#wqch`…). One new pixel icon,
+`bell` (Reminders).
+
+Tests: `tests/29-provisions.test.mjs` (one tile; both system cards with today's values; switching by card, GO TO and
+keyboard with the cards kept in place and focus moved; nutrition logging; water logging with the well animation, graph and
+reminder; launch cards in place; saved entries, targets and reminder unchanged through both halves and a reload; every old
+link: Home, Kingdom map, region panel, tutorial; five screen sizes). Updated for the new layout: `13-games` (marker),
+`27-running` (Health Hall tile list) and `28-foundation` (two banner icons here, one tile). 186 tests in total.
+
+**For session 3 (Water Quest).** The water half is `HYD()` in `js/v6-provisions.js`, the original `pages.water` body in
+`js/hw-02-core.js`. `js/v6-water.js` wraps the page (scenery inserted before `<div class="wqch" id="wqch">`, ripples via
+`splashAt`, Well Garden before `#wworld`). `drink()` animates only while `S.v==='water'` and `#wqch` exists. The water
+progress card repeats the Hydration system card and could go in the redesign.

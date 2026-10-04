@@ -6,7 +6,7 @@ after(closeBrowser);
 // A minimal game, registered from the test, that uses the shared pieces.
 const DEMO = () => HWGames.register({
   id: 'demo', name: 'Demo Game', icon: '🎲', page: 'water', xp: 7, blurb: 'A test game.',
-  before: ['<div class="card"><h3>🌱 WORLD PROGRESSION</h3>'],
+  before: ['<div class="card" id="wworld">'],
   finds: [['🪑', 'Bench', 'A bench.'], ['🏮', 'Lantern', 'A lantern.']],
   start(g) {
     g.stage.innerHTML = '<button class="v6gt" id="tgt" style="left:40%;top:40%">target</button>';

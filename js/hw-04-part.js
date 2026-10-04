@@ -83,13 +83,13 @@ const TS=[
 ['home','#kmini',"The Kingdom Map. Eight regions await thee. Log deeds in a region and it shall bloom from Ruined to Thriving. Tap a region to travel there."],
 ['home','#dsum',"Thy Daily Summary: quests complete, XP earned, and one gentle quest for the morrow."],
 ['home','#nav',"Behold thy five portals: Home, Health, Quests, Kingdom and Settings. Every tracker now dwelleth in the Health Hall. Follow me!"],
-['health','#hub',"The Health Hall! Nutrition, Water, Sleep, Pulse, Stairs, Stress, BMI, Calories and Statistics, each tile a door. Inside any tracker, the BACK button returneth thee here."],
+['health','#hub',"The Health Hall! Food & Water, Sleep, Pulse, Stairs, Stress, BMI, Calories and Statistics, each tile a door. Inside any tracker, the BACK button returneth thee here."], // v6 (§31): one Food & Water tile
 ['health','#plan',"Here lieth thy Personal Quest Plan, {name}: calories, protein, carbs, fat, fiber, water and sleep, all reckoned from thy height, weight, age, sex and activity. Open 'How these goals were calculated' to see my workings."],
-['food','~Calories consumed',"Nutrition Village. Here are the calories thou hast eaten, thy daily target, and what remains. The bar and chart reveal the last seven days, with the highest and lowest."],
+['food','~Calories consumed',"The Provisions Hall, where Nutrition Village and Water Valley share one page: tap NUTRITION or HYDRATION above to switch. Here in Nutrition Village are the calories thou hast eaten, thy daily target, and what remains. The bar and chart reveal the last seven days, with the highest and lowest."], // v6 (§31)
 ['food','~PICK A FOOD',"Choose a meal chip, from Breakfast to Moreh, then a Menu Day, or search the larder by name. Foods come from the KOLEJ MARA KULIM Dewan Selera list. Tap a food to open it."],
 ['food','[data-a="cf"]',"A food not on the list? Press ADD MORE FOOD and scribe thy own: name, serving, calories, and protein, carbs, fat and fiber if thou knowest them. For a listed food, choose servings with - and +, pick a portion size from 0.5× to 2.5×, then press ADD TO LOG."],
 ['food','~FOOD LOG',"Each morsel is recorded here. The pencil edits an entry; the bin banishes it. A deletion by mistake may be undone from Settings."],
-['water','#wq',"Water Valley and the Well of Life! Log water and thy hero fetcheth a bucket, carrieth it, and poureth it into the well. Watch the water rise, the splash, and thy +mL and +XP."],
+['water','#wq',"The HYDRATION side of the hall: Water Valley and the Well of Life! Log water and thy hero fetcheth a bucket, carrieth it, and poureth it into the well. Watch the water rise, the splash, and thy +mL and +XP."], // v6 (§31)
 ['water','~ADD WATER',"Tap +100, +250, +500 or +750 mL, or scribe a custom amount. Mark well: drinking beyond thy target is not better."],
 ['water','~HYDRATION GRAPH',"The Hydration Graph showeth thy day, week or month. The village below groweth greener with each day thou trackest, never with excess in one day."],
 ['water','~REMINDERS',"Shouldst thou wish it, set a gentle reminder here: hourly, every two hours, or a span of thine own choosing."],
