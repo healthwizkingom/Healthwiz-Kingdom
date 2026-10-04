@@ -1134,3 +1134,7 @@ quest counting runs; every tutorial step's target; the navigation audit at four 
 * *Removed the "Time to fall asleep" card* on the Sleep page (four static stages and the last logged minutes). The
   "Minutes to fall asleep" field in LOG SLEEP stays: the Dream Battle's sleep quality uses it.
 Tests: `tests/34-final-polish.test.mjs` (all eight region icons drawn on the Kingdom page and Home, no fall-asleep card).
+* *Updates reached phones up to 10 minutes late.* GitHub Pages sends `Cache-Control: max-age=600`, and the service
+  worker's network-first fetch went through the browser's HTTP cache, so after a deploy a phone could keep running the
+  previous scripts (the map fix above looked "not fixed" right after it was merged). App files are now fetched with
+  `cache: 'no-cache'` (revalidated, a cheap 304 when unchanged); offline behaviour is unchanged.

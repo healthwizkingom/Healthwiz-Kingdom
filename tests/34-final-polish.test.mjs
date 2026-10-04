@@ -223,3 +223,10 @@ test('Kingdom map: every region shows its pixel icon (the label style no longer 
   assert.deepEqual(appErrors(errors), []);
   await ctx.close();
 });
+
+test('service worker: app files are revalidated with the server, so an update shows on the next visit (not 10 minutes later)', async () => {
+  const fs = await import('node:fs');
+  const sw = fs.readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
+  const body = sw.slice(sw.indexOf('function networkFirst'), sw.indexOf('async function staleWhileRevalidate'));
+  assert.match(body, /fetch\(req, \{ cache: 'no-cache' \}\)/);
+});

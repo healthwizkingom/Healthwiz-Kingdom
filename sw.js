@@ -59,7 +59,9 @@ async function fromCache(req) {
 }
 
 function networkFirst(req, e) {
-  const net = fetch(req).then(res => {
+  // 'no-cache': always ask the server (a cheap 304 when nothing changed). GitHub Pages sends max-age=600, so a plain
+  // fetch could take the browser's HTTP cache and keep showing the previous version for up to 10 minutes after an update.
+  const net = fetch(req, { cache: 'no-cache' }).then(res => {
     if (res.ok && res.type === 'basic') { const copy = res.clone(); e.waitUntil(caches.open(CACHE).then(c => c.put(req, copy))); }
     return res;
   });
