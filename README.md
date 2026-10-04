@@ -46,10 +46,13 @@ js/v6-water.js             Well Garden mini-game; well stage, discoveries, rippl
 js/v6-rig.js               character rig: the knight and orc cut into jointed parts with pose classes; pixel-art scene painter
 js/v6-waterquest.js        Water Quest: layered valley scene by time of day and the knight's walk → drink → carry → pour sequence
 js/v6-dream.js             Dream Battle: continuous sleep → strength, torch-lit dungeon, princess, deterministic battle
+js/v6-storm.js             Storm Within: the knight's face, posture and surroundings follow the stress rating, smoothly
+js/v6-ambient.js           the living world behind every page (themed by region) and the shared finish for buttons, cards, bars
 js/v6-food.js              Market Kitchen mini-game (pick foods from stalls, cook, build a balanced plate)
 js/v6-trail.js             Adventure Trail mini-game (follow trail blazes at forks, climb the stairs in rhythm)
 js/v6-grove.js             Calming Grove mini-game (follow a light over the pond as it grows and shrinks with your breath)
 js/v6-night.js             Night Watch mini-game (match star-chart constellations in the night sky)
+js/v6-badges.js            badge audit: duplicates retired, own icons, running / workout / Dream Battle badges
 js/v6-gps.js               GPS check-in on the Stairs page (one reading on tap, nearest stairway, confirm, discovery)
 js/v6-pwa.js               install as an app + offline: manifest/icon links, service worker, offline badge, Settings card
 js/v6-cloud.js             optional Supabase cloud save: sign-in, sync with offline queue, three-way merge, Settings card

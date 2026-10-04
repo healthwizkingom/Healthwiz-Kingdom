@@ -1067,3 +1067,61 @@ the estimate against hand-worked numbers, missing profile and invalid input, old
 the model, 360 px). Updated: `01`, `02`, `03`, `16`, `19`, `24`, `25-matrix-input`, `26`, `27`, `28` (they used the
 Pulse page, the Running tile or ST01).
 
+
+## 35. Final polish and QA
+
+The last session: polish, test, fix, stabilise. No new systems, no saved-data change (no schema step, `sv` stays 8),
+no page removed. Three add-ons (`js/v6-storm.js`, `js/v6-ambient.js`, `js/v6-badges.js`) and small edits.
+
+**Storm Within (`js/v6-storm.js`).** The knight in the stress scene is the same art, now through the character rig, with a
+small face layer drawn in kn.webp's own pixel grid inside the head part (skin patches over the original eyes and mouth,
+then brows, lids, eyes, a seven-segment mouth, teeth, sweat, cheeks, under-eye shadow, furrow). Each feature is a CSS
+custom property on the scene (`.qs`), interpolated from five reference expressions (calm, slightly concerned, tense,
+distressed, overwhelmed) so every rating 1–10 gives its own face and CSS transitions blend between them. Breathing
+quickens, the posture crouches and leans, the shield rises and a faint tremble starts near the top; a light behind the
+knight cools and flowers droop. A 2× portrait in the scene's corner makes the face readable on phones, and the meter
+names the mood in words ("KNIGHT: TENSE"), so nothing depends on colour or motion. The slider no longer rebuilds the
+scene (`sqPaint`): the weather is swapped and the knight, portrait, light and flowers are kept, so the face transitions.
+Before a rating the knight is "slightly concerned". The storm creatures make room for the portrait.
+
+**Living world (`js/v6-ambient.js`).** One fixed layer behind the app (`z-index:-1`, no pointer events, `contain:strict`),
+themed by region: meadow, water, night, mountain, forest and hall. Two painted pixel strips per theme (HWRig.paint,
+cached; they tile seamlessly) give depth, with scroll-driven parallax where supported (no JavaScript). Moving parts are
+a few CSS elements (clouds, motes, fireflies, stars, lake shimmer, falling leaves, torches with flickering glow),
+transform and opacity only. Hidden on the title and onboarding screens. Performance mode stops most of them, reduced
+motion and Animations Off stop all of them, a hidden tab pauses them. The page footnote gets a backing so text never
+sits on scenery. **Finish:** buttons get a light bevel and hover / pressed / disabled states, cards a sheen and a rule
+under their first heading, progress bars a gem-like highlight, the current tab a gold ring, clickable tiles lift on hover.
+
+**Icons.** Eight more hand-drawn icons in `HWPixel`: workout, pulse (heart rate), badge, home, flame, star, mind, game.
+`HWEmoji` draws 19 more emoji with them (🏋️ 💪 💓 🫀 🏅 🎖️ 🏠 🔥 ⭐ 🌟 ✨ 🧠 🎮 🧗 🪜 🥤 😴 🛏️ 🍽️), including every bottom-nav
+and Health Hall tile emoji, so those look the same on every device.
+
+**Badges and quests (`js/v6-badges.js`).** 'First Drop' was an exact duplicate of 'First Sip' and is retired from the badge
+list (the Water page's own list keeps it; an earned one stays in the save). Five badges that shared an icon with another
+get their own (names are unchanged, since earned badges are stored by name). New, from data already saved: First Run,
+Road Runner (10 km), Long Road (42 km) from `healthwiz_runs`; Trial of Breath and Workout Regular (10) from stair
+sessions of kind `workout`; Dream Champion when a logged night is strong enough to win the Dream Battle. The weekly
+"Mountain paths" quest now counts runs as well as stair sessions.
+
+**Tutorial.** Every step's target was checked on the current pages (all present). Updated: the Health Hall line (Running
+lives in Stairs), the Water Quest step (the knight's walk, drink, carry, pour), the Dream Battle step (strength from
+duration and quality), the stress step (the Storm Within follows the rating), and a new Running Road step.
+
+**Bugs fixed.**
+* Badge cards ran the description into the date ("Log water onceUnlocked 2026-…"): each line is now its own block.
+* Unlocked badge cards were partly transparent (a gradient to a translucent gold), so whatever lay behind showed through.
+* A burst of toasts (a day's quests completing together, e.g. after a sync) could cover a phone screen: at most three
+  show at once, newest kept.
+* `tests/08-medius.test.mjs` failed on Sundays (§30): its stress check-ins are now seeded before the current week.
+
+**Audits with nothing to fix.** Navigation: every `data-a` on every page has an action and every route is a real page
+(old `pulse` / `run` / `water` routes still land in the right place); no page scrolls sideways at 360×740, 740×360,
+820×1180 or 1440×900. Timers: every interval found is tied to a running activity (workout clock, breathing, run tracker,
+music, cloud sync) and stops with it; the new animation is all CSS.
+
+Tests: `tests/34-final-polish.test.mjs` (the expression at every rating: ten distinct, gradual, monotonic where it
+should be, words for every band, the knight kept while sliding, reduced motion; the ambient theme per page, no clicks
+intercepted, fewer moving parts in Performance, none with Animations Off; the new icons and emoji mapping; toasts
+capped; readable opaque badge cards; no duplicate badge names or icons, the new badges' progress and award; the weekly
+quest counting runs; every tutorial step's target; the navigation audit at four sizes).

@@ -82,7 +82,10 @@ test('held back while the tutorial overlay is open', async () => {
 
 test('new insight and kingdom change reach Medius; settings toggle and recent words on the guide', async () => {
   const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
-  const { page, ctx, errors } = await openApp({ seed: withMed(2, { e: range(1, 6).map(n => entry('stress', 8, n)), md: { last: { greet: Date.now() }, day: {}, seen: {}, ms: {}, log: [] } }) });
+  // the six check-ins sit before this Monday, so they never complete the weekly "Forest visits" quest (on a Sunday they
+  // used to, and its level-up bubbles then filled the window this test waits on)
+  const k = (new Date().getDay() + 6) % 7;
+  const { page, ctx, errors } = await openApp({ seed: withMed(2, { e: range(k + 1, k + 6).map(n => entry('stress', 8, n)), md: { last: { greet: Date.now() }, day: {}, seen: {}, ms: {}, log: [] } }) });
   await go(page, 'home');
   await page.evaluate(() => add('water', 250, {}, '', 0, 0, 5, 'W'));      // triggers insight + region change
   await page.waitForTimeout(9500);

@@ -77,7 +77,7 @@ per colour. `s` is a whole-number scale (1 = 16 px, 2 = 32 px); fractions are ro
 
 | Required set | Also drawn (page banners, headings) |
 |---|---|
-| heart, water, food, sleep, stairs, running, stress, energy, achievement, warning, success, wizard, monster | balance, chart, scroll, gear, quest, map, bell |
+| heart, water, food, sleep, stairs, running, stress, energy, achievement, warning, success, wizard, monster | balance, chart, scroll, gear, quest, map, bell; final polish: workout, pulse (heart rate), badge, home, flame, star, mind, game |
 
 * `HWPixel.names`: every icon. `HWPixel.grid(name)`: its 16 rows with the outline added, which the original sprite
   helper can draw on a canvas: `spr(HWPixel.grid('heart'), HWPixel.PAL, 3)`.
@@ -109,7 +109,7 @@ brown `n N t` · steel `s S e` · orange `o O` · skin `q`. Gold, red, blue, gre
 The app's ~750 emoji (200+ different) are all drawn as 16×16 pixel pictures, with no change to the strings that hold
 them. `HWEmoji` watches the page (every render, toast, dialog, Medius line and mini-game) and swaps each emoji for:
 * the **hand-drawn icon** when it shows the same object (`SAME` in `js/v6-emoji.js`: 💧 ❤️ 🍗 🌙 🏃 🌩 ⚡ 🏆 ⚠️ ✅ 🧙 ⚖️
-  📊 📜 ⚙️ ⚔️ 🗺️ 🔔), or
+  📊 📜 ⚙️ ⚔️ 🗺️ 🔔, and since the final polish 🏋️ 💪 💓 🫀 🏅 🎖️ 🏠 🔥 ⭐ 🌟 ✨ 🧠 🎮 🧗 🪜 🥤 😴 🛏️ 🍽️), or
 * the **emoji itself, pixelated** once on a canvas: sampled to a 14×14 grid, snapped to the icon palette (plus pink,
   magenta and teal), with the same ink outline.
 
