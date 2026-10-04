@@ -792,3 +792,88 @@ Known and left for the team: two original colour pairs are just under WCAG AA 4.
 (`--mut` on `--p2`, 4.45:1, light theme) and white on the violet badge chip (4.37:1). Body text is 8.9–15:1 everywhere.
 Only Chromium is available here; the Safari, Firefox and Samsung Internet checks in `docs/TESTING.md` need real devices.
 167 tests in total.
+
+## 30. Visual foundation, session 1: hearts removed, pixel-art standard, audits
+
+First of the visual-redesign sessions. Foundation and clean-up only: the Water Quest, Dream Battle, Stairs and Storm
+Within redesigns come later. No saved-data change (no schema step), no page moved or removed.
+
+**Decorative hearts removed.** Every page except Home showed two rows of hearts at the top, neither of which did
+anything: three fixed hearts under "Your Health. Your Quest." in the header (`hdr()`, `js/hw-02-core.js`, always 3), and
+1–5 unlabelled hearts on the right of the region banner (`ban()`, `js/hw-03-part.js`, the number of daily quests done,
+but never fewer than 1, so it showed a heart with no quest done). Neither had a click handler, tooltip or label. Both
+are gone, with the "· no hearts lost for missed days" note that explained them and the banner's `.hs` rule in the
+stylesheet. Kept on purpose: the labelled five-heart quest tracker on Home's hero card ("n/5 quests", `.hrts`, `HEART()`),
+and all heart-rate features (Pulse page, ECG, logging, Heartstone Hall, hub tile, statistics, badges).
+* *Spacing:* the title block stacks its two lines with a 6 px gap, the banner text takes the width the hearts used, and
+  on side-navigation layouts the header keeps 48 px clear on the right, so the fixed 🎵 button no longer covers the end
+  of the XP bar (it did before, at widths up to about 1240 px). Phones are unchanged apart from the hearts.
+* *Fidelity guard:* `tests/00-fidelity.test.mjs` still compares the markup and stylesheet with the original byte for byte,
+  now after applying a short `EDITS` list of deliberate changes (only `.hs` so far). Each edit must apply exactly once.
+
+**Pixel-art standard** (`js/v6-pixel.js`, `HWPixel`; guide: `docs/PIXEL_STYLE.md`). Direction: a modern pixel-art RPG,
+not crude 8-bit or a generic dashboard. Tokens for the grid (4 px), borders, hard shadows, bevels, crisp pixel-font sizes
+(8/16/24 px) and HUD colours, built on the original theme tokens so both themes work. Opt-in classes: `.pxp` panel (same
+frame as `.card`), `.pxn` stepped corners, `.pxdk` dark HUD colours (re-points the tokens, so children follow), `.pxh`,
+`.pxhud`/`.pxst`, `.pxtag`, `.pxi`. Nothing existing is restyled by them.
+* *Icons:* 19 pixel icons on a 16×16 grid in one palette, drawn as crisp inline SVG (one path per colour) with the
+  outline added by the builder: the required heart, water, food, sleep, stairs, running, stress, energy, achievement,
+  warning, success, wizard and monster, plus balance, chart, scroll, gear, quest and map for the page banners.
+  `icon()`, `glyph()` (icon or the emoji unchanged), `forEmoji()`, `region()`, `grid()` (drawable with the original
+  `spr()`). First use: every page banner shows its region's icon at 2× instead of the emoji.
+* *Character art:* the knight, avatars, Medius and the orc are detailed 180–292 px images shown smaller, so they keep
+  smooth down-scaling (`.av`). Note for later: `.hero` (`kn.webp` in mini-games) is down-scaled with `pixelated`, which
+  can shimmer; the standard says draw a small sprite and scale up instead.
+
+**Emoji audit** (before this session): 757 emoji in the app code, 214 different ones; 433 in the original `hw-*` files
+(page headings, nav, hub tiles, badges, menus, food names, toasts) and 324 in the v6 add-ons. Mapped to the required
+icons: sleep 43, food 40, water 39, warning 26, success 25, stress 23, stairs 21, heart 15, achievement 13,
+energy 13, wizard 10, running 7, monster 1. 🔥 (streak, vigorous pace, Energy Forge) and 📊 (Health Hall, Statistics)
+are deliberately not mapped. Four add-ons place their card by searching for a heading that contains an emoji
+(`💡 HEALTHWIZ GUIDE`, `⚙️ SETTINGS` ×2, `🔥 STREAK`); changing one of those headings moves the card to the page's top or
+bottom, so change the search string with it. Typographic symbols (▶ ◀ ✓ ✕ ★ ⏸) are text, not emoji, and can stay.
+
+**Data audit** (nothing changed, nothing migrated). `localStorage` keys:
+
+| Key | What | Written by |
+|---|---|---|
+| `healthwiz` | the save, schema `sv` 8: `e[]` entries `{id,c,v,m,n,d,t}`, `s` settings, `p` profile, `xp`, `xd`, `xl`, `b` badges by name, `claimed`, `qx`, `qd`, `q6`, `en`, `ck`, `dqn`, `ex`, `md`, `mg`, `gp` | `save()`/`persist()` (one write per action) |
+| `hwtut` | tutorial seen | `TUT` |
+| `healthwiz_backup_<reason>_<time>` | safety copies (newest 3) | `HWSchema.stash`, cloud merge |
+| `healthwiz_cloud`, `healthwiz_cloud_base` | cloud session; copy from the last sync | `js/v6-cloud.js` |
+| `healthwiz_board` | leaderboard state on this device | `js/v6-board.js` |
+| `healthwiz_runs`, `healthwiz_run_live` | GPS runs; the run being recorded | `js/v6-running.js` |
+
+No code calls `localStorage.clear()`. Only deliberate user actions overwrite the save: Reset and restoring a backup with
+REPLACE (two taps each). Found and left for later:
+* **Runs are not in the JSON backup.** Backups export `st` only (`bkJSON()`), and runs live in `healthwiz_runs` (by design,
+  outside the save, with their own cloud table). A backup-and-restore to a new device loses runs that were never
+  synced to the cloud. A later step should add runs to the backup file, with a version field.
+* **REPLACE restore keeps no safety copy.** `acts.impr` (`hw-06`) swaps the save for the backup after the second tap; the
+  data it replaces is not stashed (the schema and cloud paths do stash). A later step could call `HWSchema.stash` first.
+* **Duplicated systems** (each documented where it lives, no migration now): two daily-quest views of one list (`QD()`
+  and `quests()`, which wraps it), plus focus and weekly quests (`st.q6`); two streaks (the original best run `streak()`
+  and v6 current/gentle streaks); two achievement lists (the 76-badge `BG` with `st.b`, and the Water page's own `ACH`
+  list computed on the fly); two icon systems (emoji and `spr()` canvas sprites, now joined by `HWPixel`); original
+  region games next to the v6 mini-games (Well of Life + Well Garden; Dream Battle/Dream Quest + Night Watch; Storm Within
+  + Calming Grove; Stair Quest pacing + Adventure Trail + GPS check-in). Several pages are defined and then wrapped
+  again by add-ons (`pages.set` 6 times; `quests`, `kingdom` 4; `home`, `stats`, `guide`, `welcome` 3; `bmi`, `stair`,
+  `water` 2), and the name `KN` is both the hero image (`hw-05`) and a block-scoped sprite grid (`hw-03`).
+* `DEF()` has no `gp`; `js/v6-gps.js` creates it on first use, so a fresh save is fine.
+
+**Navigation audit.** Five tabs (`NAV`: Home, Health, Quests, Kingdom, Settings). The Health Hall (`HUB`) opens Nutrition
+(`food`), Water, Sleep, Pulse, Stairs (`stair`), Stress, BMI, Calories (`calc`), Statistics and Running (`run`, added by
+`js/v6-running.js`); each has BACK TO HEALTH (`PAR`). Storm Within is the Stress page's quest (`pages.stress`, phase
+`start`); Dream Battle is the Sleep page's first card (`#dbatc`, `dbat()` in `hw-05`). Pages are also reached from Home
+tiles, the Kingdom map, quest cards and the tutorial. All of it works unchanged; `tests/28-foundation.test.mjs` taps every
+tab and every hub tile, and back.
+
+Tests: `tests/28-foundation.test.mjs` (no hearts on any page, titles and banners kept, Home's quest hearts kept; pulse
+features; the navigation audit; every icon: size, palette, outline, crisp SVG, labels, emoji mapping and fallback;
+every storage key and entry unchanged through all pages and a reload; five screen sizes with no sideways scrolling and the
+music button clear of the XP bar). 179 tests in total.
+
+Known, not caused by this session: `tests/08-medius.test.mjs` "new insight and kingdom change reach Medius" fails on
+Sundays. Its six seeded stress entries (1–6 days ago) then all fall in the current Monday–Sunday week, so the water log
+completes the weekly "w-mind" quest and a level-up, whose higher-priority bubbles fill the 9.5 s window the test waits.
+Fix in the test: seed the entries outside the current week, or wait for the queued bubble.

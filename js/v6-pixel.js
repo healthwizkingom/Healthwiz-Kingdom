@@ -1,0 +1,396 @@
+/* v6: the HealthWiz pixel-art standard, the visual foundation that later screens build on. Not part of the original.
+   Direction: a modern pixel-art RPG. Crisp pixel edges, one pixel grid, one palette and hard shadows; never smooth
+   emoji, crude 8-bit art or a generic dashboard. The full guide (rules, sizes, how to add an icon) is docs/PIXEL_STYLE.md.
+   1. Tokens (--px-…): grid unit, borders, shadows, type sizes and the HUD colours. They are built on the original
+      theme tokens (--pn, --p2, --ln, --ink, --gold…), so both themes and the saved THEME choice need no extra rules.
+   2. Components, opt-in by class (nothing existing is restyled by them):
+        .pxp panel (the same frame as the original .card) · .pxn stepped pixel corners · .pxdk dark HUD colours
+        .pxh heading with an icon · .pxhud HUD strip of .pxst stats · .pxtag small label · .pxi pixel icon
+   3. Icons: HWPixel.icon(name,{s,label}) returns crisp inline SVG drawn on a 16×16 grid in one shared palette. The
+      builder adds the 1-pixel ink outline, so every icon has the same line. HWPixel.forEmoji('💧') → 'water' maps the
+      emoji used today to icon names, and HWPixel.glyph(emoji) draws the icon when one exists and keeps the emoji
+      otherwise, so screens can move over one at a time.
+   First use: the region banner at the top of every page (ban() in js/hw-03-part.js) shows its region's pixel icon.
+   Also here: header and banner spacing after the decorative hearts were removed (docs/ARCHITECTURE_AUDIT.md §30). */
+const HWPixel=(()=>{
+const SZ=16;
+// One palette for every icon (letters used in the grids below). k is the outline, which the builder adds.
+const PAL={k:'#1b1626',w:'#fffbea',r:'#d9453d',R:'#9c2a2a',p:'#f28b7d',b:'#2f8fd0',B:'#1f5f99',c:'#8fd3ff',
+  y:'#f2c14e',Y:'#c98a1e',l:'#ffe9a8',g:'#3f9f4a',G:'#25693a',h:'#8fd16a',v:'#8767c8',V:'#54408a',m:'#c7b3f0',
+  n:'#c8743a',N:'#7a3f1d',t:'#f0b47a',s:'#d5dbe6',S:'#8a95aa',e:'#555d70',o:'#e8590c',O:'#a63d06',q:'#f2c49b'};
+// 16×16 fill grids, '.' = empty. Keep one empty pixel around the art for the outline.
+const ICONS={
+heart:[
+'................',
+'................',
+'..rrrr....rrrr..',
+'.rwwrrr..rrrrrr.',
+'.rwrrrrrrrrrrrR.',
+'.rrrrrrrrrrrrrR.',
+'.rrrrrrrrrrrrRR.',
+'..rrrrrrrrrrRR..',
+'...rrrrrrrrRR...',
+'....rrrrrrRR....',
+'.....rrrrRR.....',
+'......rrRR......',
+'.......RR.......',
+'................',
+'................',
+'................'],
+water:[
+'................',
+'................',
+'.......cb.......',
+'.......cb.......',
+'......cbbb......',
+'......cbbb......',
+'.....cbbbbB.....',
+'.....cbbbbB.....',
+'....cwbbbbbB....',
+'...cwwbbbbbbB...',
+'...cwbbbbbbbB...',
+'...cbbbbbbbbB...',
+'...bbbbbbbbBB...',
+'....bbbbbbBB....',
+'.....BBBBBB.....',
+'................'],
+food:[
+'................',
+'.....nnnn.......',
+'...nntttnn......',
+'..nttnnnnnn.....',
+'..ntnnnnnnnN....',
+'.nnnnnnnnnnN....',
+'.nnnnnnnnnnN....',
+'.nnnnnnnnnNN....',
+'..nnnnnnnNN.....',
+'..NnnnnnNNw.....',
+'...NNNNNNws.....',
+'.........wws....',
+'..........ws.ww.',
+'..........wwwws.',
+'...........wss..',
+'................'],
+sleep:[
+'................',
+'.....yyyy....w..',
+'...yyyl.....www.',
+'..yyl........w..',
+'..yl............',
+'.yyl............',
+'.yy.............',
+'.yy.............',
+'.yy.............',
+'.yyy.........w..',
+'.yyyy.......Y...',
+'..yyyyy....YY...',
+'..YyyyyyyyyY....',
+'...YYyyyyYY.....',
+'.....YYYY.......',
+'................'],
+stairs:[
+'................',
+'...........Nrr..',
+'...........Nrrr.',
+'...........N....',
+'..........sssss.',
+'..........SSSSS.',
+'..........SSSSe.',
+'.......sssSSSSe.',
+'.......SSSSSSSe.',
+'.......SSSSSSee.',
+'....sssSSSSSSee.',
+'....SSSSSSSSSee.',
+'....SSSSSSSSeee.',
+'.sssSSSSSSSSeee.',
+'.eeeeeeeeeeeeee.',
+'................'],
+running:[
+'................',
+'.........NNN....',
+'........NqqqN...',
+'........qqqq....',
+'.....oooo.qq....',
+'....ooooooo.qq..',
+'...qq.oooo...q..',
+'..qq..oooo......',
+'......eeee......',
+'.....eee.ee.....',
+'....eee...ee....',
+'...ee.....ee....',
+'..ww......ee....',
+'..w.......www...',
+'................',
+'................'],
+stress:[
+'................',
+'.....mmm........',
+'....mmmmm.mm....',
+'..mmmvvvmmmmm...',
+'.mmvvvvvvvvvmm..',
+'.mvvvvvvvvvvvvm.',
+'.vvvvVVVVVvvvvv.',
+'..VVVVVVVVVVVV..',
+'.......yy.......',
+'..c...yy....c...',
+'.....yyyyy......',
+'...c....yy..c...',
+'........y.......',
+'..c....y....c...',
+'................',
+'................'],
+energy:[
+'................',
+'.........yyyy...',
+'........yllY....',
+'.......yllY.....',
+'......yllY......',
+'.....yllY.......',
+'....ylllyyyy....',
+'...ylllllllY....',
+'...YYYYllYY.....',
+'......ylY.......',
+'.....ylY........',
+'....ylY.........',
+'...yYY..........',
+'...YY...........',
+'................',
+'................'],
+achievement:[
+'................',
+'...yyyyyyyyyy...',
+'.yylyyyyyyyyYyy.',
+'.y.lyyyyyyyyY.y.',
+'.y.lyyyyyyyyY.y.',
+'..ylyyyyyyyyYy..',
+'...ylyyyyyyYy...',
+'....lyyyyyyY....',
+'.....yyyyyY.....',
+'.......yY.......',
+'.......yY.......',
+'......yyYY......',
+'....nnnnnnnn....',
+'....nyyyyyYn....',
+'....NNNNNNNN....',
+'................'],
+warning:[
+'................',
+'.......yy.......',
+'......yyyy......',
+'......yyyy......',
+'.....yykkyy.....',
+'.....yykkyy.....',
+'....yyykkyyy....',
+'....yyykkyyy....',
+'...yyyykkyyyy...',
+'...yyyyyyyyyy...',
+'..yyyyykkyyyyy..',
+'..yyyyykkyyyyY..',
+'.yyyyyyyyyyyyYY.',
+'.YYYYYYYYYYYYYY.',
+'................',
+'................'],
+success:[
+'................',
+'.....gggggg.....',
+'...gghhhhggg....',
+'..ghhgggggggG...',
+'..hgggggggwwgG..',
+'.ghggggggwwwgG..',
+'.ggggggggwwggGG.',
+'.gggwwgggwwggGG.',
+'.gggwwwgwwgggGG.',
+'.ggggwwwwwgggGG.',
+'..gggwwwwggggG..',
+'..ggggwwgggGGG..',
+'...gggggggGGG...',
+'.....GGGGGG.....',
+'................',
+'................'],
+wizard:[
+'................',
+'.........bb.....',
+'........bbB.....',
+'.......bbbB.....',
+'......bbylbB....',
+'......bbyybB....',
+'.....bbbbybbB...',
+'..yyyyyyyyyyyy..',
+'...qqkqqqqkqq...',
+'...qqqqqqqqqq...',
+'...wwqqqtqqww...',
+'...wwwwwwwwww...',
+'....wwwwwwww....',
+'.....wwwsww.....',
+'.......ws.......',
+'................'],
+monster:[
+'................',
+'..s..........s..',
+'..ss..SSSS..ss..',
+'...sSSssSSSSs...',
+'...SSsSSSSSSS...',
+'..eSSSSSSSSSSe..',
+'..ggggggggggggG.',
+'..gkrggggggrkgG.',
+'..ggkggggggkggG.',
+'..hgggggggggggG.',
+'..hggwggggwgggG.',
+'..ggwwkkkkwwggG.',
+'...gGGGGGGGGGG..',
+'....GGGGGGGGG...',
+'................',
+'................'],
+balance:[
+'................',
+'.......yy.......',
+'.......YY.......',
+'..yyyyyyyyyyyy..',
+'..Y....YY....Y..',
+'..Y....YY....Y..',
+'.Y.Y...YY...Y.Y.',
+'.Y.Y...YY...Y.Y.',
+'.yyy...YY...yyy.',
+'.YYY...YY...YYY.',
+'.......YY.......',
+'.......YY.......',
+'.....nnnnnn.....',
+'....nnnnnnnn....',
+'....NNNNNNNN....',
+'................'],
+chart:[
+'................',
+'.lllllllllllllw.',
+'.llllllllllllll.',
+'.llllllllllyyll.',
+'.llllllllllyYll.',
+'.llllllggllyYll.',
+'.llllllgGllyYll.',
+'.llllllgGllyYll.',
+'.llbbllgGllyYll.',
+'.llbBllgGllyYll.',
+'.llbBllgGllyYll.',
+'.llbBllgGllyYll.',
+'.lnnnnnnnnnnnnl.',
+'.tttttttttttttt.',
+'................',
+'................'],
+scroll:[
+'................',
+'..tnnnnnnnnnn...',
+'.tllllllllllln..',
+'.tllllllllllln..',
+'..tlllllllllnn..',
+'...llNNNNNlll...',
+'...llllllllll...',
+'...llNNNNNNll...',
+'...llllllllll...',
+'...llNNNNlrrl...',
+'...lllllllrrl...',
+'...lllllllllll..',
+'..nnllllllllllt.',
+'.nllllllllllllt.',
+'..nnnnnnnnnnnt..',
+'................'],
+gear:[
+'................',
+'......ssss......',
+'...s..sSSs..s...',
+'..sSssSSSSssSs..',
+'...sSSSSSSSSs...',
+'...sSSeeeeSSs...',
+'.sssSe....eSsss.',
+'.sSSSe....eSSSs.',
+'.sSSSe....eSSSs.',
+'.sssSe....eSsss.',
+'...sSSeeeeSSs...',
+'...sSSSSSSSSs...',
+'..sSssSSSSssSs..',
+'...s..sSSs..s...',
+'......ssss......',
+'................'],
+quest:[
+'................',
+'.sS..........Ss.',
+'..sS........Ss..',
+'...sS......Ss...',
+'....sS....Ss....',
+'.....sS..Ss.....',
+'......sSSs......',
+'.......ss.......',
+'......SssS......',
+'....ySs..sSy....',
+'.....y....y.....',
+'....n.y..y.n....',
+'...n........n...',
+'.yy..........yy.',
+'.yY..........Yy.',
+'................'],
+map:[
+'................',
+'................',
+'.lllll....lllll.',
+'.lllllttttlllll.',
+'.lhhlltttttllbl.',
+'.hhhhhtttttlbll.',
+'.hGhhhhtttlbbll.',
+'.lhhhhtttttlbll.',
+'.llhlNtNttNllbl.',
+'.lllllttttllrlr.',
+'.lllNlttttlllrl.',
+'.lllllttttllrlr.',
+'.lllllttttlllll.',
+'......tttt......',
+'................',
+'................']
+};
+// Emoji used in the app today → icon (unambiguous ones only: 🔥 means streak, vigorous pace and the Energy Forge,
+// 📊 the Health Hall and statistics, so callers pick those by meaning). Keys have no U+FE0F variation selector.
+const EMOJI={'❤':'heart','💓':'heart','🫀':'heart','💧':'water','💦':'water','🍗':'food','🍽':'food','🍲':'food',
+  '🌙':'sleep','😴':'sleep','🛏':'sleep','🧗':'stairs','🪜':'stairs','🏃':'running','🧠':'stress','🌩':'stress',
+  '⚡':'energy','🏆':'achievement','🏅':'achievement','🎖':'achievement','⚠':'warning','✅':'success','✔':'success',
+  '🧙':'wizard','🧙‍♂':'wizard','👹':'monster','👾':'monster','🐲':'monster','⚖':'balance','📈':'chart',
+  '📜':'scroll','⚙':'gear','⚔':'quest','🗺':'map'};
+// The banner at the top of each page (BN in js/hw-03-part.js), by page, so each region keeps one icon.
+const REGION={food:'food',water:'water',sleep:'sleep',pulse:'heart',stair:'stairs',stress:'stress',bmi:'balance',
+  calc:'energy',stats:'chart',health:'chart',guide:'scroll',badges:'achievement',set:'gear',run:'running',
+  quests:'quest',kingdom:'map'};
+
+const G={},P={};
+/** The icon's 16 rows with the outline (k) added, or null. Also drawable on a canvas: spr(HWPixel.grid('heart'),HWPixel.PAL,3). */
+function grid(name){if(!ICONS[name])return null;if(!G[name]){const g=ICONS[name],on=(y,x)=>y>=0&&y<SZ&&x>=0&&x<SZ&&g[y][x]!=='.';
+  G[name]=g.map((r,y)=>[...r].map((c,x)=>c!=='.'?c:on(y-1,x)||on(y+1,x)||on(y,x-1)||on(y,x+1)?'k':'.').join(''))}return G[name].slice()}
+// one <path> per colour, made of horizontal runs, so an icon is a handful of elements whatever its detail
+function paths(name){if(P[name])return P[name];const d={};
+  grid(name).forEach((r,y)=>{for(let x=0;x<SZ;){const c=r[x];let e=x+1;while(e<SZ&&r[e]===c)e++;
+    if(c!=='.')(d[c]=d[c]||[]).push('M'+x+' '+y+'h'+(e-x)+'v1h-'+(e-x)+'z');x=e}});
+  return P[name]=Object.keys(d).map(c=>'<path fill="'+PAL[c]+'" d="'+d[c].join('')+'"/>').join('')}
+/** Inline SVG for an icon, or '' for an unknown name. o = scale or {s, label, cls}: s is a whole-number scale
+ *  (1 = 16 px, 2 = 32 px, …; fractions would break the pixel grid), label is read by screen readers (none = hidden). */
+function icon(name,o){if(!ICONS[name])return '';o=typeof o==='number'?{s:o}:o||{};const px=SZ*Math.max(1,Math.round(o.s||1));
+  return '<svg class="pxi pxi-'+name+(o.cls?' '+o.cls:'')+'" viewBox="0 0 16 16" width="'+px+'" height="'+px+'" shape-rendering="crispEdges" focusable="false" '
+    +(o.label?'role="img" aria-label="'+esc(o.label)+'"':'aria-hidden="true"')+'>'+paths(name)+'</svg>'}
+const forEmoji=e=>EMOJI[String(e).replace(/\uFE0F/g,'').trim()]||null;
+/** An icon name or an emoji → its pixel icon when there is one, otherwise the emoji itself (unchanged text). */
+function glyph(e,o){const n=ICONS[e]?e:forEmoji(e);return n?icon(n,o):esc(String(e))}
+const region=v=>REGION[v]||null;
+
+HWUI.css('pixel',`
+:root{--px:4px;--px-bw:4px;--px-bw-c:3px;--px-bw-s:2px;
+--px-sh:4px 4px 0 var(--ln);--px-sh-c:3px 3px 0 var(--ln);--px-bevel:inset -4px -4px 0 rgba(0,0,0,.18);--px-bevel-c:inset -3px -3px 0 rgba(0,0,0,.25);
+--px-pad:12px;--px-gap:12px;--px-f1:8px;--px-f2:16px;--px-f3:24px;
+--px-hud:#14204f;--px-hud2:#22306b;--px-hud-ink:#f6edcf;--px-hud-mut:#b9c3d6;--px-hud-ln:#06090d}
+.pxi{display:inline-block;vertical-align:middle;flex:0 0 auto;image-rendering:pixelated}
+.pxp{background:var(--pn);color:var(--ink);border:var(--px-bw) solid var(--ln);box-shadow:var(--px-bevel),var(--px-sh);padding:var(--px-pad);margin-bottom:14px}
+.pxp.pxn{border:0;margin:var(--px-bw) calc(2 * var(--px-bw)) calc(14px + 2 * var(--px-bw)) var(--px-bw);box-shadow:var(--px-bevel),0 calc(-1 * var(--px-bw)) 0 var(--ln),0 var(--px-bw) 0 var(--ln),calc(-1 * var(--px-bw)) 0 0 var(--ln),var(--px-bw) 0 0 var(--ln),calc(2 * var(--px-bw)) var(--px-bw) 0 var(--ln),var(--px-bw) calc(2 * var(--px-bw)) 0 var(--ln)}
+.pxdk{--pn:var(--px-hud);--p2:var(--px-hud2);--ink:var(--px-hud-ink);--mut:var(--px-hud-mut);--ln:var(--px-hud-ln);color:var(--ink)}
+.pxh{display:flex;align-items:center;gap:8px;margin:0 0 8px;font:var(--px-f1)/1.6 var(--fh);text-transform:uppercase;letter-spacing:.04em}
+.pxhud{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:6px 10px;background:var(--px-hud);color:var(--px-hud-ink);border:var(--px-bw-c) solid var(--px-hud-ln);box-shadow:inset 0 0 0 2px rgba(255,255,255,.12),var(--px-bw-c) var(--px-bw-c) 0 var(--px-hud-ln);font:var(--px-f1)/1.6 var(--fh)}
+.pxst{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}.pxst b{font:var(--px-f2)/1 var(--fh)}
+.pxtag{display:inline-flex;align-items:center;gap:4px;padding:1px 6px;font:var(--px-f1)/1.6 var(--fh);color:var(--ink);background:var(--p2);border:var(--px-bw-s) solid var(--ln)}
+.pxh,.pxhud,.pxtag{-webkit-font-smoothing:none}
+main header>div:not(.lv){display:flex;flex-direction:column;gap:6px}
+@media(min-width:761px){main header{padding-right:48px}}
+.bn>span{display:flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:32px}.bn>div{flex:1 1 auto;min-width:0}
+`);
+return{icon,glyph,grid,forEmoji,region,get names(){return Object.keys(ICONS)},PAL}})();
