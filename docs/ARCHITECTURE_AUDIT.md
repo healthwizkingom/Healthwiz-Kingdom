@@ -1141,7 +1141,7 @@ Tests: `tests/34-final-polish.test.mjs` (all eight region icons drawn on the Kin
 
 ## 36. Looks: more themes, the onboarding chamber, the Shadow Keep
 
-All in `js/v6-looks.js` (loaded after `js/v6-badges.js`; `sw.js` precaches it, cache `hwk-shell-v3`).
+All in `js/v6-looks.js` (loaded after `js/v6-badges.js`; added to `sw.js` PRECACHE).
 
 **Themes.** One `THEMES` map of CSS-variable sets (`--bg --pn --p2 --ink --mut --ln`). `light` (Parchment) and `dark`
 (Night Keep) mirror the original stylesheet's sets exactly and still come from it; the five new themes (Enchanted

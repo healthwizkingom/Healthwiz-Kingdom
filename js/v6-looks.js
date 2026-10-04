@@ -63,7 +63,7 @@ const RUNE=['M-3,-4h6M0,-4v8M-3,4h6','M-3,4L0,-4L3,4M-2,1h4','M-3,-4v8M-3,-4L3,0
 function ring(lit){let g='<circle r="44" fill="none" stroke="#f2c14e" stroke-width="1.6" opacity=".7"/><circle r="38" fill="none" stroke="#f2c14e" stroke-width=".8" stroke-dasharray="3 3" opacity=".55"/><circle r="27" fill="none" stroke="#f2c14e" stroke-width=".8" opacity=".35"/>'
   +'<path d="M0,-38L33,19L-33,19Z M0,38L-33,-19L33,-19Z" fill="none" stroke="#f2c14e" stroke-width=".7" opacity=".3"/>';
   RUNE.forEach((d,i)=>{const a=i*60-90,x=(Math.cos(a*Math.PI/180)*41).toFixed(1),y=(Math.sin(a*Math.PI/180)*41).toFixed(1),on=i<lit;
-    g+='<g transform="translate('+x+' '+y+')" class="rn'+(on?' on':'')+'"><circle r="6.5" fill="'+(on?'#fff3b0':'#1a1238')+'" stroke="#f2c14e" stroke-width=".8"'+(on?'':' opacity=".85"')+'/><path d="'+d+'" stroke="'+(on?'#8a5a10':'#8f7a3c')+'" stroke-width="1.3" fill="none"/></g>'});
+    g+='<g transform="translate('+x+' '+y+')" class="obrn'+(on?' on':'')+'"><circle r="6.5" fill="'+(on?'#fff3b0':'#1a1238')+'" stroke="#f2c14e" stroke-width=".8"'+(on?'':' opacity=".85"')+'/><path d="'+d+'" stroke="'+(on?'#8a5a10':'#8f7a3c')+'" stroke-width="1.3" fill="none"/></g>'});
   return '<svg viewBox="-50 -50 100 100" aria-hidden="true">'+g+'</svg>'}
 const ARCH='<svg class="cha" viewBox="0 0 120 200" preserveAspectRatio="xMidYMax slice" aria-hidden="true" shape-rendering="crispEdges">'
   +(()=>{let g='';for(let y=0;y<200;y+=6)for(let x=(y/6)%2?-6:0;x<120;x+=12)g+='<rect x="'+x+'" y="'+y+'" width="11" height="5" fill="#1d1640" opacity=".55"/>';
@@ -73,16 +73,16 @@ const ARCH='<svg class="cha" viewBox="0 0 120 200" preserveAspectRatio="xMidYMax
     return a};
   return g+arch(16,24,112)+arch(104,24,112)+arch(60,36,96)+'<rect x="0" y="186" width="120" height="14" fill="#1a1436"/><rect x="0" y="186" width="120" height="1" fill="#4a3d84"/>'+[6,30,54,78,102].map(x=>'<rect x="'+x+'" y="187" width="1" height="13" fill="#0d0a22"/>').join('')})()+'</svg>';
 let ch=null;
-function chamber(){if(ch)return;ch=document.createElement('div');ch.className='v6ch';ch.setAttribute('aria-hidden','true');
+function chamber(){if(ch)return;ch=document.createElement('div');ch.className='v6obc';ch.setAttribute('aria-hidden','true');
   ch.innerHTML=ARCH+'<i class="chf"></i><i class="chf chf2"></i>'
     +['l','r'].map(k=>'<i class="cht cht'+k+'"><u class="chg"></u><u class="chfl"></u></i>').join('')
     +Array.from({length:10},(_,i)=>'<i class="chm" style="left:'+((i*29+7)%94+3)+'%;--d:'+(9+i%4*3)+'s;--dl:-'+(i*1.7).toFixed(1)+'s;--x:'+(i%2?14:-12)+'px"></i>').join('');
   const a=document.querySelector('.amb');document.body.insertBefore(ch,a?a.nextSibling:document.body.firstChild)}
 HWUI.css('looks-onb',`
-.v6ch{display:none;position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;contain:strict;background:radial-gradient(ellipse 70% 45% at 50% 30%,#3a2a8a 0,rgba(58,42,138,0) 70%),linear-gradient(#0b0a26,#1c1458 55%,#0d0a24)}
-body.onbm .v6ch{display:block}body.onbm .amb{display:none}
-.v6ch>*{position:absolute;display:block}
-.v6ch .cha{left:0;top:0;width:100%;height:100%}
+.v6obc{display:none;position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;contain:strict;background:radial-gradient(ellipse 70% 45% at 50% 30%,#3a2a8a 0,rgba(58,42,138,0) 70%),linear-gradient(#0b0a26,#1c1458 55%,#0d0a24)}
+body.onbm .v6obc{display:block}body.onbm .amb{display:none}
+.v6obc>*{position:absolute;display:block}
+.v6obc .cha{left:0;top:0;width:100%;height:100%}
 .chf{left:-20%;width:140%;bottom:8%;height:90px;background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(170,160,230,.22),rgba(170,160,230,0));animation:chfog 22s ease-in-out infinite alternate}
 .chf2{bottom:22%;height:60px;opacity:.7;animation-duration:30s;animation-direction:alternate-reverse}
 @keyframes chfog{from{transform:translateX(-8%)}to{transform:translateX(8%)}}
@@ -102,12 +102,12 @@ body.onbm .obw .card{background:radial-gradient(ellipse at 50% 50%,rgba(255,250,
 .obsay{position:relative}.obsay .obz{position:relative;z-index:1}.obsay .tbx{position:relative;z-index:1}
 .v6rc{position:absolute;z-index:0;left:calc(clamp(96px,26vw,150px)*-.1);bottom:calc(clamp(96px,26vw,150px)*-.08);width:calc(clamp(96px,26vw,150px)*1.2);aspect-ratio:1;pointer-events:none}
 .v6rc svg{display:block;width:100%;height:100%;animation:chrc 60s linear infinite}
-.v6rc .rn.on circle{filter:drop-shadow(0 0 3px #ffe27a)}
+.v6rc .obrn.on circle{filter:drop-shadow(0 0 3px #ffe27a)}
 @keyframes chrc{to{transform:rotate(360deg)}}
 .v6burst{position:fixed;left:50%;top:40%;z-index:75;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;pointer-events:none;background:radial-gradient(closest-side,#fffbe6 0,#ffe27a 40%,rgba(242,193,78,0) 100%);opacity:0;animation:chb 1.4s ease-out forwards}
 @keyframes chb{0%{opacity:0;transform:scale(.2)}20%{opacity:1}100%{opacity:0;transform:scale(30)}}
 html.hw-q-performance .chf2,html.hw-q-performance .chm:nth-of-type(2n){display:none}
-@media(prefers-reduced-motion:reduce){.v6ch *,.v6rc svg{animation:none!important}.chm,.v6burst{display:none!important}}
+@media(prefers-reduced-motion:reduce){.v6obc *,.v6rc svg{animation:none!important}.chm,.v6burst{display:none!important}}
 html.hw-still .chm,html.hw-still .v6burst{display:none!important}`);
 const lit=()=>{const o=S.ob;return o?Math.min(6,o.i):0};
 {const p=pages.onb;pages.onb=(...a)=>{const h=p(...a);try{chamber()}catch(e){console.error('[HWLooks]',e)}return h.replace('<div class="obsay">','<div class="obsay"><span class="v6rc" aria-hidden="true">'+ring(lit())+'</span>')}}

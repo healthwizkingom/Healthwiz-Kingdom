@@ -50,8 +50,8 @@ test('themes: light and dark unchanged, every swatch applies at once, reads well
 test('onboarding chamber: runes light per step, burst and chime at the end, few animated parts, still under reduced motion', async () => {
   const { page, ctx, errors } = await boot({ fresh: true, viewport: { width: 390, height: 844 } });
   await go(page, 'onb');
-  assert.ok(await page.isVisible('.v6ch'), 'chamber shown');
-  const lit = () => page.locator('.v6rc .rn.on').count();
+  assert.ok(await page.isVisible('.v6obc'), 'chamber shown');
+  const lit = () => page.locator('.v6rc .obrn.on').count();
   assert.equal(await lit(), 0);
   await page.fill('#obi', 'Aina'); await page.click('[data-a="obn"]'); assert.equal(await lit(), 1);
   await page.fill('#obi', '17'); await page.click('[data-a="obn"]'); assert.equal(await lit(), 2);
@@ -59,7 +59,7 @@ test('onboarding chamber: runes light per step, burst and chime at the end, few 
   await page.fill('#obi', '160'); await page.click('[data-a="obn"]');
   await page.fill('#obi', '55'); await page.click('[data-a="obn"]');
   await page.click('[data-a="obact"]'); assert.equal(await lit(), 6, 'review: all six steps done');
-  const moving = await page.evaluate(() => [...document.querySelectorAll('.v6ch, .v6ch *, .v6rc, .v6rc *')].filter(e => getComputedStyle(e).animationName !== 'none').length);
+  const moving = await page.evaluate(() => [...document.querySelectorAll('.v6obc, .v6obc *, .v6rc, .v6rc *')].filter(e => getComputedStyle(e).animationName !== 'none').length);
   assert.ok(moving > 0 && moving < 30, 'animated elements: ' + moving);
   // the form card keeps its own parchment colours: dark text on a light scroll in every theme
   await page.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });
@@ -72,12 +72,12 @@ test('onboarding chamber: runes light per step, burst and chime at the end, few 
   assert.equal(await page.locator('.v6burst').count(), 0, 'burst removed');
   assert.ok((await page.evaluate(() => __f)).includes(2093), 'chime played');
   await go(page, 'home');
-  assert.equal(await page.isVisible('.v6ch'), false, 'chamber only on the registry');
+  assert.equal(await page.isVisible('.v6obc'), false, 'chamber only on the registry');
   assert.deepEqual(errors, []);
   await ctx.close();
   const r = await boot({ fresh: true, context: { reducedMotion: 'reduce' } });
   await go(r.page, 'onb');
-  assert.equal(await r.page.evaluate(() => [...document.querySelectorAll('.v6ch *, .v6rc svg')].filter(e => getComputedStyle(e).animationName !== 'none').length), 0, 'static under reduced motion');
+  assert.equal(await r.page.evaluate(() => [...document.querySelectorAll('.v6obc *, .v6rc svg')].filter(e => getComputedStyle(e).animationName !== 'none').length), 0, 'static under reduced motion');
   assert.deepEqual(r.errors, []);
   await r.ctx.close();
 });
