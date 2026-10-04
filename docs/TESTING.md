@@ -41,6 +41,7 @@ compatibility tests.
 | location permissions, GPS fallback | `19-gps` |
 | offline mode | `20-pwa` |
 | console errors | every test; `26-journey` runs a whole first day without one |
+| pixel art, no emoji glyphs | `28-foundation` (icons), `30-emoji` (no emoji drawn as text on any page, toast, dialog or game) |
 | broken references | `26-journey` (handlers, page links, images, asset paths), `20-pwa` (the offline file list) |
 | existing data compatibility | `02-schema`, `26-journey` (an old v5.4.3 save on every page), `28-foundation` (every storage key and entry unchanged through every page and a reload) |
 

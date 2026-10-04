@@ -32,7 +32,8 @@ generic dashboard look (rounded cards, soft drop shadows, gradients, thin system
    sprite and scale it up instead.
 6. **Motion is stepped.** Use `steps()` timing for UI movement (the original `pgin .3s steps(4)`), honour reduced motion
    (`HWUI.reduced()`, `html.hw-rm`) and the performance modes (`js/v6-motion.js`).
-7. **Icons are pixel icons.** New UI uses `HWPixel.icon()`. Emoji stay only where a screen has not moved over yet.
+7. **Icons are pixel icons.** Every emoji the app shows is drawn as pixel art by `js/v6-emoji.js` (below). New UI may
+   still write emoji in its strings, or use `HWPixel.icon()` for a hand-drawn icon.
 
 ## Tokens
 
@@ -103,10 +104,24 @@ per colour. `s` is a whole-number scale (1 = 16 px, 2 = 32 px); fractions are ro
 `k` outline `#1b1626` · `w` `#fffbea` · red `r R p` · blue `b B c` · gold `y Y l` · green `g G h` · violet `v V m` ·
 brown `n N t` · steel `s S e` · orange `o O` · skin `q`. Gold, red, blue, green and violet are the theme accents.
 
-## Moving screens over (later sessions)
+## Emoji become pixel art everywhere (`js/v6-emoji.js`)
 
-The emoji audit (`docs/ARCHITECTURE_AUDIT.md` §30) lists where emoji are used. Suggested order: Health Hall tiles and
-the bottom navigation, page headings (`<h2>` / `<h3>`), Home tiles, then each region page as it is redesigned.
+The app's ~750 emoji (200+ different) are all drawn as 16×16 pixel pictures, with no change to the strings that hold
+them. `HWEmoji` watches the page (every render, toast, dialog, Medius line and mini-game) and swaps each emoji for:
+* the **hand-drawn icon** when it shows the same object (`SAME` in `js/v6-emoji.js`: 💧 ❤️ 🍗 🌙 🏃 🌩 ⚡ 🏆 ⚠️ ✅ 🧙 ⚖️
+  📊 📜 ⚙️ ⚔️ 🗺️ 🔔), or
+* the **emoji itself, pixelated** once on a canvas: sampled to a 14×14 grid, snapped to the icon palette (plus pink,
+  magenta and teal), with the same ink outline.
+
+The emoji character stays in the page, invisible inside the picture: screen readers, `textContent`, the tutorial's text
+search and the add-ons' anchors see exactly what they did before. Pictures are sized from the surrounding text in 8 px
+steps (at least 16 px). Left as they are: form fields and `<option>` text (cannot hold pictures), SVG, and typographic
+symbols drawn as text (✓ ✕ ▶ ◀ ★ ✿). `HWEmoji.src(emoji)` returns a picture as a data: URL. To give an emoji a
+better picture, draw an icon (below) and add it to `SAME`.
+
+The pixelated pictures follow the device's emoji font (Apple, Google or Microsoft), so they differ a little between
+devices; hand-drawn icons are identical everywhere. The emoji audit (`docs/ARCHITECTURE_AUDIT.md` §30) lists which
+emoji are used most, so the next hand-drawn icons can go where they are seen most.
 
 **Careful:** some add-ons find their place in a page by searching for a heading that contains an emoji:
 `'<h2>💡 HEALTHWIZ GUIDE</h2>'` (`v6-insights`), `'<h2>⚙️ SETTINGS</h2>'` (`v6-medius`, `v6-motion`) and

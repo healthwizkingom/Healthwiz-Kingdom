@@ -930,3 +930,30 @@ link: Home, Kingdom map, region panel, tutorial; five screen sizes). Updated for
 `js/hw-02-core.js`. `js/v6-water.js` wraps the page (scenery inserted before `<div class="wqch" id="wqch">`, ripples via
 `splashAt`, Well Garden before `#wworld`). `drink()` animates only while `S.v==='water'` and `#wqch` exists. The water
 progress card repeats the Hydration system card and could go in the redesign.
+
+## 32. Every emoji drawn as pixel art
+
+Requested after session 2: no emoji should look like a smooth Apple or Android emoji anywhere. `js/v6-emoji.js`
+(`HWEmoji`, loaded right after `js/v6-pixel.js`) converts them all, without editing the ~750 strings that hold them.
+
+* *How:* a MutationObserver on `<body>` (plus one pass at load) finds text nodes with emoji (`\p{Emoji_Presentation}`,
+  or any emoji symbol followed by U+FE0F, with skin tones, keycaps and ZWJ joins) and wraps each emoji in
+  `<span class="pxe pxeN"><span>emoji</span></span>`. The inner text is kept at opacity 0; the outer span shows the
+  picture as a background (one CSS class per distinct emoji, so the picture data is stored once). Conversion runs in
+  the observer's microtask, before the browser paints, so the emoji glyph never shows.
+* *Pictures:* the hand-drawn icon where one shows the same object (`SAME`), otherwise the emoji pixelated on a canvas:
+  drawn at 112 px, averaged into a 14×14 grid (cells less than 45% covered are left empty), snapped to the icon palette
+  plus pink, magenta and teal, and given the 1-pixel ink outline. 16×16 PNGs, made once per emoji per visit.
+* *Size:* from the font size around the emoji, 1.2 em rounded to 8 px steps, at least 16 px, so pixels stay even.
+* *Unchanged:* `textContent`, so the tutorial's text search, the add-ons' string anchors (§30), screen readers and every
+  test that reads text see the same characters. Strings in code still contain emoji.
+* *Not converted:* `<option>` text and form fields (cannot hold pictures; none contain emoji today), SVG, and
+  typographic symbols drawn as text (✓ ✕ ▶ ◀ ★ ✿). A device that cannot draw an emoji keeps it as it is, and an engine
+  without Unicode property escapes keeps all emoji (the regex is built at run time inside try/catch).
+* *Differences between devices:* the pixelated pictures come from the device's own emoji font, so they look a little
+  different on an iPhone, an Android phone and Windows. Hand-drawn icons are the same everywhere; drawing more of them
+  (most used first, §30) removes that difference one emoji at a time.
+
+Tests: `tests/30-emoji.test.mjs` (no emoji drawn as text on the title screen, any page, a toast, a celebration, changed
+text, the region dialog or any mini-game; the text is kept; hand-drawn icons used for the same objects; pixelated
+pictures are 16×16, palette-only and outlined; sizes in 8 px steps; no overflow at 360 px). 190 tests in total.
