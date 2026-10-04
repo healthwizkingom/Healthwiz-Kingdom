@@ -376,7 +376,7 @@ function glyph(e,o){const n=ICONS[e]?e:forEmoji(e);return n?icon(n,o):esc(String
 const region=v=>REGION[v]||null;
 
 HWUI.css('pixel',`
-:root{--px:4px;--px-bw:4px;--px-bw-c:3px;--px-bw-s:2px;
+:root{--px-unit:4px;--px-bw:4px;--px-bw-c:3px;--px-bw-s:2px;
 --px-sh:4px 4px 0 var(--ln);--px-sh-c:3px 3px 0 var(--ln);--px-bevel:inset -4px -4px 0 rgba(0,0,0,.18);--px-bevel-c:inset -3px -3px 0 rgba(0,0,0,.25);
 --px-pad:12px;--px-gap:12px;--px-f1:8px;--px-f2:16px;--px-f3:24px;
 --px-hud:#14204f;--px-hud2:#22306b;--px-hud-ink:#f6edcf;--px-hud-mut:#b9c3d6;--px-hud-ln:#06090d}

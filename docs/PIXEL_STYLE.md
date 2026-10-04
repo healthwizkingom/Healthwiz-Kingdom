@@ -14,7 +14,7 @@ generic dashboard look (rounded cards, soft drop shadows, gradients, thin system
 
 ## Rules
 
-1. **The grid.** One grid unit is `--px` (4 px). Panel borders, shadows, gaps and paddings are multiples of it
+1. **The grid.** One grid unit is `--px-unit` (4 px; plain `--px` is taken by the title screen's parallax). Panel borders, shadows, gaps and paddings are multiples of it
    (controls use 3 px, the original button size). No `border-radius` on UI: corners are square, or stepped (`.pxn`).
 2. **Hard shadows only.** Offset, no blur: `--px-sh` for panels, `--px-sh-c` for controls, plus the inner bevel
    (`--px-bevel`, `--px-bevel-c`). A glow is allowed for magic (Medius, rewards), never as a panel shadow.
@@ -38,7 +38,7 @@ generic dashboard look (rounded cards, soft drop shadows, gradients, thin system
 
 | Token | Value | Use |
 |---|---|---|
-| `--px` | 4px | grid unit |
+| `--px-unit` | 4px | grid unit |
 | `--px-bw` / `--px-bw-c` / `--px-bw-s` | 4 / 3 / 2 px | border: panels / controls / tags |
 | `--px-sh` / `--px-sh-c` | `4px 4px 0 var(--ln)` / `3px 3px 0 …` | hard drop shadow |
 | `--px-bevel` / `--px-bevel-c` | `inset -4px -4px 0 rgba(0,0,0,.18)` / `inset -3px -3px 0 rgba(0,0,0,.25)` | inner shade |
