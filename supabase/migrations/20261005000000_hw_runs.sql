@@ -35,5 +35,6 @@ create policy "hw_runs read own"   on public.hw_runs for select to authenticated
 create policy "hw_runs insert own" on public.hw_runs for insert to authenticated with check ((select auth.uid()) = user_id);
 create policy "hw_runs delete own" on public.hw_runs for delete to authenticated using ((select auth.uid()) = user_id);
 
-revoke all on public.hw_runs from anon;
+-- Supabase grants every privilege on a new public table by default: take them all back, then grant only what is used.
+revoke all on public.hw_runs from anon, authenticated;
 grant select, insert, delete on public.hw_runs to authenticated;
