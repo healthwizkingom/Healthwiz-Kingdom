@@ -1138,3 +1138,31 @@ Tests: `tests/34-final-polish.test.mjs` (all eight region icons drawn on the Kin
   worker's network-first fetch went through the browser's HTTP cache, so after a deploy a phone could keep running the
   previous scripts (the map fix above looked "not fixed" right after it was merged). App files are now fetched with
   `cache: 'no-cache'` (revalidated, a cheap 304 when unchanged); offline behaviour is unchanged.
+
+## Live weather and haze for Kolej MARA Kulim (`js/v6-live.js`)
+
+* **Sources.** Open-Meteo forecast (current conditions, cached 15 min) and Open-Meteo Air Quality (PM2.5, PM10, US AQI,
+  cached 30 min). Free, no key. Only `KMK` (the college's fixed coordinates, top of the file: *verify on Google Maps*) is
+  sent, never health data. `fetchJSON(url, {timeout: 8000})` uses AbortController; `cacheGet(key, maxAgeMin)` /
+  `cacheSet(key, data)` use their own localStorage key `healthwiz_cache`, so the `healthwiz` save, its schema and backups
+  are untouched. A failed refresh falls back to the last good copy for up to 6 hours, marked "as of"; after that, or with
+  nothing cached, the app says "unavailable" and keeps the default title scene.
+* **Setting.** `st.s.live` (0 = off). Missing means on, so no migration. Settings → 🌐 LIVE DATA: on/off, last update per
+  source, REFRESH (skips the fresh cache). `refreshLive()` runs at start, every 30 min while the tab is visible, when the
+  tab comes back after 30 min, and when the device comes back online. Off = no request at all.
+* **Title sky** (`js/v6-title.js`). WMO code → sky: 0–1 sun (moon and stars when `is_day` is 0), 2–3 clouds, 45/48 mist,
+  51–57/61/80 light rain, 63–65/81 rain, 82 downpour, 95–99 storm. Reuses the original layers: the original sun is wrapped
+  in `.v6sun` and faded by opacity; the storm speeds up the original lightning bolts (`.zl`) and adds a flash layer (two
+  flashes 150 ms apart every 5 s, never more than 3 a second; not drawn under reduced motion). Rain and the twinkling
+  stars animate transform/opacity only. `HWTitle.restyle()` repaints sky, caption and chip in place when new data
+  arrives, so the intro never replays. Chip: "Kulim now · 31 °C (feels 36 °C) · Light rain · 78% humidity", plus a heat
+  tip at feels-like ≥ 35 °C.
+* **Haze.** PM2.5 bands (µg/m³, upper bound inclusive): ≤15 Good, ≤35 Moderate, ≤55 Sensitive, ≤150 Unhealthy, above
+  Hazardous, each with an icon, colour (always with a text label) and exercise advice. Home: 🌫️ JEREBU CHECK card (value
+  with units, PM10, US AQI, reading time, source, "modelled estimate", link to the official APIMS reading). Stairs page
+  (also its Running section and the old `run` route): `hazeBanner()`, reusable by any later page. At level ≥ 3 the body
+  gets `hw-haze`: the ambient sky behind the cards and the title scene turn hazy; cards and numbers are unchanged.
+
+Tests: `tests/35-live.test.mjs` (WMO mapping, Kulim URL parameters, chip and heat tip, storm flash and reduced motion,
+haze bands and advice on Home and Stairs, hazy sky from level 3, failing API, fresh cache reuse and stale fallback,
+Settings toggle and REFRESH, no request while off).
