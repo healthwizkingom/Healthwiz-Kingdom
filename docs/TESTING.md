@@ -21,11 +21,11 @@ compatibility tests.
 
 | Item | Tests |
 |---|---|
-| navigation | `01-original-app`, `25-matrix-input` (tabs by tap and keyboard), `26-journey`, `28-foundation` (every tab and Health Hall tile, and back), `29-provisions` (old Nutrition/Water links, halves, tutorial), `33-stairs` (old Pulse and Running routes open their Stairs sections) |
+| navigation | `34-final-polish` (every action and route on every page, four sizes, tutorial targets), `01-original-app`, `25-matrix-input` (tabs by tap and keyboard), `26-journey`, `28-foundation` (every tab and Health Hall tile, and back), `29-provisions` (old Nutrition/Water links, halves, tutorial), `33-stairs` (old Pulse and Running routes open their Stairs sections) |
 | data logging | `01-original-app`, `26-journey` (every log type through the UI), `29-provisions` (food and water on the merged page), `33-stairs` (casual climbs by hand and GPS, workouts with heart rate, one session model, calorie estimate) |
 | editing, deleting | `01-original-app`, `03-events`, `25-matrix-input` (by touch and keyboard), `26-journey` |
 | calculations | `01-original-app` (sleep duration, BMI, pulse range), `04-insights` (baselines), `24-performance` (the entry index against full scans) |
-| quests | `05-quests`, `03-events` |
+| quests | `05-quests`, `03-events`, `34-final-polish` (weekly activity quest counts runs; badge audit and new badges) |
 | XP, levels | `07-xp-kingdom`, `03-events` |
 | Kingdom | `07-xp-kingdom`, `10-world` |
 | suggestions | `04-insights` |
@@ -41,7 +41,7 @@ compatibility tests.
 | location permissions, GPS fallback | `19-gps`, `33-stairs` (GPS check-in writes the unified session) |
 | offline mode | `20-pwa` |
 | console errors | every test; `26-journey` runs a whole first day without one |
-| pixel art, no emoji glyphs | `28-foundation` (icons), `30-emoji` (no emoji drawn as text on any page, toast, dialog or game) |
+| pixel art, no emoji glyphs | `34-final-polish` (new icons, ambient world, Storm Within expressions), `28-foundation` (icons), `30-emoji` (no emoji drawn as text on any page, toast, dialog or game) |
 | broken references | `26-journey` (handlers, page links, images, asset paths), `20-pwa` (the offline file list) |
 | existing data compatibility | `02-schema`, `26-journey` (an old v5.4.3 save on every page), `28-foundation` (every storage key and entry unchanged through every page and a reload), `33-stairs` (old stair and pulse entries kept untouched, read through the session model) |
 

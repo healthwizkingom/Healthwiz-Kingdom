@@ -19,7 +19,10 @@ const isEmoji=s=>!!RE1&&RE1.test(s); // RE (global) is only used by swap()'s exe
 // emoji whose hand-drawn icon shows the same object (keys without U+FE0F)
 const SAME={'❤':'heart','💧':'water','🍗':'food','🌙':'sleep','🏃':'running','🌩':'stress','⚡':'energy','🏆':'achievement',
   '⚠':'warning','✅':'success','🧙':'wizard','🧙‍♂':'wizard','⚖':'balance','📊':'chart','📜':'scroll','⚙':'gear','⚔':'quest',
-  '🗺':'map','🔔':'bell'};
+  '🗺':'map','🔔':'bell',
+  // final polish: more hand-drawn icons, so the most used interface emoji look the same on every device
+  '🏋':'workout','💪':'workout','💓':'pulse','🫀':'pulse','🏅':'badge','🎖':'badge','🏠':'home','🔥':'flame','⭐':'star','🌟':'star',
+  '✨':'star','🧠':'mind','🎮':'game','🧗':'stairs','🪜':'stairs','🥤':'water','😴':'sleep','🛏':'sleep','🍽':'food','🏃‍♂':'running'};
 // the icon palette, plus a few hues emoji need (pink, magenta, teal)
 const PAL=Object.assign({},HWPixel.PAL,{P:'#f4a3c4',M:'#c4508e',T:'#36a89a',D:'#1d6b62'});
 const RGB=Object.keys(PAL).filter(k=>k!=='k').map(k=>[parseInt(PAL[k].slice(1,3),16),parseInt(PAL[k].slice(3,5),16),parseInt(PAL[k].slice(5,7),16)]);
