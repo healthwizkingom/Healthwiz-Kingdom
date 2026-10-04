@@ -954,6 +954,10 @@ Requested after session 2: no emoji should look like a smooth Apple or Android e
   different on an iPhone, an Android phone and Windows. Hand-drawn icons are the same everywhere; drawing more of them
   (most used first, §30) removes that difference one emoji at a time.
 
+The device matrix is now two files, `tests/25-matrix.test.mjs` (sizes, rotation, themes) and
+`tests/25-matrix-input.test.mjs` (touch, keyboard, long text, safe areas, window resizing): as one file it already took
+88.5 s before these sessions, so a little extra work per page pushed it past the runner's 90 s limit per file.
+
 Tests: `tests/30-emoji.test.mjs` (no emoji drawn as text on the title screen, any page, a toast, a celebration, changed
 text, the region dialog or any mini-game; the text is kept; hand-drawn icons used for the same objects; pixelated
 pictures are 16×16, palette-only and outlined; sizes in 8 px steps; no overflow at 360 px). 190 tests in total.
