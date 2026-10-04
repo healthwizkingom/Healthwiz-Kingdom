@@ -14,7 +14,7 @@ generic dashboard look (rounded cards, soft drop shadows, gradients, thin system
 
 ## Rules
 
-1. **The grid.** One grid unit is `--px` (4 px). Panel borders, shadows, gaps and paddings are multiples of it
+1. **The grid.** One grid unit is `--px-unit` (4 px; plain `--px` is taken by the title screen's parallax). Panel borders, shadows, gaps and paddings are multiples of it
    (controls use 3 px, the original button size). No `border-radius` on UI: corners are square, or stepped (`.pxn`).
 2. **Hard shadows only.** Offset, no blur: `--px-sh` for panels, `--px-sh-c` for controls, plus the inner bevel
    (`--px-bevel`, `--px-bevel-c`). A glow is allowed for magic (Medius, rewards), never as a panel shadow.
@@ -32,13 +32,14 @@ generic dashboard look (rounded cards, soft drop shadows, gradients, thin system
    sprite and scale it up instead.
 6. **Motion is stepped.** Use `steps()` timing for UI movement (the original `pgin .3s steps(4)`), honour reduced motion
    (`HWUI.reduced()`, `html.hw-rm`) and the performance modes (`js/v6-motion.js`).
-7. **Icons are pixel icons.** New UI uses `HWPixel.icon()`. Emoji stay only where a screen has not moved over yet.
+7. **Icons are pixel icons.** Every emoji the app shows is drawn as pixel art by `js/v6-emoji.js` (below). New UI may
+   still write emoji in its strings, or use `HWPixel.icon()` for a hand-drawn icon.
 
 ## Tokens
 
 | Token | Value | Use |
 |---|---|---|
-| `--px` | 4px | grid unit |
+| `--px-unit` | 4px | grid unit |
 | `--px-bw` / `--px-bw-c` / `--px-bw-s` | 4 / 3 / 2 px | border: panels / controls / tags |
 | `--px-sh` / `--px-sh-c` | `4px 4px 0 var(--ln)` / `3px 3px 0 …` | hard drop shadow |
 | `--px-bevel` / `--px-bevel-c` | `inset -4px -4px 0 rgba(0,0,0,.18)` / `inset -3px -3px 0 rgba(0,0,0,.25)` | inner shade |
@@ -74,17 +75,20 @@ All opt-in by class; nothing existing is restyled by them. Existing pieces stay 
 per colour. `s` is a whole-number scale (1 = 16 px, 2 = 32 px); fractions are rounded so the grid holds. Without
 `label` the icon is hidden from screen readers (the text next to it says it); with `label` it is `role="img"`.
 
-| Required set | Also drawn (page banners) |
+| Required set | Also drawn (page banners, headings) |
 |---|---|
-| heart, water, food, sleep, stairs, running, stress, energy, achievement, warning, success, wizard, monster | balance, chart, scroll, gear, quest, map |
+| heart, water, food, sleep, stairs, running, stress, energy, achievement, warning, success, wizard, monster | balance, chart, scroll, gear, quest, map, bell |
 
 * `HWPixel.names`: every icon. `HWPixel.grid(name)`: its 16 rows with the outline added, which the original sprite
   helper can draw on a canvas: `spr(HWPixel.grid('heart'), HWPixel.PAL, 3)`.
 * `HWPixel.forEmoji('💧')` → `'water'`: the emoji used today, mapped to icons. Only unambiguous ones are mapped: 🔥 means
   streak, vigorous pace *and* the Energy Forge, and 📊 both the Health Hall and Statistics, so pick those by meaning.
-* `HWPixel.glyph(emojiOrName, s)`: the pixel icon when there is one, otherwise the emoji unchanged. Use it to move a
-  screen over without breaking the places that have no icon yet.
-* `HWPixel.region(view)`: the icon for a page's banner. In use since session 1: `ban()` draws it at 2×.
+* `HWPixel.glyph(emojiOrName, s)`: the pixel icon when there is one, otherwise the emoji unchanged; a list draws each in
+  turn. Use it to move a screen over without breaking the places that have no icon yet.
+* `HWPixel.region(view)`: the icon (or list of icons) for a page's banner. `ban()` draws it at 2× (since session 1); the
+  Nutrition & Hydration page shows both of its systems, `['food', 'water']`.
+* Card headings with an icon: `'<h3>'+HWPixel.icon('water')+' ADD WATER</h3>'`, laid out as a row by the page's CSS
+  (first used on Nutrition & Hydration, `js/v6-provisions.js`).
 
 ### Adding an icon
 
@@ -100,10 +104,24 @@ per colour. `s` is a whole-number scale (1 = 16 px, 2 = 32 px); fractions are ro
 `k` outline `#1b1626` · `w` `#fffbea` · red `r R p` · blue `b B c` · gold `y Y l` · green `g G h` · violet `v V m` ·
 brown `n N t` · steel `s S e` · orange `o O` · skin `q`. Gold, red, blue, green and violet are the theme accents.
 
-## Moving screens over (later sessions)
+## Emoji become pixel art everywhere (`js/v6-emoji.js`)
 
-The emoji audit (`docs/ARCHITECTURE_AUDIT.md` §30) lists where emoji are used. Suggested order: Health Hall tiles and
-the bottom navigation, page headings (`<h2>` / `<h3>`), Home tiles, then each region page as it is redesigned.
+The app's ~750 emoji (200+ different) are all drawn as 16×16 pixel pictures, with no change to the strings that hold
+them. `HWEmoji` watches the page (every render, toast, dialog, Medius line and mini-game) and swaps each emoji for:
+* the **hand-drawn icon** when it shows the same object (`SAME` in `js/v6-emoji.js`: 💧 ❤️ 🍗 🌙 🏃 🌩 ⚡ 🏆 ⚠️ ✅ 🧙 ⚖️
+  📊 📜 ⚙️ ⚔️ 🗺️ 🔔), or
+* the **emoji itself, pixelated** once on a canvas: sampled to a 14×14 grid, snapped to the icon palette (plus pink,
+  magenta and teal), with the same ink outline.
+
+The emoji character stays in the page, invisible inside the picture: screen readers, `textContent`, the tutorial's text
+search and the add-ons' anchors see exactly what they did before. Pictures are sized from the surrounding text in 8 px
+steps (at least 16 px). Left as they are: form fields and `<option>` text (cannot hold pictures), SVG, and typographic
+symbols drawn as text (✓ ✕ ▶ ◀ ★ ✿). `HWEmoji.src(emoji)` returns a picture as a data: URL. To give an emoji a
+better picture, draw an icon (below) and add it to `SAME`.
+
+The pixelated pictures follow the device's emoji font (Apple, Google or Microsoft), so they differ a little between
+devices; hand-drawn icons are identical everywhere. The emoji audit (`docs/ARCHITECTURE_AUDIT.md` §30) lists which
+emoji are used most, so the next hand-drawn icons can go where they are seen most.
 
 **Careful:** some add-ons find their place in a page by searching for a heading that contains an emoji:
 `'<h2>💡 HEALTHWIZ GUIDE</h2>'` (`v6-insights`), `'<h2>⚙️ SETTINGS</h2>'` (`v6-medius`, `v6-motion`) and

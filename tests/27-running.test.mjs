@@ -85,7 +85,7 @@ test('Health Hall tile → Run page: explain, start, live metrics, noise filtere
   const { page, ctx, errors } = await boot();
   await go(page, 'health');
   const tiles = await page.$$eval('#hub .hb', b => b.map(x => x.dataset.v));
-  assert.deepEqual(tiles, ['food', 'water', 'sleep', 'pulse', 'stair', 'stress', 'bmi', 'calc', 'stats', 'run'], 'original tiles unchanged, Running added last');
+  assert.deepEqual(tiles, ['food', 'sleep', 'pulse', 'stair', 'stress', 'bmi', 'calc', 'stats', 'run'], 'original tiles (Food & Water as one since §31), Running added last');
   assert.match(await txt(page, '#hub [data-v="run"]'), /Running[\s\S]*Running Road[\s\S]*GPS run tracker/);
   await page.click('#hub [data-v="run"]');
   assert.equal(await page.evaluate(() => S.v), 'run');

@@ -10,7 +10,8 @@
       builder adds the 1-pixel ink outline, so every icon has the same line. HWPixel.forEmoji('💧') → 'water' maps the
       emoji used today to icon names, and HWPixel.glyph(emoji) draws the icon when one exists and keeps the emoji
       otherwise, so screens can move over one at a time.
-   First use: the region banner at the top of every page (ban() in js/hw-03-part.js) shows its region's pixel icon.
+   In use: the region banner at the top of every page (ban() in js/hw-03-part.js) shows its region's pixel icon (two on
+   the Nutrition & Hydration page, one per system), and that page's headings (js/v6-provisions.js).
    Also here: header and banner spacing after the decorative hearts were removed (docs/ARCHITECTURE_AUDIT.md §30). */
 const HWPixel=(()=>{
 const SZ=16;
@@ -342,6 +343,23 @@ map:[
 '.lllllttttlllll.',
 '......tttt......',
 '................',
+'................'],
+bell:[
+'................',
+'.......yy.......',
+'......yllY......',
+'.....ylyyyY.....',
+'....yllyyyyY....',
+'....ylyyyyyY....',
+'....ylyyyyyY....',
+'....yyyyyyyY....',
+'...yyyyyyyyYY...',
+'..yyyyyyyyyyYY..',
+'..lllllllllllY..',
+'..YYYYYYYYYYYY..',
+'.......NN.......',
+'.......NN.......',
+'................',
 '................']
 };
 // Emoji used in the app today → icon (unambiguous ones only: 🔥 means streak, vigorous pace and the Energy Forge,
@@ -351,8 +369,9 @@ const EMOJI={'❤':'heart','💓':'heart','🫀':'heart','💧':'water','💦':'
   '⚡':'energy','🏆':'achievement','🏅':'achievement','🎖':'achievement','⚠':'warning','✅':'success','✔':'success',
   '🧙':'wizard','🧙‍♂':'wizard','👹':'monster','👾':'monster','🐲':'monster','⚖':'balance','📈':'chart',
   '📜':'scroll','⚙':'gear','⚔':'quest','🗺':'map'};
-// The banner at the top of each page (BN in js/hw-03-part.js), by page, so each region keeps one icon.
-const REGION={food:'food',water:'water',sleep:'sleep',pulse:'heart',stair:'stairs',stress:'stress',bmi:'balance',
+// The banner at the top of each page (BN in js/hw-03-part.js), by page, so each region keeps one icon. The Nutrition &
+// Hydration page shows both of its systems on either tab.
+const REGION={food:['food','water'],water:['food','water'],sleep:'sleep',pulse:'heart',stair:'stairs',stress:'stress',bmi:'balance',
   calc:'energy',stats:'chart',health:'chart',guide:'scroll',badges:'achievement',set:'gear',run:'running',
   quests:'quest',kingdom:'map'};
 
@@ -371,12 +390,13 @@ function icon(name,o){if(!ICONS[name])return '';o=typeof o==='number'?{s:o}:o||{
   return '<svg class="pxi pxi-'+name+(o.cls?' '+o.cls:'')+'" viewBox="0 0 16 16" width="'+px+'" height="'+px+'" shape-rendering="crispEdges" focusable="false" '
     +(o.label?'role="img" aria-label="'+esc(o.label)+'"':'aria-hidden="true"')+'>'+paths(name)+'</svg>'}
 const forEmoji=e=>EMOJI[String(e).replace(/\uFE0F/g,'').trim()]||null;
-/** An icon name or an emoji → its pixel icon when there is one, otherwise the emoji itself (unchanged text). */
-function glyph(e,o){const n=ICONS[e]?e:forEmoji(e);return n?icon(n,o):esc(String(e))}
+/** An icon name or an emoji → its pixel icon when there is one, otherwise the emoji itself (unchanged text).
+ *  A list draws each in turn. */
+function glyph(e,o){if(Array.isArray(e))return e.map(x=>glyph(x,o)).join('');const n=ICONS[e]?e:forEmoji(e);return n?icon(n,o):esc(String(e))}
 const region=v=>REGION[v]||null;
 
 HWUI.css('pixel',`
-:root{--px:4px;--px-bw:4px;--px-bw-c:3px;--px-bw-s:2px;
+:root{--px-unit:4px;--px-bw:4px;--px-bw-c:3px;--px-bw-s:2px;
 --px-sh:4px 4px 0 var(--ln);--px-sh-c:3px 3px 0 var(--ln);--px-bevel:inset -4px -4px 0 rgba(0,0,0,.18);--px-bevel-c:inset -3px -3px 0 rgba(0,0,0,.25);
 --px-pad:12px;--px-gap:12px;--px-f1:8px;--px-f2:16px;--px-f3:24px;
 --px-hud:#14204f;--px-hud2:#22306b;--px-hud-ink:#f6edcf;--px-hud-mut:#b9c3d6;--px-hud-ln:#06090d}
@@ -391,6 +411,6 @@ HWUI.css('pixel',`
 .pxh,.pxhud,.pxtag{-webkit-font-smoothing:none}
 main header>div:not(.lv){display:flex;flex-direction:column;gap:6px}
 @media(min-width:761px){main header{padding-right:48px}}
-.bn>span{display:flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:32px}.bn>div{flex:1 1 auto;min-width:0}
+.bn>span{display:flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-width:32px}.bn>div{flex:1 1 auto;min-width:0}
 `);
 return{icon,glyph,grid,forEmoji,region,get names(){return Object.keys(ICONS)},PAL}})();

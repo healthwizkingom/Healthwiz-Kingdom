@@ -118,7 +118,7 @@ function garden(g,lv,n){let h='<svg class="lane" viewBox="0 0 100 100" preserveA
 HWGames.register({id:'water',name:'Well Garden',icon:'🪣',page:'water',area:'Water',xp:10,
   blurb:'Carry water from the well to the garden patches until they bloom.',
   note:'A game only. It does not log water or count as drinking; log what you actually drink on the Water page.',
-  before:['<div class="card"><h3>🌱 WORLD PROGRESSION</h3>'],
+  before:['<div class="card" id="wworld">'],
   finds:[['🐸','Well frog','A small frog now sits by the Well Garden and hops when the garden is watered.'],['🪴','Herb planter','A planter of mint and basil now stands near the well.'],['🦋','Garden butterflies','Butterflies now visit the Well Garden and the Water Valley.'],['🏮','Path lantern','A lantern now lights the path to the well at dusk.'],['📜','Lore: the shared well','The valley folk say the well was dug by many hands, one bucket at a time. No single day filled it; the steady days did.']],
   progress(){const b=+HWGames.data('water').b||0;return b?b+(b===1?' garden':' gardens')+' bloomed':''},
   start(g){const lv=stage(),n=finds(),S=g.stage;S.classList.add('v6gw');
