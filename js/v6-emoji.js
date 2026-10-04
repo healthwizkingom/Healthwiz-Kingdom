@@ -57,7 +57,7 @@ function src(e){e=String(e);if(cache.has(e))return cache.get(e);let u=null;
 const cls=new Map();
 function klass(e){if(cls.has(e))return cls.get(e);const u=src(e);let k=null;
   if(u){if(!sheet){const s=document.createElement('style');s.dataset.v6='emoji';document.head.appendChild(s);sheet=s.sheet}
-    k='pxe'+(nid++);sheet.insertRule('.'+k+'{background-image:url('+u+')}',sheet.cssRules.length)}
+    k='pxe'+(nid++);sheet.insertRule('.pxe.pxe.'+k+'{background-image:url('+u+')}',sheet.cssRules.length)}
   cls.set(e,k);return k}
 
 const SKIP={SCRIPT:1,STYLE:1,TEXTAREA:1,OPTION:1,SELECT:1,TITLE:1,NOSCRIPT:1,INPUT:1};
@@ -75,8 +75,10 @@ function walk(root){if(!root)return;if(root.nodeType===3){swap(root);return}if(r
   for(let n;(n=w.nextNode());)L.push(n);L.forEach(swap)}
 
 HWUI.css('emoji',`
-.pxe{display:inline-block;vertical-align:-.22em;overflow:hidden;line-height:1;background:center/100% 100% no-repeat;image-rendering:pixelated;flex:0 0 auto}
-.pxe>span{opacity:0}
+/* doubled class: an emoji inside a component whose CSS styles every span (e.g. the Kingdom map's '.kn span' label box,
+   which drew a cream square over the picture) keeps its own look */
+.pxe.pxe{display:inline-block;vertical-align:-.22em;overflow:hidden;line-height:1;background:center/100% 100% no-repeat;image-rendering:pixelated;flex:0 0 auto;border:0;padding:0;margin:0;box-shadow:none}
+.pxe.pxe>span{opacity:0;display:inline;background:none;border:0;padding:0;margin:0}
 `);
 // convert what is on the page now, then everything that is added or changed later (renders, toasts, dialogs, games)
 if(RE){walk(document.body);
