@@ -26,7 +26,7 @@ const FOCUS={
 'breathe':{area:'stress',icon:'🌬️',xp:20,go:'stress',name:'Calm breath',text:()=>'Finish a calming practice in the Stress Quest or visit the Wizard\'s Counsel.',prog:d=>breathed(d)?1:0},
 'two-climbs':{area:'stair',icon:'🧗',xp:25,go:'stair',name:'Two easy climbs',text:()=>'Climb a stairway twice today at a comfortable pace.',prog:d=>cl(d)/2},
 'energy':{area:'energy',icon:'⚡',xp:15,go:'home',name:'Energy check',text:()=>'Rate your energy on the Home page.',prog:d=>enr(d)?1:0},
-'pulse':{area:'pulse',icon:'❤️',xp:15,go:'pulse',name:'Resting rhythm',text:()=>'Save a resting pulse reading.',prog:d=>A('pulse',d).some(e=>e.m.st==='Resting')?1:0}};
+'pulse':{area:'pulse',icon:'❤️',xp:15,go:'pulse',name:'Heart check',text:()=>'Log your heart rate before and after a stair workout.',prog:d=>A('stair',d).some(e=>e.m&&+e.m.hrB&&+e.m.hrA)?1:0}}; // 'pulse' opens the Workout (js/v6-stairs.js)
 // insight area/id → focus quest
 const FROM={'water-down':'water-goal','water-target':'water-goal','water-today':'water-goal','food-partial':'meals-3','food-fiber':'fiber','sleep-short':'wind-down','sleep-irregular':'wind-down','stress-high':'breathe','stress-up':'breathe','stair-down':'two-climbs','stair-none':'two-climbs'};
 const WHY={'water-goal':'your water has been below your usual or your target','meals-3':'some meals may be missing from your log','fiber':'estimated fiber has been on the low side','wind-down':'your nights have been short or irregular','breathe':'your stress check-ins have been higher','two-climbs':'Stair Mountain has been quiet'};
@@ -34,7 +34,7 @@ const WHY={'water-goal':'your water has been below your usual or your target','m
 function pickFocus(d){const top=(typeof HWInsights!=='undefined'?HWInsights.top(5):[]).filter(x=>x.tone==='notice'||x.area==='stair');
   for(const x of top){const id=FROM[x.id];if(id)return{id,why:'Chosen because '+WHY[id]+'.'}}
   // nothing to address → gentle variety, prefer areas not logged in the last 3 days
-  const quiet=['energy','pulse','fiber','wind-down','breathe','two-climbs'].filter(id=>{const a=FOCUS[id].area;return a==='energy'?!rng(3).some(enr):!rng(3).some(x=>A(a==='fiber'?'food':a,x).length)});
+  const quiet=['energy','pulse','fiber','wind-down','breathe','two-climbs'].filter(id=>{const a=FOCUS[id].area;return a==='energy'?!rng(3).some(enr):!rng(3).some(x=>a==='pulse'?hrS(x):A(a==='fiber'?'food':a,x).length)});
   const pool=quiet.length?quiet:Object.keys(FOCUS),i=(+d.replace(/-/g,''))%pool.length;
   return{id:pool[i],why:quiet.length?'Chosen to visit a quiet corner of your kingdom.':'A little variety for today.'}}
 function focus(d){d=d||today();const F=q6().f;if(!F[d]||!FOCUS[F[d].id]){const p=pickFocus(d),q=FOCUS[p.id];F[d]={id:p.id,t:q.target?q.target():0,why:p.why,done:0};save()}

@@ -38,15 +38,15 @@ test('touch: tabs, logging, edit and delete by tap; touch scrolling; every contr
   const n0 = (await state(page)).e.filter(e => e.c === 'water').length;
   await page.tap('[data-a="wa"][data-v="250"]');
   assert.equal((await state(page)).e.filter(e => e.c === 'water').length, n0 + 1, 'water logged by tap');
-  await go(page, 'pulse');
-  const p0 = (await state(page)).e.filter(e => e.c === 'pulse').length;
-  await page.tap('[data-a="edit"]');
+  await go(page, 'stair');
+  const p0 = (await state(page)).e.filter(e => e.c === 'stair').length;
+  await page.tap('#stlog [data-a="edit"]');
   await page.tap('#mo [data-a="mclose"]');
   assert.equal(await page.evaluate(() => document.querySelector('#mo').hidden), true, 'CANCEL closes the dialog');
-  await page.tap('[data-a="del"]');
-  assert.equal((await state(page)).e.filter(e => e.c === 'pulse').length, p0 - 1, 'deleted by tap');
+  await page.tap('#stlog [data-a="del"]');
+  assert.equal((await state(page)).e.filter(e => e.c === 'stair').length, p0 - 1, 'deleted by tap');
   await page.tap('#toasts [data-a="undo"]');
-  assert.equal((await state(page)).e.filter(e => e.c === 'pulse').length, p0, 'undo by tap');
+  assert.equal((await state(page)).e.filter(e => e.c === 'stair').length, p0, 'undo by tap');
   for (const v of [...PAGES, 'welcome']) {
     await go(page, v);
     const small = await page.evaluate(() => [...document.querySelectorAll('#main button, #main input, #main select, #main a[href], #nav button')].filter(e => e.offsetParent !== null && getComputedStyle(e).visibility !== 'hidden')
@@ -72,9 +72,9 @@ test('keyboard: Tab reaches the navigation with a visible focus ring; dialogs tr
   await page.keyboard.press('Enter');
   assert.equal(await page.evaluate(() => S.v), 'quests', 'Enter activates a tab');
   // edit dialog
-  await go(page, 'pulse');
-  const id = await page.getAttribute('[data-a="edit"]', 'data-id');
-  await page.focus('[data-a="edit"]');
+  await go(page, 'stair');
+  const id = await page.getAttribute('#stlog [data-a="edit"]', 'data-id');
+  await page.focus('#stlog [data-a="edit"]');
   await page.keyboard.press('Enter');
   await page.waitForFunction(() => document.activeElement && document.activeElement.id === 'ev');
   assert.deepEqual(await page.evaluate(() => { const c = document.querySelector('#mo .card'); return [c.getAttribute('role'), c.getAttribute('aria-modal'), c.getAttribute('aria-label')]; }), ['dialog', 'true', 'EDIT ENTRY']);
@@ -104,10 +104,10 @@ test('long text: a 20-character name, a very long custom food and note fit on a 
   const seed = busy();
   const food = 'Nasi' + 'Kerabu'.repeat(12) + 'Special', note = 'Felt' + 'great'.repeat(40);
   seed.e.push({ id: 'long1', c: 'food', v: 450, m: { name: food, por: '1 extra large family-style bowl with sides', qty: 1, pm: 1, meal: 'lunch', src: 'Custom', custom: 1 }, n: note, d: daysAgo(0), t: '12:30' });
-  seed.e.push({ id: 'long2', c: 'pulse', v: 72, m: { st: 'Resting' }, n: note, d: daysAgo(0), t: '09:30' });
+  seed.e.push({ id: 'long2', c: 'stair', v: 72, m: { sid: 'ST20', loc: 'Tangga' + 'Panjang'.repeat(15), steps: 12, climbs: 6, kind: 'workout', pace: 'Moderate', dur: 12, hrB: 70, hrA: 128, kcal: { v: 90, lo: 80, hi: 100, m: 'met+hr' } }, n: note, d: daysAgo(0), t: '09:30' });
   const { page, ctx, errors } = await openApp({ seed, viewport: { width: 360, height: 800 } });
   await page.waitForSelector('.wl');
-  for (const v of ['home', 'health', 'food', 'pulse', 'stats', 'quests', 'kingdom', 'set', 'badges', 'guide']) {
+  for (const v of ['home', 'health', 'food', 'stair', 'stats', 'quests', 'kingdom', 'set', 'badges', 'guide']) {
     await go(page, v);
     assert.ok(await overflow(page) <= 1, `${v} overflows by ${await overflow(page)}px with long text`);
   }

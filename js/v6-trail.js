@@ -86,7 +86,7 @@ function scenery(lv,n){let h='';
 HWGames.register({id:'trail',name:'Adventure Trail',icon:'🥾',page:'stair',area:'Activity',xp:10,
   blurb:'Follow the trail blazes through the forest, over the bridge and up the stairs to the lookout.',
   note:'A game only. It does not log activity and nothing is timed. Log real stair sessions on the Stair Quest page.',
-  before:['<div class="card"><h2>PACE & BREATHE</h2>'],
+  before:['<!--stair-games-->'], // js/v6-stairs.js: after the Session Chronicle, before Running
   finds:[['🪧','Trail signposts','Carved signposts now stand at every checkpoint.'],['🦋','Meadow butterflies','Butterflies now drift over the forest and the river.'],['🪑','Hilltop bench','A bench now waits on the hill for anyone who wants a breather.'],['🏮','Stair lanterns','Little lanterns now light the stone stairs to the lookout.'],['📜','Lore: the guide\'s pace','The mountain guides say a good pace is one where you can still chat with a friend, and a rest is never a failure.']],
   progress(){const r=+D().r||0;return r?r+(r===1?' trail walked':' trails walked'):''},
   start(g){const lv=region(),n=finds(),S=g.stage;S.classList.add('v6gtr');

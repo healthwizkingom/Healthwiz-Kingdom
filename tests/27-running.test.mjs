@@ -81,15 +81,16 @@ test('pure maths: Haversine distance, GPS fix filter, pace and time formats', as
   await ctx.close();
 });
 
-test('Health Hall tile → Run page: explain, start, live metrics, noise filtered, pause, resume, leave and return, finish saves locally', async () => {
+test('Stairs page → Running section: explain, start, live metrics, noise filtered, pause, resume, leave and return, finish saves locally', async () => {
   const { page, ctx, errors } = await boot();
   await go(page, 'health');
   const tiles = await page.$$eval('#hub .hb', b => b.map(x => x.dataset.v));
-  assert.deepEqual(tiles, ['food', 'sleep', 'pulse', 'stair', 'stress', 'bmi', 'calc', 'stats', 'run'], 'original tiles (Food & Water as one since §31), Running added last');
-  assert.match(await txt(page, '#hub [data-v="run"]'), /Running[\s\S]*Running Road[\s\S]*GPS run tracker/);
-  await page.click('#hub [data-v="run"]');
-  assert.equal(await page.evaluate(() => S.v), 'run');
-  assert.match(await txt(page, '#main'), /BACK TO HEALTH[\s\S]*RUNNING[\s\S]*DISTANCE[\s\S]*TIME[\s\S]*AVG PACE/);
+  assert.deepEqual(tiles, ['food', 'sleep', 'stair', 'stress', 'bmi', 'calc', 'stats'], 'no Pulse or Running tile: both live on the Stairs page');
+  await page.click('#hub [data-v="stair"]');
+  assert.equal(await page.locator('#map [data-a="runmap"]').count(), 1, 'no map download until Running is wanted');
+  await page.click('[data-a="stjump"][data-t="st-run"]');
+  assert.equal(await page.evaluate(() => S.v), 'stair');
+  assert.match(await txt(page, '#main'), /BACK TO HEALTH[\s\S]*RUNNING ROAD[\s\S]*DISTANCE[\s\S]*TIME[\s\S]*AVG PACE/);
   assert.match(await txt(page, '#nav .on'), /Health/);
   assert.deepEqual(await metrics(page), ['0.00', '0:00', '--:--']);
   assert.deepEqual([await page.isEnabled('[data-a="runstart"]'), await page.isDisabled('[data-a="runpause"]'), await page.isDisabled('[data-a="runfinish"]')], [true, true, true]);
@@ -150,7 +151,7 @@ test('Health Hall tile → Run page: explain, start, live metrics, noise filtere
   // leaving the page keeps recording; coming back redraws the map
   await go(page, 'health');
   assert.match(await txt(page, '#toasts'), /still recording/);
-  assert.match(await txt(page, '#hub [data-v="run"]'), /recording · 0\.13 km/);
+  assert.match(await txt(page, '#hub [data-v="stair"]'), /run recording · 0\.13 km/);
   assert.equal(await page.evaluate(() => window.__gps.watching()), 1);
   await go(page, 'run');
   await page.waitForFunction(() => window.__map.maps === 2);
@@ -186,7 +187,7 @@ test('a run interrupted by a reload comes back paused and can be finished', asyn
   const live = { id: '11111111-1111-4111-8111-111111111111', start, segs: [[[5.35, 100.5385, 0], [5.3502, 100.5385, 15], [5.35045, 100.5385, 30]]], dist: 50, moving: 0, since: start, paused: 0, last: null, at };
   const { page, ctx, errors } = await boot({ extra: page => page.addInitScript(s => { if (!sessionStorage.getItem('live')) { localStorage.setItem('healthwiz_run_live', s); sessionStorage.setItem('live', '1'); } }, JSON.stringify(live)) });
   await go(page, 'health');
-  assert.match(await txt(page, '#hub [data-v="run"]'), /paused · 0\.05 km/);
+  assert.match(await txt(page, '#hub [data-v="stair"]'), /run paused · 0\.05 km/);
   await go(page, 'run');
   assert.equal(await page.evaluate(() => HWRun.state), 'paused');
   assert.match(await txt(page, '#v6run'), /PAUSED[\s\S]*interrupted/);

@@ -79,14 +79,15 @@ test('quest:completed fires once when the original awards a daily quest; level:u
 
 test('edit, delete, undo, page views and energy emit their events', async () => {
   const { page, ctx, errors } = await openApp();
-  await go(page, 'pulse');
-  await page.fill('#pb', '70');
-  await page.click('[data-a="savepulse"]');
+  await go(page, 'stair');
+  await page.click('.sqlist .chip >> nth=0');
+  await page.fill('#ss', '10'); await page.fill('#sc', '7');
+  await page.click('[data-a="savestair"]');
   await listen(page);
-  await page.click('[data-a="edit"]');
+  await page.click('#stlog [data-a="edit"]');
   await page.fill('#ev', '75');
   await page.click('[data-a="esave"]');
-  await page.click('[data-a="del"]');
+  await page.click('#stlog [data-a="del"]');
   await page.click('#toasts [data-a="undo"]');
   await go(page, 'home');
   await page.click('[data-a="ener"][data-i="4"]');
@@ -96,7 +97,7 @@ test('edit, delete, undo, page views and energy emit their events', async () => 
   assert.equal((await events(page, 'entry:deleted'))[0].entry.v, 75);
   assert.equal((await events(page, 'entry:restored'))[0].entry.v, 75);
   const pv = (await events(page, 'page:viewed')).at(-1);
-  assert.deepEqual([pv.from, pv.view], ['pulse', 'home']);
+  assert.deepEqual([pv.from, pv.view], ['stair', 'home']);
   const en = await events(page, 'energy:rated');
   assert.deepEqual(en.map(e => [e.value, e.first]), [[4, true], [5, false]]);
   assert.deepEqual(errors, []);

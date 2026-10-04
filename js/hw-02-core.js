@@ -45,13 +45,16 @@ const sum=(c,d)=>A(c,d).reduce((a,x)=>a+(+x.v||0),0);
 const kc=d=>sum('food',d),wt=d=>sum('water',d),sp=d=>sum('stair',d);
 const cl=d=>A('stair',d).reduce((a,x)=>a+(+x.m.climbs||0),0);
 const avg=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:null;
-const rest=d=>{const a=A('pulse',d).filter(x=>x.m.st==='Resting').map(x=>x.v);return a.length?Math.round(avg(a)):null};
-const hr=d=>{const a=A('pulse',d).map(x=>x.v);return a.length?Math.round(avg(a)):null};
+// v6 (stairs refactor): heart rate comes from stair workouts only (before / after, typed in by the user; js/v6-stairs.js).
+// Old 'pulse' entries stay in the save untouched but are no longer read here.
+const hrv=(d,k)=>A('stair',d).map(x=>+(x.m||{})[k]).filter(v=>v>=30&&v<=220),hrS=d=>A('stair',d).filter(x=>x.m&&(+x.m.hrB||+x.m.hrA)).length;
+const rest=d=>{const a=hrv(d,'hrB');return a.length?Math.round(avg(a)):null}; // before a workout
+const hr=d=>{const a=hrv(d,'hrA');return a.length?Math.round(avg(a)):null}; // right after a workout
 const str=d=>{const a=A('stress',d).map(x=>x.v);return a.length?+avg(a).toFixed(1):null};
 function add(c,v,m,note,d,t,xp,msg){st.e.push({id:Date.now()+''+Math.floor(Math.random()*999),c,v,m:m||{},n:note||'',d:d||today(),t:t||nowT()});save();gain(xp==null?10:xp,msg);if(RGN[c])setTimeout(()=>toast(RGN[c]+' grows brighter ✨'),300)}
 const bmi=()=>+(st.p.w/Math.pow(st.p.h/100,2)).toFixed(1);
 const bcat=b=>b<18.5?'Underweight range':b<25?'Healthy weight range':b<30?'Overweight range':'Obesity range';
-function score(d){const w=Math.min(1,wt(d)/st.s.water)*25,ms=new Set(A('food',d).map(x=>x.m.meal)).size,f=Math.min(1,ms/3)*20,s=Math.min(1,sp(d)/100)*25,p=A('pulse',d).length?10:0,k=A('stress',d).length?10:0,c=kc(d),q=c>=st.s.kcal*.6&&c<=st.s.kcal*1.1?10:0;return Math.round(w+f+s+p+k+q)}
+function score(d){const w=Math.min(1,wt(d)/st.s.water)*25,ms=new Set(A('food',d).map(x=>x.m.meal)).size,f=Math.min(1,ms/3)*20,s=Math.min(1,sp(d)/100)*25,p=A('pulse',d).length||hrS(d)?10:0,k=A('stress',d).length?10:0,c=kc(d),q=c>=st.s.kcal*.6&&c<=st.s.kcal*1.1?10:0;return Math.round(w+f+s+p+k+q)}
 const quests=d=>QD(d).map(q=>[q.n,q.p>=1]);
 function chart(v,lb,c,u,tg,tl){const vs=v.map(x=>+x||0),mx=Math.max(1,...vs,tg||0),lg=vs.filter(x=>x),av=lg.length?avg(lg):null,r=x=>Math.round(x*10)/10;
 return '<div class="ch">'+(tg?'<b class="tg" style="bottom:calc(3px + (100% - 6px)*'+(tg/mx).toFixed(4)+')"><span>'+(tl||'target')+' '+r(tg)+'</span></b>':'')+v.map((x,i)=>'<div title="'+lb[i]+': '+(x==null||x===0?'-':r(x))+' '+u+'"><i style="height:'+(x?Math.max(4,x/mx*100):0)+'%;background:'+c+'"></i></div>').join('')+'</div>'+(lb.length<=7?'<div class="chl">'+lb.map(d=>'<span>'+(/^\d{4}-\d{2}-\d{2}$/.test(d)?DOW[new Date(d+'T12:00:00').getDay()]:esc(String(d).slice(0,3)))+'</span>').join('')+'</div>':'')+'<small>'+(av!=null?'avg '+r(av)+' '+u+' (logged days) · ':'')+'peak '+r(Math.max(0,...vs))+' '+u+'</small>'}
@@ -77,7 +80,7 @@ pages.welcome=()=>{const bl=Array.from({length:96},(_,i)=>'<i style="left:'+(i/9
 cd=[[6,1.2,70,-10],[15,.8,95,-50],[26,1.5,120,-30],[10,.7,80,-65],[37,1,105,-90]].map(c=>'<div class="cd" style="top:'+c[0]+'%;--s:'+c[1]+';--d:'+c[2]+'s;animation-delay:'+c[3]+'s"></div>').join(''),
 co=[[40,0,0],[50,26,-.4],[60,0,-.8]].map(c=>'<div class="cw" style="left:'+c[0]+'%;bottom:calc(22% + '+(118+c[1])+'px);--dl:'+c[2]+'s"><div class="cn">'+COIN+'</div></div>').join('');
 return '<div class="wl"><div class="bg" aria-hidden="true"><div class="sky"></div>'+cd+'<div class="hl"></div><div class="tw">'+TOWER+'</div><div class="il big">'+isl(1)+'</div><div class="il sm">'+isl(0)+'</div><div class="gd"></div><div class="gr">'+bl+'</div><div class="fn">'+FENCE+'</div><div class="pp">'+PIPE+'</div><div class="hr"><div class="br2">'+HERO(5)+'</div></div>'+co+'</div><div class="tt"><div class="t1"><h1>HEALTHWIZ<br>KINGDOM</h1><p>a journey to better health</p></div><p class="by t2">BY GROUP 14</p></div><div class="ct"><button data-a="go" data-v="home">'+(st.e.length||st.xp?'CONTINUE QUEST':'START YOUR QUEST')+'</button></div><div class="ft">Wellness tracker, not a medical device.</div></div>'};
-const REG=[['💧','Water Valley',()=>st.e.some(x=>x.c==='water'),'#7cc6f0','log water'],['🍗','Nutrition Village',()=>st.e.some(x=>x.c==='food'),'#f0c070','log a meal'],['❤️','Heartstone Hall',()=>st.e.some(x=>x.c==='pulse'),'#f09090','save a pulse'],['🧗','Stair Mountain',()=>st.e.some(x=>x.c==='stair'),'#c8b8a0','save a stair session'],['🧠','Mind Forest',()=>st.e.some(x=>x.c==='stress'),'#90d890','finish a stress check-in'],['⚖️','Balance Tower',()=>st.e.some(x=>x.c==='bmi')||st.s.set,'#c0a8f0','save BMI or a calorie target']];
+const REG=[['💧','Water Valley',()=>st.e.some(x=>x.c==='water'),'#7cc6f0','log water'],['🍗','Nutrition Village',()=>st.e.some(x=>x.c==='food'),'#f0c070','log a meal'],['❤️','Heartstone Hall',()=>st.e.some(x=>x.c==='pulse'||(x.c==='stair'&&x.m&&(+x.m.hrB||+x.m.hrA))),'#f09090','log heart rate in a workout'],['🧗','Stair Mountain',()=>st.e.some(x=>x.c==='stair'),'#c8b8a0','save a stair session'],['🧠','Mind Forest',()=>st.e.some(x=>x.c==='stress'),'#90d890','finish a stress check-in'],['⚖️','Balance Tower',()=>st.e.some(x=>x.c==='bmi')||st.s.set,'#c0a8f0','save BMI or a calorie target']];
 const hdr=()=>{const L=lvl(),p=L.hi?(st.xp-L.lo)/(L.hi-L.lo)*100:100;return '<header>'+avatar(3)+'<div><h1>HEALTHWIZ</h1><small>Your Health. Your Quest.</small></div><div class="lv"><b>Lv '+(L.i+1)+' · '+L.n+'</b>'+bar(p,'var(--gold)')+'<small>'+st.xp+' XP'+(L.hi?' / '+L.hi:'')+'</small></div></header>'}; // v6 (§30): the three decorative hearts (and their "no hearts lost" note) are gone
 function foodItems(){const q=S.q.trim().toLowerCase(),dd=DAYS[S.src];let ids,note='';if(q)ids=F.map((f,i)=>i).filter(i=>F[i][0].toLowerCase().includes(q));else if(dd&&dd[S.meal])ids=dd[S.meal];else{ids=F.map((f,i)=>i);if(S.src!=='all')note='<small>No '+MN(S.meal)+' in this menu day, showing all foods.</small>'}
 return note+[...new Set(ids)].map(i=>'<button class="it" data-a="pick" data-i="'+i+'"><b>'+esc(F[i][0])+'</b><span>'+esc(F[i][1])+' · '+(F[i][2]==null?'kcal not listed':F[i][2]+' kcal')+'</span></button>').join('')}
@@ -219,7 +222,8 @@ requestAnimationFrame(f)})(t0)}
 acts.savepulse=()=>{const v=+$('#pb').value;if(!(v>=30&&v<=220)){toast('Check your value: enter 30 to 220 BPM');return}add('pulse',v,{st:$('#ps').value},$('#pn').value,$('#pd').value||today(),$('#pt').value||nowT(),15,'Pulse saved');render()};
 const CATS=[['🌿','MILD'],['⚔️','MODERATE'],['🔥','VIGOROUS']];
 const STAIRS=[
-{"id": "ST01", "cat": "MILD", "name": "Tangga Selangkah Menara Gading", "floor": "G level", "angle": 7.26, "lat": null, "lng": null},
+// v6 (stairs refactor): ST01 "Tangga Selangkah Menara Gading" 7.26° removed: a placeholder shipped in the code (same name as ST02, no
+// coordinates) that showed as the pre-selected stairway. Sessions already logged there keep their own name and data.
 {"id": "ST02", "cat": "MILD", "name": "Tangga Selangkah Menara Gading", "floor": "G level", "angle": 14.25, "lat": null, "lng": null},
 {"id": "ST03", "cat": "MILD", "name": "Tangga ke Dewan Mawar / Makmal Fizik (depan office)", "floor": "G level", "angle": 19.6, "lat": 5.3515422, "lng": 100.5380308},
 {"id": "ST04", "cat": "MILD", "name": "Tangga dari cafe ke court tennis", "floor": "G level", "angle": 20.94, "lat": 5.3504943, "lng": 100.5389913},
@@ -264,7 +268,7 @@ acts.loc=d=>{S.loc=+d.i;S.cat=STAIRS[S.loc].cat;render()};acts.cat=d=>{S.cat=d.c
 acts.pstart=()=>{S.pb.on=1;S.pb.k=0;clearInterval(S.tm);S.tm=setInterval(tickPB,PACES[S.pb.pace][2]);render()};
 acts.slow=()=>{if(S.pb.pace===0){toast('Already easy. Rest if you need to.');return}S.pb.pace--;acts.pstart()};
 acts.pstop=()=>{clearInterval(S.tm);S.pb.on=0;render();toast('Stopped. Rest and breathe normally.')};
-acts.savestair=()=>{const s=+$('#ss').value,c=+$('#sc').value,b=+$('#sb').value,a=+$('#sa').value;if(!(s>=1&&c>=1&&c<=500)){toast('Enter steps per climb and number of climbs');return}if((b&&(b<30||b>220))||(a&&(a<30||a>220))){toast('Heart rates should be 30 to 220');return}const q=STAIRS[S.loc],d=$('#sdt').value||today(),t=$('#stm').value||nowT();add('stair',s*c,{sid:q.id,loc:q.name,diff:q.cat,floor:q.floor,angle:q.angle,lat:q.lat,lng:q.lng,steps:s,climbs:c,dur:+$('#sd').value||0,pace:$('#sq').value,hrB:b||null,hrA:a||null},$('#sn').value,d,t,25,'Stair session');if(a)add('pulse',a,{st:'After stairs'},'from stair session',d,t,0);render()};
+acts.savestair=()=>{const s=+$('#ss').value,c=+$('#sc').value,b=+$('#sb').value,a=+$('#sa').value;if(!(s>=1&&c>=1&&c<=500)){toast('Enter steps per climb and number of climbs');return}if((b&&(b<30||b>220))||(a&&(a<30||a>220))){toast('Heart rates should be 30 to 220');return}const q=STAIRS[S.loc],d=$('#sdt').value||today(),t=$('#stm').value||nowT();add('stair',s*c,{sid:q.id,loc:q.name,diff:q.cat,floor:q.floor,angle:q.angle,lat:q.lat,lng:q.lng,steps:s,climbs:c,dur:+$('#sd').value||0,pace:$('#sq').value,hrB:b||null,hrA:a||null},$('#sn').value,d,t,25,'Stair session');render()}; // v6: no duplicate pulse entry (replaced by js/v6-stairs.js)
 /* STRESS QUEST v2 - THE STORM WITHIN */
 const SQP={o:'#e8742a',y:'#f2c14e',w:'#fff',k:'#2b2418',m:'#7a1f1f',v:'#c9b0f0',p:'#8767c8',t:'#2aa7a0',g:'#8a8f99',b:'#3f6fd0',c:'#9fe3f0',f:'#fff'};
 const SQM={

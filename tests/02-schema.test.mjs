@@ -134,8 +134,9 @@ test('renamed places appear in the UI', async () => {
   const t = await page.textContent('#main');
   assert.match(t, /Heartstone Hall/);
   assert.match(t, /Balance Tower/);
-  await go(page, 'pulse');
-  assert.match(await page.textContent('#main'), /Heartstone Hall/);
+  await go(page, 'kingdom');
+  await page.click('[data-a="kreg"][aria-label="Details for Heartstone Hall"]');
+  assert.match(await page.textContent('#mo'), /Heartstone Hall/);
   assert.deepEqual(errors, []);
   await ctx.close();
 });

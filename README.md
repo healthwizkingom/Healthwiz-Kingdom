@@ -1,7 +1,7 @@
 # Healthwiz-Kingdom
 
 **HealthWiz Kingdom** (by Group 14) is a pixel-art fantasy RPG that is also a health tracker.
-You log water, meals, sleep, pulse, stairs and stress, and Medius, the Wizard King, guides you
+You log water, meals, sleep, stairs (with workout heart rate), runs and stress, and Medius, the Wizard King, guides you
 as your actions restore the kingdom. It is a wellness tracker, not a medical device.
 
 The app is the team's original **v5.4.3** build, split into files so it can live safely in git.
@@ -29,6 +29,7 @@ js/v6-ui.js                shared UI helpers (injected styles, completion banner
 js/v6-pixel.js             pixel-art standard: design tokens, panel/HUD classes, crisp pixel icons (guide: docs/PIXEL_STYLE.md)
 js/v6-emoji.js             every emoji the app shows drawn as pixel art (hand-drawn icon or the emoji pixelated)
 js/v6-provisions.js        Nutrition & Hydration as one page (the Provisions Hall): 'food' and 'water' are its two halves
+js/v6-stairs.js            the Stairs page: casual climbing (GPS + by hand), stair workout (heart rate before/after, calorie estimate), running; one session model
 js/v6-motion.js            animation settings + performance modes (High / Balanced / Performance), off-screen pause
 js/v6-particles.js         one shared canvas particle system (level-up, badges, quests)
 js/v6-insights.js          "Medius notices": insights from your own baselines and trends
@@ -49,7 +50,7 @@ js/v6-food.js              Market Kitchen mini-game (pick foods from stalls, coo
 js/v6-trail.js             Adventure Trail mini-game (follow trail blazes at forks, climb the stairs in rhythm)
 js/v6-grove.js             Calming Grove mini-game (follow a light over the pond as it grows and shrinks with your breath)
 js/v6-night.js             Night Watch mini-game (match star-chart constellations in the night sky)
-js/v6-gps.js               GPS check-in on the Stair Quest page (one reading on tap, nearest stairway, confirm, discovery)
+js/v6-gps.js               GPS check-in on the Stairs page (one reading on tap, nearest stairway, confirm, discovery)
 js/v6-pwa.js               install as an app + offline: manifest/icon links, service worker, offline badge, Settings card
 js/v6-cloud.js             optional Supabase cloud save: sign-in, sync with offline queue, three-way merge, Settings card
 js/v6-board.js             Hall of Heroes: opt-in leaderboard of game progress only (Quest Board card + Settings privacy card)

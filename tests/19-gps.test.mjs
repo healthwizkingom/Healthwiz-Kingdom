@@ -18,8 +18,8 @@ const find = page => page.click('#v6gps [data-a="gpsfind"]');
 
 test('GPS check-in: explanation first, one reading, nearby list, confirm logs a stair session, discovery once, position never saved', async () => {
   const { page, ctx, errors } = await boot({ pos: AT_ST20 });
-  assert.match(await page.textContent('#v6gps'), /GPS CHECK-IN[\s\S]*at Kolej MARA Kulim\?[\s\S]*28 of 33 stairways are on the map; the other 5 can be logged by hand[\s\S]*discovered: 0 \/ 28/);
-  const order = await page.evaluate(() => { const h = document.querySelector('#main').innerHTML; return h.indexOf('v6gps') < h.indexOf('SAVE STAIR SESSION'); });
+  assert.match(await page.textContent('#v6gps'), /GPS CHECK-IN[\s\S]*at Kolej MARA Kulim\?[\s\S]*28 of 32 stairways are on the map; the other 4 can be logged by hand[\s\S]*discovered: 0 \/ 28/);
+  const order = await page.evaluate(() => { const h = document.querySelector('#main').innerHTML; return h.indexOf('v6gps') < h.indexOf('SAVE CLIMB'); });
   assert.ok(order, 'card sits above the manual form');
   await find(page);
   assert.match(await page.textContent('#v6gps'), /WHY LOCATION\?[\s\S]*read once[\s\S]*never saved, shared or shown/);
@@ -45,6 +45,7 @@ test('GPS check-in: explanation first, one reading, nearby list, confirm logs a 
   assert.equal(s.e.length, 1);
   const e = s.e[0];
   assert.equal(e.c, 'stair'); assert.equal(e.v, 40); assert.equal(e.m.sid, 'ST20'); assert.equal(e.m.chk, 'gps'); assert.equal(e.m.climbs, 2);
+  assert.equal(e.m.kind, 'casual'); assert.equal(e.m.src, 'gps'); assert.equal(e.n, '', 'no notes');
   const xp = () => page.evaluate(() => HWEvents.recent('xp:gained').map(x => [x.amount, x.reason]).filter(x => /check-in|Discovered/.test(x[1])));
   assert.deepEqual(await xp(), [[25, 'Stair check-in'], [5, 'Discovered Tangga sebelah rumah penjana elektrik ke Dewan Kenanga']], '25 for the session + 5 for the discovery');
   assert.ok(s.gp.v.ST20);
@@ -94,7 +95,7 @@ test('weak signal pauses check-in; far away shows the nearest; denied permission
   r = await boot({ seed, grant: false, pos: AT_ST20 });
   await find(r.page);
   await r.page.waitForSelector('#v6gps [role="alert"]', { timeout: 30000 });
-  assert.match(await r.page.textContent('#v6gps'), /permission is off[\s\S]*Nothing was saved[\s\S]*log a session by hand/);
+  assert.match(await r.page.textContent('#v6gps'), /permission is off[\s\S]*Nothing was saved[\s\S]*log a climb by hand/);
   assert.equal((await state(r.page)).e.length, 0);
   assert.deepEqual(r.errors, []);
   await r.ctx.close();
@@ -110,7 +111,7 @@ test('stairways without coordinates are never GPS targets; distance and radius m
       d: Math.round(HWGps.dist(5.3519878, 100.5383771, 5.3525206, 100.5386027)), r: [HWGps.radius(0), HWGps.radius(30), HWGps.radius(500)] };
   });
   assert.equal(r.n, 28);
-  for (const id of ['ST01', 'ST02', 'ST08', 'ST16', 'ST29']) assert.ok(!r.ids.includes(id), id + ' has no coordinates');
+  for (const id of ['ST02', 'ST08', 'ST16', 'ST29']) assert.ok(!r.ids.includes(id), id + ' has no coordinates');
   assert.ok(r.sorted);
   assert.ok(r.d > 55 && r.d < 75, 'ST20 → ST19 is about 64 m: ' + r.d);
   assert.deepEqual(r.r, [35, 65, 100]);

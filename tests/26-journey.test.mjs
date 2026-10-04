@@ -69,12 +69,13 @@ test('a new adventurer’s first day on a phone, end to end, with zero console e
   await go(page, 'water'); await page.tap('[data-a="wa"][data-v="250"]');
   await go(page, 'food'); await page.fill('#q', 'roti canai'); await page.tap('#fl .it'); await page.tap('[data-a="addfood"]');
   await go(page, 'sleep'); await page.fill('#slb', '23:00'); await page.fill('#slw', '07:00'); await page.tap('[data-a="slsave"]');
-  await go(page, 'pulse'); await page.fill('#pb', '72'); await page.tap('[data-a="savepulse"]');
-  await go(page, 'stair'); await page.fill('#ss', '12'); await page.fill('#sc', '2'); await page.tap('[data-a="savestair"]');
+  await go(page, 'pulse'); await page.selectOption('#wk-loc', 'ST03'); await page.fill('#wk-b', '72'); await page.fill('#wk-a', '118');
+  await page.fill('#wk-s', '12'); await page.fill('#wk-c', '3'); await page.fill('#wk-d', '5'); await page.tap('[data-a="stwsave"]');
+  await go(page, 'stair'); await page.tap('.sqlist .chip >> nth=0'); await page.fill('#ss', '12'); await page.fill('#sc', '2'); await page.tap('[data-a="savestair"]');
   await go(page, 'bmi'); await page.fill('#bh', '160'); await page.fill('#bw', '52'); await page.tap('[data-a="savebmi"]');
   await go(page, 'home'); await page.tap('[data-a="ener"][data-i="4"]');
-  await go(page, 'pulse'); await page.tap('[data-a="edit"]'); await page.fill('#ev', '74'); await page.tap('[data-a="esave"]');
-  await page.tap('[data-a="del"]'); await page.tap('#toasts [data-a="undo"]');
+  await go(page, 'stair'); await page.tap('#stlog [data-a="edit"]'); await page.fill('#ev', '74'); await page.tap('[data-a="esave"]');
+  await page.tap('#stlog [data-a="del"]'); await page.tap('#toasts [data-a="undo"]');
   for (const v of PAGES) { await go(page, v); assert.equal(await snag(page), false, v); }
   await go(page, 'kingdom');
   for (const id of await page.evaluate(() => HWGames.games.map(g => g.id))) {
@@ -90,9 +91,12 @@ test('a new adventurer’s first day on a phone, end to end, with zero console e
   await page.reload();
   await page.waitForSelector('.wl');
   const after = await page.evaluate(() => st);
-  assert.deepEqual([...new Set(after.e.map(e => e.c))].sort(), ['bmi', 'food', 'pulse', 'sleep', 'stair', 'water']);
+  assert.deepEqual([...new Set(after.e.map(e => e.c))].sort(), ['bmi', 'food', 'sleep', 'stair', 'water'], 'no separate pulse entries');
   assert.equal(after.e.length, before.e.length);
-  assert.ok(after.e.some(e => e.c === 'pulse' && e.v === 74), 'edit kept');
+  assert.ok(after.e.some(e => e.c === 'stair' && e.v === 74), 'edit kept');
+  const w = after.e.find(e => e.c === 'stair' && e.m.kind === 'workout');
+  assert.deepEqual([w.m.hrB, w.m.hrA, w.m.dur], [72, 118, 5]);
+  assert.ok(w.m.kcal && w.m.kcal.v > 0, 'onboarding profile → calorie estimate');
   assert.deepEqual([after.p.name, after.s.onb, after.s.theme, after.s.perf], ['Aina', 1, 'dark', 'performance']);
   assert.ok(after.xp > 0 && Object.keys(after.en).length === 1);
   assert.deepEqual(errors, []);

@@ -546,7 +546,7 @@ now waits for `DOMContentLoaded`, which comes after every script and the first r
 
 `js/v6-gps.js` (`HWGps`) adds a **GPS CHECK-IN** card under the Stair Quest heading. It uses the original `STAIRS`
 list in `js/hw-02-core.js`, so there is only one place for stairway data. A stairway with `lat`/`lng` can be found by
-GPS. A stairway whose coordinates are still `null` (ST01, ST02, ST08, ST16, ST29 today) is listed for manual logging
+GPS. A stairway whose coordinates are still `null` (ST02, ST08, ST16, ST29 today; ST01 was removed in §34) is listed for manual logging
 only, and joins GPS check-in as soon as its coordinates are filled in there.
 
 * *Flow (§44):* FIND STAIRS NEAR ME → the first time, a short explanation (why, read once, never stored) with ALLOW
@@ -1001,3 +1001,69 @@ win; every quarter hour changes strength without a jump; quality, earlier nights
 the page ends as planned; replay; reduced motion; no sleep logged; phone portrait and landscape) and
 `tests/32-water-quest.test.mjs` (painted layers and lighting by time of day; the full knight sequence; saved once and
 after a reload; a second log mid-sequence; the target banner waits; six screen sizes; leaving mid-sequence; reduced motion).
+
+## 34. Stairs refactor: Pulse and Running move into one Stairs page, one session model
+
+**Why.** Stair activity was logged two ways (GPS check-in and a manual form) and heart rate a third way (the Pulse
+page), and the manual stair form copied its after-workout heart rate into a separate `pulse` entry, so the same
+reading lived twice. Running had its own page. Now one page holds all of it and one record shape holds every session.
+
+**The page (`js/v6-stairs.js`, `HWStairs`, loaded right after `js/v6-provisions.js`).** `pages.stair` is rebuilt as a
+HUD (steps today, sessions and workouts this week, last workout heart rate, daily-climb bar, jump buttons) and three
+sections, each with a fantasy name and a plain label:
+1. **Wanderer's Stairs · casual stair climbing**: the GPS CHECK-IN card (`HWGps.card()`, no longer injected by
+   `js/v6-gps.js` itself) and LOG A CLIMB BY HAND (stairway picker, steps per climb × climbs, date and time).
+2. **Trial of Breath · stair workout**: PACE & BREATHE (the original rhythm guide and climber, now also the workout
+   clock, plus a stairway list), HEART RATE · THIS WORKOUT (BEFORE and AFTER, each a typed BPM and its own animated
+   trace in blue / red), SEAL THE WORKOUT (steps, minutes from the timer or typed, the calorie estimate, SAVE), then
+   HEART RATE · RECENT WORKOUTS (before ● and after ■ per workout, legend, hover titles, table view; the two series
+   colours pass the palette validator in light and dark) and the SESSION CHRONICLE (every session as a card with
+   WORKOUT/CASUAL and GPS/BY HAND tags, pace, minutes, estimate, before/after bars, edit and delete).
+   The Adventure Trail launch card sits after the chronicle (marker `<!--stair-games-->`).
+3. **Running Road · running**: the run tracker from `js/v6-running.js` (`HWRun.section()`), unchanged in behaviour.
+   Its map (Leaflet + OSM tiles) loads only when Running is wanted (the old `run` route, the Running jump button,
+   a run started or in progress, or SHOW MAP) and once it is on screen, so logging stairs never downloads a map.
+
+**Retired.** The Pulse page (BPM, activity, date/time, notes, SAVE PULSE, its ECG and its history) and the Health Hall
+tiles for Pulse and Running. The old routes stay valid: `go('pulse')` opens the Workout section and `go('run')` the
+Running section, so the kingdom map node, quest links, the home tile and saved links all still work. Removed from the
+stair forms: Notes and the free Duration field (workout minutes now come from the timer and can be corrected).
+No pulse entries are created any more. `pages.pulse`, `acts.savepulse`, `ecg()` and the original form code remain in
+`js/hw-02-core.js` (the fidelity test keeps every original name); they are overridden or unused.
+
+**One session model.** Every session is a `stair` entry (`v` = total steps); `m` gains `kind` ('casual' | 'workout'),
+`src` ('gps' | 'manual'), `hrS` ('manual': heart rate counted and typed by the user) and `kcal` ({v, lo, hi, m} at save
+time). Older entries are read through `HWStairs.session()`, which infers `kind` (heart rate or minutes → workout) and
+`src` (`chk:'gps'` → gps). Nothing is rewritten in storage, so there is no schema step (`sv` stays 8): old backups,
+cloud merges and other devices keep working.
+
+**Old pulse data.** Kept as is, in the save and in backups, never deleted; no longer listed (Settings' entry list hides
+them and drops the `pulse` filter). Everything that read pulse now reads workout heart rates: `rest(d)` = average
+before-workout BPM, `hr(d)` = average after-workout BPM (Statistics, Guide, insights' "check your data"), the home
+Heart rate tile (last after-workout BPM, opens the Workout), Heartstone Hall's restoration (`logd('pulse')`: a day with
+an old pulse entry or a workout heart rate, so past progress is kept), its region panel, the daily score, the focus quest
+(now "Heart check": before and after in one workout), the badges (heart-rate readings = workouts with a heart rate + old
+standalone pulse entries, not the copies stair sessions used to make) and the tutorial steps.
+
+**Calorie estimate (`HWStairs.estimate`).** Shown only when the profile was confirmed by the user (onboarding sealed, or
+age, sex, height and weight saved in the Workout's own small form, which sets `st.p.cfm`; the app's default 60 kg /
+165 cm / 16 y never count) and a workout time exists. Method A: 2024 Adult Compendium MET for stair climbing at the chosen
+pace (Easy 4.5 = 17133 slow, Moderate 6.8 = 17131 general, Vigorous 9.3 = 17134 fast) × the person's resting energy
+per minute (Mifflin-St Jeor BMR ÷ 1440) × minutes. Method B, only with an after-workout heart rate of 90–180 BPM:
+Keytel et al. 2005 (J Sports Sci 23:289), kJ/min from heart rate, weight, age and sex, ÷ 4.184 × minutes. The estimate
+is the mean of the methods used, with their spread as a range; it is labelled an estimate, and a rough guide for
+under-18s (both formulas come from adult data).
+
+**Demo stairway.** ST01 "Tangga Selangkah Menara Gading" (7.26°) was a placeholder in the shipped code, not user data:
+the same name as ST02, no coordinates, and shown pre-selected on every visit. It is gone, and no stairway is chosen until
+the user picks one or checks in by GPS. Sessions already logged there keep their own name and numbers.
+
+**Never fabricated.** A trace shows a BPM only when one was typed in ("NOT ENTERED" otherwise); nothing claims to come
+from a device. Traces animate only while they have a BPM and are on screen (battery); reduced motion draws them still.
+
+Tests: `tests/33-stairs.test.mjs` (section order and names, no Pulse page / pulse form / demo stairway / pre-selection,
+routes, manual and GPS sessions with one record shape, the workout end to end with both traces, the timer and a refresh,
+the estimate against hand-worked numbers, missing profile and invalid input, old data kept untouched and read through
+the model, 360 px). Updated: `01`, `02`, `03`, `16`, `19`, `24`, `25-matrix-input`, `26`, `27`, `28` (they used the
+Pulse page, the Running tile or ST01).
+

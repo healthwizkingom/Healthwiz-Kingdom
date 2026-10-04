@@ -25,8 +25,8 @@ async function walk(page, detour = false) {
 test('Adventure Trail: launch card, forks, a friendly detour, stairs, XP once, discovery, no activity logged', async () => {
   const { page, ctx, errors } = await boot(seed(3, 0));
   assert.match(await page.textContent('#v6gl-trail'), /Adventure Trail[\s\S]*\+10 XP once a day/);
-  const order = await page.evaluate(() => { const h = document.querySelector('#main').innerHTML; return h.indexOf('v6gl-trail') < h.indexOf('PACE &amp; BREATHE'); });
-  assert.ok(order, 'launch card before Pace & Breathe');
+  const order = await page.evaluate(() => { const h = document.querySelector('#main').innerHTML; return h.indexOf('id="stlog"') < h.indexOf('v6gl-trail') && h.indexOf('v6gl-trail') < h.indexOf('id="st-run"'); });
+  assert.ok(order, 'launch card after the Session Chronicle, before Running')
   const s0 = await state(page);
   await play(page);
   assert.match(await page.textContent('.v6gst'), /Checkpoint 0 \/ 4 · follow the (yellow square|red triangle|blue circle|white diamond)/);

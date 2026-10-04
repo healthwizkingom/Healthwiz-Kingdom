@@ -1,5 +1,5 @@
 /* v6: GPS running tracker, Strava style. Not part of the original.
-   The Health Hall gets a 🏃 RUNNING tile that opens the Run page (BACK returns to the Health Hall).
+   Shown as the RUNNING ROAD section at the bottom of the Stairs page (js/v6-stairs.js); the old 'run' route opens it.
    Flow: why location is needed (asked once) → START RUN → navigator.geolocation.watchPosition (high accuracy) →
    every good fix adds its Haversine distance (HWGps.dist, js/v6-gps.js) and extends the route line on the map →
    PAUSE / RESUME → FINISH RUN saves the workout. Leaving the page does not stop a run: it records until FINISH.
@@ -97,7 +97,7 @@ function wake(on){const w=N.wakeLock;if(on){if(WL||!w||D.visibilityState==='hidd
   else if(WL){const l=WL;WL=null;l.release().catch(()=>{})}}
 
 function start(){if(R)return;U={k:'idle'};R={id:uuid(),start:Date.now(),segs:[[]],dist:0,moving:0,since:Date.now(),paused:0,last:null};sig=null;
-  if(!watch()){R=null;paint();return}wake(1);live();paint();redraw()}
+  if(!watch()){R=null;paint();return}wake(1);live();paint();want=1;lazy();redraw()}
 function pauseRun(){if(!R||R.since==null)return;const t=Date.now();R.moving+=t-R.since;R.since=null;R.paused=t;wake(0);live()}
 function resume(){if(!R||R.since!=null)return;U={k:'idle'};if(!watch()){paint();return}
   if(R.segs[R.segs.length-1].length)R.segs.push([]);R.last=null;R.since=Date.now();delete R.rec;wake(1);live()}
@@ -224,23 +224,35 @@ function runs(){const L=DB.runs.slice().reverse(),wk=Date.now()-7*864e5,W7=L.fil
     +L.slice(0,SHOW).map(r=>'<div class="v6rl"><div><b>'+km(r.dist)+' km · '+clock(r.dur)+'</b><small>'+esc(when(r))+' · '+fmtPace(r.pace)+' /km · '+(r.up?'☁️ in your cloud':r.bad?'⚠️ not accepted by the cloud':'📱 on this device')+'</small></div>'
       +btn('rundel',arm===r.id?'TAP AGAIN':'DELETE','sm g',' data-id="'+esc(r.id)+'" aria-label="'+(arm===r.id?'Tap again to delete':'Delete')+' the run of '+esc(when(r))+'"')+'</div>').join('');
   return h+'<p class="mut" role="status" style="margin-top:8px">'+cloudLine()+'</p>'}
-pages.run=()=>{Promise.resolve().then(mount);
-  return '<h2>🏃 RUNNING</h2><div class="card" id="v6run">'+card()+'</div>'
+// the Running section of the Stairs page (js/v6-stairs.js); the old 'run' route opens that section
+const ON='stair',here=()=>S.v===ON;
+// the map (and Leaflet + tiles from the internet) loads only when wanted: arriving at Running, a run started or
+// recorded, or SHOW MAP; then once the map is on screen. Someone only logging stairs never loads it.
+let IO=null,want=0;
+function lazy(){if(IO){IO.disconnect();IO=null}const el=D.getElementById('map');if(!el||el===M.el)return;
+  if(!want&&!R){el.innerHTML='<div class="v6rmt"><small>The route map loads when you start a run.</small>'+btn('runmap','🗺️ SHOW MAP','sm g')+'</div>';return}
+  if(typeof IntersectionObserver==='undefined'){mount();return}
+  IO=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){IO.disconnect();IO=null;mount()}},{rootMargin:'200px 0px'});IO.observe(el)}
+function section(){Promise.resolve().then(lazy);
+  return '<div class="card" id="v6run">'+card()+'</div>'
     +'<div class="card v6rmc"><div class="row v6rmh"><h3>🗺️ ROUTE</h3>'+btn('runcentre','⌖ CENTRE','sm g',' aria-label="Centre the map on the route"')+'</div><div id="map" role="region" aria-label="Route map"></div></div>'
-    +'<div class="card" id="v6runs">'+runs()+'</div>'};
-let T=0;function tick(on){clearInterval(T);T=0;if(on&&R&&R.since!=null)T=setInterval(()=>{if(S.v!=='run'||!R||R.since==null){tick(0);return}show()},1000)}
-function paint(){const el=D.getElementById('v6run');if(el)el.innerHTML=card();tick(S.v==='run')}
+    +'<div class="card" id="v6runs">'+runs()+'</div>'}
+pages.run=()=>pages.stair();
+let T=0;function tick(on){clearInterval(T);T=0;if(on&&R&&R.since!=null)T=setInterval(()=>{if(!here()||!R||R.since==null){tick(0);return}show()},1000)}
+function paint(){const el=D.getElementById('v6run');if(el)el.innerHTML=card();tick(here())}
 function paintRuns(){const el=D.getElementById('v6runs');if(el)el.innerHTML=runs()}
 // live numbers: patch the text only, so the map and the buttons are left alone
-function show(){if(S.v!=='run'||!R)return;const s=secs(),set=(i,t)=>{const e=D.getElementById(i);if(e&&e.textContent!==t)e.textContent=t};
+function show(){if(!here()||!R)return;const s=secs(),set=(i,t)=>{const e=D.getElementById(i);if(e&&e.textContent!==t)e.textContent=t};
   set('v6rd',km(R.dist));set('v6rt',clock(s));set('v6rp',fmtPace(pace(R.dist,s)));
   const c=chip(),g=D.getElementById('v6rg');if(c!==ch&&g&&c){g.outerHTML=c;ch=c}}
 
-// the Health Hall tile, wiring for render() (BACK button, banner, footnote)
-HUB.push(['run','🏃','Running','Running Road',()=>{if(R)return(R.since!=null?'🔴 recording · ':'⏸ paused · ')+km(R.dist)+' km';const r=DB.runs[DB.runs.length-1];return r?km(r.dist)+' km last run':'GPS run tracker'}]);
+// no Health Hall tile of its own any more: Running lives at the bottom of the Stairs page. Its tile shows a run in
+// progress (so a recording run is never hidden), and its footnote gains this line.
+{const h=HUB.find(x=>x[0]==='stair');if(h){const f=h[4];h[4]=d=>R?(R.since!=null?'🔴 run recording · ':'⏸ run paused · ')+km(R.dist)+' km':f(d)}}
 PAR.run='health';
 BN.run=['🏃','Running Road','The road calls. Lace up, adventurer.','rgba(232,89,12,.3)'];
 DIS.run='General exercise tracker, not medical advice. GPS distance and pace are estimates and can drift near tall buildings and trees. Watch the road, not the screen, and stop if you feel dizzy, faint or have chest pain.';
+DIS.stair=(DIS.stair||'')+' Running: '+DIS.run;
 
 acts.runstart=()=>{arm='';if(R)return;if(!DB.ok){U={k:'explain'};paint();return}start()};
 acts.runok=()=>{DB.ok=1;keep();start()};
@@ -253,14 +265,16 @@ acts.rundel=d=>{const id=d.id,i=DB.runs.findIndex(r=>r.id===id);if(i<0)return;if
   const r=DB.runs.splice(i,1)[0];if(r.up||busy)DB.del.push(id);keep();if(U.k==='done'&&U.run.id===id){U={k:'idle'};paint();redraw()}
   paintRuns();toast('🗑️ Run deleted'+(r.up?' from this device; it is removed from your cloud save as soon as it can be reached.':'.'));sync()};
 acts.runcentre=()=>{M.follow=1;if(M.map)fit()};
+acts.runmap=()=>{want=1;lazy()};
+function showMap(){want=1;lazy()}
 
 // triggers: uploads ride on the cloud save's own rhythm; leaving the page keeps a run recording
 HWEvents.on('app:ready',()=>sync());HWEvents.on('cloud:synced',()=>sync());addEventListener('online',()=>sync());
-HWEvents.on('page:viewed',e=>{if(e.view==='run'){tick(1);sync();return}tick(0);unmount();arm='';
-  if(R&&R.since!=null&&e.from==='run')toast('🏃 Your run is still recording. Health → Running to see it or finish it.')});
+HWEvents.on('page:viewed',e=>{if(e.view===ON){tick(1);sync();return}tick(0);if(IO){IO.disconnect();IO=null}unmount();arm='';
+  if(R&&R.since!=null&&e.from===ON)toast('🏃 Your run is still recording. Health → Stairs & Workout → Running to see it or finish it.')});
 D.addEventListener('visibilitychange',()=>{if(D.visibilityState==='visible'){if(R&&R.since!=null)wake(1)}else if(R)live()});
 addEventListener('pagehide',()=>{if(R)live()});
 HWEvents.on('data:reset',()=>{drop();DB={ok:0,runs:[],del:[]};try{localStorage.removeItem(K)}catch(e){}U={k:'idle'};arm=''});
 
-return{dist,judge,pace,clock,fmtPace,sync,MAXACC,MINSTEP,MAXSPD,
+return{dist,judge,pace,clock,fmtPace,sync,section,showMap,wantMap(){want=1},MAXACC,MINSTEP,MAXSPD,
   get state(){return R?(R.since!=null?'running':'paused'):U.k},get run(){return R?{dist:R.dist,secs:secs(),segs:R.segs.map(s=>s.length)}:null},runs:()=>JSON.parse(JSON.stringify(DB.runs))}})();
