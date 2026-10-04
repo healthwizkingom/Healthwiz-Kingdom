@@ -205,3 +205,21 @@ test('navigation audit: every action exists, every route is a real page, every p
   assert.deepEqual(appErrors(errors), []);
   await ctx.close();
 });
+
+test('Kingdom map: every region shows its pixel icon (the label style no longer covers it); Sleep has no fall-asleep card', async () => {
+  const { page, ctx, errors } = await boot({ context: { colorScheme: 'dark' } });
+  for (const view of ['kingdom', 'home']) {
+    await go(page, view);
+    await page.waitForTimeout(100);
+    const icons = await page.evaluate(() => [...document.querySelectorAll('.kn .ki')].map(k => { const e = k.querySelector('.pxe'), cs = e && getComputedStyle(e);
+      return e ? { img: /^url\("data:image/.test(cs.backgroundImage), border: cs.borderTopWidth, w: e.getBoundingClientRect().width } : null; }));
+    assert.equal(icons.length, 8, view);
+    for (const i of icons) { assert.ok(i && i.img, view + ': icon picture drawn'); assert.equal(i.border, '0px'); assert.ok(i.w >= 16); }
+  }
+  await go(page, 'sleep');
+  assert.doesNotMatch(await page.textContent('#main'), /TIME TO FALL ASLEEP|Keep it gentle/);
+  assert.equal(await page.locator('.sstg').count(), 0);
+  assert.equal(await page.locator('#sll').count(), 1, 'minutes to fall asleep is still logged with the night');
+  assert.deepEqual(appErrors(errors), []);
+  await ctx.close();
+});

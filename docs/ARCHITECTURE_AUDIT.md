@@ -1125,3 +1125,12 @@ should be, words for every band, the knight kept while sliding, reduced motion; 
 intercepted, fewer moving parts in Performance, none with Animations Off; the new icons and emoji mapping; toasts
 capped; readable opaque badge cards; no duplicate badge names or icons, the new badges' progress and award; the weekly
 quest counting runs; every tutorial step's target; the navigation audit at four sizes).
+
+**Follow-up (after review on a phone).**
+* *Kingdom map icons were blank squares.* The map's label style `.kn span` (cream box, 2 px border, padding) also matched
+  the spans `js/v6-emoji.js` uses to draw each emoji, and its `background` shorthand removed the picture. The emoji rules
+  now use a doubled class (`.pxe.pxe`, `.pxe.pxe.pxeN`) and reset border, padding and margin, so any component that
+  styles every `span` leaves the pictures alone. Home's mini map had the same fault.
+* *Removed the "Time to fall asleep" card* on the Sleep page (four static stages and the last logged minutes). The
+  "Minutes to fall asleep" field in LOG SLEEP stays: the Dream Battle's sleep quality uses it.
+Tests: `tests/34-final-polish.test.mjs` (all eight region icons drawn on the Kingdom page and Home, no fall-asleep card).
