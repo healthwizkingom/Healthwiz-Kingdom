@@ -1,12 +1,9 @@
 /* v6: water mini-game and well scene (master prompt §48–49, §68, §85, §97 step 15). Not part of the original.
-   1. The Water page's original Well of Life scene (#wq) and its log animation (walk → fill → carry →
-      pour → splash → flood) are unchanged. On top of them:
-        scenery     the scene follows the original six well stages (water tracking days, never the amount
-                    in one day): dry cracks → sprouts → trees and moss → fireflies → deer and a rabbit → flowers
-        well        cracked stones at first, moss and vines later, a flower ring once restored
-        ripples     rings spread across the well and water droplets jump when the bucket is poured
-        reaction    plants and animals hop when the well is filled; discoveries from the game appear here too
-        sky         two slow clouds
+   1. The Water page's scene is now drawn by js/v6-waterquest.js (layered valley, rigged knight). This file still
+      decides what the scene shows: stage() follows the original six well stages (water tracking days, never the
+      amount in one day: dry → sprouts → trees and moss → fireflies → deer and a rabbit → flowers), finds() counts
+      the Well Garden discoveries that appear there, ripple() spreads rings across the well, and SP holds the
+      pixel sprites (also used by the other mini-games).
    2. Well Garden (HWGames 'water'): a top-down garden. Tap a dry patch and the hero walks to the well,
       fills the bucket, carries it over and pours. Water all five patches and the garden blooms.
       No timer, no score, no health data. XP once a day through the framework; each first daily
@@ -68,35 +65,9 @@ HWUI.css('water',`
 html.hw-q-performance .v6wcl,html.hw-q-performance .v6wsw,html.hw-q-performance .v6wfl{animation:none!important}html.hw-q-performance .v6wff:nth-of-type(2n){display:none}
 `);
 
-/* ---------- 1. the Water page scene ---------- */
-function scenery(lv,n){let h=spr('cloud',8,12,64,'v6wcl','--d:80s')+spr('cloud',36,24,44,'v6wcl','--d:110s;animation-direction:reverse');
-  if(lv===0)h+=spr('dead',40,41,34)+'<svg class="v6wsp" viewBox="0 0 40 10" style="left:44%;top:94%;width:120px" aria-hidden="true"><path d="M2 6 l6 -3 l5 4 l7 -4 M24 5 l5 3 l6 -4" stroke="#6e8f4a" stroke-width="1.4" fill="none"/></svg>';
-  if(lv>=1)h+=[[34,53],[40,90],[50,96],[28,94]].map(p=>spr('sprout',p[0],p[1],18,'v6whop')).join('');
-  if(lv>=2)h+=spr('tree',6,42,46,'v6wsw')+spr('tree',22,41,38,'v6wsw','animation-delay:-1.4s')+spr('bush',46,43,40)+spr('bush',36,99,40);
-  if(lv>=3)h+=[[30,46,0],[44,50,1.1],[12,52,2],[52,82,.6],[24,62,1.7],[38,78,2.6]].slice(0,Math.max(3,HWMotion.count(6)||0)).map(p=>fly(p[0],p[1],p[2])).join('');
-  if(lv>=4)h+=spr('deer',44,58,52,'v6whop')+spr('rabbit',48,99,24,'v6whop');
-  if(lv>=5)h+=[[12,99],[31,99],[40,56],[53,90],[26,52],[44,94]].map((p,i)=>spr('flower',p[0],p[1],15,'v6whop','--pc:'+PC[i%5])).join('');
-  if(n>=1)h+=spr('frog',14,76,26,'v6whop');
-  if(n>=2)h+=spr('planter',33,99,40);
-  if(n>=3)h+=spr('fly',38,40,18,'v6wfl')+spr('fly',30,70,14,'v6wfl','animation-delay:-1.2s');
-  if(n>=4)h+=spr('lantern',33,76,18);
-  return '<div class="v6wqd" aria-hidden="true" data-stage="'+lv+'">'+h+'</div>'}
-// stones of the well: cracked when old, moss from Green Trees, a flower ring once restored
-function rim(lv){let g='';
-  if(lv<=1)g+='<path d="M28 52 l12 10 l-4 9 M160 40 l-10 14 l6 6 M170 150 l-12 -6 l-4 10 M40 158 l10 -4" stroke="#5f5747" stroke-width="3" fill="none"/>';
-  if(lv>=2)g+=[[30,62],[166,58],[150,170],[44,150],[100,6]].map(p=>'<rect x="'+(p[0]-8)+'" y="'+(p[1]-4)+'" width="16" height="8" fill="#4f8f3a"/><rect x="'+(p[0]-4)+'" y="'+(p[1]-8)+'" width="8" height="4" fill="#5cc05a"/>').join('');
-  if(lv>=5)for(let i=0;i<12;i++){const a=i/12*6.283,x=100+Math.cos(a)*99,y=100+Math.sin(a)*99;g+='<rect x="'+(x-4).toFixed(1)+'" y="'+(y-4).toFixed(1)+'" width="8" height="8" fill="'+PC[i%5]+'"/><rect x="'+(x-1.5).toFixed(1)+'" y="'+(y-1.5).toFixed(1)+'" width="3" height="3" fill="#f2c14e"/>'}
-  return '<div class="v6wqr" aria-hidden="true"><div class="rim"><svg viewBox="0 0 200 200">'+g+'<g class="rp"></g></svg></div></div>'}
-{const p=pages.water;pages.water=(...a)=>{const h=p(...a),k='<div class="wqch" id="wqch">',i=h.indexOf(k);if(i<0)return h;
-  try{const lv=stage();return h.slice(0,i)+scenery(lv,finds())+rim(lv)+h.slice(i)}catch(e){console.error('[HWWater] scenery failed:',e);return h}}}
-
+/* ---------- 1. shared with the Water Quest scene (js/v6-waterquest.js) ---------- */
+// rings spread across a well's water: circles in a 200×200 svg group
 function ripple(svg,n){if(!svg||HWMotion.reduced())return;for(let i=0;i<(n||3);i++){const c=document.createElementNS('http://www.w3.org/2000/svg','circle');c.setAttribute('class','v6wrip');c.setAttribute('cx',100);c.setAttribute('cy',100);c.setAttribute('r',58);c.style.animationDelay=i*.28+'s';svg.appendChild(c);setTimeout(()=>c.remove(),1400+i*300)}}
-const at=(el,o)=>{if(!el)return 0;const r=el.getBoundingClientRect();return HWFX.burst(r.left+r.width/2,r.top+r.height*(o&&o.dy||.5),o)};
-// the original pour (splashAt at the well, 40% down) and bucket fill (at the spring) get ripples, droplets and a reaction
-{const s=splashAt;splashAt=function(l,t){const r=s.apply(this,arguments);try{const W=$('#wq');if(W){
-  if(t==='40%'){ripple(W.querySelector('.v6wqr .rp'),3);at(W.querySelector('.wqwell'),{n:18,palette:'water',speed:2.6,up:1,gravity:.14,life:800});
-    const d=W.querySelector('.v6wqd');if(d){d.classList.remove('go');void d.offsetWidth;d.classList.add('go')}}
-  else at(W.querySelector('.wqp'),{n:8,palette:'water',speed:1.8,up:1,life:600})}}catch(e){}return r}}
 
 /* ---------- 2. Well Garden mini-game ---------- */
 const N=5,PT=[[47,26],[73,20],[57,60],[85,56],[40,84]];
@@ -145,4 +116,4 @@ HWGames.register({id:'water',name:'Well Garden',icon:'🪣',page:'water',area:'W
     g.button('💧 WATER THE NEXT PATCH',()=>{const i=P.findIndex((b,j)=>!took.has(j));if(i>=0)ask(i)});
     g.pop(30,34,'Tap a dry patch!');upd()}});
 
-return{stage,finds,scenery,rim,SP}})();
+return{stage,finds,ripple,SP}})();

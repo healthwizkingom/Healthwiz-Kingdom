@@ -81,6 +81,11 @@ compatibility tests.
 | reduced-motion mode | `14`–`18`, `26-journey` |
 | performance | `13-games` (timers stop), `26-journey` (no timer or frame loop left after leaving) |
 
+### RPG upgrades (Water Quest, Dream Battle)
+
+`31-dream-battle` (five sleep levels, gradual strength, battle outcomes, replay, reduced motion, phone layouts) and
+`32-water-quest` (scene layers and lighting, the knight's sequence, persistence, six screen sizes, reduced motion).
+
 ### §92 Performance
 
 `24-performance`: page budgets with a year of logs, one storage write per action, storage-full handling, looping scenery
