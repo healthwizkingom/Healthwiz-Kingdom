@@ -24,7 +24,7 @@ async function open({ wx = wxBody(61), aq = aqBody(10), seed = RETURNING, cache,
   const errors = [];
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource|integrity/.test(m.text())) errors.push('console: ' + m.text()); });
-  await page.addInitScript(([s, c]) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('healthwiz', s); localStorage.setItem('hwtut', '1'); if (c) localStorage.setItem('healthwiz_cache', c); sessionStorage.setItem('seeded', '1'); } }, [JSON.stringify(seed), cache ? JSON.stringify(cache) : null]);
+  await page.addInitScript(([s, c]) => { if (!localStorage.getItem('healthwiz')) { localStorage.setItem('healthwiz', s); localStorage.setItem('hwtut', '1'); if (c) localStorage.setItem('healthwiz_cache', c); } }, [JSON.stringify(seed), cache ? JSON.stringify(cache) : null]);
   await page.goto(APP_URL);
   await page.waitForSelector('.wl');
   await page.waitForFunction(() => !/Checking/.test(document.querySelector('#v6wxt')?.textContent || ''));
@@ -151,10 +151,25 @@ test('Settings → LIVE DATA: toggle off hides everything and sends nothing; REF
   await go(page, 'stair');
   assert.equal(await page.locator('.v6hzb').count(), 0);
   const n = calls.wx + calls.aq;
-  await page.reload(); await page.waitForSelector('.wl'); await page.waitForTimeout(300);
+  // (no page reload here: the test browser can lose file:// storage on a quick reload)
+  await page.evaluate(() => { refreshLive(true); document.dispatchEvent(new Event('visibilitychange')); dispatchEvent(new Event('online')); });
+  await go(page, 'welcome'); await page.waitForTimeout(300);
   assert.equal(calls.wx + calls.aq, n, 'no request while off');
   assert.equal(await page.textContent('#v6wxt'), '');
+  assert.notEqual(await page.getAttribute('.wl', 'data-sky'), 'storm');
   assert.equal(await page.evaluate(() => typeof localStorage.getItem('healthwiz_cache')), 'string', 'cache is its own key');
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test('title screen with a live chip: Start stays on screen and clear of the title, portrait and landscape', async () => {
+  const { page, ctx, errors } = await open({ wx: wxBody(95) });
+  for (const [w, h] of [[390, 844], [360, 640], [844, 390], [568, 320]]) {
+    await page.setViewportSize({ width: w, height: h });
+    await page.waitForTimeout(150);
+    const b = await page.evaluate(() => { const r = s => document.querySelector(s).getBoundingClientRect(), t = r('.wl .tt'), c = r('.wl .ct'); return { onScreen: c.bottom <= innerHeight && c.right <= innerWidth, clear: t.bottom <= c.top, wide: document.documentElement.scrollWidth <= innerWidth }; });
+    assert.deepEqual(b, { onScreen: true, clear: true, wide: true }, `at ${w}×${h}`);
+  }
   assert.deepEqual(errors, []);
   await ctx.close();
 });

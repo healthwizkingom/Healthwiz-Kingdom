@@ -62,6 +62,10 @@ HWUI.css('title',`
 .v6hz{position:absolute;inset:0;pointer-events:none;background:linear-gradient(rgba(200,176,128,.5),rgba(186,170,140,.28) 60%,rgba(186,170,140,.16))}
 .v6wxt{display:inline-block;max-width:min(92vw,520px);margin-top:8px;padding:5px 10px;font:12px/1.5 var(--fb);color:#fff;background:rgba(20,32,79,.72);border:2px solid rgba(255,255,255,.55);text-shadow:1px 1px 0 #000}
 .v6wxt small{display:block;color:#ffe9a8}
+/* short landscape screens: the chip stays one compact line (the heat tip is on Home), and steps aside below 360 px so
+   the Start button always stays clear */
+@media(orientation:landscape) and (max-height:539px){.v6wxt{margin-top:4px;padding:2px 8px;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70vw}.v6wxt small{display:none}}
+@media(orientation:landscape) and (max-height:359px){.v6wxt{display:none}}
 .v6rib{display:inline-block;margin-top:12px;padding:5px 10px;font:8px/1.8 var(--fh);color:#fff;background:rgba(20,32,79,.72);border:2px solid #f2c14e;text-shadow:1px 1px 0 #000}
 .wl .ct{gap:10px;flex-wrap:wrap}.wl .ct .v6set{font-size:10px;padding:10px 12px}
 .v6hot{pointer-events:all;cursor:pointer}.v6pop{position:absolute;z-index:9;pointer-events:none;font:9px/1.6 var(--fh);color:#fff;background:rgba(20,32,79,.85);border:2px solid #f2c14e;padding:4px 8px;white-space:nowrap;transform:translate(-50%,-120%);animation:v6pop 1.8s steps(12) forwards}

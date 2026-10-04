@@ -46,7 +46,9 @@ const OK={wx:okWx,aq:okAq};
 const on=()=>!(st&&st.s&&st.s.live===0);
 // per source: {d: data, at: when fetched (ms), stale: from the fallback cache, st: 'ok'|'loading'|'off'|'none'}
 const R={wx:{st:'none'},aq:{st:'none'}};
-let busy=null,lastRun=0;
+let busy=null,lastRun=0,timer=0;
+// one timer, armed only while the tab is visible and live data is on (no interval runs in the background)
+function arm(){clearTimeout(timer);timer=0;if(on()&&!document.hidden)timer=setTimeout(()=>refreshLive(),EVERY)}
 
 function fromCache(k){const all=cacheAll()[SRC[k].key];if(all&&OK[k](all.d)){const age=Date.now()-all.t;
   if(age<=SRC[k].max*60e3)return{d:all.d,at:all.t,stale:false,st:'ok'};if(age<=STALE_MIN*60e3)return{d:all.d,at:all.t,stale:true,st:'ok'}}return null}
@@ -60,10 +62,10 @@ function one(k,force){const s=SRC[k],c=fromCache(k);if(c&&!c.stale&&!force){R[k]
     .catch(e=>{R[k]=fromCache(k)||{st:'none'};console.warn('[HealthWiz] live '+k+' unavailable:',e&&e.message)})}
 
 /** Fetch weather and air quality (each from its cache when fresh enough). force=true skips the fresh cache. */
-function refreshLive(force){if(!on()){R.wx={st:'off'};R.aq={st:'off'};paint();return Promise.resolve()}
+function refreshLive(force){if(!on()){clearTimeout(timer);R.wx={st:'off'};R.aq={st:'off'};paint();return Promise.resolve()}
   if(busy)return busy;lastRun=Date.now();
-  busy=Promise.all([one('wx',force),one('aq',force)]).then(()=>{busy=null;paint();try{HWEvents.emit('live:updated',{weather:R.wx.st==='ok',air:R.aq.st==='ok',level:level()})}catch(e){}})
-    .catch(e=>{busy=null;paint();console.warn('[HealthWiz] live data:',e&&e.message)});
+  busy=Promise.all([one('wx',force),one('aq',force)]).then(()=>{busy=null;arm();paint();try{HWEvents.emit('live:updated',{weather:R.wx.st==='ok',air:R.aq.st==='ok',level:level()})}catch(e){}})
+    .catch(e=>{busy=null;arm();paint();console.warn('[HealthWiz] live data:',e&&e.message)});
   paint();return busy}
 
 /* ---------- weather ---------- */
@@ -170,8 +172,7 @@ body.hw-haze .amb .amfar{opacity:.3}body.hw-haze .amb .amcl{opacity:.35}`);
 prime();
 const due=()=>Date.now()-lastRun>=EVERY;
 HWEvents.on('app:ready',()=>{paint();refreshLive()});
-setInterval(()=>{if(!document.hidden&&on())refreshLive()},EVERY);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&on()&&due())refreshLive()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(timer);timer=0}else if(on()&&!busy){if(due())refreshLive();else arm()}});
 addEventListener('online',()=>{if(on())refreshLive()});
 
 return{refresh:refreshLive,sky,skyOf,level,hazy,band,hazeBanner,titleChip,chipText,heatTip,state:()=>JSON.parse(JSON.stringify(R)),LV,WMO}})();
