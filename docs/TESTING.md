@@ -3,7 +3,7 @@
 ```
 npm test                                   # builds the standalone file, then runs every test file in tests/
 node --test tests/25-matrix.test.mjs       # one file
-node --test --test-name-pattern="touch" tests/25-matrix.test.mjs   # one test
+node --test --test-name-pattern="touch" tests/25-matrix-input.test.mjs   # one test
 ```
 
 The tests drive the real app in headless Chromium (Playwright) from `index.html` on disk, or from a small localhost
@@ -21,9 +21,9 @@ compatibility tests.
 
 | Item | Tests |
 |---|---|
-| navigation | `01-original-app`, `25-matrix` (tabs by tap and keyboard), `26-journey`, `28-foundation` (every tab and Health Hall tile, and back), `29-provisions` (old Nutrition/Water links, halves, tutorial) |
+| navigation | `01-original-app`, `25-matrix-input` (tabs by tap and keyboard), `26-journey`, `28-foundation` (every tab and Health Hall tile, and back), `29-provisions` (old Nutrition/Water links, halves, tutorial) |
 | data logging | `01-original-app`, `26-journey` (every log type through the UI), `29-provisions` (food and water on the merged page) |
-| editing, deleting | `01-original-app`, `03-events`, `25-matrix` (by touch and keyboard), `26-journey` |
+| editing, deleting | `01-original-app`, `03-events`, `25-matrix-input` (by touch and keyboard), `26-journey` |
 | calculations | `01-original-app` (sleep duration, BMI, pulse range), `04-insights` (baselines), `24-performance` (the entry index against full scans) |
 | quests | `05-quests`, `03-events` |
 | XP, levels | `07-xp-kingdom`, `03-events` |
@@ -35,7 +35,7 @@ compatibility tests.
 | reset | `01-original-app` (two taps), `03-events` |
 | theme | `25-matrix` (device default, saved choice, every page, contrast) |
 | responsive layouts | `01-original-app`, `25-matrix` (seven sizes), the 360 px checks in `13`–`23` |
-| touch | `25-matrix`, `26-journey`, the game tests |
+| touch | `25-matrix-input`, `26-journey`, the game tests |
 | authentication, cloud sync | `21-cloud`, `22-cloud-sync` |
 | leaderboard | `23-board` |
 | location permissions, GPS fallback | `19-gps` |
@@ -49,13 +49,13 @@ compatibility tests.
 
 | Item | Tests |
 |---|---|
-| taps, scrolling | `25-matrix` (taps, finger swipes: vertical scroll, no sideways scroll), `26-journey` |
+| taps, scrolling | `25-matrix-input` (taps, finger swipes: vertical scroll, no sideways scroll), `26-journey` |
 | modals | `25-matrix` (edit dialog by tap, rotated, keyboard open), `13-games` |
 | keyboard opening | `25-matrix` (the edit dialog at 390×500 and 640×300 still reaches SAVE) |
 | orientation changes | `25-matrix` (title, pages and dialog at 844×390 and 568×320) |
-| safe areas | `25-matrix` (viewport-fit=cover and the inset rules); real notch: manual |
+| safe areas | `25-matrix-input` (viewport-fit=cover and the inset rules); real notch: manual |
 | bottom navigation | `25-matrix` (pinned, five tabs, nothing hidden under it) |
-| long text | `25-matrix` (20-character name, very long food name and note) |
+| long text | `25-matrix-input` (20-character name, very long food name and note) |
 | chart interaction | `09-charts` |
 | GPS permission | `19-gps` |
 | offline transitions | `20-pwa` |
@@ -65,8 +65,8 @@ compatibility tests.
 | Item | Tests |
 |---|---|
 | mouse, hover | most tests; chart tooltips in `09-charts` |
-| keyboard | `25-matrix` (Tab order, focus ring, dialogs), `09-charts`, `13-games` |
-| window resizing, multiple navigation layouts | `25-matrix` |
+| keyboard | `25-matrix-input` (Tab order, focus ring, dialogs), `09-charts`, `13-games` |
+| window resizing, multiple navigation layouts | `25-matrix-input`, `25-matrix` |
 | large displays | `25-matrix` (1920×1080: centred column) |
 
 ### §96 Mini-games (all five: Well Garden, Market Kitchen, Adventure Trail, Calming Grove, Night Watch)
