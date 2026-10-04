@@ -15,7 +15,7 @@ const HWEmoji=(()=>{
 // keycaps and ZWJ joins. Built at run time: an engine without \p{…} escapes simply keeps its emoji.
 const SRC='(?:\\p{Emoji_Presentation}|\\p{Emoji}\\uFE0F)(?:\\p{Emoji_Modifier}|\\uFE0F|\\u20E3)*(?:\\u200D(?:\\p{Emoji_Presentation}|\\p{Emoji})(?:\\p{Emoji_Modifier}|\\uFE0F)*)*';
 let RE=null,RE1=null;try{RE=new RegExp(SRC,'gu');RE1=new RegExp(SRC,'u')}catch(e){}
-const has=s=>!!RE1&&RE1.test(s); // RE (global) is only used by swap()'s exec loop
+const isEmoji=s=>!!RE1&&RE1.test(s); // RE (global) is only used by swap()'s exec loop
 // emoji whose hand-drawn icon shows the same object (keys without U+FE0F)
 const SAME={'❤':'heart','💧':'water','🍗':'food','🌙':'sleep','🏃':'running','🌩':'stress','⚡':'energy','🏆':'achievement',
   '⚠':'warning','✅':'success','🧙':'wizard','🧙‍♂':'wizard','⚖':'balance','📊':'chart','📜':'scroll','⚙':'gear','⚔':'quest',
@@ -48,7 +48,7 @@ function pixelate(e){const c=document.createElement('canvas');c.width=c.height=S
   return any?png(grid):null}
 /** The pixel picture for an emoji (a data: URL), or null if it is not an emoji or the device cannot draw it. */
 function src(e){e=String(e);if(cache.has(e))return cache.get(e);let u=null;
-  if(has(e)){const k=e.replace(/️/g,'');try{u=SAME[k]?drawn(SAME[k]):pixelate(e)}catch(err){u=null}}
+  if(isEmoji(e)){const k=e.replace(/️/g,'');try{u=SAME[k]?drawn(SAME[k]):pixelate(e)}catch(err){u=null}}
   cache.set(e,u);return u}
 // one CSS class per picture, so the page holds a short class name instead of the image data
 const cls=new Map();
@@ -60,7 +60,7 @@ function klass(e){if(cls.has(e))return cls.get(e);const u=src(e);let k=null;
 const SKIP={SCRIPT:1,STYLE:1,TEXTAREA:1,OPTION:1,SELECT:1,TITLE:1,NOSCRIPT:1,INPUT:1};
 const skip=el=>!el||SKIP[el.tagName]||el.namespaceURI==='http://www.w3.org/2000/svg'||(el.classList&&el.classList.contains('pxe'));
 function size(el){const f=parseFloat(getComputedStyle(el).fontSize)||15;return Math.max(16,Math.round(f*1.2/8)*8)}
-function swap(t){const p=t.parentNode,e=t.parentElement;if(!p||!e||skip(e)||e.closest('.pxe'))return;const s=t.nodeValue;if(!has(s))return;
+function swap(t){const p=t.parentNode,e=t.parentElement;if(!p||!e||skip(e)||e.closest('.pxe'))return;const s=t.nodeValue;if(!isEmoji(s))return;
   const f=document.createDocumentFragment(),px=size(e);let last=0;RE.lastIndex=0;
   for(let m;(m=RE.exec(s));){const k=klass(m[0]);if(!k)continue;
     if(m.index>last)f.appendChild(document.createTextNode(s.slice(last,m.index)));
@@ -68,7 +68,7 @@ function swap(t){const p=t.parentNode,e=t.parentElement;if(!p||!e||skip(e)||e.cl
     const i=document.createElement('span');i.textContent=m[0];b.appendChild(i);f.appendChild(b);last=m.index+m[0].length}
   RE.lastIndex=0;if(!last)return;if(last<s.length)f.appendChild(document.createTextNode(s.slice(last)));p.replaceChild(f,t)}
 function walk(root){if(!root)return;if(root.nodeType===3){swap(root);return}if(root.nodeType!==1&&root.nodeType!==11)return;if(root.nodeType===1&&skip(root))return;
-  const w=document.createTreeWalker(root,NodeFilter.SHOW_ELEMENT|NodeFilter.SHOW_TEXT,{acceptNode:n=>n.nodeType===1?(skip(n)?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_SKIP):has(n.nodeValue)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_SKIP}),L=[];
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_ELEMENT|NodeFilter.SHOW_TEXT,{acceptNode:n=>n.nodeType===1?(skip(n)?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_SKIP):isEmoji(n.nodeValue)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_SKIP}),L=[];
   for(let n;(n=w.nextNode());)L.push(n);L.forEach(swap)}
 
 HWUI.css('emoji',`
@@ -79,4 +79,4 @@ HWUI.css('emoji',`
 if(RE){walk(document.body);
 if(typeof MutationObserver==='function')new MutationObserver(rs=>{for(const r of rs){if(r.type==='characterData')swap(r.target);else r.addedNodes.forEach(walk)}})
   .observe(document.body,{childList:true,subtree:true,characterData:true})}
-return{src,convert:walk,test:has}})();
+return{src,convert:walk,test:isEmoji}})();
