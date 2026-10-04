@@ -1,5 +1,5 @@
 /* v6: GPS activity check-in (master prompt §43–47, §79, §88, §97 step 20). Not part of the original.
-   The Stair Quest page gets a GPS CHECK-IN card. All mapped stairways are on the Kolej MARA Kulim campus. The stairways are the original STAIRS list (hw-02-core.js):
+   The Stairs page shows a GPS CHECK-IN card in its casual-climbing section. All mapped stairways are on the Kolej MARA Kulim campus. The stairways are the original STAIRS list (hw-02-core.js):
    every stairway with lat/lng can be found by GPS; one whose coordinates are still null is listed for manual
    logging only, and joins GPS check-in as soon as its coordinates are filled in there.
    Flow (§44): explain why location is needed → the browser asks for permission → ONE position reading
@@ -43,7 +43,7 @@ html.hw-rm #v6gps .v6gpw,html.hw-still #v6gps .v6gpw{animation:none}
 
 const CAT={MILD:'🌿 Mild',MODERATE:'⚔️ Moderate',VIGOROUS:'🔥 Vigorous'};
 const btn=(a,t,cls,extra)=>'<button class="'+(cls||'')+'" data-a="'+a+'"'+(extra||'')+'>'+t+'</button>';
-const manual='<p class="mut" style="margin-top:8px">You can always log a session by hand with the form below.</p>';
+const manual='<p class="mut" style="margin-top:8px">You can always log a climb by hand with the form below.</p>';
 function card(){const n=mapped().length,un=STAIRS.length-n,found=Object.keys(gp().v).filter(k=>STAIRS.some(s=>s.id===k)).length;
   let h='<h2>📍 GPS CHECK-IN</h2>';
   if(U.k==='idle'||U.k==='done'){
@@ -73,8 +73,8 @@ function card(){const n=mapped().length,un=STAIRS.length-n,found=Object.keys(gp(
   return h}
 const paint=()=>{const el=document.getElementById('v6gps');if(el)el.innerHTML=card()};
 
-// the card sits right under the Stair Quest heading
-{const p=pages.stair;pages.stair=(...a)=>{const h=p(...a);try{const c='<div class="card" id="v6gps">'+card()+'</div>',k=h.indexOf('</h2>');return k<0?c+h:h.slice(0,k+5)+c+h.slice(k+5)}catch(e){console.error('[HWGps] card failed:',e);return h}}}
+// the card is placed by the Stairs page (js/v6-stairs.js) at the top of its casual-climbing section
+function cardSafe(){try{return card()}catch(e){console.error('[HWGps] card failed:',e);return ''}}
 
 const ERR={1:['Location permission is off','Your browser is not sharing your location with HealthWiz. You can allow it in the browser\'s site settings, or log by hand below.'],
   2:['Position unavailable','Your device could not work out where you are (no GPS fix). Try again outdoors, or log by hand below.'],
@@ -103,7 +103,8 @@ acts.gpsconfirm=()=>{if(U.k!=='confirm')return;
   const s=+$('#gps-s').value,c=+$('#gps-c').value;
   if(!(Number.isInteger(s)&&s>=1&&s<=1000&&Number.isInteger(c)&&c>=1&&c<=500)){toast('Enter steps per climb (1–1000) and number of climbs (1–500)');return}
   const i=U.i,q=STAIRS[i],G=gp(),first=!G.v[q.id];
-  add('stair',s*c,{sid:q.id,loc:q.name,diff:q.cat,floor:q.floor,angle:q.angle,lat:q.lat,lng:q.lng,steps:s,climbs:c,dur:0,pace:$('#gps-p').value,hrB:null,hrA:null,chk:'gps'},'GPS check-in',today(),nowT(),25,'Stair check-in');
+  // the same session record as a climb logged by hand (js/v6-stairs.js), marked as a casual GPS check-in
+  add('stair',s*c,{sid:q.id,loc:q.name,diff:q.cat,floor:q.floor,angle:q.angle,lat:q.lat,lng:q.lng,steps:s,climbs:c,kind:'casual',src:'gps',chk:'gps',dur:0,pace:$('#gps-p').value,hrB:null,hrA:null,kcal:null},'',today(),nowT(),25,'Stair check-in');
   if(first){G.v[q.id]=today();save();gain(5,'Discovered '+q.name);HWUI.celebrate({icon:'📍',title:'STAIRWAY DISCOVERED!',sub:q.name,xp:5})}
   HWEvents.emit('activity:checkin',{sid:q.id,name:q.name,cat:q.cat,first});
   S.loc=i;S.cat=q.cat;U={k:'done',name:q.name};render()};
@@ -112,4 +113,4 @@ acts.gpsconfirm=()=>{if(U.k!=='confirm')return;
 HWEvents.on('data:reset',()=>{gen++;U={k:'idle'}});HWEvents.on('data:imported',()=>{gen++;U={k:'idle'}});
 HWEvents.on('page:viewed',e=>{if(e.view!=='stair'){gen++;U={k:'idle'}}});
 
-return{nearby,dist,radius,WEAK,get state(){return U.k}}})();
+return{nearby,dist,radius,WEAK,card:cardSafe,get state(){return U.k}}})();

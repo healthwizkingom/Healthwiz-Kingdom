@@ -63,18 +63,21 @@ test('food: search, pick, servings, add to log', async () => {
   await ctx.close();
 });
 
-test('sleep, pulse, stairs and BMI save with the original validation', async () => {
+test('sleep, stair workout (heart rate), casual stairs and BMI save with their validation', async () => {
   const { page, ctx, errors } = await openApp();
   await go(page, 'sleep');
   await page.fill('#slb', '23:00');
   await page.fill('#slw', '07:00');
   await page.click('[data-a="slsave"]');
-  await go(page, 'pulse');
-  await page.fill('#pb', '300');
-  await page.click('[data-a="savepulse"]');
-  await page.fill('#pb', '72');
-  await page.click('[data-a="savepulse"]');
+  await go(page, 'pulse'); // the old Pulse route opens the Workout on the Stairs page
+  await page.selectOption('#wk-loc', 'ST20');
+  await page.fill('#wk-s', '10'); await page.fill('#wk-c', '2');
+  await page.fill('#wk-b', '300');
+  await page.click('[data-a="stwsave"]');
+  await page.fill('#wk-b', '72');
+  await page.click('[data-a="stwsave"]');
   await go(page, 'stair');
+  await page.click('.sqlist .chip >> nth=0');
   await page.fill('#ss', '12');
   await page.fill('#sc', '2');
   await page.click('[data-a="savestair"]');
@@ -85,9 +88,12 @@ test('sleep, pulse, stairs and BMI save with the original validation', async () 
   const st = await state(page);
   const by = c => st.e.filter(x => x.c === c);
   assert.equal(by('sleep')[0].v, 8);
-  assert.equal(by('pulse').length, 1, '300 BPM rejected');
-  assert.equal(by('pulse')[0].v, 72);
-  assert.equal(by('stair')[0].v, 24);
+  assert.equal(by('pulse').length, 0, 'no separate pulse entries any more');
+  assert.equal(by('stair').length, 2, '300 BPM rejected, then the workout and the casual climb saved');
+  assert.equal(by('stair')[0].m.hrB, 72);
+  assert.equal(by('stair')[0].m.kind, 'workout');
+  assert.equal(by('stair')[1].v, 24);
+  assert.equal(by('stair')[1].m.kind, 'casual');
   assert.equal(by('bmi')[0].v, 22.5);
   assert.ok(st.xp > 0);
   assert.deepEqual(errors, []);
@@ -96,14 +102,15 @@ test('sleep, pulse, stairs and BMI save with the original validation', async () 
 
 test('entries: edit, delete and undo', async () => {
   const { page, ctx, errors } = await openApp();
-  await go(page, 'pulse');
-  await page.fill('#pb', '70');
-  await page.click('[data-a="savepulse"]');
-  await page.click('[data-a="edit"]');
+  await go(page, 'stair');
+  await page.click('.sqlist .chip >> nth=0');
+  await page.fill('#ss', '10'); await page.fill('#sc', '7');
+  await page.click('[data-a="savestair"]');
+  await page.click('#stlog [data-a="edit"]');
   await page.fill('#ev', '75');
   await page.click('[data-a="esave"]');
   assert.equal((await state(page)).e[0].v, 75);
-  await page.click('[data-a="del"]');
+  await page.click('#stlog [data-a="del"]');
   assert.equal((await state(page)).e.length, 0);
   await page.click('#toasts [data-a="undo"]');
   assert.equal((await state(page)).e.length, 1);
@@ -113,9 +120,10 @@ test('entries: edit, delete and undo', async () => {
 
 test('backup round trip: download, erase (two taps), restore from file', async () => {
   const { page, ctx, errors } = await openApp();
-  await go(page, 'pulse');
-  await page.fill('#pb', '70');
-  await page.click('[data-a="savepulse"]');
+  await go(page, 'stair');
+  await page.click('.sqlist .chip >> nth=0');
+  await page.fill('#ss', '10'); await page.fill('#sc', '7');
+  await page.click('[data-a="savestair"]');
   await go(page, 'set');
   const [dl] = await Promise.all([page.waitForEvent('download'), page.click('[data-a="expj"]')]);
   const file = path.join(os.tmpdir(), 'hw-' + Date.now() + '.json');

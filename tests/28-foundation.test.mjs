@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { openApp, closeBrowser, go, state, RETURNING, entry } from './helpers.mjs';
 
 after(closeBrowser);
-const HEALTH = ['food', 'water', 'sleep', 'pulse', 'stair', 'stress', 'bmi', 'calc', 'stats', 'run'];
+const HEALTH = ['food', 'water', 'sleep', 'stair', 'stress', 'bmi', 'calc', 'stats']; // 'pulse' and 'run' open sections of 'stair'
 const OTHER = ['health', 'quests', 'guide', 'badges', 'kingdom', 'set'];
 const REQUIRED = ['heart', 'water', 'food', 'sleep', 'stairs', 'running', 'stress', 'energy', 'achievement', 'warning', 'success', 'wizard', 'monster'];
 const overflow = page => page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
@@ -39,20 +39,22 @@ test('no decorative hearts at the top of any page; the title, level bar and regi
   await ctx.close();
 });
 
-test('heart-rate features are untouched: pulse page, ECG, logging, hub tile, statistics', async () => {
+test('heart rate lives in the stair Workout: before/after visualizations, logging, home tile, statistics', async () => {
   const { page, ctx, errors } = await openApp();
   await go(page, 'pulse');
-  assert.equal(await page.locator('#ecg').count(), 1, 'heart rate visualization');
-  assert.match(await page.textContent('main'), /MEASURE PULSE/);
-  await page.fill('#pb', '72');
-  await page.click('[data-a="savepulse"]');
+  assert.equal(await page.evaluate(() => S.v), 'stair', 'the old Pulse route opens the Stairs page');
+  assert.equal(await page.locator('#sthrc canvas.sttr').count(), 2, 'before and after heart rate visualizations');
+  assert.doesNotMatch(await page.textContent('main'), /MEASURE PULSE/);
+  await page.selectOption('#wk-loc', 'ST03');
+  await page.fill('#wk-b', '68'); await page.fill('#wk-a', '112'); await page.fill('#wk-s', '10'); await page.fill('#wk-c', '2');
+  await page.click('[data-a="stwsave"]');
   const s = await state(page);
-  assert.equal(s.e.filter(x => x.c === 'pulse').length, 1);
-  assert.equal(s.e.find(x => x.c === 'pulse').v, 72);
-  await go(page, 'health');
-  assert.match(await page.textContent('#hub [data-v="pulse"]'), /72 BPM last/);
+  assert.equal(s.e.filter(x => x.c === 'pulse').length, 0);
+  assert.deepEqual([s.e[0].m.hrB, s.e[0].m.hrA], [68, 112]);
+  await go(page, 'home');
+  assert.match(await page.textContent('#tstat [data-v="pulse"]'), /Heart rate[\s\S]*112/);
   await go(page, 'stats');
-  assert.match(await page.textContent('main'), /Heart rate/);
+  assert.match(await page.textContent('main'), /Avg heart rate before workout\s*68 BPM[\s\S]*Heart rate after workout[\s\S]*avg 112 BPM/);
   assert.deepEqual(appErrors(errors), []);
   await ctx.close();
 });
@@ -69,7 +71,8 @@ test('navigation audit: tabs, every Health Hall tile there and BACK again, Storm
   await page.click('#nav [data-v="health"]');
   const tiles = await page.$$eval('#hub [data-a="go"]', b => b.map(x => [x.dataset.v, x.querySelector('b').textContent]));
   const names = Object.fromEntries(tiles);
-  for (const [v, n] of [['food', 'Food & Water'], ['pulse', 'Pulse'], ['stair', 'Stairs'], ['run', 'Running'], ['sleep', 'Sleep'], ['stress', 'Stress']]) assert.equal(names[v], n, n + ' tile');
+  for (const [v, n] of [['food', 'Food & Water'], ['stair', 'Stairs & Workout'], ['sleep', 'Sleep'], ['stress', 'Stress']]) assert.equal(names[v], n, n + ' tile');
+  assert.deepEqual([names.pulse, names.run], [undefined, undefined], 'Pulse and Running moved into the Stairs page');
   assert.equal(names.water, undefined, 'Nutrition and Water share one tile (§31)');
   for (const [v] of tiles) {
     await page.click(`#hub [data-v="${v}"]`);

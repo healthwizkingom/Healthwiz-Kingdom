@@ -96,24 +96,26 @@ test('one action, one write: logging water stores entry and XP together, and sur
 test('storage full: superseded upgrade copies are freed first; if that is not enough the user is told', async () => {
   const { page, ctx, errors } = await openApp();
   await page.waitForSelector('.wl');
-  await go(page, 'pulse');
+  await go(page, 'stair');
+  await page.click('.sqlist .chip >> nth=0');
+  const log = async n => { await page.fill('#ss', String(n)); await page.fill('#sc', '1'); await page.click('[data-a="savestair"]'); };
   // A: "full" until the pre-upgrade copy is gone → freed, retried, saved, no warning
   await page.evaluate(() => {
     localStorage.setItem('healthwiz_backup_pre-v8_1', 'old copy'); localStorage.setItem('healthwiz_backup_cloud_2', 'keep me');
     const si = Storage.prototype.setItem; window.__si = si;
     Storage.prototype.setItem = function (k) { if (k === 'healthwiz' && Object.keys(localStorage).some(x => x.startsWith('healthwiz_backup_pre-v'))) throw new DOMException('full', 'QuotaExceededError'); return si.apply(this, arguments); };
   });
-  await page.fill('#pb', '71'); await page.click('[data-a="savepulse"]');
+  await log(71);
   await settle(page);
   assert.equal((await state(page)).e.length, 1, 'saved after freeing space');
   assert.deepEqual(await page.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith('healthwiz_backup_')).sort()), ['healthwiz_backup_cloud_2'], 'only the superseded upgrade copy was removed');
   assert.doesNotMatch(await page.textContent('#toasts'), /could not be saved/);
   // B: storage refuses every write → told once (what happened, what is safe, what to do), app keeps working
   await page.evaluate(() => { const si = window.__si; Storage.prototype.setItem = function (k) { if (k === 'healthwiz') throw new DOMException('full', 'QuotaExceededError'); return si.apply(this, arguments); }; });
-  await page.fill('#pb', '72'); await page.click('[data-a="savepulse"]');
+  await log(72);
   await settle(page);
   assert.match(await page.textContent('#toasts'), /could not be saved on this device.*stay in this tab.*Download a backup/);
-  await page.fill('#pb', '73'); await page.click('[data-a="savepulse"]');
+  await log(73);
   await settle(page);
   assert.equal(await page.evaluate(() => HWEvents.recent('storage:failed').length), 1, 'not repeated on every tap');
   assert.equal(await page.evaluate(() => st.e.length), 3, 'entries stay in the open tab');
