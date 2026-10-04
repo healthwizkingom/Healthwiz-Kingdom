@@ -124,7 +124,7 @@ const cloud=(x,y,s,d,rev)=>'<span class="cl" style="left:'+x+'%;top:'+y+'%;width
 const PCOL=['#ff9be0','#f2c14e','#ffffff','#e0483f','#b9a6ff'];
 const fly=(x,y,d)=>'<i class="v6wff" style="left:'+X(x)+';top:'+Y(y)+';animation-delay:-'+d+'s"></i>';
 function scenery(lv,n){let h='';
-  if(lv===0)h+=spr('dead',196,128,2)+spr('dead',300,124,1.5);
+  if(lv===0)h+=spr('dead',196,128,2)+spr('dead',300,124,1.5)+[[234,166],[188,172]].map(q=>'<svg class="v6wsp" viewBox="0 0 40 10" style="left:'+X(q[0])+';top:'+Y(q[1])+';width:'+X(40)+'" shape-rendering="crispEdges" aria-hidden="true"><path d="M2 6 l6 -3 l5 4 l7 -4 M24 5 l5 3 l6 -4" stroke="#7a6a4a" stroke-width="1.4" fill="none"/></svg>').join('');
   if(lv>=1)h+=[[160,166],[184,170],[206,166],[236,164]].map(q=>spr('sprout',q[0],q[1],2,'v6whop')).join('');
   if(lv>=2)h+=spr('tree',190,118,2,'v6wsw')+spr('tree',300,122,2.4,'v6wsw','animation-delay:-1.4s')+spr('bush',168,128,2)+spr('bush',292,160,2);
   if(lv>=3)h+=[[176,110,0],[210,128,1.1],[290,100,2],[150,120,.6],[232,96,1.7],[110,112,2.6]].slice(0,Math.max(3,HWMotion.count(6)||0)).map(q=>fly(q[0],q[1],q[2])).join('');
