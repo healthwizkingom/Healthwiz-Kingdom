@@ -1138,3 +1138,44 @@ Tests: `tests/34-final-polish.test.mjs` (all eight region icons drawn on the Kin
   worker's network-first fetch went through the browser's HTTP cache, so after a deploy a phone could keep running the
   previous scripts (the map fix above looked "not fixed" right after it was merged). App files are now fetched with
   `cache: 'no-cache'` (revalidated, a cheap 304 when unchanged); offline behaviour is unchanged.
+
+## 36. Looks: more themes, the onboarding chamber, the Shadow Keep
+
+All in `js/v6-looks.js` (loaded after `js/v6-badges.js`; added to `sw.js` PRECACHE).
+
+**Themes.** One `THEMES` map of CSS-variable sets (`--bg --pn --p2 --ink --mut --ln`). `light` (Parchment) and `dark`
+(Night Keep) mirror the original stylesheet's sets exactly and still come from it; the five new themes (Enchanted
+Forest, Crystal Cavern, Ember Forge, Frost Citadel, Desert Oasis) are injected as `:root[data-skin=…]` rules. Each theme
+has a base (`light`/`dark`) that goes in `data-theme`, so every existing light/dark rule keeps working under it. Health
+colours (`--red --blue --grn --vio --gold`) are not part of any theme, so they read the same everywhere. Contrast of the
+new themes: text 9.9–16.2:1 and muted text 5.6–10:1 on `--bg`, `--pn` and `--p2`; each health colour against `--p2` is
+at least as far apart as in the original theme with the same base. (Unchanged and noted: the original Parchment muted
+text on `--p2` is 4.45:1.) Saved as `st.s.theme` (optional string, no schema step): missing or `auto` = match the
+device as before, `light`/`dark` as before, or a new theme key. Settings → Theme is a swatch grid (each swatch drawn in
+its own colours, with the health colours) plus *Match system*; a tap applies at once. The original THEME button still
+toggles light/dark.
+
+**Onboarding chamber** (`pages.onb`). A fixed CSS/SVG layer shown only on the Traveller's Registry (the ambient layer is
+hidden there): blue-violet gradient, brick wall and three stone arches (crisp SVG), two flickering torches, ten rising
+motes and two fog bands. A gold rune circle turns slowly behind Medius; its six runes light as the six steps are done.
+The form and Medius's speech box use their own parchment colours (a scroll with rolled ends), so they stay dark-on-light
+and high-contrast in every theme. Sealing the registry adds a light burst and a two-note chime after the existing
+fanfare (`sfx`, so the sound setting applies). 17 animated elements, transform/opacity only; none under reduced motion
+or Animations Off; Performance mode drops a fog band and half the motes.
+
+**The Shadow Keep.** The villain's fortress lived only in the title scene, where the right-hand turret of the old dark
+tower ended at y = 74 while the slope beneath it dropped to y ≈ 80–89, so it floated. It is redrawn as pixel art (SVG
+rects, `crispEdges`): a rocky cliff base with a cast shadow, a plinth on the ground line that every tower, the keep and
+both walls stand on (all end at its top, y = 56 local), crooked spires, broken battlements, red and violet windows
+that flicker, the keep's great eye, a dark gate with a red glow and a half-raised toothed portcullis, chains, tattered
+banners, cracks, moss, three bats and two rings of storm clouds circling it. `js/hw-03-part.js` now draws
+`HWLooks.title()` in place of the old tower and bats (the scene's seeded random numbers are still drawn, so the rest of
+the scene is byte-for-byte the same); the title's tap area for the tower follows the new outline. The Kingdom page shows
+the same keep in a *Shadow Keep* card above the chronicle. Its storm strength is `1 − restored/8` (min 12%): fainter
+and slower as regions are restored. Game layer only; labelled so.
+
+Tests: `tests/35-looks.test.mjs` (every theme: applied, base, text and muted contrast, health colours unchanged, saved,
+survives a reload; THEME button and Match system; runes per step, the chamber only on the registry, under 30 animated
+parts, burst and chime, the scroll stays dark-on-light in the dark theme, nothing moving under reduced motion; the keep
+on the title and Kingdom page, every tower and wall ending on the plinth, crisp edges, a weaker storm with restored
+regions).
