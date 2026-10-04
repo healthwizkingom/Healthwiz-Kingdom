@@ -21,11 +21,12 @@ Data is stored in the browser's `localStorage` (`healthwiz`). Use **Settings →
 ## Project layout
 
 ```
-index.html                 original markup + stylesheet (byte-identical), loads js/ in order
+index.html                 original markup + stylesheet (byte-identical apart from listed deliberate edits), loads js/ in order
 js/hw-01..07-*.js          the original script, cut only between top-level statements
 js/v6-schema.js            saved-data versioning, migrations and damaged-data recovery
 js/v6-events.js            event bus observing the app (catalog: docs/EVENTS.md)
 js/v6-ui.js                shared UI helpers (injected styles, completion banner, keyboard-friendly dialogs, saved theme)
+js/v6-pixel.js             pixel-art standard: design tokens, panel/HUD classes, crisp pixel icons (guide: docs/PIXEL_STYLE.md)
 js/v6-motion.js            animation settings + performance modes (High / Balanced / Performance), off-screen pause
 js/v6-particles.js         one shared canvas particle system (level-up, badges, quests)
 js/v6-insights.js          "Medius notices": insights from your own baselines and trends
@@ -58,12 +59,12 @@ tools/import-original.mjs  one-time import of the original (re-running it overwr
 tools/build-standalone.mjs bundles everything back into one HTML file
 tools/make-icons.mjs       redraws the app icons
 tests/                     browser tests (Playwright + node:test): fidelity, every feature, performance budgets, device matrix
-docs/                      architecture audit and plan, event catalog, testing guide (docs/TESTING.md)
+docs/                      architecture audit and plan, event catalog, testing guide (docs/TESTING.md), pixel-art standard (docs/PIXEL_STYLE.md)
 ```
 
 The scripts are classic `<script>` tags that share one global scope, so keep them in order.
-`tests/00-fidelity.test.mjs` checks that the markup and stylesheet still match the original, and that
-no original function, constant, page or action has been removed.
+`tests/00-fidelity.test.mjs` checks that the markup and stylesheet still match the original (apart from its short
+`EDITS` list of deliberate changes), and that no original function, constant, page or action has been removed.
 
 ## Saved data and versions
 

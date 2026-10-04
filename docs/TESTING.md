@@ -21,7 +21,7 @@ compatibility tests.
 
 | Item | Tests |
 |---|---|
-| navigation | `01-original-app`, `25-matrix` (tabs by tap and keyboard), `26-journey` |
+| navigation | `01-original-app`, `25-matrix` (tabs by tap and keyboard), `26-journey`, `28-foundation` (every tab and Health Hall tile, and back) |
 | data logging | `01-original-app`, `26-journey` (every log type through the UI) |
 | editing, deleting | `01-original-app`, `03-events`, `25-matrix` (by touch and keyboard), `26-journey` |
 | calculations | `01-original-app` (sleep duration, BMI, pulse range), `04-insights` (baselines), `24-performance` (the entry index against full scans) |
@@ -42,7 +42,7 @@ compatibility tests.
 | offline mode | `20-pwa` |
 | console errors | every test; `26-journey` runs a whole first day without one |
 | broken references | `26-journey` (handlers, page links, images, asset paths), `20-pwa` (the offline file list) |
-| existing data compatibility | `02-schema`, `26-journey` (an old v5.4.3 save on every page) |
+| existing data compatibility | `02-schema`, `26-journey` (an old v5.4.3 save on every page), `28-foundation` (every storage key and entry unchanged through every page and a reload) |
 
 ### §94 Mobile
 

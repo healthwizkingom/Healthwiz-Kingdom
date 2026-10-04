@@ -28,8 +28,19 @@ function inventory(code) {
   return names;
 }
 
-test('markup and stylesheet are byte-identical to the original', () => {
-  assert.equal(idx.slice(0, idx.indexOf('<script src=')), orig.slice(0, oOpen).replace(/\n?$/, '\n'));
+// Deliberate edits to the original markup/stylesheet: [original text, replacement], each documented in
+// docs/ARCHITECTURE_AUDIT.md. Everything else must still match the original byte for byte.
+const EDITS = [
+  ['.hs{margin-left:auto;display:flex;gap:2px}', ''], // §30: the region banner no longer shows decorative hearts
+];
+
+test('markup and stylesheet are byte-identical to the original, apart from the listed deliberate edits', () => {
+  let want = orig.slice(0, oOpen).replace(/\n?$/, '\n');
+  for (const [from, to] of EDITS) {
+    assert.equal(want.split(from).length, 2, 'each edit applies to exactly one place: ' + from);
+    want = want.replace(from, to);
+  }
+  assert.equal(idx.slice(0, idx.indexOf('<script src=')), want);
 });
 
 test('no original function, constant, page or action has been removed', () => {
