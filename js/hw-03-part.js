@@ -149,17 +149,10 @@ const ridge=(b,a,c,snow)=>{let p='',s=q()*9,sn='';for(let x=-60;x<=300;x+=6){con
 o+=ridge(100,34,'#9aa6d4',1)+ridge(108,26,'#7b84bf')+ridge(114,18,'#626aa6')+R(-700,-700,840,830,'url(#zg1)',' opacity=".6"');
 const DK=['#1a1030','#2a1d4a','#3d2c6a'];
 o+=pk(8,i=>{const x=-40+i*17,y=P(0,34),w=P(46,76);return G('zg',DK.map((c,k)=>R(x+k*4,y+k*5,w-k*8,7,c)+R(x+k*4+6,y+k*5-4,w-k*8-14,5,c)).join(''),'animation-duration:'+(9+i*2)+'s;animation-delay:-'+i*3+'s')});
-const W='#2a1d42',S='#170e28',L='#44336b',RF='#120a20',tw2=(x,y,w,h)=>R(x,y,w,h,W)+R(x,y,2,h,L)+R(x+w-2,y,2,h,S)+pk(w>>2,i=>R(x+1+i*4,y-2,2,2,W));
-o+=PG('-6,120 2,92 10,86 14,74 24,70 30,76 42,70 52,76 58,82 64,96 74,120','#1c1230')+PG('-6,120 2,92 10,86 8,100','#2a1d42')
-+tw2(14,40,8,34)+tw2(24,48,18,26)+tw2(29,22,8,26)+tw2(44,36,9,38)+tw2(55,56,6,18)
-+PG('13,40 18,22 23,40',RF)+PG('28,22 33,2 38,22',RF)+PG('43,36 48.5,16 54,36',RF)+PG('54,56 58,46 62,56',RF)+PG('18,22 23,40 18,40','#2a1d42')+PG('33,2 38,22 33,22','#2a1d42')+PG('48.5,16 54,36 48.5,36','#2a1d42')
-+CI(33,2,1.8,'#ff3b2f',' class="zpl"')+pk(14,i=>R(P(15,56),P(42,72),3,1,S))+R(31,64,6,10,'#08040f')+R(32,62,4,2,'#08040f')
-+[[16,48],[17,60],[27,56],[35,56],[46,44],[47,58],[31,32],[57,64],[26,52]].map((c,i)=>R(c[0]-1,c[1]-1,4,5,'#ff3b2f',' opacity=".22"')+R(c[0],c[1],2,3,'#ff3b2f',TW((.6+q()*1.4).toFixed(1),F1(3)))).join('')
-+CI(33,55,2.6,'#ffa03b',' class="zpl"')+R(33,53,1,5,'#300')
-+pk(10,i=>R(P(14,56),P(22,38),1,1,'#ff7a3b',' class="ze" style="--l:-'+(i*.5)+'s"'))
-+[[96,0],[102,5]].map(c=>G('zg',R(-6,c[0],80,5,'#9a8cc0',' opacity=".3"'),'animation-duration:'+(12+c[1])+'s')).join('');
-const BAT=['kk..k.k..kk','kkkkkkkkkkk','.kkkrkrkkk.','..kk.k.kk..','...k...k...'];
-o+=[[10,30,6],[40,18,8],[22,54,7],[50,44,9],[4,66,10]].map(c=>'<g transform="translate('+c[0]+' '+c[1]+')">'+G('zp',G('zw',SP(BAT,{k:'#0e0818',r:'#ff3b2f'},0,0)),'--d:'+c[2]+'s')+'</g>').join('');
+/* v6: the villain's fortress is drawn by js/v6-looks.js (HWLooks.title), anchored on its cliff; the old dark tower's right
+   turret floated above the slope. The 66 random draws it used are kept so the rest of the seeded scene is unchanged. */
+for(let i=0;i<66;i++)q();
+o+=(typeof HWLooks!=='undefined'?HWLooks.title():'')+[[96,0],[102,5]].map(c=>G('zg',R(-6,c[0],80,5,'#9a8cc0',' opacity=".3"'),'animation-duration:'+(12+c[1])+'s')).join('');
 const bolt=(x,y,n)=>{let g='',h='',c=x;for(let i=0;i<n;i++){const nx=c+P(-5,6),a=Math.min(c,nx),w=Math.abs(nx-c)+2;g+=R(a-2,y+i*5,w+4,5,'#b9a6ff',' opacity=".4"');h+=R(a,y+i*5,w,5,'#fffbe0');c=nx}return g+h},FL=R(-700,-700,840,830,'#e9e0ff',' opacity=".36"');
 o+=G('zl',FL+bolt(30,24,11),'animation-duration:7s;animation-delay:-2s')+G('zl',bolt(64,18,12)+FL,'animation-duration:11s;animation-delay:-6s');
 const ht=(x,y,w,h,rh)=>{const cx=x+w/2,nr=Math.floor((h-1)/2),nc=Math.ceil(w/3);let g=R(x,y,w,h,'#ece3cc')+pk(nr,i=>R(x,y+2+i*2,w,.35,'#cbbd9c'))+pk(nr*nc,k=>{const r=k%nr,c=Math.floor(k/nr);return R(Math.min(x+w-.4,x+c*3+(r%2?1.5:0)),y+r*2+.3,.35,1.7,'#d3c6a6')})+pk(4,k=>R(x+P(1,w-2),y+P(3,h-2),1.5,.6,'#f8f2e2'))

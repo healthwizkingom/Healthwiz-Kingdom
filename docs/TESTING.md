@@ -33,14 +33,14 @@ compatibility tests.
 | statistics | `09-charts` |
 | backup, restore | `01-original-app` (download, erase, restore from file), `02-schema` (old and newer backups) |
 | reset | `01-original-app` (two taps), `03-events` |
-| theme | `25-matrix` (device default, saved choice, every page, contrast) |
+| theme | `25-matrix` (device default, saved choice, every page, contrast), `35-looks` (every theme's contrast and health colours, swatches, Match system) |
 | responsive layouts | `01-original-app`, `25-matrix` (seven sizes), the 360 px checks in `13`–`23` |
 | touch | `25-matrix-input`, `26-journey`, the game tests |
 | authentication, cloud sync | `21-cloud`, `22-cloud-sync` |
 | leaderboard | `23-board` |
 | location permissions, GPS fallback | `19-gps`, `33-stairs` (GPS check-in writes the unified session) |
-| offline mode | `20-pwa`, `35-live` (weather and haze unavailable, last good copy, nothing sent while Live Data is off) |
-| live weather, haze | `35-live` (Open-Meteo stubbed: WMO → sky, chip, heat tip, haze bands and advice, Settings card) |
+| offline mode | `20-pwa`, `36-live` (weather and haze unavailable, last good copy, nothing sent while Live Data is off) |
+| live weather, haze | `36-live` (Open-Meteo stubbed: WMO → sky, chip, heat tip, haze bands and advice, Settings card) |
 | console errors | every test; `26-journey` runs a whole first day without one |
 | pixel art, no emoji glyphs | `34-final-polish` (new icons, ambient world, Storm Within expressions), `28-foundation` (icons), `30-emoji` (no emoji drawn as text on any page, toast, dialog or game) |
 | broken references | `26-journey` (handlers, page links, images, asset paths), `20-pwa` (the offline file list) |
