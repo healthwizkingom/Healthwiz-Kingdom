@@ -77,7 +77,7 @@ per colour. `s` is a whole-number scale (1 = 16 px, 2 = 32 px); fractions are ro
 
 | Required set | Also drawn (page banners, headings) |
 |---|---|
-| heart, water, food, sleep, stairs, running, stress, energy, achievement, warning, success, wizard, monster | balance, chart, scroll, gear, quest, map, bell; final polish: workout, pulse (heart rate), badge, home, flame, star, mind, game |
+| heart, water, food, sleep, stairs, running, stress, energy, achievement, warning, success, wizard, monster | balance, chart, scroll, gear, quest, map, bell; final polish: workout, pulse (heart rate), badge, home, flame, star, mind, game; wake-up alarm: alarm, snooze |
 
 * `HWPixel.names`: every icon. `HWPixel.grid(name)`: its 16 rows with the outline added, which the original sprite
   helper can draw on a canvas: `spr(HWPixel.grid('heart'), HWPixel.PAL, 3)`.

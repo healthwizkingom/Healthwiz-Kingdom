@@ -4,7 +4,7 @@
    The haze value is a MODELLED estimate (CAMS), labelled so, with a link to the official APIMS reading.
 
    Shown on: the title screen (live sky + chip, js/v6-title.js), Home (weather chip + 🌫️ JEREBU CHECK), the Stairs
-   page (hazeBanner(), also meant for any later running page) and Settings → 🌐 LIVE DATA (on/off, last update,
+   page (hazeBanner() + heatTip() above the Running controls, before a run) and Settings → 🌐 LIVE DATA (on/off, last update,
    REFRESH). At haze level ≥3 the kingdom's sky turns hazy: the ambient layer and the title scene only, never a card.
 
    Network rules: every request has an 8 s timeout and a try/catch; good answers go to localStorage `healthwiz_cache`
@@ -164,7 +164,7 @@ body.hw-haze .amb .amfar{opacity:.3}body.hw-haze .amb .amcl{opacity:.35}`);
 /* ---------- surfaces ---------- */
 {const p=pages.home;pages.home=(...a)=>{const h=p(...a),i=h.indexOf('<div class="hbar">'),j=i<0?-1:h.indexOf('</button></div>',i);const c=homeWeather()+hazeCard();
   return j<0?c+h:h.slice(0,j+15)+c+h.slice(j+15)}}
-{const p=pages.stair;pages.stair=(...a)=>{const h=p(...a),k='<h2>🧗 STAIR QUEST</h2>';return h.indexOf(k)===0?k+hazeBanner()+h.slice(k.length):hazeBanner()+h}}
+// Stairs page: hazeBanner() and heatTip() sit just above the Running controls before a run (js/v6-running.js)
 // above APP & OFFLINE (which sits just above Backup & Restore)
 {const p=pages.set;pages.set=(...a)=>{const h=p(...a),k=['<div class="card" id="v6pwa">','<div class="card" id="bkp">'].find(x=>h.indexOf(x)>=0);return k?h.replace(k,card()+k):h+card()}}
 

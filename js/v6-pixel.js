@@ -496,6 +496,41 @@ game:[
 '...eee....eee...',
 '................',
 '................',
+'................'],
+// wake-up alarm (js/v6-alarm.js): the alarm clock and snooze; the bell and the moon ('sleep') are drawn above
+alarm:[
+'................',
+'..rr........rr..',
+'.rprR......rprR.',
+'..RR.rrrrrr.RR..',
+'....rwwwwwwR....',
+'...rwwwewwwwR...',
+'..rwwwwewwwwwR..',
+'..rwwwwewwwwwR..',
+'..rwwwweeewwwR..',
+'..rwwwwwwwwwwR..',
+'..rwwwwwwwwwwR..',
+'...RwwwwwwwwR...',
+'....RRRRRRRR....',
+'....e......e....',
+'...ee......ee...',
+'................'],
+snooze:[
+'................',
+'.mmmmmm.........',
+'.VVVVvV.........',
+'....vV..........',
+'...vV...........',
+'..vV............',
+'.vV.............',
+'.vvvvvV.........',
+'.VVVVVV..mmmm...',
+'.........VVvV...',
+'..........vV....',
+'.........vV.....',
+'.........vvvV...',
+'.........VVVV...',
+'................',
 '................']
 };
 // Emoji used in the app today → icon (unambiguous ones only: 🔥 means streak, vigorous pace and the Energy Forge,
@@ -504,7 +539,7 @@ const EMOJI={'❤':'heart','💓':'pulse','🫀':'pulse','💧':'water','💦':'
   '🌙':'sleep','😴':'sleep','🛏':'sleep','🧗':'stairs','🪜':'stairs','🏃':'running','🧠':'stress','🌩':'stress',
   '⚡':'energy','🏆':'achievement','⚠':'warning','✅':'success','✔':'success',
   '🧙':'wizard','🧙‍♂':'wizard','👹':'monster','👾':'monster','🐲':'monster','⚖':'balance','📈':'chart',
-  '📜':'scroll','⚙':'gear','⚔':'quest','🗺':'map','🏋':'workout','💪':'workout','🏅':'badge','🎖':'badge','🏠':'home','⭐':'star','🌟':'star','🎮':'game'};
+  '📜':'scroll','⚙':'gear','⚔':'quest','🗺':'map','🏋':'workout','💪':'workout','🏅':'badge','🎖':'badge','🏠':'home','⭐':'star','🌟':'star','🎮':'game','⏰':'alarm'};
 // The banner at the top of each page (BN in js/hw-03-part.js), by page, so each region keeps one icon. The Nutrition &
 // Hydration page shows both of its systems on either tab.
 const REGION={food:['food','water'],water:['food','water'],sleep:'sleep',pulse:'heart',stair:'stairs',stress:'stress',bmi:'balance',
