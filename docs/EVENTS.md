@@ -61,6 +61,8 @@ take precedence over payload fields with the same name.
 | `cloud:error` | `code: net\|auth\|setup\|newer\|bad\|busy\|size\|http` | a sync or account action failed (nothing local was changed) |
 | `board:joined` | — | the player joined the Hall of Heroes leaderboard (`js/v6-board.js`) |
 | `board:left` | — | the player left the leaderboard; the server entry was removed |
+| `runboard:joined` | — | the player joined the Runners' Board running leaderboard (`js/v6-runboard.js`) |
+| `runboard:left` | — | the player left the Runners' Board; all their weekly rows were deleted from the server |
 | `board:updated` | `hidden` | the player hid or showed their hero name |
 | `storage:failed` | `bytes` | the save could not be written to this device's storage (full or blocked), even after freeing superseded pre-upgrade copies; the user is told and the data stays in the open tab (`js/hw-02-core.js`) |
 

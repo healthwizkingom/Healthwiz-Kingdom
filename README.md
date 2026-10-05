@@ -60,6 +60,8 @@ js/v6-cloud.js             optional Supabase cloud save: sign-in, sync with offl
 js/v6-board.js             Hall of Heroes: opt-in leaderboard of game progress only (Quest Board card + Settings privacy card)
 js/v6-live.js              live weather + haze (jerebu) for Kolej MARA Kulim from Open-Meteo: title sky, Home chip + JEREBU CHECK, hazeBanner() + heat tip above Running, Settings → LIVE DATA
 js/v6-alarm.js             wake-up alarm on the Sleep page: in-app alarm (sounds, snooze, bedside clock), Android Clock intent, iPhone steps, .ics reminder
+js/v6-hr.js                smartwatch / chest-strap heart rate over Web Bluetooth (0x180D/0x2A37, battery 0x180F) for the Workout on the Stairs page; "Will my watch work?" sheet
+js/v6-runboard.js          Runners' Board: opt-in running leaderboard (nickname + weekly totals only, no sign-in) under Running on the Stairs page
 supabase/migrations/       SQL for the cloud save and the leaderboard (Row Level Security) — run each file once in the Supabase project
 sw.js                      service worker: pre-caches the app, network first, works offline (keep PRECACHE in sync)
 manifest.webmanifest       web app manifest (name, colours, standalone display, icons)
@@ -102,6 +104,9 @@ between devices (Settings → Cloud Save).
   `hw_delete_account()`). It must have been run once in the project (SQL editor, or `supabase db push`).
 * Leaderboard: `supabase/migrations/20261004000000_hw_leaderboard.sql` (table `hw_board`, written only by
   `hw_board_publish()` and read only through `hw_board_top()`). Run it after the cloud-save SQL.
+* Running leaderboard (Runners' Board): `supabase/migrations/20261006000000_run_scores.sql` (table `run_scores`, written only
+  by `submit_run_score()` / `leave_run_board()`, ranked by `run_board()`). Needs no sign-in: the app uses a random device id
+  and the publishable key in `CFG` at the top of `js/v6-runboard.js`. Run it once; it does not depend on the other files.
 * Auth → URL Configuration: set the Site URL / redirect URLs to the GitHub Pages address, so the email confirmation link
   brings users back signed in.
 * Free plan limits: 500 MB database, 50,000 monthly active users, and a project paused after 7 days without activity

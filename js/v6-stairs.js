@@ -15,18 +15,25 @@
           steps, climbs,                               steps per climb × number of climbs
           kind: 'casual' | 'workout', src: 'gps' | 'manual'  (chk:'gps' kept for older readers)
           pace, dur (min, 0 = not recorded),           workouts: pace chosen, minutes from the timer or typed
-          hrB, hrA (BPM | null), hrS: 'manual',        heart rate before / after, counted and typed in by the user
+          hrB, hrA (BPM | null), hrS: 'manual' | 'device' | 'mixed',  heart rate before / after: typed in, or a steady
+                                                       average from a Bluetooth heart-rate device (js/v6-hr.js)
+          hrLo, hrAv, hrHi (BPM | null),               optional: lowest / average / highest during the climb (recorded
+                                                       from the device while the timer runs, or typed in)
+          hrPct (number | null),                       peak (highest of hrHi / hrA) as % of 220 − age at save time (rough)
+          hrDev: {b, a, c} (only when a device was used): which numbers came from the device; such entries also
+                                                       carry src: 'device' and show a pixel watch icon
           kcal: {v, lo, hi, m} | null}                 calorie estimate at save time (method m, see estimate())
    Older entries are read through session(), which infers kind and src from the fields they have, so nothing is
    rewritten in storage. No pulse entries are created any more; old 'pulse' entries stay in the save (and backups)
    untouched but are no longer listed. Heart rate shown anywhere now comes from stair sessions only.
 
-   Never fabricated: a heart rate is only shown when the user typed it in; the calorie estimate appears only when the
+   Never fabricated: a heart rate is only shown when the user typed it in or chose USE AS BEFORE / AFTER on a reading; the calorie estimate appears only when the
    profile (age, sex, height, weight) has been confirmed by the user and a workout time exists. */
 const HWStairs=(()=>{
 const isO=x=>!!x&&typeof x==='object'&&!Array.isArray(x);
 const num=v=>v==null||v===''||!isFinite(+v)?null:+v;
 const okHR=v=>{v=num(v);return v!=null&&v>=30&&v<=220?Math.round(v):null};
+const hasHR=typeof HWHR!=='undefined';
 // 2024 Adult Compendium of Physical Activities: 17133 stair climbing slow pace 4.5, 17131 general 6.8, 17134 fast pace 9.3
 const MET={Easy:4.5,Moderate:6.8,Vigorous:9.3};
 const PN=()=>PACES.map(p=>p[1]);
@@ -38,12 +45,14 @@ function session(e){const m=isO(e&&e.m)?e.m:{},dur=num(m.dur)>0?+m.dur:0,hrB=okH
   const kind=m.kind==='workout'||m.kind==='casual'?m.kind:(hrB||hrA||dur?'workout':'casual');
   return{id:e.id,d:e.d,t:e.t,kind,src:m.src==='gps'||m.chk==='gps'?'gps':'manual',sid:m.sid||null,loc:m.loc||'Stairway',diff:m.diff||null,
     floor:m.floor||'',lat:num(m.lat),lng:num(m.lng),steps:+m.steps||0,climbs:+m.climbs||0,total:+e.v||0,dur,
-    pace:PN().includes(m.pace)?m.pace:null,hrB,hrA,kcal:isO(m.kcal)&&+m.kcal.v>0?m.kcal:null}}
+    pace:PN().includes(m.pace)?m.pace:null,hrB,hrA,kcal:isO(m.kcal)&&+m.kcal.v>0?m.kcal:null,
+    hrLo:okHR(m.hrLo),hrAv:okHR(m.hrAv),hrHi:okHR(m.hrHi),hrPct:num(m.hrPct),dev:isO(m.hrDev)?m.hrDev:m.src==='device'?{b:1,a:1}:null}}
 const all=()=>LC('stair').map(session);
 /** The record for a new session: the stairway, the counts, and only the fields that were really given. */
 function record(q,o){return{sid:q.id,loc:q.name,diff:q.cat,floor:q.floor,angle:q.angle,lat:q.lat,lng:q.lng,steps:o.steps,climbs:o.climbs,
   kind:o.kind,src:o.src,chk:o.src==='gps'?'gps':undefined,pace:o.pace||null,dur:o.dur||0,hrB:o.hrB||null,hrA:o.hrA||null,
-  hrS:o.hrB||o.hrA?'manual':undefined,kcal:o.kcal||null}}
+  hrS:o.hrS||(o.hrB||o.hrA?'manual':undefined),kcal:o.kcal||null,
+  hrLo:o.hrLo||undefined,hrAv:o.hrAv||undefined,hrHi:o.hrHi||undefined,hrPct:o.hrPct||undefined,hrDev:o.hrDev||undefined}}
 
 /* ---------- profile + calorie estimate ---------- */
 /** The user's confirmed body data, or null. Confirmed = sealed in onboarding or saved on this page; app defaults never count. */
@@ -62,7 +71,8 @@ function estimate(o,P){P=P===undefined?profile():P;if(!P)return{need:'profile'};
 /* ---------- page state (memory; the workout draft also survives a refresh of this tab) ---------- */
 let pick=null; // id of the stairway the user chose (or checked in at); nothing is pre-selected
 const C={steps:'',climbs:'',d:'',t:''};
-const W0=()=>({hrB:'',hrA:'',steps:'',climbs:'',dur:'',durSet:0,ms:0,since:null});
+// hrBd/hrAd: that number came from the device; cLo/cAv/cHi: climb heart rate (cSet: typed in, cDev: recorded, cl: running tally)
+const W0=()=>({hrB:'',hrA:'',steps:'',climbs:'',dur:'',durSet:0,ms:0,since:null,hrBd:0,hrAd:0,cLo:'',cAv:'',cHi:'',cSet:0,cDev:0,cl:null});
 let W=(()=>{try{const o=JSON.parse(sessionStorage.getItem(DK)||'null');return isO(o)?Object.assign(W0(),o,{since:null}):W0()}catch(e){return W0()}})();
 const keepW=()=>{try{sessionStorage.setItem(DK,JSON.stringify(W))}catch(e){}};
 const stair=()=>STAIRS.find(s=>s.id===pick)||null;
@@ -99,7 +109,22 @@ function trace(k,v){const B=k==='b',L=B?'BEFORE WORKOUT':'AFTER WORKOUT';
   return '<div class="sthr '+(B?'b':'a')+'"><div class="sthrh">'+ico('heart')+'<b>'+L+'</b></div>'
     +'<canvas class="sttr" id="st-tr-'+k+'" data-bpm="'+(v||'')+'" data-k="'+k+'" role="img" aria-label="'+L+' heart rate: '+(v?v+' BPM, typed in by you':'not entered')+'"></canvas>'
     +'<label>'+(B?'Before you start':'Right after you stop')+' (BPM)<input id="wk-'+k+'" data-in="stw" type="number" min="30" max="220" inputmode="numeric" value="'+esc(B?W.hrB:W.hrA)+'"></label>'
-    +'<small class="mut" id="st-hs-'+k+'">'+(v?'Counted and typed in by you.':'Not entered. Count beats for 15 s at wrist or neck and multiply by 4.')+'</small></div>'}
+    +'<small class="mut" id="st-hs-'+k+'">'+hsTxt(k,v)+'</small>'+(B?'<small class="strest" id="st-rest" role="status">'+restTxt(v)+'</small>':'')+'</div>'}
+const devK=k=>!!(k==='b'?W.hrBd:W.hrAd);
+const hsTxt=(k,v)=>v?(devK(k)?ico('watch',{label:'From your watch'})+' Steady average from your heart-rate device.':'Counted and typed in by you.'):'Not entered. Count beats for 15 s at wrist or neck and multiply by 4.';
+// the before-workout number is taken at rest: outside 50–100 BPM gets a plain, non-diagnostic note
+const restTxt=v=>v&&(v<50||v>100)?ico('warning')+' Outside the usual resting range; see a doctor if you feel unwell or it persists.':'';
+const ageOf=()=>{const p=st.p||{},a=+p.age;return(st.s.onb||p.cfm)&&a>=10&&a<=100?Math.round(a):null};
+/** Peak heart rate (highest of climb max and after) as % of 220 − age, or null. A rough estimate only. */
+function peak(hi,a,age){const pk=Math.max(okHR(hi)||0,okHR(a)||0);age=age===undefined?ageOf():age;return pk&&age?{pk,max:220-age,pct:Math.round(pk/(220-age)*100)}:pk?{pk}:null}
+function peakTxt(){const p=peak(W.cHi,W.hrA);if(!p)return'<span class="mut">Add the highest heart rate during the climb (or the after-workout number) to compare it with an estimated maximum.</span>';
+  if(!p.max)return'Peak <b>'+p.pk+'</b> BPM. <span class="mut">Add your age in the profile below to compare it with an estimated maximum.</span>';
+  return'Peak <b>'+p.pk+'</b> BPM ≈ <b>'+p.pct+'%</b> of 220 − age ('+p.max+' BPM). <span class="mut">A rough estimate: for many people the real maximum is 10–20 BPM above or below this formula.</span>'}
+const cNote=()=>W.cDev&&W.cl?ico('watch',{label:'From your watch'})+' Recorded by your heart-rate device while the timer ran ('+W.cl.n+' readings).':W.cSet?'Typed in by you.':'Optional. Type them in, or connect a device: it records them while the workout timer runs.';
+function climbHR(){const f=(id,l,v)=>'<label>'+l+'<input id="'+id+'" data-in="stw" type="number" min="30" max="220" inputmode="numeric" value="'+esc(v)+'"></label>';
+  return '<div class="stclimb" id="st-climb"><b>'+ico('heart')+' DURING THE CLIMB <span class="pxtag">OPTIONAL</span></b>'
+    +'<div class="row">'+f('wk-lo','Lowest (BPM)',W.cLo)+f('wk-av','Average',W.cAv)+f('wk-hi','Highest',W.cHi)+'</div>'
+    +'<small class="mut" id="st-cn">'+cNote()+'</small><p id="st-peak">'+peakTxt()+'</p></div>'}
 function delta(){const b=okHR(W.hrB),a=okHR(W.hrA);return b&&a?'Your heart rate went from <b>'+b+'</b> to <b>'+a+'</b> BPM ('+(a-b>=0?'+':'')+(a-b)+').':'Enter both numbers to compare before and after.'}
 
 function kcalBox(){const P=profile(),e=estimate({pace:PACES[S.pb.pace][1],dur:durW(),hrA:W.hrA},P);
@@ -122,8 +147,9 @@ function workout(){const P=PACES[S.pb.pace],q=stair(),run=!!S.pb.on,ds=durW();
     +'<div class="sttimer"><small>WORKOUT TIME</small><b class="num" id="wk-time" role="timer">'+clock(secsW())+'</b></div>'
     +'<div class="row" style="margin-top:10px">'+(run?btn('slow','SLOW DOWN','g')+'<button data-a="pstop" style="background:var(--red);color:#fff">STOP ACTIVITY</button>':btn('pstart',W.ms?'RESUME':'START'))+'</div>'
     +'<div class="warn">Stop right away if you feel dizzy, faint, have chest pain or severe breathlessness, and seek medical attention. You never have to keep this pace.</div></div>'
-    +'<div class="card stcard" id="sthrc"><h3>'+ico('heart')+' HEART RATE · THIS WORKOUT</h3><p class="mut">Count your pulse before you start and again right after you stop. Only numbers you enter are shown; nothing is read from a device.</p>'
-    +'<div class="sthrs">'+trace('b',okHR(W.hrB))+trace('a',okHR(W.hrA))+'</div><p id="st-delta">'+delta()+'</p><small class="mut">A heart-rate picture, not an ECG.</small></div>'
+    +'<div class="card stcard" id="sthrc"><h3>'+ico('heart')+' HEART RATE · THIS WORKOUT</h3><p class="mut">Count your pulse before you start and again right after you stop, or read it from a heart-rate device. Only numbers you type in or choose to use are saved.</p>'
+    +(hasHR?HWHR.panel():'')
+    +'<div class="sthrs">'+trace('b',okHR(W.hrB))+trace('a',okHR(W.hrA))+'</div><p id="st-delta">'+delta()+'</p>'+climbHR()+'<small class="mut">A heart-rate picture, not an ECG.</small></div>'
     +'<div class="card stcard" id="stseal"><h3>'+ico('achievement')+' SEAL THE WORKOUT</h3>'
     +'<div class="row"><label>Steps per climb<input id="wk-s" data-in="stw" type="number" min="1" max="1000" inputmode="numeric" value="'+esc(W.steps)+'"></label><label>Number of climbs<input id="wk-c" data-in="stw" type="number" min="1" max="500" inputmode="numeric" value="'+esc(W.climbs)+'"></label></div>'
     +'<label>Workout time (min)<input id="wk-d" data-in="stw" type="number" min="0.5" max="300" step="0.5" inputmode="decimal" value="'+(ds!=null?ds:'')+'"></label><small class="mut" id="wk-dn">'+(W.durSet?'Typed in by you.':ds!=null?'From the Pace & Breathe timer.':'Start the timer, or type the minutes.')+'</small>'
@@ -147,9 +173,10 @@ function chart(){const L=all().filter(s=>s.kind==='workout'&&(s.hrB||s.hrA)).sli
 
 function sessCard(s){const w=s.kind==='workout',mx=Math.max(s.hrB||0,s.hrA||0,1);
   return '<div class="stses '+(w?'w':'c')+'"><div class="stsi">'+ico(w?'energy':'stairs',2)+'</div><div class="stsb"><b>'+esc(s.loc)+'</b>'
-    +'<small>'+esc(s.d)+' · '+esc(s.t)+'</small><div class="ststags"><span class="pxtag">'+(w?'WORKOUT':'CASUAL')+'</span><span class="pxtag">'+(s.src==='gps'?'GPS CHECK-IN':'BY HAND')+'</span>'+(s.pace?'<span class="pxtag">'+s.pace.toUpperCase()+'</span>':'')+'</div>'
+    +'<small>'+esc(s.d)+' · '+esc(s.t)+'</small><div class="ststags"><span class="pxtag">'+(w?'WORKOUT':'CASUAL')+'</span><span class="pxtag">'+(s.src==='gps'?'GPS CHECK-IN':'BY HAND')+'</span>'+(s.pace?'<span class="pxtag">'+s.pace.toUpperCase()+'</span>':'')+(s.dev?'<span class="pxtag">'+ico('watch',{label:'Heart rate from a smartwatch'})+'WATCH</span>':'')+'</div>'
     +'<p><b>'+s.total+'</b> steps'+(s.climbs&&s.climbs*s.steps===s.total?' ('+s.climbs+' × '+s.steps+')':'')+(s.dur?' · '+s.dur+' min':'')+(s.kcal?' · ≈'+s.kcal.v+' kcal est.':'')+'</p>'
-    +(s.hrB||s.hrA?'<div class="stsh"><span>Before</span>'+bar((s.hrB||0)/mx*100,'var(--blue)')+'<b>'+(s.hrB||'–')+'</b><span>After</span>'+bar((s.hrA||0)/mx*100,'var(--red)')+'<b>'+(s.hrA||'–')+'</b></div>':'')
+    +(s.hrB||s.hrA?'<div class="stsh"><span>Before</span>'+bar((s.hrB||0)/mx*100,'var(--blue)')+'<b>'+(s.hrB||'–')+(s.dev&&s.dev.b&&s.hrB?ico('watch',{label:'from your watch'}):'')+'</b><span>After</span>'+bar((s.hrA||0)/mx*100,'var(--red)')+'<b>'+(s.hrA||'–')+(s.dev&&s.dev.a&&s.hrA?ico('watch',{label:'from your watch'}):'')+'</b></div>':'')
+    +(s.hrHi||s.hrAv||s.hrLo?'<p class="mut">Climb: '+(s.hrLo||'–')+' / '+(s.hrAv||'–')+' / '+(s.hrHi||'–')+' BPM <small>(low / avg / high)</small>'+(s.dev&&s.dev.c?' '+ico('watch',{label:'recorded by your watch'}):'')+(s.hrPct?' · peak ≈'+Math.round(s.hrPct)+'% of est. max <small>(rough)</small>':'')+'</p>':'')
     +'</div><div class="stsa"><button class="sm g" aria-label="Edit" data-a="edit" data-id="'+esc(s.id)+'">✏️</button><button class="sm g" aria-label="Delete" data-a="del" data-id="'+esc(s.id)+'">🗑️</button></div></div>'}
 function chronicle(){const L=all().slice(-10).reverse();
   return '<div class="card" id="stlog"><h3>'+ico('scroll')+' SESSION CHRONICLE</h3><p class="mut">Every stair session in one place: GPS check-ins, climbs logged by hand and workouts.</p>'
@@ -162,7 +189,7 @@ pages.stair=()=>{const g=typeof HWGps!=='undefined'?HWGps.card():'',r=typeof HWR
     +(g?'<div class="card" id="v6gps">'+g+'</div>':'')+casual()
     +head('st-workout','energy','TRIAL OF BREATH','STAIR WORKOUT','A timed, paced stair workout with your heart rate before and after, and an energy estimate.')
     +workout()+chart()+chronicle()+'<!--stair-games-->'
-    +head('st-run','running','RUNNING ROAD','RUNNING','Track a run by GPS: distance, time and pace.')+r};
+    +head('st-run','running','RUNNING ROAD','RUNNING','Track a run by GPS: distance, time and pace.')+r+(typeof HWRunBoard!=='undefined'?HWRunBoard.section():'')};
 // the old Pulse page now opens the Workout section (see go below); this keeps a direct call safe
 pages.pulse=()=>pages.stair();
 
@@ -191,11 +218,26 @@ function watch(){if(hasIO){if(IOc)IOc.disconnect();IOc=new IntersectionObserver(
 const $id=i=>document.getElementById(i);
 function liveKcal(){const k=$id('wk-kcal');if(k&&!k.contains(document.activeElement))k.innerHTML=kcalBox()}
 INP.stc=()=>{C.steps=$id('ss').value;C.climbs=$id('sc').value;C.d=$id('sdt').value;C.t=$id('stm').value;$id('tot').textContent=(+C.steps||0)*(+C.climbs||0)};
-INP.stw=el=>{const v=k=>{const e=$id(k);return e?e.value:''};W.hrB=v('wk-b');W.hrA=v('wk-a');W.steps=v('wk-s');W.climbs=v('wk-c');
+INP.stw=el=>{const v=k=>{const e=$id(k);return e?e.value:''},id=el&&el.id;W.hrB=v('wk-b');W.hrA=v('wk-a');W.steps=v('wk-s');W.climbs=v('wk-c');
+  if(id==='wk-b')W.hrBd=0;if(id==='wk-a')W.hrAd=0; // typed over a device reading: it is the user's number now
+  if($id('wk-lo')){W.cLo=v('wk-lo');W.cAv=v('wk-av');W.cHi=v('wk-hi')}
+  if(id==='wk-lo'||id==='wk-av'||id==='wk-hi'){W.cSet=W.cLo+W.cAv+W.cHi!==''?1:0;W.cDev=0;const n=$id('st-cn');if(n)n.innerHTML=cNote()}
   if(el&&el.id==='wk-d'){W.dur=v('wk-d');W.durSet=W.dur!==''?1:0;const n=$id('wk-dn');if(n)n.textContent=W.durSet?'Typed in by you.':'From the Pace & Breathe timer.'}
   keepW();['b','a'].forEach(k=>{const c=$id('st-tr-'+k),h=okHR(k==='b'?W.hrB:W.hrA),s=$id('st-hs-'+k);if(c){c.dataset.bpm=h||'';c.setAttribute('aria-label',(k==='b'?'BEFORE':'AFTER')+' WORKOUT heart rate: '+(h?h+' BPM, typed in by you':'not entered'))}
-    if(s)s.textContent=h?'Counted and typed in by you.':'Not entered. Count beats for 15 s at wrist or neck and multiply by 4.'});
+    if(s)s.innerHTML=hsTxt(k,h)});
+  const r=$id('st-rest');if(r)r.innerHTML=restTxt(okHR(W.hrB));const pk=$id('st-peak');if(pk)pk.innerHTML=peakTxt();
   const d=$id('st-delta');if(d)d.innerHTML=delta();liveKcal();draw()};
+/* ---------- heart-rate device (js/v6-hr.js): use a steady reading; record the climb while the timer runs ---------- */
+acts.hruse=d=>{if(!hasHR)return;const s=HWHR.stable(),k=d.k==='a'?'a':'b';
+  if(!s.ok||s.v>220){toast('Wait for a steady reading (10–15 s, holding still)');return}
+  const e=$id('wk-'+k);if(e)e.value=s.v;if(k==='b'){W.hrB=String(s.v);W.hrBd=1}else{W.hrA=String(s.v);W.hrAd=1}
+  INP.stw(null);toast('Watch reading used: '+s.v+' BPM '+(k==='b'?'before':'after')+' the workout')};
+let kept=0;
+if(hasHR)HWHR.on(v=>{if(!W.since||v>220)return;const c=W.cl||(W.cl={lo:v,hi:v,sum:0,n:0});c.lo=Math.min(c.lo,v);c.hi=Math.max(c.hi,v);c.sum+=v;c.n++;
+  if(!W.cSet){W.cLo=String(c.lo);W.cAv=String(Math.round(c.sum/c.n));W.cHi=String(c.hi);W.cDev=1;
+    [['wk-lo',W.cLo],['wk-av',W.cAv],['wk-hi',W.cHi]].forEach(([i,x])=>{const f=$id(i);if(f&&document.activeElement!==f)f.value=x});
+    const n=$id('st-cn');if(n)n.innerHTML=cNote();const pk=$id('st-peak');if(pk)pk.innerHTML=peakTxt()}
+  if(Date.now()-kept>5000){kept=Date.now();keepW()}});
 CH.stloc=v=>{const i=STAIRS.findIndex(s=>s.id===v);if(i<0){pick=null;return}pick=v;S.loc=i;S.cat=STAIRS[i].cat;render()};
 
 /* ---------- workout timer: the Pace & Breathe rhythm guide is the clock ---------- */
@@ -220,8 +262,13 @@ acts.stwsave=()=>{INP.stw();pause();const s=+W.steps,c=+W.climbs,b=W.hrB===''?nu
   if(!counts(s,c)){toast('Enter steps per climb (1–1000) and number of climbs (1–500)');return}
   if((W.hrB!==''&&!b)||(W.hrA!==''&&!a)){toast('Heart rates should be 30 to 220 BPM');return}
   if(dur!=null&&!(dur>0&&dur<=300)){toast('Workout time should be 0.5 to 300 minutes');return}
+  const cv=x=>x===''?null:okHR(x),lo=cv(W.cLo),av=cv(W.cAv),hi=cv(W.cHi);
+  if((W.cLo!==''&&!lo)||(W.cAv!==''&&!av)||(W.cHi!==''&&!hi)){toast('Climb heart rates should be 30 to 220 BPM');return}
+  if((lo&&av&&lo>av)||(av&&hi&&av>hi)||(lo&&hi&&lo>hi)){toast('Climb heart rate: lowest ≤ average ≤ highest');return}
   const q=need('#wk-loc');if(!q)return;const pace=PACES[S.pb.pace][1],e=estimate({pace,dur,hrA:a});
-  add('stair',s*c,record(q,{kind:'workout',src:'manual',steps:s,climbs:c,pace,dur:dur||0,hrB:b,hrA:a,kcal:e.v?{v:e.v,lo:e.lo,hi:e.hi,m:e.m}:null}),'',today(),nowT(),25,'Workout saved');
+  const dv={};if(W.hrBd&&b)dv.b=1;if(W.hrAd&&a)dv.a=1;if(W.cDev&&(lo||av||hi))dv.c=1;const nd=Object.keys(dv).length,ng=(b?1:0)+(a?1:0)+(lo||av||hi?1:0),pk=peak(hi,a);
+  add('stair',s*c,record(q,{kind:'workout',src:nd?'device':'manual',steps:s,climbs:c,pace,dur:dur||0,hrB:b,hrA:a,kcal:e.v?{v:e.v,lo:e.lo,hi:e.hi,m:e.m}:null,
+    hrS:nd?(nd===ng?'device':'mixed'):undefined,hrLo:lo,hrAv:av,hrHi:hi,hrPct:pk&&pk.pct||null,hrDev:nd?dv:null}),'',today(),nowT(),25,'Workout saved');
   clearInterval(S.tm);S.pb.on=0;W=W0();try{sessionStorage.removeItem(DK)}catch(x){}render()};
 acts.stwreset=()=>{pause();clearInterval(S.tm);S.pb.on=0;W=W0();try{sessionStorage.removeItem(DK)}catch(e){}render();toast('Workout cleared. Nothing was saved.')};
 acts.stprof=()=>{const v=i=>{const e=$id(i);return e?e.value:''},a=+v('pf-a'),sx=v('pf-s'),h=+v('pf-h'),w=+v('pf-w');
@@ -242,7 +289,7 @@ HWEvents.on('data:reset',()=>{pick=null;W=W0();try{sessionStorage.removeItem(DK)
 // Health Hall: one Stairs tile (the Pulse tile is gone; Running's tile is removed by js/v6-running.js)
 {const i=HUB.findIndex(h=>h[0]==='pulse');if(i>=0)HUB.splice(i,1);
   const j=HUB.findIndex(h=>h[0]==='stair');if(j>=0)HUB[j]=['stair','🧗','Stairs & Workout','Stair Mountain',d=>sp(d)+' steps today']}
-DIS.stair=DIS.pulse='General exercise pacing aid, not medical treatment. Heart rates are the numbers you counted and entered; the trace is a picture, not an ECG. Calorie numbers are estimates. Stop and get medical help for dizziness, chest pain, faintness or severe breathlessness.';
+DIS.stair=DIS.pulse='General exercise pacing aid, not medical treatment. Heart rates are the numbers you counted and entered, or steady readings from your own heart-rate device that you chose to use; the trace is a picture, not an ECG, and nothing here is a diagnosis. Calorie numbers are estimates. Stop and get medical help for dizziness, chest pain, faintness or severe breathlessness.';
 
 HWUI.css('stairs',`
 .sthud{margin:0 0 8px}.sthud .pxst{flex:1 1 130px}
@@ -272,6 +319,9 @@ HWUI.css('stairs',`
 .ststags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
 .stsh{display:grid;grid-template-columns:auto 1fr auto;gap:2px 8px;align-items:center;font-size:12px;max-width:340px}.stsh .bar{margin:0}
 .stsa{display:flex;flex-direction:column;gap:6px;flex:0 0 auto}
+.strest{display:flex;gap:6px;align-items:flex-start;margin-top:4px;font-size:13px}.strest:empty{display:none}
+.stclimb{margin:10px 0;padding:8px;border:var(--px-bw-c) dashed var(--ln);background:var(--p2)}.stclimb>b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fh)}
+.stclimb .row label{flex:1 1 90px}.stclimb p{margin:6px 0;font-size:14px}.stclimb small{display:flex;gap:6px;align-items:center}.stsh b{display:inline-flex;align-items:center;gap:2px}
 @media(prefers-reduced-motion:reduce){.stses{animation:none}}html.hw-rm .stses,html.hw-still .stses{animation:none}
 `);
-return{session,all,estimate,profile,MET,get pick(){return pick},get draft(){return Object.assign({},W,{secs:secsW()})}}})();
+return{session,all,estimate,profile,peak,MET,get pick(){return pick},get draft(){return Object.assign({},W,{secs:secsW()})}}})();
