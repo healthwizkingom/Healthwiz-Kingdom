@@ -2,9 +2,10 @@
    The original layered title scene (sky, ridges, floating castle, waterfall, village with
    chimney smoke, river, dark tower, bats, fireflies) is untouched. Added on top:
      §14 time of day   morning / afternoon / evening / night light over the scene (local clock)
-     §15 weather       sunny / cloudy / light rain / mist, one per calendar day (visual only). When live weather for
-                       Kolej MARA Kulim is on and available (js/v6-live.js), the sky follows it instead: clear day or
-                       night (moon and stars), clouds, mist, light rain, rain, downpour or a storm with lightning.
+     §15 weather       with Live Data on (js/v6-live.js) the sky follows the real weather at Kolej MARA Kulim: clear
+                       day or night (moon and stars), clouds, mist, light rain, rain, downpour or a storm with lightning;
+                       until a reading is in, or when it is unavailable, the plain original scene (nothing made up).
+                       With Live Data off: sunny / cloudy / light rain / mist, one per calendar day (visual only).
                        restyle() repaints the sky in place when new data arrives, without replaying the intro.
      §13 returning     progress ribbon (level, regions restored, gentle streak) + a lantern for
                        every restored region along the riverbank
@@ -18,10 +19,12 @@ const reduced=()=>HWUI.reduced();
 const phase=(h=new Date().getHours())=>h>=5&&h<11?'morning':h>=11&&h<17?'afternoon':h>=17&&h<20?'evening':'night';
 const PH={morning:'Morning',afternoon:'Afternoon',evening:'Evening',night:'Night'};
 function weather(d=today()){let x=0;for(const c of d)x=(x*31+c.charCodeAt(0))>>>0;x=(x^(x>>>7))%10;return x<5?'sunny':x<7?'cloudy':x<9?'rain':'mist'}
-const WN={sunny:'clear skies',night:'moon and stars',cloudy:'drifting clouds',rain:'light rain',heavy:'rain',downpour:'downpour',storm:'thunderstorm',mist:'mist over the valley'};
+const WN={plain:'',sunny:'clear skies',night:'moon and stars',cloudy:'drifting clouds',rain:'light rain',heavy:'rain',downpour:'downpour',storm:'thunderstorm',mist:'mist over the valley'};
 // live weather (js/v6-live.js) when it is on and available; otherwise the day's own weather
 const live=()=>typeof HWLive!=='undefined'?HWLive:null;
-function sky(){try{const L=live(),s=L&&L.sky();if(s&&WN[s])return s}catch(e){}return weather()}
+// While Live Data is on, the weather is never made up: until a real reading is in (or when it is unavailable) the
+// scene is the plain original one. The day's own weather is only used when Live Data is off.
+function sky(){try{const L=live();if(L&&L.enabled()){const s=L.sky();return s&&WN[s]?s:'plain'}}catch(e){}return weather()}
 const RAIN={rain:40,heavy:70,downpour:110,storm:80};
 // the weather layer over the scene: rain streaks, a lightning flash (never under reduced motion), haze tint
 function layer(wx){const perf=HWMotion.level()==='performance',n=RAIN[wx]?Math.round(RAIN[wx]*(perf?.35:1)):0;
@@ -29,7 +32,7 @@ function layer(wx){const perf=HWMotion.level()==='performance',n=RAIN[wx]?Math.r
   let hz=false;try{hz=!!(live()&&live().hazy())}catch(e){}
   return '<div class="v6wx '+wx+'">'+(wx==='night'?stars():'')+rain+(wx==='storm'&&!reduced()?'<b class="v6fl"></b>':'')+'</div>'+(hz?'<div class="v6hz"></div>':'')}
 function stars(){return '<b class="v6moon"></b>'+Array.from({length:14},(_,k)=>'<u style="left:'+((k*37+9)%94+2)+'%;top:'+((k*23+5)%30+2)+'%;animation-delay:-'+(k*.4).toFixed(1)+'s"></u>').join('')}
-function caption(ph,wx){return PH[ph].toUpperCase()+' IN THE KINGDOM · '+WN[wx].toUpperCase()}
+function caption(ph,wx){return PH[ph].toUpperCase()+' IN THE KINGDOM'+(WN[wx]?' · '+WN[wx].toUpperCase():'')}
 // the sun is the original's; wrapping it lets clouds, rain and night hide it (opacity only)
 const SUN0='<circle cx="196" cy="88" r="34" fill="url(#zg2)" class="zpl"/>',SUN1='<circle cx="196" cy="88" r="6" fill="#fffbe0"/>';
 function wrapSun(h){const a=h.indexOf(SUN0),b=a<0?-1:h.indexOf(SUN1,a);return b<0?h:h.slice(0,a)+'<g class="v6sun">'+h.slice(a,b+SUN1.length)+'</g>'+h.slice(b+SUN1.length)}

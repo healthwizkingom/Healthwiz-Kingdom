@@ -106,7 +106,9 @@ test('good air: no haze on the kingdom sky', async () => {
 
 test('offline / failing API: default scene, "Weather unavailable", nothing breaks, save untouched', async () => {
   const { page, ctx, errors } = await open({ wx: 'fail', aq: 'fail' });
-  assert.equal(await page.getAttribute('.wl', 'data-sky'), await page.evaluate(() => HWTitle.weather()), 'the default (daily) scene');
+  assert.equal(await page.getAttribute('.wl', 'data-sky'), 'plain', 'the plain scene: no made-up weather while live data is on');
+  assert.equal(await page.locator('.v6wx i, .v6fl').count(), 0, 'no rain drawn');
+  assert.doesNotMatch(await page.textContent('[data-wx]'), /RAIN|CLOUDS|MIST|CLEAR/);
   assert.match(await page.textContent('#v6wxt'), /Weather unavailable/);
   await go(page, 'home');
   assert.match(await page.textContent('#v6wxh'), /Weather unavailable/);
@@ -156,7 +158,7 @@ test('Settings → LIVE DATA: toggle off hides everything and sends nothing; REF
   await go(page, 'welcome'); await page.waitForTimeout(300);
   assert.equal(calls.wx + calls.aq, n, 'no request while off');
   assert.equal(await page.textContent('#v6wxt'), '');
-  assert.notEqual(await page.getAttribute('.wl', 'data-sky'), 'storm');
+  assert.equal(await page.getAttribute('.wl', 'data-sky'), await page.evaluate(() => HWTitle.weather()), 'Live Data off: the day\'s own weather');
   assert.equal(await page.evaluate(() => typeof localStorage.getItem('healthwiz_cache')), 'string', 'cache is its own key');
   assert.deepEqual(errors, []);
   await ctx.close();
