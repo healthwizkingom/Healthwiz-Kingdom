@@ -1197,6 +1197,10 @@ regions).
   stars animate transform/opacity only. `HWTitle.restyle()` repaints sky, caption and chip in place when new data
   arrives, so the intro never replays. Chip: "Kulim now · 31 °C (feels 36 °C) · Light rain · 78% humidity", plus a heat
   tip at feels-like ≥ 35 °C.
+* *Follow-up: no made-up weather.* The title screen used to fall back to the original's per-day pretend weather while
+  no reading was in (or when it was unavailable), so on a dry overcast morning it could show rain. With Live Data on,
+  the fallback is now the plain original scene (`data-sky="plain"`, no weather words in the caption); the per-day
+  weather is used only when Live Data is off.
 * **Haze.** PM2.5 bands (µg/m³, upper bound inclusive): ≤15 Good, ≤35 Moderate, ≤55 Sensitive, ≤150 Unhealthy, above
   Hazardous, each with an icon, colour (always with a text label) and exercise advice. Home: 🌫️ JEREBU CHECK card (value
   with units, PM10, US AQI, reading time, source, "modelled estimate", link to the official APIMS reading). Stairs page

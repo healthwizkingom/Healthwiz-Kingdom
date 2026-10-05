@@ -175,5 +175,5 @@ HWEvents.on('app:ready',()=>{paint();refreshLive()});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(timer);timer=0}else if(on()&&!busy){if(due())refreshLive();else arm()}});
 addEventListener('online',()=>{if(on())refreshLive()});
 
-return{refresh:refreshLive,sky,skyOf,level,hazy,band,hazeBanner,titleChip,chipText,heatTip,state:()=>JSON.parse(JSON.stringify(R)),LV,WMO}})();
+return{refresh:refreshLive,enabled:on,sky,skyOf,level,hazy,band,hazeBanner,titleChip,chipText,heatTip,state:()=>JSON.parse(JSON.stringify(R)),LV,WMO}})();
 const refreshLive=HWLive.refresh,hazeBanner=HWLive.hazeBanner;

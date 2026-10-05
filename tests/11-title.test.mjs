@@ -3,11 +3,13 @@ import assert from 'node:assert/strict';
 import { openApp, closeBrowser, go, RETURNING, entry } from './helpers.mjs';
 
 after(closeBrowser);
+// the day's own weather is the Live Data off mode (with it on, the sky follows the real weather: 36-live)
+const OFF = { ...RETURNING, s: { ...RETURNING.s, live: 0 } };
 const at = h => p => { const t = new Date(); t.setHours(h, 0, 0, 0); return p.clock.setFixedTime(t); };
 
-test('time of day and daily weather are shown over the original scene', async () => {
+test('time of day and daily weather (Live Data off) are shown over the original scene', async () => {
   for (const [h, ph] of [[8, 'morning'], [14, 'afternoon'], [18, 'evening'], [23, 'night']]) {
-    const { page, ctx, errors } = await openApp({ before: at(h) });
+    const { page, ctx, errors } = await openApp({ seed: OFF, before: at(h) });
     await page.waitForSelector('.wl');
     assert.ok(await page.$('.v6tod.' + ph), ph);
     const wx = await page.getAttribute('[data-wx]', 'data-wx');
@@ -33,7 +35,7 @@ test('mist stays in the valley: its top edge is at the knight\'s boots, never ov
   assert.ok(day, 'a mist day exists');
   for (const viewport of [{ width: 1100, height: 900 }, { width: 360, height: 800 }, { width: 1920, height: 1080 }]) {
     // reduced motion holds the knight still so his boots can be measured
-    const { page, ctx, errors } = await openApp({ viewport, seed: { ...RETURNING, s: { ...RETURNING.s, rm: 1 } }, before: p => p.clock.setFixedTime(new Date(day + 'T14:00:00')) });
+    const { page, ctx, errors } = await openApp({ viewport, seed: { ...OFF, s: { ...OFF.s, rm: 1 } }, before: p => p.clock.setFixedTime(new Date(day + 'T14:00:00')) });
     await page.waitForSelector('.wl');
     assert.equal(await page.getAttribute('[data-wx]', 'data-wx'), 'mist');
     const r = await page.evaluate(() => { const k = document.querySelector('.kbd').getBoundingClientRect(); const m = document.querySelector('.v6mist').getBoundingClientRect(); return { boot: k.top + k.height * 210 / 216, top: m.top, wxBg: getComputedStyle(document.querySelector('.v6wx')).backgroundImage }; });
