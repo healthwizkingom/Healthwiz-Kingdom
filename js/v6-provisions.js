@@ -21,7 +21,9 @@ const kstate=c=>{try{return HWKingdom.NAMES[HWKingdom.level(KR.find(r=>r[3]===c)
 // a system card: today's value against the target, and the switch to that half
 function sys(v,on,d){let val,goal,unit,pct,col,line;
   if(v==='food'){const k=kc(d),K=st.s.kcal,m=new Set(A('food',d).map(e=>e.m.meal)).size;
-    val=k;goal=K;unit='kcal';pct=k/K*100;col=k>K*1.1?'var(--vio)':'var(--grn)';line=m?m+(m===1?' meal':' meals')+' logged today':'No meals logged yet today'}
+    val=k;goal=K;unit='kcal';pct=k/K*100;col=k>K*1.1?'var(--vio)':'var(--grn)';line=m?m+(m===1?' meal':' meals')+' logged today':'No meals logged yet today'
+    // running burns are a separate line: the food target itself is never raised
+    const b=typeof HWRun!=='undefined'?HWRun.burned(d):null;if(b)line+='</small><small class="nsburn">'+HWPixel.icon('flame',{label:'Calories burned'})+'+'+b.v+' kcal burned running today (≈ estimate; target unchanged)'}
   else{const w=wt(d),W=st.s.water;val=w;goal=W;unit='mL';pct=Math.min(100,w/W*100);col='var(--blue)';line=w>=W?'Target reached today':(W-w)+' mL to go'}
   return '<button class="nst'+(on?' on':'')+'" id="nst-'+v+'" data-a="nstab" data-v="'+v+'"'+(on?' aria-current="page"':'')+'>'
     +'<span class="nstl">'+HWPixel.icon(SYS[v].icon)+SYS[v].n+'</span><span class="nstv"><b>'+val+'</b> / '+goal+' '+unit+'</span>'
@@ -57,7 +59,7 @@ HWUI.css('provisions',`
 .nst.on{background:var(--pn);box-shadow:var(--px-bevel-c),var(--px-sh-c),0 0 0 3px var(--gold)}
 .nst.on:after{content:"";position:absolute;left:calc(50% - 8px);bottom:-15px;border:8px solid transparent;border-bottom:0;border-top-color:var(--gold)}
 .nstl{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fh);letter-spacing:.04em;text-transform:uppercase;-webkit-font-smoothing:none}
-.nstv{overflow-wrap:anywhere}.nstv b{font:var(--px-f2)/1.3 var(--fh)}.nst small{color:inherit}.nst .bar{margin:2px 0}
+.nsburn{display:flex;align-items:center;gap:4px}.nstv{overflow-wrap:anywhere}.nstv b{font:var(--px-f2)/1.3 var(--fh)}.nst small{color:inherit}.nst .bar{margin:2px 0}
 .nshd{display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:8px 12px;background:var(--pn);border:var(--px-bw-c) solid var(--ln);box-shadow:var(--px-sh-c)}
 .nshd>div{min-width:0}.nshd b{display:block;font:10px/1.6 var(--fh)}.nshd small{display:block;margin-top:2px}
 .nsrg{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:13px}

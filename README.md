@@ -29,7 +29,7 @@ js/v6-ui.js                shared UI helpers (injected styles, completion banner
 js/v6-pixel.js             pixel-art standard: design tokens, panel/HUD classes, crisp pixel icons (guide: docs/PIXEL_STYLE.md)
 js/v6-emoji.js             every emoji the app shows drawn as pixel art (hand-drawn icon or the emoji pixelated)
 js/v6-provisions.js        Nutrition & Hydration as one page (the Provisions Hall): 'food' and 'water' are its two halves
-js/v6-stairs.js            the Stairs page: casual climbing (GPS + by hand), stair workout (heart rate before/after, calorie estimate), running; one session model
+js/v6-stairs.js            the Stairs page: casual climbing (GPS + by hand), stair workout (heart rate before/after, calorie estimate), running (with calories burned, js/v6-running.js); one session model
 js/v6-motion.js            animation settings + performance modes (High / Balanced / Performance), off-screen pause
 js/v6-particles.js         one shared canvas particle system (level-up, badges, quests)
 js/v6-insights.js          "Medius notices": insights from your own baselines and trends
@@ -58,7 +58,8 @@ js/v6-gps.js               GPS check-in on the Stairs page (one reading on tap, 
 js/v6-pwa.js               install as an app + offline: manifest/icon links, service worker, offline badge, Settings card
 js/v6-cloud.js             optional Supabase cloud save: sign-in, sync with offline queue, three-way merge, Settings card
 js/v6-board.js             Hall of Heroes: opt-in leaderboard of game progress only (Quest Board card + Settings privacy card)
-js/v6-live.js              live weather + haze (jerebu) for Kolej MARA Kulim from Open-Meteo: title sky, Home chip + JEREBU CHECK, Stairs hazeBanner(), Settings → LIVE DATA
+js/v6-live.js              live weather + haze (jerebu) for Kolej MARA Kulim from Open-Meteo: title sky, Home chip + JEREBU CHECK, hazeBanner() + heat tip above Running, Settings → LIVE DATA
+js/v6-alarm.js             wake-up alarm on the Sleep page: in-app alarm (sounds, snooze, bedside clock), Android Clock intent, iPhone steps, .ics reminder
 supabase/migrations/       SQL for the cloud save and the leaderboard (Row Level Security) — run each file once in the Supabase project
 sw.js                      service worker: pre-caches the app, network first, works offline (keep PRECACHE in sync)
 manifest.webmanifest       web app manifest (name, colours, standalone display, icons)

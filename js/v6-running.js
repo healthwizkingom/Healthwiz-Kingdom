@@ -18,6 +18,10 @@
    already there). Unsent runs retry on app open, back online, after every cloud sync and on this page. A run in the
    cloud keeps only its summary here. DELETE removes a run from this device and from the cloud.
    The run being recorded is also kept in `healthwiz_run_live`, so after a reload or a closed tab it comes back paused.
+   Calories burned (estimate): kcal = MET × body weight (kg) × moving hours. MET by average speed from the Compendium of
+   Physical Activities (running 6 km/h 6.0 … 16 km/h 14.5, interpolated; under 6 km/h walking, 3.5–5.0). Worked out from
+   each run's own distance and time, so older runs get it too; new runs also store it as kcal: {v, met, w}. Needs a
+   weight the user confirmed (onboarding or a saved profile); without one HealthWiz asks for it and never guesses.
    Privacy (§46, §79): location is read only while a run is recording; the route goes nowhere except this device and
    the user's own private cloud save. Reset on this device clears the runs on this device. */
 const HWRun=(()=>{
@@ -44,6 +48,23 @@ const two=n=>(n<10?'0':'')+n;
 function clock(s){s=Math.max(0,Math.floor(s));const h=Math.floor(s/3600),m=Math.floor(s/60)%60,x=s%60;return(h?h+':'+two(m):m)+':'+two(x)}
 function fmtPace(p){if(p==null||!(p>0)||p>=6000)return'--:--';p=Math.round(p);return Math.floor(p/60)+':'+two(p%60)}
 const km=m=>(Math.max(0,m)/1000).toFixed(2);
+/* ---------- calories burned (estimate) ---------- */
+// [km/h, MET]: 2024 Compendium of Physical Activities, running (12xxx) and walking (17xxx) at a level pace
+const MRUN=[[6,6.0],[8,8.3],[9.7,9.8],[11.3,11.0],[12.9,11.8],[14.5,12.8],[16,14.5]],MWALK=[[0,3.5],[4.8,3.5],[5.6,4.3],[6,5.0]];
+function lerp(P,x){if(x<=P[0][0])return P[0][1];for(let i=1;i<P.length;i++)if(x<=P[i][0]){const a=P[i-1],b=P[i];return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0])}return P[P.length-1][1]}
+/** MET for an average speed in km/h: walking under 6 km/h, running from 6 (above 16 km/h it stays at 14.5). */
+const met=kmh=>kmh>0?Math.round(lerp(kmh<6?MWALK:MRUN,kmh)*10)/10:null;
+/** The weight the user confirmed (onboarding or a saved profile), or null. App defaults never count. */
+function weight(){const p=st.p||{},w=+p.w;return(st.s.onb||p.cfm)&&w>=20&&w<=300?w:null}
+/** kcal = MET × kg × hours, from distance (m) and moving time (s); null when it cannot be worked out. */
+function kcalOf(m,s,w){w=w===undefined?weight():w;if(!w||!(m>=MINRUN)||!(s>0))return null;const M=met(m/1000/(s/3600));return M?Math.round(M*w*s/3600):null}
+// a saved run: the value stored with it, else worked out from its own distance and time
+const kcalRun=r=>r&&r.kcal&&+r.kcal.v>0?Math.round(+r.kcal.v):kcalOf(+r.dist,+r.dur);
+const goalPct=k=>k!=null&&+st.s.kcal>0?Math.round(k/st.s.kcal*100):null;
+const dayOf=r=>{const d=new Date(r.start);return isNaN(d)?'':d.getFullYear()+'-'+two(d.getMonth()+1)+'-'+two(d.getDate())};
+/** kcal burned by runs on a day (YYYY-MM-DD): {v, n} or null when none can be worked out. */
+function burned(d){d=d||today();const L=DB.runs.filter(r=>dayOf(r)===d).map(kcalRun).filter(k=>k!=null);return L.length?{v:L.reduce((a,k)=>a+k,0),n:L.length}:null}
+const flame=()=>HWPixel.icon('flame',{label:'Calories burned'});
 const r6=x=>Math.round(x*1e6)/1e6;
 function uuid(){const c=typeof crypto!=='undefined'?crypto:null;if(c&&typeof c.randomUUID==='function')return c.randomUUID();
   const b=new Uint8Array(16);if(c&&c.getRandomValues)c.getRandomValues(b);else for(let i=0;i<16;i++)b[i]=Math.random()*256|0;
@@ -104,7 +125,8 @@ function resume(){if(!R||R.since!=null)return;U={k:'idle'};if(!watch()){paint();
 function drop(){R=null;unwatch();wake(0);sig=null;live()}
 function finish(){if(!R)return;pauseRun();const r=R;drop();arm='';const m=Math.round(r.dist),dur=Math.round(r.moving/1000);
   if(m<MINRUN){U={k:'idle',err:['Nothing to save','Less than '+MINRUN+' m was recorded, so this run was not saved. Wait for a good GPS signal (outdoors, away from tall buildings) before you start.']};paint();redraw();return}
-  const run={id:r.id,start:new Date(r.start).toISOString(),end:new Date(r.paused||Date.now()).toISOString(),dist:m,dur,pace:pace(m,dur),route:r.segs.filter(s=>s.length),up:0};
+  const run={id:r.id,start:new Date(r.start).toISOString(),end:new Date(r.paused||Date.now()).toISOString(),dist:m,dur,pace:pace(m,dur),route:r.segs.filter(s=>s.length),up:0},w=weight(),k=kcalOf(m,dur,w);
+  if(k!=null)run.kcal={v:k,met:met(m/1000/(dur/3600)),w};
   DB.runs.push(run);trim();const ok=keep();
   U={k:'done',run:Object.assign({},run)}; // the summary keeps its route in memory, even after the upload drops it here
   paint();paintRuns();redraw();
@@ -174,9 +196,14 @@ HWUI.css('run',`
 #v6run .v6rg.ok{background:var(--grn);color:#fff}#v6run .v6rg.weak{background:var(--gold);color:#2b2418}#v6run .v6rg.lost{background:var(--red);color:#fff}
 #v6run .v6rr{display:inline-block;width:10px;height:10px;background:var(--red);border:2px solid var(--ln);margin-right:6px;vertical-align:-1px;animation:v6rrp 1s steps(2) infinite}
 @keyframes v6rrp{50%{opacity:.25}}@media(prefers-reduced-motion:reduce){#v6run .v6rr{animation:none}}html.hw-rm #v6run .v6rr,html.hw-still #v6run .v6rr{animation:none}
-#v6run .v6rs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}
+#v6run .v6rs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}
+@media(max-width:520px){#v6run .v6rs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+#v6run .v6rs small{display:flex;align-items:center;justify-content:center;gap:4px}
+.v6rk{margin:0 0 10px;padding:6px 8px;border:2px dashed var(--ln);background:var(--p2);font-size:13px}.v6rk button{margin-top:6px}
+.v6rkx{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.v6rwx{margin:0 0 14px}.v6rwx .v6hzb{margin:0}.v6rwx .v6heat{display:flex;gap:6px;align-items:flex-start;margin:8px 0 0;background:var(--pn)}
 #v6run .v6rs>div{background:var(--p2);border:3px solid var(--ln);padding:8px 4px;text-align:center;min-width:0}
-#v6run .v6rs small{display:block;font:7px/1.6 var(--fh)}#v6run .v6rs b{display:block;font-size:clamp(18px,6vw,28px);line-height:1.2;overflow-wrap:anywhere}#v6run .v6rs em{font-style:normal;font-size:11px;color:var(--mut)}
+#v6run .v6rs small{font:7px/1.6 var(--fh)}#v6run .v6rs b{display:block;font-size:clamp(18px,6vw,28px);line-height:1.2;overflow-wrap:anywhere}#v6run .v6rs em{font-style:normal;font-size:11px;color:var(--mut)}
 #v6run .row button{flex:1 1 110px;justify-content:center;text-align:center}#v6run button:disabled{opacity:.45;cursor:not-allowed}
 #v6run ul{margin:6px 0;padding-left:18px}#v6run li{margin:3px 0}
 .v6rmc .v6rmh{justify-content:space-between;margin-bottom:8px}.v6rmc .v6rmh h3{margin:0}
@@ -192,6 +219,12 @@ const btn=(a,t,cls,extra)=>'<button class="'+(cls||'')+'" data-a="'+a+'"'+(extra
 function chip(){if(!R||W==null)return'';if(!sig)return'<span class="v6rg" id="v6rg">GPS: SEARCHING…</span>';
   if(sig.lost)return'<span class="v6rg lost" id="v6rg">GPS SIGNAL LOST</span>';
   return sig.acc<=MAXACC?'<span class="v6rg ok" id="v6rg">GPS ±'+Math.round(sig.acc)+' M</span>':'<span class="v6rg weak" id="v6rg">GPS WEAK ±'+Math.round(sig.acc)+' M · NOT COUNTED</span>'}
+const kcalTxt=(m,s,done)=>{const k=done?kcalRun(done):kcalOf(m,s);return k==null?'–':'≈'+k};
+function kcalNote(m,s,done){if(!weight())return '<b>Calories burned needs your weight.</b> HealthWiz never guesses it. Add age, sex, height and weight in the profile form of the Workout section.<br>'
+    +btn('stjump','COMPLETE YOUR PROFILE','sm',' data-t="wk-kcal"');
+  const k=done?kcalRun(done):kcalOf(m,s),p=goalPct(k);
+  return k==null?'Calories appear after the first few metres. <span class="mut">≈ estimate (±20–30%)</span>'
+    :'<b>≈ '+k+' kcal</b> burned · <span class="mut">≈ estimate (±20–30%) from your speed and weight</span>'+(p!=null?'<br>≈ '+p+'% of today\'s calorie goal ('+st.s.kcal+' kcal). Your food target is not changed.':'')}
 function card(){
   if(U.k==='explain')return '<h3>WHY LOCATION?</h3><ul><li>To measure your run, HealthWiz follows your GPS position <b>while a run is recording</b>, and only then.</li>'
     +'<li>Your route is saved on this device. If you are signed in to Cloud Save, it is also saved to your private cloud, where only your account can read it. It is never shared or shown to anyone else.</li>'
@@ -201,7 +234,9 @@ function card(){
   let h='<div class="v6rh"><span role="status">'
     +(run?'<b><span class="v6rr" aria-hidden="true"></span>RECORDING</b>':R?'<b>⏸ PAUSED</b>':done?'<b>🏁 RUN SAVED</b>':'<span class="mut">Ready when you are. Start outdoors, with a clear view of the sky.</span>')+'</span>'+(ch=chip())+'</div>';
   if(R&&R.rec)h+='<p class="mut">This run was interrupted (the page was closed or reloaded). RESUME to keep going, or FINISH RUN to save it.</p>';
-  h+='<div class="v6rs"><div><small>DISTANCE</small><b class="num" id="v6rd">'+km(m)+'</b><em>km</em></div><div><small>TIME</small><b class="num" id="v6rt" role="timer">'+clock(s)+'</b><em>moving</em></div><div><small>AVG PACE</small><b class="num" id="v6rp">'+fmtPace(pace(m,s))+'</b><em>min/km</em></div></div>';
+  h+='<div class="v6rs"><div><small>DISTANCE</small><b class="num" id="v6rd">'+km(m)+'</b><em>km</em></div><div><small>TIME</small><b class="num" id="v6rt" role="timer">'+clock(s)+'</b><em>moving</em></div><div><small>AVG PACE</small><b class="num" id="v6rp">'+fmtPace(pace(m,s))+'</b><em>min/km</em></div>'
+    +'<div><small>'+flame()+'CALORIES</small><b class="num" id="v6rk">'+kcalTxt(m,s,done)+'</b><em>kcal burned</em></div></div>'
+    +'<div class="v6rk" id="v6rkn">'+kcalNote(m,s,done)+'</div>';
   if(U.err)h+='<div class="warn" role="alert"><b>'+esc(U.err[0])+'</b><br>'+esc(U.err[1])+'</div>';
   h+='<div class="row">'+btn('runstart','▶ START RUN','',R?' disabled':'')+btn('runpause',R&&!run?'▶ RESUME':'⏸ PAUSE','g',R?'':' disabled')+btn('runfinish','🏁 FINISH RUN','',R?'':' disabled')+'</div>';
   if(R&&!run)h+='<p style="margin-top:8px">'+btn('rundiscard',arm==='live'?'TAP AGAIN TO DISCARD THIS RUN':'DISCARD RUN','sm g')+'</p>';
@@ -217,12 +252,16 @@ function cloudLine(){const wait=DB.runs.filter(x=>!x.up&&!x.bad).length;
   if(cerr)return'⚠️ '+esc(cerr)+' Your runs are safe on this device.';
   return wait?'⏳ '+wait+' run'+(wait===1?'':'s')+' waiting to be sent.':'☁️ Your runs are backed up to your private cloud save.'}
 const when=r=>{const d=new Date(r.start);return isNaN(d)?'':d.toLocaleDateString([],{weekday:'short',day:'numeric',month:'short'})+', '+two(d.getHours())+':'+two(d.getMinutes())};
-function runs(){const L=DB.runs.slice().reverse(),wk=Date.now()-7*864e5,W7=L.filter(r=>Date.parse(r.start)>=wk);
+function totals(T,name){const K=T.map(kcalRun).filter(k=>k!=null),k=K.reduce((a,x)=>a+x,0);
+  return name+': <b>'+km(T.reduce((a,r)=>a+(+r.dist||0),0))+' km</b> in '+T.length+' run'+(T.length===1?'':'s')+' · '+clock(T.reduce((a,r)=>a+(+r.dur||0),0))
+    +(K.length?' · <span class="v6rkx">'+flame()+'<b>≈'+k+' kcal</b></span>':'')}
+function runs(){const L=DB.runs.slice().reverse(),wk=Date.now()-7*864e5,W7=L.filter(r=>Date.parse(r.start)>=wk),td=L.filter(r=>dayOf(r)===today()),bt=burned();
   let h='<h3>📜 RECENT RUNS</h3>';
   if(!L.length)h+='<p class="mut">No runs yet. Your finished runs appear here.</p>';
-  else h+='<p class="mut">Last 7 days: <b>'+km(W7.reduce((a,r)=>a+(+r.dist||0),0))+' km</b> in '+W7.length+' run'+(W7.length===1?'':'s')+'.</p>'
-    +L.slice(0,SHOW).map(r=>'<div class="v6rl"><div><b>'+km(r.dist)+' km · '+clock(r.dur)+'</b><small>'+esc(when(r))+' · '+fmtPace(r.pace)+' /km · '+(r.up?'☁️ in your cloud':r.bad?'⚠️ not accepted by the cloud':'📱 on this device')+'</small></div>'
-      +btn('rundel',arm===r.id?'TAP AGAIN':'DELETE','sm g',' data-id="'+esc(r.id)+'" aria-label="'+(arm===r.id?'Tap again to delete':'Delete')+' the run of '+esc(when(r))+'"')+'</div>').join('');
+  else h+='<p class="mut">'+totals(td,'Today')+(bt&&goalPct(bt.v)!=null?' (≈ '+goalPct(bt.v)+'% of today\'s calorie goal)':'')+'<br>'+totals(W7,'Last 7 days')+'</p>'
+    +(weight()?'<p class="mut"><small>Calories are an ≈ estimate (±20–30%) from each run\'s speed and your weight.</small></p>':'<p class="mut"><small>Add your weight (Workout section profile) to see calories burned.</small></p>')
+    +L.slice(0,SHOW).map(r=>{const k=kcalRun(r);return '<div class="v6rl"><div><b>'+km(r.dist)+' km · '+clock(r.dur)+(k!=null?' · <span class="v6rkx">'+flame()+'≈'+k+' kcal</span>':'')+'</b><small>'+esc(when(r))+' · '+fmtPace(r.pace)+' /km · '+(r.up?'☁️ in your cloud':r.bad?'⚠️ not accepted by the cloud':'📱 on this device')+'</small></div>'
+      +btn('rundel',arm===r.id?'TAP AGAIN':'DELETE','sm g',' data-id="'+esc(r.id)+'" aria-label="'+(arm===r.id?'Tap again to delete':'Delete')+' the run of '+esc(when(r))+'"')+'</div>'}).join('');
   return h+'<p class="mut" role="status" style="margin-top:8px">'+cloudLine()+'</p>'}
 // the Running section of the Stairs page (js/v6-stairs.js); the old 'run' route opens that section
 const ON='stair',here=()=>S.v===ON;
@@ -233,17 +272,22 @@ function lazy(){if(IO){IO.disconnect();IO=null}const el=D.getElementById('map');
   if(!want&&!R){el.innerHTML='<div class="v6rmt"><small>The route map loads when you start a run.</small>'+btn('runmap','🗺️ SHOW MAP','sm g')+'</div>';return}
   if(typeof IntersectionObserver==='undefined'){mount();return}
   IO=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){IO.disconnect();IO=null;mount()}},{rootMargin:'200px 0px'});IO.observe(el)}
+// before a run: the haze (jerebu) banner and the heat tip from js/v6-live.js, right above the Running controls
+function weather(){if(R||typeof HWLive==='undefined')return '';const t=HWLive.heatTip().replace(/^[^A-Za-z]+/,'');
+  const h=HWLive.hazeBanner()+(t?'<p class="v6heat">'+HWPixel.icon('warning',{label:'Heat'})+'<span>'+esc(t)+'</span></p>':'');return h?'<div class="v6rwx" id="v6rwx">'+h+'</div>':''}
+function paintWx(){const el=D.getElementById('v6rwx'),h=weather();if(el){if(h)el.outerHTML=h;else el.remove()}else if(h){const c=D.getElementById('v6run');if(c)c.insertAdjacentHTML('beforebegin',h)}}
 function section(){Promise.resolve().then(lazy);
-  return '<div class="card" id="v6run">'+card()+'</div>'
+  return weather()+'<div class="card" id="v6run">'+card()+'</div>'
     +'<div class="card v6rmc"><div class="row v6rmh"><h3>🗺️ ROUTE</h3>'+btn('runcentre','⌖ CENTRE','sm g',' aria-label="Centre the map on the route"')+'</div><div id="map" role="region" aria-label="Route map"></div></div>'
     +'<div class="card" id="v6runs">'+runs()+'</div>'}
 pages.run=()=>pages.stair();
 let T=0;function tick(on){clearInterval(T);T=0;if(on&&R&&R.since!=null)T=setInterval(()=>{if(!here()||!R||R.since==null){tick(0);return}show()},1000)}
-function paint(){const el=D.getElementById('v6run');if(el)el.innerHTML=card();tick(here())}
+function paint(){const el=D.getElementById('v6run');if(el){el.innerHTML=card();paintWx()}tick(here())}
 function paintRuns(){const el=D.getElementById('v6runs');if(el)el.innerHTML=runs()}
 // live numbers: patch the text only, so the map and the buttons are left alone
 function show(){if(!here()||!R)return;const s=secs(),set=(i,t)=>{const e=D.getElementById(i);if(e&&e.textContent!==t)e.textContent=t};
-  set('v6rd',km(R.dist));set('v6rt',clock(s));set('v6rp',fmtPace(pace(R.dist,s)));
+  set('v6rd',km(R.dist));set('v6rt',clock(s));set('v6rp',fmtPace(pace(R.dist,s)));set('v6rk',kcalTxt(R.dist,s));
+  const kn=D.getElementById('v6rkn'),nh=kcalNote(R.dist,s);if(kn&&kn.dataset.h!==nh&&!kn.contains(D.activeElement)){kn.innerHTML=nh;kn.dataset.h=nh}
   const c=chip(),g=D.getElementById('v6rg');if(c!==ch&&g&&c){g.outerHTML=c;ch=c}}
 
 // no Health Hall tile of its own any more: Running lives at the bottom of the Stairs page. Its tile shows a run in
@@ -269,12 +313,12 @@ acts.runmap=()=>{want=1;lazy()};
 function showMap(){want=1;lazy()}
 
 // triggers: uploads ride on the cloud save's own rhythm; leaving the page keeps a run recording
-HWEvents.on('app:ready',()=>sync());HWEvents.on('cloud:synced',()=>sync());addEventListener('online',()=>sync());
+HWEvents.on('app:ready',()=>sync());HWEvents.on('live:updated',()=>{if(here())paintWx()});HWEvents.on('cloud:synced',()=>sync());addEventListener('online',()=>sync());
 HWEvents.on('page:viewed',e=>{if(e.view===ON){tick(1);sync();return}tick(0);if(IO){IO.disconnect();IO=null}unmount();arm='';
   if(R&&R.since!=null&&e.from===ON)toast('🏃 Your run is still recording. Health → Stairs & Workout → Running to see it or finish it.')});
 D.addEventListener('visibilitychange',()=>{if(D.visibilityState==='visible'){if(R&&R.since!=null)wake(1)}else if(R)live()});
 addEventListener('pagehide',()=>{if(R)live()});
 HWEvents.on('data:reset',()=>{drop();DB={ok:0,runs:[],del:[]};try{localStorage.removeItem(K)}catch(e){}U={k:'idle'};arm=''});
 
-return{dist,judge,pace,clock,fmtPace,sync,section,showMap,wantMap(){want=1},MAXACC,MINSTEP,MAXSPD,
+return{dist,judge,pace,clock,fmtPace,met,kcalOf,kcalRun,burned,weight,sync,section,showMap,wantMap(){want=1},MAXACC,MINSTEP,MAXSPD,
   get state(){return R?(R.since!=null?'running':'paused'):U.k},get run(){return R?{dist:R.dist,secs:secs(),segs:R.segs.map(s=>s.length)}:null},runs:()=>JSON.parse(JSON.stringify(DB.runs))}})();
