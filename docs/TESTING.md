@@ -39,7 +39,8 @@ compatibility tests.
 | authentication, cloud sync | `21-cloud`, `22-cloud-sync` |
 | leaderboard | `23-board` |
 | location permissions, GPS fallback | `19-gps`, `33-stairs` (GPS check-in writes the unified session) |
-| offline mode | `20-pwa` |
+| offline mode | `20-pwa`, `36-live` (weather and haze unavailable, last good copy, nothing sent while Live Data is off) |
+| live weather, haze | `36-live` (Open-Meteo stubbed: WMO → sky, chip, heat tip, haze bands and advice, Settings card) |
 | console errors | every test; `26-journey` runs a whole first day without one |
 | pixel art, no emoji glyphs | `34-final-polish` (new icons, ambient world, Storm Within expressions), `28-foundation` (icons), `30-emoji` (no emoji drawn as text on any page, toast, dialog or game) |
 | broken references | `26-journey` (handlers, page links, images, asset paths), `20-pwa` (the offline file list) |
@@ -100,6 +101,7 @@ release:
 - [ ] **iPhone (Safari)**: open from the Home Screen icon; the notch and home bar do not cover the header or bottom tabs;
       sound starts after the first tap; the edit dialog with the keyboard open; rotate on the title screen.
 - [ ] **iPad (Safari)**: portrait and landscape, side navigation, a mini-game with touch.
+- [ ] **Live data**: compare the 🌫️ JEREBU CHECK and the weather chip with APIMS and the sky outside; confirm `KMK` on Google Maps.
 - [ ] **Android (Chrome and Samsung Internet)**: install prompt, offline start, back button, GPS permission prompt.
 - [ ] **Firefox (desktop and Android)**: every page once, a mini-game, backup download and restore.
 - [ ] **Screen reader**: VoiceOver or TalkBack through Home, a log, the edit dialog and one mini-game.

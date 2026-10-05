@@ -51,6 +51,7 @@ take precedence over payload fields with the same name.
 | `activity:checkin` | `sid, name, cat, first` | a GPS check-in at a stairway is confirmed (`js/v6-gps.js`); `first` = first GPS check-in there (a discovery) |
 | `game:cancelled` | `id, name, seconds` | a mini-game is left before finishing (✕, Escape, navigation, reset or import) |
 | `network:changed` | `online` | the device goes offline or comes back online (`js/v6-pwa.js`) |
+| `live:updated` | `weather, air` (true = a reading is available), `level` (haze 0–5, 0 = none) | a live weather / haze refresh finished (`js/v6-live.js`) |
 | `app:offline-ready` | `first` | the offline copy is in place (on every served visit; `first` = it was just saved for the first time) |
 | `app:installed` | — | the browser reports the app was installed |
 | `cloud:signed-in` | — | the user signed in to the cloud save (`js/v6-cloud.js`) |

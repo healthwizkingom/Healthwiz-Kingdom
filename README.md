@@ -58,6 +58,7 @@ js/v6-gps.js               GPS check-in on the Stairs page (one reading on tap, 
 js/v6-pwa.js               install as an app + offline: manifest/icon links, service worker, offline badge, Settings card
 js/v6-cloud.js             optional Supabase cloud save: sign-in, sync with offline queue, three-way merge, Settings card
 js/v6-board.js             Hall of Heroes: opt-in leaderboard of game progress only (Quest Board card + Settings privacy card)
+js/v6-live.js              live weather + haze (jerebu) for Kolej MARA Kulim from Open-Meteo: title sky, Home chip + JEREBU CHECK, Stairs hazeBanner(), Settings → LIVE DATA
 supabase/migrations/       SQL for the cloud save and the leaderboard (Row Level Security) — run each file once in the Supabase project
 sw.js                      service worker: pre-caches the app, network first, works offline (keep PRECACHE in sync)
 manifest.webmanifest       web app manifest (name, colours, standalone display, icons)

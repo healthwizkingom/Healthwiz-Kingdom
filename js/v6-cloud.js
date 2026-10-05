@@ -176,7 +176,7 @@ async function choose(how){const c=C.choose;if(!c||busy)return;phase='sync';pain
   .catch(e=>{phase='error';lastErr=e.code==='net'?'net':e.message;HWEvents.emit('cloud:error',{code:e.code||'error'})}).finally(()=>{busy=null;paint();if(gone)sync('chosen')})}
 
 /* ---------- triggers ---------- */
-HWEvents.on('*',e=>{if(/^(cloud|medius|page|motion|title|insight|network):/.test(e.type))return;if(e.type==='data:reset'||(e.type==='data:imported'&&e.mode==='cloud'))return;later(4000)});
+HWEvents.on('*',e=>{if(/^(cloud|medius|page|motion|title|insight|network|live):/.test(e.type))return;if(e.type==='data:reset'||(e.type==='data:imported'&&e.mode==='cloud'))return;later(4000)});
 HWEvents.on('app:ready',()=>sync('open'));
 HWEvents.on('data:reset',()=>{if(signed()){signOut('reset');toast('☁️ Signed out of cloud save on this device. Your cloud save was not erased.')}});
 HWEvents.on('data:imported',e=>{if(e.mode==='replace'&&signed()){C.rev=null;keep();try{localStorage.removeItem(KB)}catch(_){}}});
