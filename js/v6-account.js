@@ -130,7 +130,7 @@ acts.acdel=async()=>{if(!arm){arm=1;return paint()}arm=0;if(!online()){note='You
 
 // back from an email link or Google
 HWEvents.on('app:ready',()=>{const a=C.arrived;if(!a)return;
-  if(a.p)a.p.then(()=>{const b=C.arrived;if(b&&b.ok)toast('Signed in with Google.');else if(b&&b.err)toast('⚠️ '+esc(b.err))});
+  if(a.p)a.p.then(()=>{const b=C.arrived;if(b&&b.ok)toast('Signed in with Google.');else if(b&&b.err)toast(ico('warning')+' '+esc(b.err))});
   else if(a.ok)setTimeout(()=>toast('Signed in.'),600)});
 
 /* ---------- onboarding: Medius offers a free account once, after the Traveller's Registry ---------- */

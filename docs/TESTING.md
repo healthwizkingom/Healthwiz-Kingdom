@@ -27,17 +27,17 @@ compatibility tests.
 | calculations | `01-original-app` (sleep duration, BMI, pulse range), `04-insights` (baselines), `24-performance` (the entry index against full scans) |
 | quests | `05-quests`, `03-events`, `34-final-polish` (weekly activity quest counts runs; badge audit and new badges) |
 | XP, levels | `07-xp-kingdom`, `03-events` |
-| Kingdom | `07-xp-kingdom`, `10-world` |
+| Kingdom | `07-xp-kingdom`, `10-world`, `42-kingdom-map` (painted map, same buttons, zoom → card, colour burst, no frame loop) |
 | suggestions | `04-insights` |
-| Medius | `08-medius` |
+| Medius | `08-medius`, `39-accounts-medius` (mood tags, reactions, crisis stays calm/concerned) |
 | statistics | `09-charts` |
 | backup, restore | `01-original-app` (download, erase, restore from file), `02-schema` (old and newer backups) |
 | reset | `01-original-app` (two taps), `03-events` |
 | theme | `25-matrix` (device default, saved choice, every page, contrast), `35-looks` (every theme's contrast and health colours, swatches, Match system) |
 | responsive layouts | `01-original-app`, `25-matrix` (seven sizes), the 360 px checks in `13`–`23` |
 | touch | `25-matrix-input`, `26-journey`, the game tests |
-| authentication, cloud sync | `21-cloud`, `22-cloud-sync` |
-| leaderboard | `23-board` |
+| authentication, cloud sync | `21-cloud`, `22-cloud-sync`, `39-accounts-medius` (onboarding offer, Medius AI signed in/out); SQL: `tools/test-sql.sh`; Edge Function: `40-medius-function` (Deno) |
+| leaderboard | `23-board`, `38-hr-runboard`, `39-accounts-medius` (Runners' Board rows follow the account) |
 | location permissions, GPS fallback | `19-gps`, `33-stairs` (GPS check-in writes the unified session) |
 | offline mode | `20-pwa`, `36-live` (weather and haze unavailable, last good copy, nothing sent while Live Data is off) |
 | wake-up alarm, running calories | `37-alarm-kcal` (suggested wake time, st.s.alarm, ringing after a tap only, snooze/STOP, bedside clock, Android intent + fallback, .ics; MET by speed, kcal on old and new runs, totals, % of goal, Nutrition line, weight prompt, haze above Running) |
@@ -82,6 +82,7 @@ compatibility tests.
 | mobile usability | `14`–`18` (360 px), `26-journey` (opened by tap, fits, 40 px ✕) |
 | reduced-motion mode | `14`–`18`, `26-journey` |
 | performance | `13-games` (timers stop), `26-journey` (no timer or frame loop left after leaving) |
+| Counting Sheep dream | `41-sheep-dream` (canvas scene, counting and Medius reaction, daily reward, pauses off screen, reduced motion, full screen, layout) |
 
 ### RPG upgrades (Water Quest, Dream Battle)
 

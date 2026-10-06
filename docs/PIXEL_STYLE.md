@@ -77,7 +77,7 @@ per colour. `s` is a whole-number scale (1 = 16 px, 2 = 32 px); fractions are ro
 
 | Required set | Also drawn (page banners, headings) |
 |---|---|
-| heart, water, food, sleep, stairs, running, stress, energy, achievement, warning, success, wizard, monster | balance, chart, scroll, gear, quest, map, bell; final polish: workout, pulse (heart rate), badge, home, flame, star, mind, game; wake-up alarm: alarm, snooze; heart-rate device: watch, battery; running leaderboard: medal2 (silver), medal3 (bronze) |
+| heart, water, food, sleep, stairs, running, stress, energy, achievement, warning, success, wizard, monster | balance, chart, scroll, gear, quest, map, bell; final polish: workout, pulse (heart rate), badge, home, flame, star, mind, game; wake-up alarm: alarm, snooze; heart-rate device: watch, battery; running leaderboard: medal2 (silver), medal3 (bronze); accounts: cloud, lock, device, bin, mail, account; Counting Sheep: sheep, expand (full screen); Wizard's Counsel: candle, help |
 
 * `HWPixel.names`: every icon. `HWPixel.grid(name)`: its 16 rows with the outline added, which the original sprite
   helper can draw on a canvas: `spr(HWPixel.grid('heart'), HWPixel.PAL, 3)`.
@@ -127,3 +127,19 @@ emoji are used most, so the next hand-drawn icons can go where they are seen mos
 `'<h2>💡 HEALTHWIZ GUIDE</h2>'` (`v6-insights`), `'<h2>⚙️ SETTINGS</h2>'` (`v6-medius`, `v6-motion`) and
 `'<h3>🔥 STREAK</h3>'` (`v6-streaks`). Change one of those headings and the add-on's card quietly moves to the top or
 bottom of the page (each falls back to that). Change the search string in the same commit.
+
+## Scenes painted by code
+
+Larger scenes keep the same rules on a canvas: a small internal resolution scaled up with `image-rendering: pixelated`,
+a 1-pixel ink outline on sprites, a limited palette with ordered (4×4 Bayer) dithering for gradients, light from one
+side with a rim of light on the other. Motion is whole pixels (sprite frames, `steps()`), CSS uses transform and
+opacity only, and every scene stops off screen, in a hidden tab and for reduced motion.
+
+* Counting Sheep dream (`js/v6-sheep.js`, 192 × 190): the bedroom picture `assets/img/bedroom.webp` (made from the
+  original by `tools/art/make_bedroom.py`) with layers cut from it for breathing; sheep, Medius, cloud and meadow are
+  shaded procedurally. The sleeper's surprised face is a patch made from the picture's own pixels
+  (`tools/art/make_sleeper_react.py`), so its shading matches.
+* Kingdom map (`js/v6-map.js`, 200 × 224): terrain, trees (two frames for the wind), landmarks and fog painted once on
+  layered canvases; moving details are a few CSS-animated SVG shapes with `shape-rendering: crispEdges`.
+* Wizard's Counsel (`js/v6-counsel.js`): Medius's expressions are small patches in the study picture's own style
+  (`assets/img/medius-reactions.webp`); his hands are never redrawn.

@@ -32,6 +32,7 @@
    (docs/EVENTS.md). A pull that changes this device's data also emits data:imported {mode:'cloud'}. */
 const HWCloud=(()=>{
 const CFG={url:'https://wghkbrtwrdrejmoswhza.supabase.co',key:'sb_publishable_nE2qzRG3W-fhd4EPFuELQQ_krPNAScU'}; // ← deployers: Supabase project URL + publishable key (never a secret or service_role key)
+const ICO=n=>typeof HWPixel!=='undefined'?HWPixel.icon(n,1)+' ':'';
 const D=document,N=navigator,K='healthwiz_cloud',KB='healthwiz_cloud_base',WAIT=10e3;
 const isObj=x=>!!x&&typeof x==='object'&&!Array.isArray(x);
 const J=x=>JSON.stringify(x),clone=x=>x===undefined?undefined:JSON.parse(J(x));
@@ -51,7 +52,7 @@ function checkProject(u,k){u=String(u||'').trim().replace(/\/+$/,'');k=String(k|
   if(x.protocol!=='https:'&&!/^(localhost|127\.0\.0\.1)$/.test(x.hostname))return'The project URL must start with https://';
   if(x.pathname!=='/'&&x.pathname!==''||x.search||x.hash)return'Use only the project address, like https://abcd1234.supabase.co';
   if(!k)return'Paste the project\'s publishable key.';
-  if(/^sb_secret_/.test(k)||(jwt(k)||{}).role==='service_role')return'⛔ That is a secret (service_role) key. It must never be put in an app. Use the publishable (anon) key, and rotate the secret key in Supabase if it was shared.';
+  if(/^sb_secret_/.test(k)||(jwt(k)||{}).role==='service_role')return'That is a secret (service_role) key. It must never be put in an app. Use the publishable (anon) key, and rotate the secret key in Supabase if it was shared.';
   if(!/^sb_publishable_/.test(k)&&(jwt(k)||{}).role!=='anon')return'That does not look like a publishable key (sb_publishable_… or the legacy anon key).';
   return{u,k}}
 
@@ -201,7 +202,7 @@ function sync(why){
   phase='sync';paint();
   busy=run().catch(e=>{phase='error';lastErr=e.code==='net'?'net':e.message;
       if(e.code==='auth'&&!signed()){phase='idle';lastErr=e.message;HWEvents.emit('cloud:signed-out',{why:'expired'})}
-      HWEvents.emit('cloud:error',{code:e.code||'error'});if(why==='user')toast('⚠️ '+esc(msg()))})
+      HWEvents.emit('cloud:error',{code:e.code||'error'});if(why==='user')toast(ICO('warning')+esc(msg()))})
     .finally(()=>{busy=null;paint();if(again||(phase==='ok'&&J(st)!==base())){again=0;later(1500,1)}}); // e.g. awards made by the render after a pull
   return busy}
 /** Sync after `ms` (one write for a burst of changes). */
@@ -212,18 +213,18 @@ async function choose(how){const c=C.choose;if(!c||busy)return;phase='sync';pain
   busy=(async()=>{const R=await read();
     if(!R){C.choose=null;keep();gone=1;return} // the cloud save was deleted meanwhile: this device's data is uploaded
     const rem=prep(R.data),Rs=J(rem),Ls=J(st);
-    if(how==='cloud'){stash(Ls,'cloud');apply(rem);done(R.updated_at,Rs,'down');toast('☁️ Cloud data loaded. This device\'s previous data was kept as a backup copy.');return}
+    if(how==='cloud'){stash(Ls,'cloud');apply(rem);done(R.updated_at,Rs,'down');toast(ICO('cloud')+'Cloud data loaded. This device\'s previous data was kept as a backup copy.');return}
     const out=how==='merge'?mergeBoth(st,rem):clone(st),Os=J(out);
     stash(rem,'cloud'); // the cloud copy is replaced: keep it on this device first
     if(how==='merge'&&Os!==Ls)apply(out);
     const v=await push(R.updated_at,Os,null);if(!v)throw fail('busy','The cloud data changed meanwhile. Please choose again.');
-    done(v,Os,how==='merge'?'merge':'up');toast(how==='merge'?'☁️ Both merged and synced.':'☁️ This device\'s data is now in the cloud. The old cloud copy was kept on this device as a backup.')})()
+    done(v,Os,how==='merge'?'merge':'up');toast(how==='merge'?ICO('cloud')+'Both merged and synced.':ICO('cloud')+'This device\'s data is now in the cloud. The old cloud copy was kept on this device as a backup.')})()
   .catch(e=>{phase='error';lastErr=e.code==='net'?'net':e.message;HWEvents.emit('cloud:error',{code:e.code||'error'})}).finally(()=>{busy=null;paint();if(gone)sync('chosen')})}
 
 /* ---------- triggers ---------- */
 HWEvents.on('*',e=>{if(/^(cloud|medius|page|motion|title|insight|network|live|runboard|board):/.test(e.type))return;if(e.type==='data:reset'||(e.type==='data:imported'&&e.mode==='cloud'))return;later(WAIT)});
-HWEvents.on('app:ready',()=>{sync('open');if(arrived&&arrived.err)toast('⚠️ '+esc(arrived.err))});
-HWEvents.on('data:reset',()=>{if(signed()){signOut('reset');toast('☁️ Signed out on this device. Your cloud data was not erased.')}});
+HWEvents.on('app:ready',()=>{sync('open');if(arrived&&arrived.err)toast(ICO('warning')+esc(arrived.err))});
+HWEvents.on('data:reset',()=>{if(signed()){signOut('reset');toast(ICO('cloud')+'Signed out on this device. Your cloud data was not erased.')}});
 HWEvents.on('data:imported',e=>{if(e.mode==='replace'&&signed()){C.ts=null;keep();try{localStorage.removeItem(KB)}catch(_){}}});
 HWEvents.on('cloud:signed-in',()=>{phase='idle';sync('user')});
 addEventListener('online',()=>sync('online'));addEventListener('offline',()=>{if(signed()){phase='offline';paint()}});
@@ -240,7 +241,7 @@ function line(){const dirty=signed()&&J(st)!==base();
   if(phase==='sync')return'Syncing…';
   if(C.choose)return'Waiting for your choice below.';
   if(!online())return dirty||C.ts==null?'Offline: will sync later':'Offline. Last synced at '+hm(C.last)+'.';
-  if(phase==='error')return'⚠️ '+msg()+(C.last?' Last synced at '+hm(C.last)+'.':'')+' Nothing on this device was lost.';
+  if(phase==='error')return msg()+(C.last?' Last synced at '+hm(C.last)+'.':'')+' Nothing on this device was lost.';
   if(dirty&&C.ts!=null)return'Changes will sync in a moment.';
   return C.last?'Synced at '+hm(C.last):'Not synced yet.'}
 let painter=()=>{};
