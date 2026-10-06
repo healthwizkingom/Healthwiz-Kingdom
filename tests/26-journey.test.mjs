@@ -63,6 +63,10 @@ test('a new adventurer’s first day on a phone, end to end, with zero console e
   await page.tap('[data-a="obact"]');
   await page.tap('[data-a="obf"]');
   await page.tap('[data-a="obgo"]');
+  // Medius offers a free account once; SKIP carries on into the kingdom
+  await page.waitForSelector('[data-a="acskip"]');
+  assert.match(await page.textContent('#main'), /CREATE A FREE ACCOUNT\?[\s\S]*SKIP/);
+  await page.tap('[data-a="acskip"]');
   await page.waitForFunction(() => S.v === 'home');
   await page.waitForSelector('.tsk', { timeout: 3000 });
   await page.tap('.tsk');                                   // skip the tutorial

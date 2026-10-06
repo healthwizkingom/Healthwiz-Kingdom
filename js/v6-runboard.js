@@ -3,8 +3,14 @@
    * Opt-in. Nothing is sent until the player joins with a nickname (3–16 characters, no profanity, not their profile
      name). Shared: that nickname and weekly running totals (distance, number of runs, best 5K time), nothing else:
      no health data, no route or location, no weight, no account. LEAVE deletes every row of this device.
-   * Identity: device_id, a random UUID kept in this browser (`healthwiz_runboard`). No sign-in needed; Cloud Save is
-     not involved. Plain fetch to the Supabase REST API with the PUBLISHABLE (anon) key only (CFG below).
+   * Identity, signed out: device_id, a random UUID kept in this browser (`healthwiz_runboard`). No sign-in needed. Plain
+     fetch to the Supabase REST API with the PUBLISHABLE (anon) key only (CFG below).
+   * Identity, signed in (js/v6-cloud.js): the entry belongs to the account (user_id) instead, so it follows the player to
+     every device (supabase/migrations/20261007000100_run_scores_accounts.sql). On the first sign-in, a device that had
+     joined on its own hands its rows to the account (claim_run_scores); a device that had not learns whether the
+     account joined elsewhere (run_me). Each device still sends the weekly totals of the runs recorded on it, and the
+     board adds an account's devices together. Requests then carry the player's session. Signing out leaves the
+     account's entry in place and gives this device a fresh device_id.
    * Data: the runs recorded on this device (js/v6-running.js, `healthwiz_runs`), grouped by local Monday-to-Sunday
      week. Only runs of 0.2 km or more at an average pace of 2:30–15:00 min/km count (the server checks the same).
      Best 5K = the fastest run of 5 km or more, at its average pace × 5 km. This week and last week are submitted
@@ -14,7 +20,8 @@
      This week and All time can be ranked by distance or by consistency (runs per week; all time: active weeks):
      showing up counts as much as going far. Cached for 5 minutes (also offline, marked with its age).
    * Every request: 10 s timeout, try/catch, cached fallback, and a plain offline / not-set-up message.
-   Local state: `healthwiz_runboard` = {dev, on, nick, sent: {week: signature}, last (ms), cache: {key: {at, r}}}. */
+   Local state: `healthwiz_runboard` = {dev, on, nick, acct (user id while linked), sent: {week: signature}, last (ms),
+   cache: {key: {at, r}}}. */
 const HWRunBoard=(()=>{
 // ← deployers: the Supabase project URL + PUBLISHABLE (anon) key (Dashboard → Project Settings → API).
 //   Never a secret / service_role key. Empty values = the leaderboard shows "not set up" and makes no request.
@@ -69,7 +76,11 @@ const fail=(code,msg,status)=>Object.assign(new Error(msg||code),{code,status});
 function cfg(){const u=String(CFG.url||'').replace(/\/+$/,''),k=String(CFG.key||'');if(!u||!k)return null;
   // a secret / service_role key is refused (the same check as Cloud Save)
   if(typeof HWCloud!=='undefined'&&typeof HWCloud.checkProject(u,k)==='string')return null;return{u,k}}
-async function rpc(fn,body){const c=cfg();if(!c)throw fail('setup');if(!online())throw fail('net');
+const acct=()=>typeof HWCloud!=='undefined'?HWCloud.who():null;
+const mine=()=>!!B.acct&&B.acct===acct(); // this device's entry is the signed-in account's
+async function rpc(fn,body,signed){const c=cfg();if(!c)throw fail('setup');if(!online())throw fail('net');
+  if(signed){try{return await HWCloud.api('/rest/v1/rpc/'+fn,{method:'POST',body,ms:TIMEOUT})}
+    catch(e){throw fail(e.code==='net'?'net':e.code==='setup'?'setup':e.code==='rate'?'rate':e.status===400?'input':e.code==='auth'?'auth':'http',e.message,e.status)}}
   const h={apikey:c.k,'Content-Type':'application/json'};if(/^eyJ/.test(c.k))h.Authorization='Bearer '+c.k; // legacy anon JWT
   const ctl=typeof AbortController==='function'?new AbortController():null,t=setTimeout(()=>ctl&&ctl.abort(),TIMEOUT);
   let r;try{r=await fetch(c.u+'/rest/v1/rpc/'+fn,{method:'POST',headers:h,body:JSON.stringify(body),signal:ctl&&ctl.signal,cache:'no-store'})}
@@ -85,10 +96,13 @@ const why=e=>e.code==='net'?'Could not reach the leaderboard (offline or no sign
 let busy=0,T=0,serr='';
 function due(){return weeks().filter(w=>!tooBig(w)&&B.sent[w.ws]!==sig(w)&&(w.runs>0||B.sent[w.ws]!=null))}
 function later(ms){clearTimeout(T);T=setTimeout(push,Math.max(1e3,ms))}
-async function push(){clearTimeout(T);T=0;if(!B.on||busy||!online()||!cfg())return false;const L=due();if(!L.length)return false;
+async function push(){clearTimeout(T);T=0;if(!B.on||busy||!online()||!cfg())return false;
+  if(acct()&&!mine()){link().then(()=>{if(mine()&&B.on)later(0)});return false} // signed in: link the account first
+  const L=due();if(!L.length)return false;
   const w=L[0],left=(+B.last||0)+GAP-Date.now();if(left>0){later(left);return false}
   busy=1;let ok=false;
-  try{await rpc('submit_run_score',{p_device_id:B.dev,p_nickname:B.nick,p_week_start:w.ws,p_distance_km:w.km,p_runs:w.runs,p_moving_sec:w.sec,p_best_5k_sec:w.b5});
+  try{if(mine())await rpc('submit_run_score_me',{p_device_id:B.dev,p_week_start:w.ws,p_distance_km:w.km,p_runs:w.runs,p_moving_sec:w.sec,p_best_5k_sec:w.b5},1);
+    else await rpc('submit_run_score',{p_device_id:B.dev,p_nickname:B.nick,p_week_start:w.ws,p_distance_km:w.km,p_runs:w.runs,p_moving_sec:w.sec,p_best_5k_sec:w.b5});
     B.sent[w.ws]=w.runs>0?sig(w):undefined;if(w.runs===0)delete B.sent[w.ws];B.last=Date.now();B.cache={};serr='';ok=true}
   catch(e){if(e.code==='rate')B.last=Date.now();serr=e.code==='rate'?'':why(e);if(e.code==='input'){B.sent[w.ws]=sig(w)}} // refused data: don't retry the same numbers
   finally{busy=0;const live=new Set(weeks().map(x=>x.ws));Object.keys(B.sent).forEach(k=>{if(!live.has(k))delete B.sent[k]});keep()}
@@ -99,12 +113,12 @@ async function push(){clearTimeout(T);T=0;if(!B.on||busy||!online()||!cfg())retu
 /* ---------- boards ---------- */
 const TABS=[['week','THIS WEEK'],['all','ALL TIME'],['5k','BEST 5K']];
 let tab='week',sort='km',phase='idle',lerr='',arm=0,note='',seen=0;
-const ckey=()=>tab+'|'+(tab==='5k'?'':sort)+'|'+(tab==='week'?monday(null,0):'')+'|'+(B.on?1:0);
+const ckey=()=>tab+'|'+(tab==='5k'?'':sort)+'|'+(tab==='week'?monday(null,0):'')+'|'+(B.on?1:0)+(acct()?'|a':'');
 async function load(force){const k=ckey(),c=B.cache[k];if(c&&!force&&Date.now()-c.at<FRESH){paint();return}
   if(!cfg()){lerr=why(fail('setup'));paint();return}
   if(!online()){lerr=why(fail('net'));paint();return}
   phase='load';paint();
-  try{const r=await rpc('run_board',{p_board:tab,p_week:tab==='week'?monday(null,0):null,p_device_id:B.on?B.dev:null,p_sort:sort});
+  try{const q={p_board:tab,p_week:tab==='week'?monday(null,0):null,p_device_id:B.on&&!mine()?B.dev:null,p_sort:sort},r=acct()?await rpc('run_board',q,1):await rpc('run_board',q);
     B.cache[k]={at:Date.now(),r:Array.isArray(r)?r.slice(0,51):[]};lerr='';keep()}
   catch(e){lerr=why(e)}
   phase='idle';paint()}
@@ -140,7 +154,8 @@ function you(){const W=weeks()[0];if(!B.on)return'';const big=tooBig(W);
 function join(){const nm=B.draft||(B.draft=suggest());
   return'<div class="rbjoin"><p>Compare your running with other HealthWiz runners. Joining is optional, and you can leave any time.</p>'
     +'<p><b>What is shared:</b> your nickname and your weekly running totals (distance, number of runs, best 5K time). '
-    +'<b>Never shared:</b> health data, heart rate, weight, your route or location, your name or your account.</p>'
+    +'<b>Never shared:</b> health data, heart rate, weight, your route or location, your name, your e-mail or account details.'
+    +(acct()?' Signed in, your entry follows your account to every device.':'')+'</p>'
     +'<label>Nickname (3–16 characters; please don\'t use your real name)<input id="rbnick" maxlength="16" autocomplete="off" spellcheck="false" value="'+esc(nm)+'"></label>'
     +'<button data-a="rbjoin"'+(online()&&cfg()?'':' disabled')+'>'+ico('achievement')+' JOIN THE RUNNERS\' BOARD</button></div>'}
 function card(){const c=cfg();let h='<div class="card" id="v6rb"><h3>'+ico('achievement')+' RUNNERS\' BOARD</h3>';
@@ -175,25 +190,43 @@ acts.rbsort=d=>{sort=d.v;note='';lerr='';paint();load()};
 acts.rbref=()=>{note='';lerr='';push().finally(()=>load(true))};
 acts.rbjoin=async()=>{const[n,bad]=checkNick(nickIn());if(bad){note=esc(bad);return paint()}
   if(!online()){note='You are offline. Join when you are back online.';return paint()}
+  if(acct()){try{await rpc('run_join_me',{p_nickname:n,p_device_id:B.dev},1);B.acct=acct()}
+    catch(e){note=esc(why(e))+' You have not joined; nothing was shared.';return paint()}}
   B.on=1;B.nick=n;B.draft=null;B.sent={};B.cache={};note='';keep();paint();
   const W=weeks().filter(w=>w.runs&&!tooBig(w));
   if(W.length){await push();if(/not set up|did not accept/.test(serr)){B.on=0;B.sent={};keep();note=esc(serr)+' You have not joined; nothing was shared.';serr='';return paint()}}
   toast('Welcome to the Runners\' Board, '+esc(n)+'!');HWEvents.emit('runboard:joined',{});load(true)};
-acts.rbname=()=>{const[n,bad]=checkNick(nickIn());if(bad){note=esc(bad);return paint()}B.nick=n;B.sent={};keep();note='';
+acts.rbname=async()=>{const[n,bad]=checkNick(nickIn());if(bad){note=esc(bad);return paint()}
+  if(mine()){try{await rpc('run_join_me',{p_nickname:n},1);B.cache={}}catch(e){note=esc(why(e));return paint()}}
+  B.nick=n;B.sent={};keep();note='';
   toast('Nickname saved. It updates on the board within a minute.');push()};
 acts.rbleave=async()=>{if(!arm){arm=1;return paint()}arm=0;
-  try{await rpc('leave_run_board',{p_device_id:B.dev});clearTimeout(T);B={dev:uuid(),on:0,sent:{},cache:{},last:0};keep();note='';HWEvents.emit('runboard:left',{});
+  try{if(mine())await rpc('leave_run_board_me',{},1);else await rpc('leave_run_board',{p_device_id:B.dev});clearTimeout(T);B={dev:uuid(),on:0,sent:{},cache:{},last:0};keep();note='';HWEvents.emit('runboard:left',{});
     toast('You left the Runners\' Board. Your entry was deleted from the server; your runs stay on this device.');load(true)}
   catch(e){note=esc(why(e))+' You are still on the board; try again when you are online.';paint()}};
 D.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target&&e.target.id==='rbnick'){e.preventDefault();(B.on?acts.rbname:acts.rbjoin)()}});
 
+/* ---------- accounts: hand this device's entry to the signed-in account, and back ---------- */
+let linking=null;
+/** Signed in and not linked yet: claim this device's rows (if it had joined) or learn whether the account has joined. */
+function link(){const u=acct();if(!u||mine()||!cfg()||!online())return Promise.resolve();
+  if(B.acct&&B.acct!==u)B={dev:uuid(),on:0,sent:{},cache:{},last:0}; // another account was linked here before
+  return linking=linking||(async()=>{try{
+      const r=B.on?await rpc('claim_run_scores',{p_device_id:B.dev,p_nickname:B.nick||null},1):await rpc('run_me',{},1),o=Array.isArray(r)?r[0]:r;
+      B.acct=u;if(o&&o.joined){B.on=1;B.nick=o.nickname||B.nick}else B.on=0;B.sent={};B.cache={};keep();
+      if(B.on)HWEvents.emit('runboard:linked',{});}
+    catch(e){serr=e.code==='setup'?'The running leaderboard is not set up for accounts yet.':''}
+    finally{linking=null;paint()}})()}
+HWEvents.on('cloud:signed-in',()=>{link().then(()=>{if(B.on)push()})});
+HWEvents.on('cloud:signed-out',()=>{if(!B.acct)return;clearTimeout(T);B={dev:uuid(),on:0,sent:{},cache:{},last:0};keep();paint()}); // the entry stays with the account
+
 /* ---------- triggers: a saved or deleted run updates the board ---------- */
 {const f=acts.runfinish,d=acts.rundel;acts.runfinish=(...a)=>{const r=f(...a);setTimeout(push,0);return r};acts.rundel=(...a)=>{const r=d(...a);setTimeout(push,0);return r}}
-HWEvents.on('app:ready',()=>{if(B.on)push()});
+HWEvents.on('app:ready',()=>{link().then(()=>{if(B.on)push()})});
 HWEvents.on('page:viewed',e=>{arm=0;note='';if(e.view==='stair'&&B.on)push()});
-addEventListener('online',()=>{if(B.on)push();paint()});addEventListener('offline',()=>paint());
+addEventListener('online',()=>{link().then(()=>{if(B.on)push()});paint()});addEventListener('offline',()=>paint());
 // Reset on this device: leave the board too, so no orphaned entry stays online (best effort; offline it stays until LEAVE)
-HWEvents.on('data:reset',()=>{const dev=B.dev,on=B.on;clearTimeout(T);if(on&&online())rpc('leave_run_board',{p_device_id:dev}).catch(()=>{});
+HWEvents.on('data:reset',()=>{const dev=B.dev,on=B.on&&!B.acct;clearTimeout(T);if(on&&online())rpc('leave_run_board',{p_device_id:dev}).catch(()=>{});
   B={dev:on&&!online()?dev:uuid(),on:0,sent:{},cache:{},last:0};keep()});
 
 HWUI.css('runboard',`
@@ -211,4 +244,4 @@ HWUI.css('runboard',`
 .rbyou p,.rbjoin p{margin:6px 0}.rbjoin button{width:100%;min-height:48px;display:flex;align-items:center;justify-content:center;gap:8px}
 #v6rb .row button{flex:1 1 130px;min-height:44px}#v6rb details{margin:8px 0}#v6rb .warn{margin:8px 0}
 `);
-return{section,checkNick,weekOf,monday,fold,push,load,get state(){return{on:!!B.on,nick:B.nick||null,dev:B.dev,tab,sort,phase,error:lerr||serr}}}})();
+return{section,checkNick,weekOf,monday,fold,push,load,link,get state(){return{on:!!B.on,nick:B.nick||null,dev:B.dev,acct:B.acct||null,linked:mine(),tab,sort,phase,error:lerr||serr}}}})();

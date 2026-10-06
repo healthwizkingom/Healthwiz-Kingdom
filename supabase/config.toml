@@ -1,0 +1,5 @@
+# Supabase CLI settings for this project's Edge Functions (used by `supabase functions deploy`).
+# medius-chat answers signed-in players only: the platform checks the player's JWT before the function runs
+# (it accepts the project's ES256 / RS256 signing keys and legacy HS256), and the function checks it again.
+[functions.medius-chat]
+verify_jwt = true

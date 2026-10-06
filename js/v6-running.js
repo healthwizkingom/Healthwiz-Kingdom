@@ -227,7 +227,7 @@ function kcalNote(m,s,done){if(!weight())return '<b>Calories burned needs your w
     :'<b>≈ '+k+' kcal</b> burned · <span class="mut">≈ estimate (±20–30%) from your speed and weight</span>'+(p!=null?'<br>≈ '+p+'% of today\'s calorie goal ('+st.s.kcal+' kcal). Your food target is not changed.':'')}
 function card(){
   if(U.k==='explain')return '<h3>WHY LOCATION?</h3><ul><li>To measure your run, HealthWiz follows your GPS position <b>while a run is recording</b>, and only then.</li>'
-    +'<li>Your route is saved on this device. If you are signed in to Cloud Save, it is also saved to your private cloud, where only your account can read it. It is never shared or shown to anyone else.</li>'
+    +'<li>Your route is saved on this device. If you are signed in (Settings → Account), it is also saved to your private cloud, where only your account can read it. It is never shared or shown to anyone else.</li>'
     +'<li>Keep HealthWiz open on screen while you run: phones pause GPS for web pages when the screen locks.</li><li>Your browser will ask for permission. You can say no.</li></ul>'
     +'<div class="row">'+btn('runok','ALLOW LOCATION')+btn('runno','NOT NOW','g')+'</div>';
   const done=!R&&U.k==='done'?U.run:null,m=R?R.dist:done?done.dist:0,s=R?secs():done?done.dur:0,run=!!R&&R.since!=null;
@@ -244,11 +244,11 @@ function card(){
   return h}
 function cloudLine(){const wait=DB.runs.filter(x=>!x.up&&!x.bad).length;
   if(typeof HWCloud==='undefined'||!HWCloud.status().configured)return'Runs are saved on this device.';
-  if(!cloud())return'Runs are saved on this device. Sign in to Cloud Save to back them up privately. '+btn('go','OPEN SETTINGS','sm g',' data-v="set"');
+  if(!cloud())return'Runs are saved on this device. Sign in (Settings → Account) to back them up privately. '+btn('go','OPEN SETTINGS','sm g',' data-v="set"');
   if(busy)return'⏳ Sending runs to your cloud save…';
   if(cerr==='net'||(!online()&&wait))return'📴 Could not reach the cloud. '+wait+' run'+(wait===1?'':'s')+' will be sent when the connection works.';
   if(cerr==='setup')return'⚠️ The cloud project is not set up for runs yet (the hw_runs table is missing). Run supabase/migrations/20261005000000_hw_runs.sql in the Supabase project. Your runs are safe on this device.';
-  if(cerr==='auth')return'⚠️ Your cloud sign-in has expired. Sign in again in Settings → Cloud Save to send your runs.';
+  if(cerr==='auth')return'⚠️ Your cloud sign-in has expired. Sign in again in Settings → Account to send your runs.';
   if(cerr)return'⚠️ '+esc(cerr)+' Your runs are safe on this device.';
   return wait?'⏳ '+wait+' run'+(wait===1?'':'s')+' waiting to be sent.':'☁️ Your runs are backed up to your private cloud save.'}
 const when=r=>{const d=new Date(r.start);return isNaN(d)?'':d.toLocaleDateString([],{weekday:'short',day:'numeric',month:'short'})+', '+two(d.getHours())+':'+two(d.getMinutes())};
