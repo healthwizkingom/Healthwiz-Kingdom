@@ -1210,3 +1210,37 @@ regions).
 Tests: `tests/36-live.test.mjs` (WMO mapping, Kulim URL parameters, chip and heat tip, storm flash and reduced motion,
 haze bands and advice on Home and Stairs, hazy sky from level 3, failing API, fresh cache reuse and stale fallback,
 Settings toggle and REFRESH, no request while off).
+
+## 38. Accounts, cloud sync on `user_data`, Medius AI, and three animation upgrades
+
+**Accounts (optional).** `js/v6-cloud.js` (engine) and `js/v6-account.js` (screens). Email magic link plus a 6-digit
+code from the same email (for installed apps whose links open elsewhere), and Google with PKCE when the project has it
+switched on. No password, no library. Without an account nothing is sent. The sign-in sheet always starts with "What
+happens when you sign in" (backup and sync, the running leaderboard, Medius AI, private health data, the app works
+without an account, how to delete everything; under 18: ask a parent or guardian). Medius offers an account once after
+the Traveller's Registry (SKIP carries on).
+
+**Cloud sync.** One row per account in `user_data` (`user_id` = `auth.uid()`, `data` jsonb, `updated_at`), RLS own row
+only. `updated_at` is stamped by the server and used for optimistic concurrency (`updated_at=eq.<last read>`): a write
+from an old copy changes nothing and the app merges first (three-way, against the last synced copy). Debounced about
+10 s after changes, on start, on leaving the app and back online; offline changes wait. First sign-in with data on
+both sides asks KEEP THIS DEVICE'S DATA / KEEP CLOUD DATA / MERGE (the backup restore's `bkMerge`); the replaced side is
+kept as a local backup. The Wizard's Counsel chat is never synced or stored. `hw_saves` rows are copied once by the
+migration and the table is no longer used.
+
+**Runners' Board.** Signed in, rows are tied to `user_id` (`submit_run_score_me`, `run_board`); the device's row moves
+to the account on first sign-in (`claim_run_scores`), so a nickname follows the player between devices.
+
+**Medius AI.** The main branch called the Anthropic API from the browser (it only worked inside Claude); a Gemini
+version existed only on an unmerged branch and as a deployed function. Now the Counsel posts to the Edge Function
+`medius-chat` with the player's session: JWT verified (platform and code), per-player limits in `medius_usage`
+(30/hour, 100/day, counts only), the persona and safety rules on the server, Gemini model in one constant, blocked or
+empty replies → a gentle fallback with the crisis numbers. No key in the app. Replies start with a hidden
+`[mood:x]` tag (calm, smile, concerned, thinking, encourage, gesture, chuckle), stripped before display; unknown or
+missing → calm; crisis replies only calm or concerned. Medius reacts in his study with face overlays and head
+nods/breathing; his hands stay as painted (hand overlays were tried and removed).
+
+**Counting Sheep dream** (`js/v6-sheep.js`) and **Kingdom map** (`js/v6-map.js`): see `docs/PIXEL_STYLE.md` → Scenes
+painted by code. Both keep the original rules and markup hooks (`#shs`, `acts.shst/shend`, the daily reward; `.kn`
+buttons, `klv`, the world layer), animate only while visible, and show a still frame for reduced motion. The map uses
+no frame loop at all (canvases painted once, CSS for motion), so idle pages still run no `requestAnimationFrame`.

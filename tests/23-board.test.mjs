@@ -2,7 +2,7 @@
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { closeBrowser, go, RETURNING, entry } from './helpers.mjs';
-import { fakeSupabase, device, synced, signUp, water } from './cloud-fake.mjs';
+import { fakeSupabase, device, synced, signIn, water } from './cloud-fake.mjs';
 
 after(closeBrowser);
 const card = page => page.textContent('#v6lb');
@@ -30,7 +30,7 @@ test('join with a hero name: only game progress is sent, XP and badges come from
   const seed = { ...RETURNING, xp: 420, b: { 'First Sip': '2026-09-01' }, e: [entry('water', 500, 0), entry('bmi', 22, 1, { w: 70, h: 170 }), entry('food', 900, 0)],
     p: { ...RETURNING.p, name: 'Real Person Name' } };
   const { page, errors } = await device(S, { seed });
-  await signUp(page); await synced(page);
+  await signIn(page, S); await synced(page);
   await go(page, 'quests');
   await ready(page, /JOIN THE HALL OF HEROES/);
   const txt = await card(page);
@@ -68,11 +68,11 @@ test('join with a hero name: only game progress is sent, XP and badges come from
 test('two players: ranks, tabs, hidden names, the privacy card, leaving, and the joined state on a new sign-in', async () => {
   const S = fakeSupabase();
   const a = await device(S, { seed: { ...RETURNING, xp: 100, e: [entry('water', 500, 0)] } });
-  await signUp(a.page, 'a@example.com'); await synced(a.page);
+  await signIn(a.page, S, 'a@example.com'); await synced(a.page);
   await join(a.page, 'Swift Heron');
   await ready(a.page, /\(YOU\)/);
   const b = await device(S, { seed: { ...RETURNING, xp: 900, b: { x: 1, y: 2, z: 3 }, e: [entry('water', 500, 0)] } });
-  await signUp(b.page, 'b@example.com'); await synced(b.page);
+  await signIn(b.page, S, 'b@example.com'); await synced(b.page);
   await join(b.page, 'Bold Comet');
   await ready(b.page, /\(YOU\)/);
   await a.page.click('[data-a="lbref"]');
@@ -84,8 +84,8 @@ test('two players: ranks, tabs, hidden names, the privacy card, leaving, and the
   // B hides their name from Settings: A keeps seeing the rank, without the name
   await go(b.page, 'set');
   assert.match(await b.page.textContent('#v6lbs'), /LEADERBOARD PRIVACY[\s\S]*as Bold Comet[\s\S]*HIDE MY NAME[\s\S]*LEAVE THE BOARD/);
-  const order = await b.page.evaluate(() => { const h = document.querySelector('#main').innerHTML; return [h.indexOf('id="v6cl"'), h.indexOf('id="v6lbs"'), h.indexOf('id="v6pwa"')]; });
-  assert.ok(order[0] < order[1] && order[1] < order[2], 'privacy card sits under Cloud Save');
+  const order = await b.page.evaluate(() => { const h = document.querySelector('#main').innerHTML; return [h.indexOf('id="v6acct"'), h.indexOf('id="v6lbs"'), h.indexOf('id="v6pwa"')]; });
+  assert.ok(order[0] < order[1] && order[1] < order[2], 'privacy card sits under ACCOUNT');
   await b.page.click('#v6lbs [data-a="lbhide"]');
   await b.page.waitForFunction(() => /as Hidden adventurer[\s\S]*SHOW MY NAME/.test(document.getElementById('v6lbs').textContent));
   await a.page.click('[data-a="lbref"]');
@@ -103,11 +103,11 @@ test('two players: ranks, tabs, hidden names, the privacy card, leaving, and the
   await a.page.waitForFunction(() => !/🕶️ Hidden adventurer/.test(document.getElementById('v6lb').textContent));
   // A on a new device: the account is already on the board
   const c = await device(S, { seed: { ...RETURNING } });
-  await signUp(c.page, 'a@example.com', 'kingdom123', false); await synced(c.page);
+  await signIn(c.page, S, 'a@example.com'); await synced(c.page);
   await go(c.page, 'quests');
   await ready(c.page, /Swift Heron \(YOU\)/);
   // signing out forgets the board on this device and leaves the server entry
-  await go(c.page, 'set'); await c.page.click('[data-a="clout"]');
+  await go(c.page, 'set'); await c.page.click('[data-a="acout"]');
   assert.equal(await c.page.$('#v6lbs'), null);
   assert.equal(await c.page.evaluate(() => localStorage.getItem('healthwiz_board')), null);
   assert.ok(Object.keys(S.board).length === 1);
@@ -118,7 +118,7 @@ test('board events, refresh after sync, missing setup and offline say what happe
   const S = fakeSupabase();
   const { page, ctx, errors } = await device(S, { seed: { ...RETURNING, xp: 50 } });
   await page.evaluate(() => { window.__b = []; HWEvents.on('*', e => { if (/^board:/.test(e.type)) window.__b.push(e.type); }); });
-  await signUp(page); await synced(page);
+  await signIn(page, S); await synced(page);
   await join(page, 'Calm Maple');
   await ready(page, /\(YOU\)/);
   const uid = Object.values(S.users)[0].id;
@@ -143,7 +143,7 @@ test('board events, refresh after sync, missing setup and offline say what happe
 test('360 px: tabs and rows fit without horizontal scrolling', async () => {
   const S = fakeSupabase();
   const { page, errors } = await device(S, { seed: { ...RETURNING, xp: 80, e: [entry('water', 500, 0)] }, viewport: { width: 360, height: 800 } });
-  await signUp(page); await synced(page);
+  await signIn(page, S); await synced(page);
   await join(page, 'Merry Fox Of The Long Road'.slice(0, 20));
   await ready(page, /\(YOU\)/);
   const w = await page.evaluate(() => [document.documentElement.scrollWidth, innerWidth, document.getElementById('v6lb').getBoundingClientRect().right]);

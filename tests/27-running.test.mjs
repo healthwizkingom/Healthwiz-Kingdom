@@ -3,7 +3,7 @@
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { openApp, closeBrowser, go, state, RETURNING } from './helpers.mjs';
-import { fakeSupabase, URL0, ANON, CLOUD, synced, signUp } from './cloud-fake.mjs';
+import { fakeSupabase, URL0, ANON, CLOUD, synced, signIn } from './cloud-fake.mjs';
 
 after(closeBrowser);
 const T0 = new Date('2026-10-04T07:10:00');
@@ -301,10 +301,10 @@ test('cloud: nothing is sent while signed out; signed in, runs upload to hw_runs
   };
   await page.clock.resume();               // the cloud save runs on timers
   await doRun();
-  assert.match(await txt(page, '#v6runs'), /on this device[\s\S]*Sign in to Cloud Save to back them up/);
+  assert.match(await txt(page, '#v6runs'), /on this device[\s\S]*Sign in \(Settings → Account\) to back them up/);
   assert.equal(S.calls.filter(c => /hw_runs/.test(c)).length, 0, 'signed out: no run leaves the device');
 
-  await signUp(page);
+  await signIn(page, S);
   await synced(page);
   await page.waitForFunction(() => HWRun.runs().every(r => r.up));
   const rows = Object.values(S.runs);

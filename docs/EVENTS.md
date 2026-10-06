@@ -54,14 +54,15 @@ take precedence over payload fields with the same name.
 | `live:updated` | `weather, air` (true = a reading is available), `level` (haze 0–5, 0 = none) | a live weather / haze refresh finished (`js/v6-live.js`) |
 | `app:offline-ready` | `first` | the offline copy is in place (on every served visit; `first` = it was just saved for the first time) |
 | `app:installed` | — | the browser reports the app was installed |
-| `cloud:signed-in` | — | the user signed in to the cloud save (`js/v6-cloud.js`) |
+| `cloud:signed-in` | `via: email\|code\|google` | the user signed in to their optional account (`js/v6-cloud.js`, screens in `js/v6-account.js`) |
 | `cloud:signed-out` | `why: user\|reset\|deleted\|expired` | the device left the cloud save (data on the device is kept) |
-| `cloud:synced` | `how: up\|down\|merge\|none, rev` | a sync finished; `rev` is the cloud save's revision |
-| `cloud:choose` | — | first sign-in with data on both sides: waiting for the user's MERGE / USE CLOUD / KEEP THIS DEVICE choice |
+| `cloud:synced` | `how: up\|down\|merge\|none, at` | a sync with the `user_data` row finished; `at` is when (ms) |
+| `cloud:choose` | — | first sign-in with data on both sides: waiting for the user's KEEP THIS DEVICE'S DATA / KEEP CLOUD DATA / MERGE choice |
 | `cloud:error` | `code: net\|auth\|setup\|newer\|bad\|busy\|size\|http` | a sync or account action failed (nothing local was changed) |
 | `board:joined` | — | the player joined the Hall of Heroes leaderboard (`js/v6-board.js`) |
 | `board:left` | — | the player left the leaderboard; the server entry was removed |
 | `runboard:joined` | — | the player joined the Runners' Board running leaderboard (`js/v6-runboard.js`) |
+| `runboard:linked` | — | after sign-in, this device's Runners' Board entry now belongs to the account (`claim_run_scores`) |
 | `runboard:left` | — | the player left the Runners' Board; all their weekly rows were deleted from the server |
 | `board:updated` | `hidden` | the player hid or showed their hero name |
 | `storage:failed` | `bytes` | the save could not be written to this device's storage (full or blocked), even after freeing superseded pre-upgrade copies; the user is told and the data stays in the open tab (`js/hw-02-core.js`) |

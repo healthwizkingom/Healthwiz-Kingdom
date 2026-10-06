@@ -89,7 +89,11 @@ S.imp=r.o;S.ir=0;const e=r.o.e,ds=e.map(x=>x.d).sort(),cs=[...new Set(e.map(x=>x
 o.innerHTML='<div class="t" style="margin-top:10px">Backup found<b class="num">'+e.length+' entries</b><small>'+(ds.length?esc(ds[0])+' → '+esc(ds[ds.length-1]):'no entries')+(cs.length?' · '+esc(cs.join(', ')):'')+' · '+r.o.xp+' XP'+(r.bad?' · '+r.bad+' invalid entr'+(r.bad>1?'ies':'y')+' skipped':'')+'</small></div><div class="row" style="margin-top:8px"><button data-a="impm">MERGE INTO CURRENT</button><button class="g" data-a="impr" id="imprb">REPLACE ALL DATA</button></div><small class="mut">Merge adds entries you don\'t already have and keeps your current targets and profile. Replace overwrites everything on this device.</small>'}
 CH.impf=(v,el)=>{const f=el&&el.files&&el.files[0];if(!f)return;if(f.size>5e6){toast('That file is too large for a HealthWiz backup');return}const r=new FileReader();r.onload=()=>impShow(String(r.result||''));r.onerror=()=>toast('Could not read that file');r.readAsText(f)};
 acts.impt=()=>impShow(($('#imptx')||{}).value||'');
-acts.impm=()=>{const I=S.imp;if(!I)return;const ids=new Set(st.e.map(x=>x.id));let k=0;I.e.forEach(x=>{if(!ids.has(x.id)){st.e.push(x);k++}});['b','claimed','en','xd','qx','qd','ck'].forEach(f=>{if(I[f]&&typeof I[f]==='object')st[f]=Object.assign({},I[f],st[f]||{})});st.xp=Math.max(+st.xp||0,+I.xp||0);S.imp=null;save();render();toast('Merged '+k+' new entr'+(k===1?'y':'ies'))};
+// v6 (accounts): the MERGE INTO CURRENT rules as one function, so the first sign-in's MERGE (js/v6-cloud.js) uses the same
+// logic: entries the current data lacks are added (by id); badges, rewards, energy ratings, daily XP, quests, counsel days
+// and checklists are combined, the current value winning for the same key; XP is the larger. Returns how many were added.
+function bkMerge(t,I){const ids=new Set(t.e.map(x=>x.id));let k=0;I.e.forEach(x=>{if(!ids.has(x.id)){t.e.push(x);k++}});['b','claimed','en','xd','qx','qd','ck'].forEach(f=>{if(I[f]&&typeof I[f]==='object')t[f]=Object.assign({},I[f],t[f]||{})});t.xp=Math.max(+t.xp||0,+I.xp||0);return k}
+acts.impm=()=>{const I=S.imp;if(!I)return;const k=bkMerge(st,I);S.imp=null;save();render();toast('Merged '+k+' new entr'+(k===1?'y':'ies'))};
 acts.impr=()=>{if(!S.imp)return;if(!S.ir){S.ir=1;const b=$('#imprb');if(b){b.textContent='TAP AGAIN TO REPLACE';b.style.background='var(--red)';b.style.color='#fff'}return}st=S.imp;S.imp=null;S.ir=0;save();render();toast('Backup restored')};
 
 /* ---------- New habit badges ---------- */

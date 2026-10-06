@@ -45,7 +45,7 @@ const suggest=()=>A1[Math.floor(Math.random()*A1.length)]+' '+A2[Math.floor(Math
 /* ---------- server ---------- */
 const rpc=(fn,body)=>cloud().api('/rest/v1/rpc/'+fn,{method:'POST',body});
 function why(e){return e.code==='net'?'Could not reach the cloud.':e.code==='setup'?'The leaderboard is not set up in the cloud project yet (run supabase/migrations/20261004000000_hw_leaderboard.sql).'
-  :/cloud save first/.test(e.message)?'Your cloud save has not synced yet. Use SYNC NOW in Settings → Cloud Save, then try again.':e.code==='auth'?e.message:String(e.message||'Something went wrong.')}
+  :/cloud save first/.test(e.message)?'Your cloud save has not synced yet. Use SYNC NOW in Settings → Account, then try again.':e.code==='auth'?e.message:String(e.message||'Something went wrong.')}
 function mine(){const u=me();if(B.uid!==u){B={uid:u};rows={};keep()}return B}
 /** Asks the server once per session whether this account has joined (it may have joined on another device). */
 function check(){const u=me();if(!u||!online())return Promise.resolve();if(mine().on!=null&&B.chk)return Promise.resolve();
@@ -80,7 +80,7 @@ function list(){const c=rows[tab],T=TABS.find(x=>x[0]===tab);
   return'<ol aria-label="'+T[1]+' leaderboard">'+R.map(li).join('')+'</ol>'+(mineRow?'<p class="mut" role="status">Your place: <b>'+medal(+mineRow.rank)+'</b>'+(B.hidden?' · your name is hidden from others':'')+'</p>':'')
     +(R.every(x=>!(+x.value>0))?'<p class="mut">Nobody has any yet'+(tab==='week'?' this week':'')+'. Every log and quest counts.</p>':'')}
 function card(){const c=cloud(),s=c?c.status():{},u=me();let h='<div class="card" id="v6lb"><h3>🏆 HALL OF HEROES</h3>';
-  if(!s.configured||!u){h+='<p class="mut">An optional leaderboard of game progress: XP, quests, badges, kingdom and discoveries. It never shows health data. Sign in to your cloud save to join.</p>'
+  if(!s.configured||!u){h+='<p class="mut">An optional leaderboard of game progress: XP, quests, badges, kingdom and discoveries. It never shows health data. Sign in (Settings → Account) to join.</p>'
     +'<button class="g" data-a="go" data-v="set" style="width:100%">OPEN CLOUD SAVE SETTINGS</button>'}
   else if(mine().on==null){h+='<p class="mut" role="status">'+(online()?'⏳ Checking the Hall of Heroes…':'📴 Offline. The Hall of Heroes opens when you are back online.')+'</p>'}
   else if(!B.on){const nm=B.draft||(B.draft=suggest());
@@ -98,7 +98,7 @@ function card(){const c=cloud(),s=c?c.status():{},u=me();let h='<div class="card
   if(err&&u)h+='<div class="warn" role="alert">⚠️ '+esc(err)+' Nothing on this device was changed.</div>';
   if(note)h+='<div class="warn">'+note+'</div>';
   return h+'<span class="gtag">🎮 GAME PROGRESS ONLY · NO HEALTH DATA · NO PRIZES</span></div>'}
-/* Settings: a short privacy summary under Cloud Save (§79) */
+/* Settings: a short privacy summary under ACCOUNT (§79) */
 function setCard(){const u=me();if(!u)return'';mine();
   return'<div class="card" id="v6lbs"><h3>🏆 LEADERBOARD PRIVACY</h3><p class="mut">'+(B.on==null?'Checking…':B.on?'You are on the Hall of Heroes as <b>'+(B.hidden?'Hidden adventurer':esc(B.name||''))+'</b>. Only game progress is shared.':'You are not on the leaderboard. Nothing about you is shown to other players.')+'</p>'
     +(B.on?'<div class="row"><button class="g" data-a="lbhide">'+(B.hidden?'SHOW MY NAME':'HIDE MY NAME')+'</button><button class="g" data-a="lbleave">'+(arm?'TAP AGAIN TO LEAVE':'LEAVE THE BOARD')+'</button></div>':'')
@@ -109,7 +109,7 @@ function paint(){[['v6lb',card],['v6lbs',setCard]].forEach(([id,f])=>{const el=D
   if(v!=null){const x=n.querySelector('#lbname');if(x)x.value=v}if(open){const d=n.querySelector('details');if(d)d.open=true}
   if(foc){const x=n.querySelector(foc);if(x)x.focus()}})}
 {const p=pages.quests;pages.quests=(...a)=>p(...a)+card()}
-{const p=pages.set;pages.set=(...a)=>{const h=p(...a),k='<div class="card" id="v6cl">',i=h.indexOf(k);if(i<0)return h;const e=h.indexOf('<div class="card" id="',i+k.length);return e<0?h+setCard():h.slice(0,e)+setCard()+h.slice(e)}}
+{const p=pages.set;pages.set=(...a)=>{const h=p(...a),k='<div class="card" id="v6acct">',i=h.indexOf(k);if(i<0)return h;const e=h.indexOf('<div class="card" id="',i+k.length);return e<0?h+setCard():h.slice(0,e)+setCard()+h.slice(e)}}
 
 /* ---------- actions ---------- */
 const say=(m,ok)=>{note=ok?'':m;paint();if(ok)toast(m)};
@@ -118,7 +118,7 @@ acts.lbtab=d=>{tab=d.v;note='';paint();load(tab)};
 acts.lbref=()=>{note='';publish(true).catch(()=>{}).finally(()=>load(tab,true))};
 acts.lbjoin=async()=>{const[n,bad]=checkName(name());if(bad)return say('⚠️ '+esc(bad));if(!online())return say('📴 You are offline. Join when you are back online.');
   const c=cloud();note='';err='';phase='load';paint();
-  try{await c.sync('user');if(c.status().choose)throw Object.assign(new Error('Finish the cloud save choice in Settings → Cloud Save first.'),{code:'choose'});
+  try{await c.sync('user');if(c.status().choose)throw Object.assign(new Error('Finish the choice in Settings → Account first.'),{code:'choose'});
     B.name=n;B.hidden=false;B.on=true;B.draft=null;keep();await publish(true);phase='idle';HWEvents.emit('board:joined',{});
     toast('🏆 Welcome to the Hall of Heroes, '+esc(n)+'!');await load(tab,true)}
   catch(e){B.on=false;keep();phase='idle';say('⚠️ '+esc(why(e))+' You have not joined; nothing was shared.')}};
