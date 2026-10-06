@@ -43,6 +43,6 @@ test('no AI key and no direct AI call anywhere in the app', () => {
 test('Deno unit tests of the function (skipped when Deno is not installed)', t => {
   const has = spawnSync('deno', ['--version']).status === 0;
   if (!has) return t.skip('deno not installed');
-  const out = execFileSync('deno', ['test', '--allow-env', 'supabase/tests/medius-chat.test.ts'], { cwd: root, encoding: 'utf8', env: { ...process.env, NO_COLOR: '1' } });
+  const out = execFileSync('deno', ['test', '--no-lock', '--allow-env', 'supabase/tests/medius-chat.test.ts'], { cwd: root, encoding: 'utf8', env: { ...process.env, NO_COLOR: '1' } });
   assert.match(out, /ok \| 6 passed \| 0 failed/);
 });

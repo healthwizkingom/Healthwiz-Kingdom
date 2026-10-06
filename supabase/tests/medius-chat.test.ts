@@ -1,4 +1,4 @@
-// Unit tests for supabase/functions/medius-chat (run: deno test --allow-env supabase/tests/medius-chat.test.ts).
+// Unit tests for supabase/functions/medius-chat (run: deno test --no-lock --allow-env supabase/tests/medius-chat.test.ts).
 // Deno.serve and fetch are stubbed: no network. A real ES256 key pair signs the players' tokens, and the stubbed
 // Supabase serves its public key as the JWKS, so the signature check runs for real.
 import { assert, assertEquals, assertMatch, assertStringIncludes } from 'jsr:@std/assert@1';
