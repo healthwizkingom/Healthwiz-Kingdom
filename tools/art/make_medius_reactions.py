@@ -3,8 +3,7 @@
 
 Reads assets/img/study.jpg and writes assets/img/medius-reactions.webp (lossless), a sheet of small patches drawn in
 the study's own style and colours: eyes (closed, happy, soft, looking up, wide), brows (raised inside ends, lifted),
-mouth (smile, frown, open) and his hands (the left alone in his lap, the right raised to his beard in two stroke
-positions, or held out with the palm open). Each patch holds only the pixels that change; everything else stays the
+mouth (smile, frown, open). His hands are never redrawn: they stay as painted. Each patch holds only the pixels that change; everything else stays the
 study image. It also prints the patch layout that js/v6-counsel.js keeps in SHEET.
 
 The nod and the breathing need no stored pixels: js/v6-counsel.js redraws the study itself shifted by a few pixels
@@ -14,13 +13,12 @@ Needs Python 3 with Pillow and NumPy:   python3 tools/art/make_medius_reactions.
 """
 import json, os
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 SRC = os.path.join(ROOT, 'assets', 'img', 'study.jpg')
 OUT = os.path.join(ROOT, 'assets', 'img', 'medius-reactions.webp')
 A = np.asarray(Image.open(SRC).convert('RGB')).astype(np.int16)
-RNG = np.random.default_rng(7)
 
 # Head outline (hat, face, hair, beard) in study.jpg pixels: shifted by the nod and the breathing.
 HEAD = [(402, 150), (402, 128), (406, 120), (410, 112), (410, 104), (414, 97), (418, 92), (424, 86), (432, 80), (440, 76),
@@ -60,72 +58,6 @@ MOUTHS = {  # 32 x 8 at (464,177)
     'open': ['.' * 32, '.' * 32, '.......LLLLLLLLLLLLLLLLLL.......', '......Loooooooooooooooooool.....', '......Loooooooooooooooooool.....', '.......Lootttttttttttttol.......', '........LLlllllllllllLL.........', '.' * 32],
 }
 
-ROBE = [(14, 18, 30), (24, 28, 42), (36, 40, 56), (52, 56, 72), (70, 76, 94)]
-TRIM = [(46, 44, 50), (78, 74, 76), (106, 96, 84), (150, 126, 82), (178, 156, 110)]
-SKIN = [(58, 22, 14), (112, 58, 38), (160, 92, 60), (200, 128, 82), (224, 156, 104), (240, 186, 134)]
-
-def layer(w, h): return Image.new('RGBA', (w, h), (0, 0, 0, 0))
-def texture(L, poly, base, dark, light, n):
-    d = ImageDraw.Draw(L); d.polygon(poly, fill=base)
-    m = Image.new('L', L.size, 0); ImageDraw.Draw(m).polygon(poly, fill=255); M = np.asarray(m) > 0
-    xs = [p[0] for p in poly]; ys = [p[1] for p in poly]
-    for _ in range(n):
-        x = int(RNG.integers(min(xs), max(xs))); y = int(RNG.integers(min(ys), max(ys)))
-        if 0 <= y < M.shape[0] and 0 <= x < M.shape[1] and M[y, x]: d.rectangle([x, y, x + 1, y + 1], fill=dark if RNG.random() < .5 else light)
-def outline(L, robe=True):
-    a = np.asarray(L); al = a[..., 3] > 0
-    edge = al & ~(np.roll(al, 1, 0) & np.roll(al, -1, 0) & np.roll(al, 1, 1) & np.roll(al, -1, 1))
-    b = a.copy(); skin = a[..., 0] > 120
-    b[edge & skin] = (*SKIN[0], 255)
-    if robe: b[edge & ~skin] = (*ROBE[0], 255)
-    return Image.fromarray(b)
-def snap(L, step=2):
-    """The study's details are 2-4 px: average 2 x 2 cells and make alpha hard, so new art sits on the same grain."""
-    a = np.asarray(L).astype(float); h, w = a.shape[:2]; h2, w2 = h // step * step, w // step * step; a = a[:h2, :w2]
-    b = a.reshape(h2 // step, step, w2 // step, step, 4); al = b[..., 3].mean((1, 3))
-    rgb = (b[..., :3] * b[..., 3:4]).sum((1, 3)) / np.maximum(b[..., 3].sum((1, 3))[..., None], 1)
-    out = np.zeros((h2 // step, w2 // step, 4)); out[..., :3] = rgb; out[..., 3] = np.where(al >= 128, 255, 0)
-    return np.repeat(np.repeat(out, step, 0), step, 1).astype(np.uint8)
-
-def hand_beard(stroke):  # layer origin (472,200), 88 x 100
-    L = layer(88, 100); d = ImageDraw.Draw(L); dy = 4 * stroke
-    texture(L, [(66, 98), (86, 98), (84, 74), (74, 52), (60, 40 + dy), (44, 36 + dy), (38, 48 + dy), (48, 64), (58, 84)], ROBE[1], ROBE[0], ROBE[2], 120)
-    d.line([(68, 96), (64, 80), (54, 60), (48, 50 + dy)], fill=ROBE[3], width=2)
-    d.line([(84, 96), (82, 76), (74, 56), (64, 44 + dy)], fill=ROBE[4], width=2)
-    d.line([(60, 98), (54, 82), (44, 64), (38, 50 + dy)], fill=ROBE[0], width=2)
-    d.polygon([(38, 44 + dy), (62, 36 + dy), (66, 44 + dy), (42, 54 + dy)], fill=TRIM[1])
-    d.line([(39, 48 + dy), (64, 40 + dy)], fill=TRIM[2], width=2)
-    for k in range(5): d.rectangle([41 + k * 5, 50 + dy - k * 2, 42 + k * 5, 51 + dy - k * 2], fill=TRIM[3])
-    d.line([(38, 44 + dy), (62, 36 + dy)], fill=TRIM[4], width=1)
-    d.polygon([(28, 34 + dy), (42, 28 + dy), (50, 34 + dy), (48, 44 + dy), (36, 50 + dy), (26, 44 + dy)], fill=SKIN[3])
-    d.polygon([(30, 34 + dy), (42, 30 + dy), (46, 34 + dy), (34, 40 + dy)], fill=SKIN[4])
-    for k in range(4):
-        y = 30 + dy + k * 5; d.rounded_rectangle([16, y, 32, y + 4], radius=2, fill=SKIN[3]); d.line([(17, y), (30, y)], fill=SKIN[4]); d.line([(16, y + 4), (32, y + 4)], fill=SKIN[1])
-    d.polygon([(34, 26 + dy), (44, 20 + dy), (48, 24 + dy), (38, 32 + dy)], fill=SKIN[4]); d.line([(34, 26 + dy), (44, 20 + dy)], fill=SKIN[5])
-    return outline(L)
-def lap_left():  # layer origin (440,280), 120 x 48: his left hand alone, the right one is up
-    L = layer(120, 48); d = ImageDraw.Draw(L)
-    texture(L, [(44, 4), (116, 0), (118, 44), (48, 46)], ROBE[1], ROBE[0], ROBE[2], 160)
-    d.line([(70, 10), (84, 40)], fill=ROBE[3], width=2); d.line([(96, 6), (104, 42)], fill=ROBE[2], width=2)
-    d.polygon([(14, 14), (40, 10), (58, 12), (66, 18), (66, 30), (56, 36), (30, 36), (14, 30)], fill=SKIN[3])
-    d.polygon([(18, 15), (40, 12), (56, 14), (40, 20), (20, 22)], fill=SKIN[4])
-    d.polygon([(16, 28), (40, 30), (60, 32), (54, 36), (30, 36)], fill=SKIN[2])
-    for k in range(4):
-        y = 16 + k * 5; d.rounded_rectangle([56, y, 76 - k * 2, y + 4], radius=2, fill=SKIN[3]); d.line([(57, y), (74 - k * 2, y)], fill=SKIN[4]); d.line([(56, y + 4), (75 - k * 2, y + 4)], fill=SKIN[1])
-    return outline(L, robe=False)
-def palm():  # layer origin (512,252), 92 x 52: open palm toward the candle
-    L = layer(92, 52); d = ImageDraw.Draw(L)
-    texture(L, [(0, 30), (14, 22), (40, 18), (52, 24), (50, 40), (30, 46), (4, 48)], ROBE[1], ROBE[0], ROBE[2], 80)
-    d.line([(6, 26), (40, 20)], fill=ROBE[4], width=2)
-    d.polygon([(40, 16), (52, 20), (54, 42), (42, 44)], fill=TRIM[1]); d.line([(46, 18), (48, 43)], fill=TRIM[3], width=2)
-    for k in range(4): d.rectangle([43, 22 + k * 5, 44, 23 + k * 5], fill=TRIM[4])
-    d.polygon([(52, 24), (66, 18), (80, 20), (84, 28), (78, 36), (58, 38)], fill=SKIN[4])
-    d.polygon([(56, 26), (70, 22), (78, 24), (66, 30)], fill=SKIN[5])
-    for k in range(4):
-        y = 20 + k * 4; d.rounded_rectangle([76, y, 90, y + 3], radius=1, fill=SKIN[4]); d.line([(77, y), (89, y)], fill=SKIN[5]); d.line([(76, y + 3), (90, y + 3)], fill=SKIN[2])
-    d.polygon([(62, 18), (68, 8), (73, 9), (70, 20)], fill=SKIN[4]); d.line([(68, 9), (73, 9)], fill=SKIN[5])
-    return outline(L)
-
 def patch(edit):
     """Run edit(img) on a copy of the study; return (x, y, rgba) holding only the pixels that changed."""
     img = A.copy(); edit(img); ch = (img != A).any(-1)
@@ -133,9 +65,6 @@ def patch(edit):
     rgba = np.zeros((y1 - y0, x1 - x0, 4), np.uint8); sub = ch[y0:y1, x0:x1]
     rgba[..., :3] = img[y0:y1, x0:x1]; rgba[..., 3] = np.where(sub, 255, 0)
     return int(x0), int(y0), rgba
-def put(img, arr, x0, y0):
-    h, w = arr.shape[:2]; m = arr[..., 3] > 0; img[y0:y0 + h, x0:x0 + w][m] = arr[..., :3][m]
-
 PARTS = {}
 for n, e in EYES.items():
     PARTS['eyes:' + n] = patch(lambda im, e=e: (paint(im, 458, 150, e, EYEP), paint(im, 485, 150, [r[::-1] for r in e], EYEP)))
@@ -143,10 +72,6 @@ for n, b in BROWS.items():
     PARTS['brows:' + n] = patch(lambda im, b=b: (paint(im, 455, 139, b, BROWP), paint(im, 483, 139, [r[::-1] for r in b], BROWP)))
 for n, m in MOUTHS.items():
     PARTS['mouth:' + n] = patch(lambda im, m=m: paint(im, 464, 177, m, MOUTHP))
-PARTS['hands:lap'] = patch(lambda im: put(im, snap(lap_left()), 440, 280))
-PARTS['hands:beard0'] = patch(lambda im: put(im, snap(hand_beard(0)), 472, 200))
-PARTS['hands:beard1'] = patch(lambda im: put(im, snap(hand_beard(1)), 472, 200))
-PARTS['hands:palm'] = patch(lambda im: put(im, snap(palm()), 512, 252))
 
 # pack in one row-wrapped sheet
 order = list(PARTS); W = 256; x = y = rowh = 0; layout = {}

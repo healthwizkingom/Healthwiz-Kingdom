@@ -113,7 +113,7 @@ test('Medius AI signed in: the session goes to medius-chat, the mood tag is hidd
   assert.deepEqual(errors.filter(e => !/status of 429/.test(e)), []);
 });
 
-test('Medius reacts in his study: idle breathing and blinks, a nod while typing, a hand on his beard while thinking, then the reply\'s mood', async () => {
+test('Medius reacts in his study: idle breathing and blinks, a nod while typing, eyes raised while thinking, then the reply\'s mood (his hands never move)', async () => {
   const S = fakeSupabase();
   let release; S.aiReply = () => '[mood:gesture] Try one small step.';
   const { page, errors } = await device(S, { viewport: { width: 1000, height: 1100 } });
@@ -135,11 +135,11 @@ test('Medius reacts in his study: idle breathing and blinks, a nod while typing,
   await page.click('[data-a="cssend"]');
   await page.waitForTimeout(300);
   const th = await pose();
-  assert.ok(/beard/.test(th.hands) && th.eyes === 'up', 'hand on the beard, eyes up: ' + JSON.stringify(th));
+  assert.ok(th.eyes === 'up' && th.brows === 'lift' && !('hands' in th), 'eyes up in thought, hands as painted: ' + JSON.stringify(th));
   release();
   await page.waitForFunction(() => HWCounsel.state.mode === 'mood');
   const g = await pose();
-  assert.equal(g.hands, 'palm', 'the open-palm gesture while the reply appears');
+  assert.equal(g.brows, 'lift', 'the gesture mood: brows lifted while the reply appears'); assert.ok(!('hands' in g));
   // the canvas is drawn in the study's own pixels: the sheet is loaded and something is painted over his figure
   const painted = await page.evaluate(() => { const c = document.querySelector('#cnsc canvas.cnmd'); const ctx = c.getContext('2d'); try { return ctx.getImageData(400, 60, 200, 280).data.some((v, i) => i % 4 === 3 && v > 0); } catch (e) { return 'tainted'; } });
   assert.ok(painted === true || painted === 'tainted', 'overlay painted');

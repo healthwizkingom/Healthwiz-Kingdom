@@ -11,11 +11,11 @@
      tools/art/make_medius_reactions.py) on a canvas over the picture, plus the picture itself redrawn inside his head
      outline a few pixels up or down:
        idle: slow breathing and a blink now and then · listening: a small nod while the player types ·
-       thinking: a hand on his beard, stroking, while the reply is on its way ·
-       replies: warm smile, concerned brows, open palm, encouraging nod, a small chuckle, while the reply is typed out,
-       then back to idle.
+       thinking: eyes raised in thought, while the reply is on its way ·
+       replies: warm smile, concerned brows, a raised-brow "here is a thought" with a small nod, encouraging nods, a small
+       chuckle, while the reply is typed out, then back to idle. His hands stay as painted.
      Pose changes are scheduled with timers (no frame loop), only while the study is on screen and the tab visible.
-     Reduced motion: the expression is shown as one still frame, with no nods, strokes or typing effect. */
+     Reduced motion: the expression is shown as one still frame, with no nods or typing effect. */
 const HWCounsel=(()=>{
 const D=document,C=()=>typeof HWCloud!=='undefined'?HWCloud:null;
 const MOODS=['calm','smile','concerned','thinking','encourage','gesture','chuckle'];
@@ -66,7 +66,7 @@ HWEvents.on('cloud:signed-out',()=>{if(S.cs&&S.cs.ph==='chat')csPaint()});
 
 /* ---------- the study's overlay ---------- */
 // patch → [sheet x, sheet y, w, h, study x, study y] (tools/art/make_medius_reactions.py prints these)
-const SHEET={"eyes:closed":[0,0,41,7,459,150],"eyes:happy":[42,0,41,7,459,150],"eyes:soft":[84,0,41,6,459,150],"eyes:up":[126,0,41,6,459,150],"eyes:wide":[168,0,41,6,459,150],"brows:up":[210,0,26,4,466,139],"brows:lift":[0,8,42,2,458,140],"mouth:smile":[43,8,26,5,467,179],"mouth:frown":[70,8,26,4,467,180],"mouth:open":[97,8,21,5,470,179],"hands:lap":[119,8,104,44,454,282],"hands:beard0":[0,53,70,78,488,220],"hands:beard1":[71,53,70,74,488,224],"hands:palm":[142,53,90,40,512,260]};
+const SHEET={"eyes:closed":[0,0,41,7,459,150],"eyes:happy":[42,0,41,7,459,150],"eyes:soft":[84,0,41,6,459,150],"eyes:up":[126,0,41,6,459,150],"eyes:wide":[168,0,41,6,459,150],"brows:up":[210,0,26,4,466,139],"brows:lift":[0,8,42,2,458,140],"mouth:smile":[43,8,26,5,467,179],"mouth:frown":[70,8,26,4,467,180],"mouth:open":[97,8,21,5,470,179]};
 // his head (hat, face, hair, beard) in study.jpg pixels: redrawn a few pixels up (breathing) or down (a nod)
 const HEAD=[[402,150],[402,128],[406,120],[410,112],[410,104],[414,97],[418,92],[424,86],[432,80],[440,76],[448,73],[458,73],[462,77],[466,80],[470,85],[474,90],[478,96],[482,101],[488,109],[494,116],[500,122],[506,126],[512,130],[518,133],[524,136],[530,139],[536,143],[539,146],[530,149],[520,149],[518,160],[518,190],[516,200],[512,212],[508,230],[500,248],[490,262],[480,266],[468,262],[458,250],[448,236],[440,222],[432,214],[424,206],[414,196],[408,180],[404,164]];
 const BX=396,BY=64,BW=152,BH=212,FX=396,FY=64,FW=212,FH=274; // head box (with room to move) and the whole figure box
@@ -82,7 +82,7 @@ function mask(dy){if(MASK[dy])return MASK[dy];const w=BW,h=BH,on=new Uint8Array(
   for(let y=0;y<h;y++){let s=-1;for(let i=0;i<=w;i++){const v=i<w&&on[y*w+i];if(v&&s<0)s=i;else if(!v&&s>=0){x.fillRect(s,y,i-s,1);s=-1}}}
   return MASK[dy]=cv}
 let work=null;
-/** Draws one pose on the overlay canvas: {dy, eyes, brows, mouth, hands}. */
+/** Draws one pose on the overlay canvas: {dy, eyes, brows, mouth}. */
 function paint(cv,p){const x=cv.getContext('2d'),pic=cv.parentNode&&cv.parentNode.querySelector('img');x.imageSmoothingEnabled=false;
   x.clearRect(FX,FY,FW,FH);if(!p)return;
   const dy=p.dy|0;
@@ -91,25 +91,24 @@ function paint(cv,p){const x=cv.getContext('2d'),pic=cv.parentNode&&cv.parentNod
     x.drawImage(work,BX,BY)}
   const s=img();if(!s.complete||!s.naturalWidth)return;
   const put=(k,oy)=>{const r=SHEET[k];if(r)x.drawImage(s,r[0],r[1],r[2],r[3],r[4],r[5]+(oy||0),r[2],r[3])};
-  if(p.hands)put('hands:lap');if(p.hands&&p.hands!=='lap')put('hands:'+p.hands);
   if(p.eyes)put('eyes:'+p.eyes,dy);if(p.brows)put('brows:'+p.brows,dy);if(p.mouth)put('mouth:'+p.mouth,dy)}
 
 /* ---------- what he does, and when ---------- */
 // each mood: a still face, and its motion while the reply is typed (t = ms since the reply began)
-const FACE={calm:{},smile:{eyes:'happy',mouth:'smile'},concerned:{eyes:'soft',brows:'up',mouth:'frown'},thinking:{eyes:'up',brows:'lift',hands:'beard0'},
-  encourage:{eyes:'happy',mouth:'smile'},gesture:{brows:'lift',hands:'palm'},chuckle:{eyes:'happy',mouth:'open'}};
+const FACE={calm:{},smile:{eyes:'happy',mouth:'smile'},concerned:{eyes:'soft',brows:'up',mouth:'frown'},thinking:{eyes:'up',brows:'lift'},
+  encourage:{eyes:'happy',mouth:'smile'},gesture:{brows:'lift',mouth:'smile'},chuckle:{eyes:'happy',mouth:'open'}};
 function moodPose(m,t){const f=Object.assign({},FACE[m]||{});
   if(m==='encourage')f.dy=(t>200&&t<480)||(t>900&&t<1180)?4:0;                      // two encouraging nods
   else if(m==='chuckle'){const k=Math.floor(t/170);if(t<1400){f.dy=k%2?-2:0;f.mouth=k%2?'open':'smile'}else f.mouth='smile'}
-  else if(m==='thinking')f.hands=Math.floor(t/520)%2?'beard1':'beard0';
+  else if(m==='gesture')f.dy=t>250&&t<560?2:0;                                        // a small nod with the thought
   else if(m==='calm')f.eyes=t>300&&t<460?'closed':null;                               // one slow, thoughtful blink
   return f}
 const M={el:null,mode:'idle',m:'calm',t0:0,until:0,typed:0,blinkAt:0,blinkTo:0,timer:0,last:'',vis:true};
 function now(){return performance.now()}
 function pose(){const t=now();
-  if(M.mode==='think'){const k=Math.floor((t-M.t0)/520)%2;return{eyes:'up',brows:'lift',hands:k?'beard1':'beard0'}}
+  if(M.mode==='think')return{eyes:'up',brows:'lift'}
   if(M.mode==='mood'){if(t<M.until)return moodPose(M.m,t-M.t0);
-    if(t<M.until+500){const f=FACE[M.m]||{};return{eyes:f.eyes==='happy'?'happy':null,mouth:f.mouth==='open'?'smile':f.mouth,hands:f.hands==='palm'?'palm':null}} // easing back
+    if(t<M.until+500){const f=FACE[M.m]||{};return{eyes:f.eyes==='happy'?'happy':null,mouth:f.mouth==='open'?'smile':f.mouth}} // easing back
     M.mode='idle'}
   const p={};
   if(t-M.typed<1300){const k=(t-M.typed)%1600;if(k<260)p.dy=4}                        // listening: a small nod while typing
@@ -118,7 +117,7 @@ function pose(){const t=now();
   if(t>=M.blinkTo){M.blinkAt=t+2600+Math.random()*3600;M.blinkTo=M.blinkAt+150}
   return p}
 function draw(force){const cv=M.el;if(!cv||!cv.isConnected){M.el=null;return}
-  if(reduced()){const f=M.mode==='mood'&&now()<M.until?Object.assign({},FACE[M.m]):M.mode==='think'?{eyes:'up',brows:'lift',hands:'beard0'}:null;
+  if(reduced()){const f=M.mode==='mood'&&now()<M.until?Object.assign({},FACE[M.m]):M.mode==='think'?{eyes:'up',brows:'lift'}:null;
     const k=JSON.stringify(f);if(k!==M.last||force){M.last=k;paint(cv,f)}return}
   const p=pose(),k=JSON.stringify(p);if(k!==M.last||force){M.last=k;paint(cv,p)}}
 function tick(){clearTimeout(M.timer);M.timer=0;if(!M.el||!M.el.isConnected){M.el=null;return}
