@@ -148,7 +148,7 @@ function typeOut(){const el=D.querySelector('#cslog .csm.a.fresh .cst'),c=S.cs;i
 {const o=csPaint;csPaint=function(){const r=o.apply(this,arguments);const c=S.cs;if(c){think(!!c.busy);if(!c.busy)typeOut()}return r}}
 HWUI.css('counsel',`
 .cns2 canvas.cnmd{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:pixelated;pointer-events:none}
-.cshelp ul{margin:6px 0;padding-left:20px}.cshelp li{margin:2px 0}.cshelp a{color:inherit}.cshelp b svg{vertical-align:-3px;margin-right:4px}
+.cshelp ul{margin:6px 0;padding-left:20px}.cshelp li{margin:2px 0}.cshelp a{color:inherit;display:inline-flex;align-items:center;min-height:24px;min-width:24px}.cshelp b svg{vertical-align:-3px;margin-right:4px}
 .cshelp.on{border-color:var(--red);box-shadow:0 0 0 3px rgba(217,69,61,.35)}
 .csout{display:flex;gap:10px;align-items:flex-start;border:3px dashed var(--ln);background:var(--p2);padding:10px;margin:8px 0}.csout>svg{flex:0 0 auto}
 .csout b{font:8px/1.6 var(--fh);display:block}.csout p{margin:4px 0 8px;font-size:14px}.csout button{width:100%;display:flex;align-items:center;justify-content:center;gap:8px}

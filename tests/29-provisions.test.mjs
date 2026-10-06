@@ -159,7 +159,8 @@ test('old Nutrition/Water routes and links never break: go(), Home, kingdom map,
   await page.click('#tstat [data-v="water"]');
   assert.equal(await page.evaluate(() => S.v), 'water');
   await go(page, 'kingdom');
-  await page.click('#kmap .kn[data-v="food"]');
+  await page.click('#kmap .kn[data-v="food"]');                // the map zooms to the region and opens its card
+  await page.click('#mo [data-a="kgo"][data-v="food"]');
   assert.equal(await page.evaluate(() => S.v), 'food');
   await go(page, 'kingdom');
   await page.click('[data-a="kreg"][aria-label="Details for Water Valley"]');
