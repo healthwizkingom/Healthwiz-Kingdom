@@ -32,7 +32,7 @@ test('one page, three sections in order; Pulse and Running are no longer separat
   assert.equal(await page.locator('#map [data-a="runmap"]').count(), 1, 'SHOW MAP placeholder instead of a map download');
   await go(page, 'health');
   const tiles = await page.$$eval('#hub [data-v]', b => b.map(x => x.dataset.v + ':' + x.querySelector('b').textContent));
-  assert.deepEqual(tiles.map(t => t.split(':')[0]), ['food', 'sleep', 'stair', 'stress', 'bmi', 'calc', 'stats']);
+  assert.deepEqual(tiles.map(t => t.split(':')[0]), ['food', 'sleep', 'stair', 'stress', 'bmi', 'calc', 'stats', 'score']);
   assert.ok(tiles.includes('stair:Stairs & Workout'));
   // old routes land in the right section
   await go(page, 'pulse');

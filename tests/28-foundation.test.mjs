@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { openApp, closeBrowser, go, state, RETURNING, entry } from './helpers.mjs';
 
 after(closeBrowser);
-const HEALTH = ['food', 'water', 'sleep', 'stair', 'stress', 'bmi', 'calc', 'stats']; // 'pulse' and 'run' open sections of 'stair'
+const HEALTH = ['food', 'water', 'sleep', 'stair', 'stress', 'bmi', 'calc', 'stats', 'score']; // 'pulse' and 'run' open sections of 'stair'
 const OTHER = ['health', 'quests', 'guide', 'badges', 'kingdom', 'set'];
 const REQUIRED = ['heart', 'water', 'food', 'sleep', 'stairs', 'running', 'stress', 'energy', 'achievement', 'warning', 'success', 'wizard', 'monster'];
 const overflow = page => page.evaluate(() => document.documentElement.scrollWidth - innerWidth);

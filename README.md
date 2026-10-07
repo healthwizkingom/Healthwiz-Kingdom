@@ -66,6 +66,7 @@ js/v6-hr.js                smartwatch / chest-strap heart rate over Web Bluetoot
 js/v6-runboard.js          Runners' Board: opt-in running leaderboard (nickname + weekly totals only) under Running; rows follow the account when signed in
 js/v6-sheep.js             the Counting Sheep dream on the Sleep page: one animated pixel-art canvas scene, full screen
 js/v6-map.js               the Kingdom map as a living pixel-art map (layered canvases + CSS-animated details, zoom to a region)
+js/v6-score.js             Health Score page (Health Hall): five indicators weighted into one 0–100 score, fruit & veg servings, recommendations in five areas
 supabase/migrations/       SQL for accounts, cloud save, leaderboards and Medius limits (Row Level Security) — run each file once, in order
 supabase/functions/        medius-chat: the Edge Function that talks to Google Gemini for the Wizard's Counsel
 supabase/tests/            SQL behaviour checks (tools/test-sql.sh, local PostgreSQL) and Deno tests for medius-chat
