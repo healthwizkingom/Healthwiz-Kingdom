@@ -8,23 +8,20 @@
      Nutrition 25 (fruit & veg 15 + water 10) · Stairs 25 · Heart rate 20 · BMI 15 · Stress 15
    Fruit & veg portions come from the nutrition log: foods whose menu category (fcat() in js/hw-06) is fruit or a vegetable
    dish count as portions of 80 g (the WHO portion behind ≥400 g a day; dried fruit 30 g), from the serving size × servings ×
-   portion size. A serving with no weight counts as one portion. Extra portions the log cannot recognise (e.g. a custom food)
-   can be added by hand: st.ex.fv = {date: extra portions} (inside the saved 'ex' map, no schema change). */
+   portion size. A serving with no weight counts as one portion. Nothing is entered on this page: it is all from the log. */
 const HWScore=(()=>{
 const WT={fv:15,water:10,stairs:25,hr:20,bmi:15,stress:15};
 const GROUP=[['nutrition','🍎 Nutrition',['fv','water']],['stairs','🧗 Stairs',['stairs']],['hr','❤️ Heart rate',['hr']],['bmi','⚖️ BMI',['bmi']],['stress','🧠 Stress',['stress']]];
 const FV_GOAL=5,STAIR_GOAL=100,FACT={MILD:1,MODERATE:1.5,VIGOROUS:2},CLASSN={MILD:'Mild',MODERATE:'Moderate',VIGOROUS:'Vigorous'};
 let W='day';
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x)),r1=x=>Math.round(x*10)/10;
-const fvMap=()=>{const e=(st.ex=st.ex&&typeof st.ex==='object'?st.ex:{p:{}});if(!e.fv||typeof e.fv!=='object')e.fv={};return e.fv};
-const fvExtra=d=>{const v=+fvMap()[d];return v>=0?v:0};
 const FVC={fruit:'fruit',veg:'veg',veglemak:'veg',vegplain:'veg',vegsoup:'veg'},DRIED=/^(kismis|kurma)/i;
 // [{name, kind, portions}] for the fruit and vegetable foods logged on day d
 function fvFoods(d){return A('food',d).map(e=>{const m=e.m||{},k=FVC[fcat(m.name)];if(!k)return null;
   const g=/(\d+(?:\.\d+)?)\s*g\b/i.exec(m.por||''),n=(+m.qty||1)*(+m.pm||1);
   return{name:m.name,kind:k,portions:g?n*+g[1]/(DRIED.test(m.name)?30:80):n}}).filter(Boolean)}
 const fvLogged=d=>fvFoods(d).reduce((s,x)=>s+x.portions,0);
-const fvOf=d=>fvLogged(d)+fvExtra(d);
+const fvOf=fvLogged;
 const days=()=>W==='day'?[today()]:rng(7);
 const mean=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:null;
 
@@ -106,7 +103,6 @@ function recs(I,sc){
 const btn=(a,t,c,x)=>'<button class="'+(c||'')+'" data-a="'+a+'"'+(x||'')+'>'+t+'</button>';
 const SRC={fv:'WHO: at least 400 g (about 5 portions) of fruit and vegetables a day',water:'Your water target (≈ 35 mL per kg); EFSA/IOM adequate-intake range',stairs:'WHO 2020 physical-activity guidelines; effort-steps = steps × 1 (mild), 1.5 (moderate), 2 (vigorous)',hr:'Typical adult resting range 60–100 BPM (American Heart Association); lower is generally fitter',bmi:'WHO adult range 18.5–24.9',stress:'Self-rated 1–10 (perceived stress, Cohen et al., 1983): lower is better'};
 const LBL={fv:'Fruit & veg',water:'Water',stairs:'Stairs',hr:'Resting heart rate',bmi:'BMI',stress:'Stress'};
-const GO={fv:null,water:'food',stairs:'stair',hr:'stair',bmi:'bmi',stress:'stress'};
 function head(C){
   const s=C.score,b=s==null?null:band(s);
   return '<div class="card"><div class="row" style="gap:6px">'+btn('scw','TODAY','chip'+(W==='day'?' on':''),' data-w="day"')+btn('scw','LAST 7 DAYS','chip'+(W==='week'?' on':''),' data-w="week"')+'</div>'
@@ -114,16 +110,15 @@ function head(C){
   :'<div class="v6sc"><b class="v6scn" style="color:'+b[1]+'">'+s+'</b><span class="v6scd">/ 100</span><div><b>'+b[0]+'</b><small class="mut">'+C.covered+' of 5 indicators logged'+(C.covered<5?' · missing ones are left out, not counted as zero':'')+'</small></div></div>'+bar(s,b[1]))
   +'<small class="mut">A habit score from what you logged, not a diagnosis.</small></div>'}
 function fvCard(){
-  const d=today(),L=fvFoods(d),x=fvExtra(d),t=fvOf(d);
+  const d=today(),L=fvFoods(d),t=fvOf(d);
   return '<div class="card"><h3>🥦 FRUIT &amp; VEGETABLES TODAY</h3><p><b class="big">'+r1(t)+'</b> of '+FV_GOAL+' portions <small class="mut">(1 portion = 80 g; dried fruit 30 g)</small></p>'+bar(t/FV_GOAL*100,'var(--grn)')
   +(L.length?'<ul class="v6fvl">'+L.map(f=>'<li>'+(f.kind==='fruit'?'🍎 ':'🥬 ')+esc(f.name)+' <span class="mut">'+r1(f.portions)+' portion'+(r1(f.portions)===1?'':'s')+'</span></li>').join('')+'</ul>'
     :'<p class="mut">No fruit or vegetables in today\'s nutrition log yet.</p>')
-  +'<div class="row" style="gap:6px">'+btn('go','LOG FOOD','sm',' data-v="food"')+'</div>'
-  +'<div class="row v6fv"><small class="mut">Ate fruit or veg the log does not recognise (e.g. a custom food)? Extra portions:</small>'+btn('fvdn','−','sm g',' aria-label="One fewer extra portion"')+'<b id="v6fvn">'+x+'</b>'+btn('fvup','+','sm',' aria-label="One more extra portion"')+'</div></div>'}
+  +'<small class="mut">Counted automatically from the fruit and vegetable dishes in your nutrition log.</small></div>'}
 function table(C){
   let rows='';
   for(const k in WT){const i=C.I[k];
-    rows+='<tr><td>'+LBL[k]+'</td><td>'+(i?esc(i.txt):'<span class="mut">not logged</span>'+(GO[k]?' '+btn('go','LOG','sm g',' data-v="'+GO[k]+'"'):''))+'</td><td>'+(i?Math.round(i.sub):'–')+'</td><td>'+WT[k]+'</td><td>'+(i&&C.w?r1(WT[k]*i.sub/100/C.w*100):'–')+'</td></tr>'}
+    rows+='<tr><td>'+LBL[k]+'</td><td>'+(i?esc(i.txt):'<span class="mut">not logged</span>')+'</td><td>'+(i?Math.round(i.sub):'–')+'</td><td>'+WT[k]+'</td><td>'+(i&&C.w?r1(WT[k]*i.sub/100/C.w*100):'–')+'</td></tr>'}
   return '<div class="card"><h3>📋 HOW YOUR SCORE ADDS UP</h3><div class="tscroll"><table class="tbl"><thead><tr><th>INDICATOR</th><th>YOUR VALUE</th><th>SUB-SCORE /100</th><th>WEIGHT</th><th>POINTS</th></tr></thead><tbody>'+rows+'</tbody></table></div>'
   +'<small class="mut">Score = Σ (weight × sub-score) ÷ Σ weight of the indicators with data. Points are each indicator\'s share of the final score.</small></div>'}
 function recCard(C){
@@ -143,9 +138,6 @@ pages.score=()=>{
    +'<div class="card"><small class="mut">Supports UN Sustainable Development Goal 3: Good Health and Well-being. HealthWiz is a wellness tracker, not a medical device.</small></div>'};
 
 acts.scw=d=>{W=d.w==='week'?'week':'day';render()};
-const setFv=n=>{const m=fvMap(),t=today();m[t]=clamp(n,0,20);if(!m[t])delete m[t];save();render()};
-acts.fvup=()=>setFv(fvExtra(today())+1);
-acts.fvdn=()=>setFv(fvExtra(today())-1);
 
 PAR.score='health';
 BN.score=['🏆','Health Score','Every habit, weighed into one number.','rgba(242,193,78,.3)'];

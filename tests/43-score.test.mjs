@@ -32,7 +32,7 @@ test('score uses the stated weights; missing indicators are left out, not zero',
   assert.deepEqual(errors, []); await r.ctx.close();
 });
 
-test('fruit & veg portions come from the nutrition log (80 g a portion, dried fruit 30 g); extras add on top', async () => {
+test('fruit & veg portions come from the nutrition log (80 g a portion, dried fruit 30 g); nothing entered by hand', async () => {
   const food = (name, por, qty = 1, pm = 1) => entry('food', 50, 0, { name, por, qty, pm, meal: 'lunch', src: 'KOLEJ MARA KULIM' });
   const seed = { ...RETURNING, e: [food('Epal Merah', '130g'), food('Sayur Campur', '60g', 2), food('Kismis', '10g'), food('Nasi Putih', '150g'), food('Kurma', '3 biji')] };
   const { page, ctx, errors } = await boot(seed);
@@ -43,11 +43,7 @@ test('fruit & veg portions come from the nutrition log (80 g a portion, dried fr
   const sub = await page.evaluate(() => HWScore.compute().I.fv.sub);
   assert.ok(Math.abs(sub - want / 5 * 100) < 1e-9);
   assert.match(await page.textContent('#main'), /FRUIT & VEGETABLES TODAY[\s\S]*Epal Merah[\s\S]*Sayur Campur/);
-  await page.click('[data-a="fvup"]');
-  assert.equal((await state(page)).ex.fv[await page.evaluate(() => today())], 1, 'extra portion saved on its own');
-  assert.ok(Math.abs(await page.evaluate(() => HWScore.compute().I.fv.val) - (want + 1)) < 1e-9);
-  await page.click('[data-a="fvdn"]'); await page.click('[data-a="fvdn"]');
-  assert.equal((await state(page)).ex.fv[await page.evaluate(() => today())], undefined, 'never below zero');
+  assert.equal(await page.locator('[data-a="fvup"], [data-a="fvdn"], #main [data-a="go"]:not([data-v="health"])').count(), 0, 'no buttons to log from this page');
   assert.deepEqual(errors, []); await ctx.close();
 });
 
