@@ -5,14 +5,17 @@
    other weights are scaled up, so a missing log never lowers the score.
 
    Score (0–100) = Σ weight × sub-score ÷ Σ weight of the indicators that have data.
-     Nutrition 25 (fruit & veg 15 + water 10) · Stairs 25 · Heart rate 20 · BMI 15 · Stress 15
+     Nutrition 25 (fruit & veg 10, water 5, calories 5, macronutrients 5) · Activity 25 (stairs 15, kcal burned 10)
+     · Heart rate 15 · Sleep 15 · BMI 10 · Stress 10
+   kcal burned = stair-workout estimates (js/v6-stairs.js) + runs (HWRun.burned, js/v6-running.js); target 150 kcal/day
+   (≈ 1,000 kcal a week, ACSM). Macronutrients: % of energy against the AMDR ranges in mref() (js/hw-06).
    Fruit & veg portions come from the nutrition log: foods whose menu category (fcat() in js/hw-06) is fruit or a vegetable
    dish count as portions of 80 g (the WHO portion behind ≥400 g a day; dried fruit 30 g), from the serving size × servings ×
    portion size. A serving with no weight counts as one portion. Nothing is entered on this page: it is all from the log. */
 const HWScore=(()=>{
-const WT={fv:15,water:10,stairs:25,hr:20,bmi:15,stress:15};
-const GROUP=[['nutrition','🍎 Nutrition',['fv','water']],['stairs','🧗 Stairs',['stairs']],['hr','❤️ Heart rate',['hr']],['bmi','⚖️ BMI',['bmi']],['stress','🧠 Stress',['stress']]];
-const FV_GOAL=5,STAIR_GOAL=100,FACT={MILD:1,MODERATE:1.5,VIGOROUS:2},CLASSN={MILD:'Mild',MODERATE:'Moderate',VIGOROUS:'Vigorous'};
+const WT={fv:10,water:5,kcal:5,macro:5,stairs:15,burn:10,hr:15,sleep:15,bmi:10,stress:10};
+const GROUP=[['nutrition','🍎 Nutrition',['fv','water','kcal','macro']],['activity','🧗 Activity',['stairs','burn']],['hr','❤️ Heart rate',['hr']],['sleep','🌙 Sleep',['sleep']],['bmi','⚖️ BMI',['bmi']],['stress','🧠 Stress',['stress']]];
+const FV_GOAL=5,STAIR_GOAL=100,BURN_GOAL=150,FACT={MILD:1,MODERATE:1.5,VIGOROUS:2},CLASSN={MILD:'Mild',MODERATE:'Moderate',VIGOROUS:'Vigorous'};
 let W='day';
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x)),r1=x=>Math.round(x*10)/10;
 const FVC={fruit:'fruit',veg:'veg',veglemak:'veg',vegplain:'veg',vegsoup:'veg'},DRIED=/^(kismis|kurma)/i;
@@ -30,6 +33,14 @@ const hrSub=b=>b<=80?100:b<=100?100-(b-80)*2.5:Math.max(0,50-(b-100)*2);
 const bmiSub=b=>b>=18.5&&b<25?100:b<18.5?Math.max(0,100-(18.5-b)*15):Math.max(0,100-(b-24.9)*10);
 const stressSub=s=>clamp((10-s)/9*100,0,100);
 const eqSteps=e=>(+e.v||0)*(FACT[(e.m||{}).diff]||1);
+const kcalSub=r=>{const d=Math.abs(r-1);return d<=.1?100:clamp(100-(d-.1)*250,0,100)};          // within ±10% of target = 100
+const sleepSub=(h,R)=>h>=R[0]&&h<=R[1]?100:h<R[0]?clamp(100-(R[0]-h)*25,0,100):clamp(100-(h-R[1])*15,0,100);
+// % of energy from protein, carbs and fat, and how far outside the healthy ranges they are (points off per % point)
+function macroPct(d){const t=dmac(d),E=4*t.p+4*t.c+9*t.f;return t.n&&E>0?{P:400*t.p/E,C:400*t.c/E,F:900*t.f/E}:null}
+const MKEY=[['P','Protein'],['C','Carbs'],['F','Fat']];
+const macroOff=x=>{const R=mref();return MKEY.map(([k,n])=>({k,n,v:x[k],lo:R[k][0],hi:R[k][1],off:Math.max(0,R[k][0]-x[k],x[k]-R[k][1])}))};
+const macroSub=x=>clamp(100-macroOff(x).reduce((s,m)=>s+m.off,0)*5,0,100);
+const burnOf=d=>{const s=A('stair',d).reduce((a,e)=>a+(+((e.m||{}).kcal||{}).v||0),0),b=typeof HWRun!=='undefined'?HWRun.burned(d):null;return s+(b?b.v:0)};
 
 function indicators(){
   const D0=days(),I={};
@@ -40,6 +51,14 @@ function indicators(){
   I.stairs=any?{val:mean(eq),txt:Math.round(mean(eq))+' effort-steps/day',sub:clamp(mean(eq)/STAIR_GOAL*100,0,100)}:null;
   const hrs=D0.map(rest).filter(v=>v);
   I.hr=hrs.length?{val:mean(hrs),txt:Math.round(mean(hrs))+' BPM at rest',sub:hrSub(mean(hrs))}:null;
+  const kc0=D0.map(kc).filter(v=>v>0);
+  I.kcal=kc0.length&&+st.s.kcal>0?{val:mean(kc0),txt:Math.round(mean(kc0))+' of '+st.s.kcal+' kcal/day',sub:kcalSub(mean(kc0)/st.s.kcal)}:null;
+  const mp=D0.map(macroPct).filter(Boolean);
+  if(mp.length){const x={P:mean(mp.map(m=>m.P)),C:mean(mp.map(m=>m.C)),F:mean(mp.map(m=>m.F))};I.macro={val:x,txt:'P '+Math.round(x.P)+'% · C '+Math.round(x.C)+'% · F '+Math.round(x.F)+'% of energy',sub:macroSub(x)}}else I.macro=null;
+  const bn=D0.map(burnOf);
+  I.burn=bn.some(v=>v>0)?{val:mean(bn),txt:Math.round(mean(bn))+' kcal/day (stairs + runs)',sub:clamp(mean(bn)/BURN_GOAL*100,0,100)}:null;
+  const sl=D0.map(slH).filter(v=>v>0),SRg=SR(+st.p.age||16);
+  I.sleep=sl.length?{val:mean(sl),txt:r1(mean(sl))+' h/night',sub:sleepSub(mean(sl),SRg)}:null;
   const b=LC('bmi').pop();I.bmi=b&&+b.v>0?{val:+b.v,txt:'BMI '+(+b.v).toFixed(1),sub:bmiSub(+b.v)}:null;
   const ss=D0.map(str).filter(v=>v!=null);
   I.stress=ss.length?{val:mean(ss),txt:r1(mean(ss))+' / 10',sub:stressSub(mean(ss))}:null;
@@ -65,6 +84,11 @@ function recs(I,sc){
   else e.push('You reached '+FV_GOAL+' portions of fruit and vegetables. Keep the variety of colours going.');
   if(!wtr)e.push('Log water to include hydration.');
   else if(wtr.val<st.s.water){const g=Math.ceil((st.s.water-wtr.val)/250);e.push('Water is '+Math.round(wtr.val)+' of '+st.s.water+' mL. About '+g+' more glass'+(g>1?'es':'')+' (250 mL) would reach your target.')}
+  const K=I.kcal;
+  if(K){const r=K.val/st.s.kcal;if(r<.9)e.push('Calories average '+Math.round(K.val)+' of your '+st.s.kcal+' kcal target. Eat regular meals, including breakfast, so you have energy for study and exercise.');
+    else if(r>1.1)e.push('Calories average '+Math.round(K.val)+', above your '+st.s.kcal+' kcal target. Choose smaller portions of fried and sweet foods, and drink water instead of sweet drinks.');
+    else e.push('Calories are on target ('+Math.round(K.val)+' of '+st.s.kcal+' kcal).')}
+  if(I.macro){const o=macroOff(I.macro.val).filter(m=>m.off>=1);e.push(o.length?o.map(m=>m.n+' is '+Math.round(m.v)+'% of your energy (healthy '+m.lo+'–'+m.hi+'%)').join('; ')+'. '+(o.some(m=>m.k==='F'&&m.v>m.hi)?'Pick grilled, steamed or soup dishes more often than fried or santan dishes.':o.some(m=>m.k==='P'&&m.v<m.lo)?'Add eggs, fish, chicken, tauhu, tempe or dhal to your meals.':'Balance your plate: half vegetables, a quarter rice or noodles, a quarter protein.'):'Protein, carbs and fat are all within healthy ranges.')}
   R.push(['🍎','Healthy eating habits',e]);
   // 2 stairs / intensity
   const last=lastWorkout(),lv=last?last.diff:null;let s=[];
@@ -73,6 +97,7 @@ function recs(I,sc){
   else if(lv==='MILD')s.push('Your stair effort is on target. When mild climbs feel easy, try a MODERATE stairway (26°–31.2°) for part of the session.');
   else if(lv==='MODERATE')s.push('Your stair effort is on target at moderate intensity. Keep it up; add a vigorous stairway (above 31.2°) only if you recover comfortably.');
   else s.push('Your stair effort is on target. Mix vigorous days with mild or moderate days so your body can recover.');
+  if(I.burn)s.push('Exercise burned about '+Math.round(I.burn.val)+' kcal a day (estimated, stairs + runs); about '+BURN_GOAL+' a day (1,000 a week) is a good health target.');
   s.push('Stop and rest if you feel dizzy, faint or have chest pain.');R.push(['🧗','Stair climbing and exercise level',s]);
   // 3 stress
   const st1=I.stress;let t=[];
@@ -97,17 +122,23 @@ function recs(I,sc){
   else c.push('Resting heart rate '+Math.round(h.val)+' BPM is above 100. Re-check it after sitting quietly for 5 minutes; if it stays high, speak to a health professional.');
   if(last)c.push('Last workout: '+last.hb+' → '+last.ha+' BPM'+(last.pct!=null?' ('+Math.round(last.pct)+'% of your heart-rate reserve, with maximum ≈ 220 − age)':'')+'.');
   R.push(['❤️','Improving cardiovascular fitness',c]);
+  // 6 sleep
+  const sl=I.sleep,SRg=SR(age);let z=[];
+  if(!sl)z.push('Log your sleep in the Dream Realm to include it in your score.');
+  else if(sl.val<SRg[0])z.push('You average '+r1(sl.val)+' h of sleep; '+SRg[0]+'–'+SRg[1]+' h is recommended for your age. Keep a fixed bedtime and put your phone away 30 minutes before sleep.');
+  else if(sl.val>SRg[1])z.push('You average '+r1(sl.val)+' h, more than the '+SRg[0]+'–'+SRg[1]+' h recommended. If you still feel tired, a regular wake-up time and daytime activity can help.');
+  else z.push('You average '+r1(sl.val)+' h of sleep, within the recommended '+SRg[0]+'–'+SRg[1]+' h. Good sleep helps memory, mood and appetite control.');
+  R.push(['🌙','Sleep',z]);
   return R}
 
 /* ---------- pieces ---------- */
 const btn=(a,t,c,x)=>'<button class="'+(c||'')+'" data-a="'+a+'"'+(x||'')+'>'+t+'</button>';
-const SRC={fv:'WHO: at least 400 g (about 5 portions) of fruit and vegetables a day',water:'Your water target (≈ 35 mL per kg); EFSA/IOM adequate-intake range',stairs:'WHO 2020 physical-activity guidelines; effort-steps = steps × 1 (mild), 1.5 (moderate), 2 (vigorous)',hr:'Typical adult resting range 60–100 BPM (American Heart Association); lower is generally fitter',bmi:'WHO adult range 18.5–24.9',stress:'Self-rated 1–10 (perceived stress, Cohen et al., 1983): lower is better'};
-const LBL={fv:'Fruit & veg',water:'Water',stairs:'Stairs',hr:'Resting heart rate',bmi:'BMI',stress:'Stress'};
+const LBL={fv:'Fruit & veg',water:'Water',kcal:'Calorie intake',macro:'Macronutrients',stairs:'Stairs',burn:'Calories burned',hr:'Resting heart rate',sleep:'Sleep',bmi:'BMI',stress:'Stress'};
 function head(C){
   const s=C.score,b=s==null?null:band(s);
   return '<div class="card"><div class="row" style="gap:6px">'+btn('scw','TODAY','chip'+(W==='day'?' on':''),' data-w="day"')+btn('scw','LAST 7 DAYS','chip'+(W==='week'?' on':''),' data-w="week"')+'</div>'
   +(s==null?'<p class="mut">No data yet for this period. Log something and your Health Score appears here.</p>'
-  :'<div class="v6sc"><b class="v6scn" style="color:'+b[1]+'">'+s+'</b><span class="v6scd">/ 100</span><div><b>'+b[0]+'</b><small class="mut">'+C.covered+' of 5 indicators logged'+(C.covered<5?' · missing ones are left out, not counted as zero':'')+'</small></div></div>'+bar(s,b[1]))
+  :'<div class="v6sc"><b class="v6scn" style="color:'+b[1]+'">'+s+'</b><span class="v6scd">/ 100</span><div><b>'+b[0]+'</b><small class="mut">'+C.covered+' of '+GROUP.length+' areas logged'+(C.covered<GROUP.length?' · missing ones are left out, not counted as zero':'')+'</small></div></div>'+bar(s,b[1]))
   +'<small class="mut">A habit score from what you logged, not a diagnosis.</small></div>'}
 function fvCard(){
   const d=today(),L=fvFoods(d),t=fvOf(d);
@@ -124,17 +155,18 @@ function table(C){
 function recCard(C){
   return C.score==null?'':'<div class="card"><h3>💡 RECOMMENDATIONS</h3>'+recs(C.I,C.score).map(r=>'<p><b>'+r[0]+' '+r[1]+'</b><br>'+r[2].map(esc).join(' ')+'</p>').join('')+'<small class="mut">General wellness guidance, not medical advice.</small></div>'}
 function whyCard(){
-  return '<div class="card"><h3>🔬 WHY THESE WEIGHTS</h3><p>Nutrition 25 · Stairs 25 · Heart rate 20 · BMI 15 · Stress 15 (total 100).</p>'
-  +'<ul class="v6why"><li><b>Stairs 25</b>: physical activity has the strongest evidence for lowering cardiovascular risk (WHO, 2020) and is what this project measures most directly.</li>'
-  +'<li><b>Nutrition 25</b>: diet is the other big daily lever. Fruit &amp; veg 15 (WHO: ≥400 g a day), water 10.</li>'
-  +'<li><b>Heart rate 20</b>: resting heart rate is a quick, objective fitness marker, but it is affected by caffeine, sleep and anxiety, so it ranks a little lower.</li>'
-  +'<li><b>BMI 15</b>: a screening tool only; it ignores muscle and body shape, so it is weighted lowest with stress.</li>'
-  +'<li><b>Stress 15</b>: strongly linked to sleep, eating and wellbeing but self-rated, so its weight is limited by how subjective it is.</li></ul>'
+  return '<div class="card"><h3>🔬 WHY THESE WEIGHTS</h3><p>Nutrition 25 · Activity 25 · Heart rate 15 · Sleep 15 · BMI 10 · Stress 10 (total 100).</p>'
+  +'<ul class="v6why"><li><b>Nutrition 25</b>: diet is a major daily lever for health. Fruit &amp; veg 10 (WHO: ≥400 g a day), water 5 (your target ≈ 35 mL per kg), calories 5 (your target from the Calorie Forge, Mifflin-St Jeor) and macronutrients 5 (% of energy within the AMDR ranges, IOM).</li>'
+  +'<li><b>Activity 25</b>: physical activity has the strongest evidence for lowering cardiovascular risk (WHO, 2020). Stairs 15, the activity this project measures directly; calories burned 10, from stair workouts and runs (ACSM: about 1,000 kcal a week).</li>'
+  +'<li><b>Heart rate 15</b>: resting heart rate is a quick, objective fitness marker (typical 60–100 BPM, AHA), but caffeine, sleep and anxiety affect it.</li>'
+  +'<li><b>Sleep 15</b>: 8–10 h for teens and 7–9 h for adults (AASM); short sleep is linked to stress, overeating and poorer learning.</li>'
+  +'<li><b>BMI 10</b>: a screening tool only (WHO 18.5–24.9); it ignores muscle and body shape.</li>'
+  +'<li><b>Stress 10</b>: linked to sleep, eating and wellbeing, but self-rated (perceived stress, Cohen et al., 1983), so its weight is limited.</li></ul>'
   +'<small class="mut">These weights are the team\'s reasoned judgement from the sources above, not a validated clinical formula. Edit WT in js/v6-score.js to change them.</small></div>'}
 
 pages.score=()=>{
   const C=compute();
-  return '<h2>🏆 HEALTH SCORE</h2><p class="mut">Five indicators, one score, with advice for each area.</p>'+head(C)+fvCard()+table(C)+recCard(C)+whyCard()
+  return '<h2>🏆 HEALTH SCORE</h2><p class="mut">Your logged habits, weighed into one score, with advice for each area.</p>'+head(C)+fvCard()+table(C)+recCard(C)+whyCard()
    +'<div class="card"><small class="mut">Supports UN Sustainable Development Goal 3: Good Health and Well-being. HealthWiz is a wellness tracker, not a medical device.</small></div>'};
 
 acts.scw=d=>{W=d.w==='week'?'week':'day';render()};
