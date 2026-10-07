@@ -32,13 +32,29 @@ test('score uses the stated weights; missing indicators are left out, not zero',
   assert.deepEqual(errors, []); await r.ctx.close();
 });
 
-test('fruit & veg stepper saves per day and feeds the score', async () => {
+test('fruit & veg portions come from the nutrition log (80 g a portion, dried fruit 30 g); extras add on top', async () => {
+  const food = (name, por, qty = 1, pm = 1) => entry('food', 50, 0, { name, por, qty, pm, meal: 'lunch', src: 'KOLEJ MARA KULIM' });
+  const seed = { ...RETURNING, e: [food('Epal Merah', '130g'), food('Sayur Campur', '60g', 2), food('Kismis', '10g'), food('Nasi Putih', '150g'), food('Kurma', '3 biji')] };
+  const { page, ctx, errors } = await boot(seed);
+  const L = await page.evaluate(() => HWScore.fvFoods(today()));
+  assert.deepEqual(L.map(x => x.name), ['Epal Merah', 'Sayur Campur', 'Kismis', 'Kurma'], 'rice is not a fruit or vegetable');
+  const want = 130 / 80 + 2 * 60 / 80 + 10 / 30 + 1; // a serving with no weight counts as one portion
+  assert.ok(Math.abs(L.reduce((a, x) => a + x.portions, 0) - want) < 1e-9);
+  const sub = await page.evaluate(() => HWScore.compute().I.fv.sub);
+  assert.ok(Math.abs(sub - want / 5 * 100) < 1e-9);
+  assert.match(await page.textContent('#main'), /FRUIT & VEGETABLES TODAY[\s\S]*Epal Merah[\s\S]*Sayur Campur/);
+  await page.click('[data-a="fvup"]');
+  assert.equal((await state(page)).ex.fv[await page.evaluate(() => today())], 1, 'extra portion saved on its own');
+  assert.ok(Math.abs(await page.evaluate(() => HWScore.compute().I.fv.val) - (want + 1)) < 1e-9);
+  await page.click('[data-a="fvdn"]'); await page.click('[data-a="fvdn"]');
+  assert.equal((await state(page)).ex.fv[await page.evaluate(() => today())], undefined, 'never below zero');
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('no fruit or veg logged: the indicator is left out, not zero', async () => {
   const { page, ctx, errors } = await boot(RETURNING);
-  for (let i = 0; i < 3; i++) await page.click('[data-a="fvup"]');
-  assert.equal((await state(page)).ex.fv[await page.evaluate(() => today())], 3);
-  assert.equal(await page.evaluate(() => HWScore.compute().I.fv.sub), 60);
-  for (let i = 0; i < 5; i++) await page.click('[data-a="fvdn"]');
   assert.equal(await page.evaluate(() => HWScore.compute().I.fv), null);
+  assert.match(await page.textContent('#main'), /No fruit or vegetables in today's nutrition log yet/);
   assert.deepEqual(errors, []); await ctx.close();
 });
 
