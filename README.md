@@ -67,6 +67,8 @@ js/v6-runboard.js          Runners' Board: opt-in running leaderboard (nickname 
 js/v6-sheep.js             the Counting Sheep dream on the Sleep page: one animated pixel-art canvas scene, full screen
 js/v6-map.js               the Kingdom map as a living pixel-art map (layered canvases + CSS-animated details, zoom to a region)
 js/v6-score.js             Health Score page (Health Hall): five indicators weighted into one 0–100 score, fruit & veg servings, recommendations in five areas
+js/v6-foodsel.js           pick several foods, then LOG SELECTED once (selection kept while searching; no duplicate logs)
+js/v6-expbar.js            the EXP bar as flowing mana: smooth fill on XP gain, level-up glow, still under reduced motion
 supabase/migrations/       SQL for accounts, cloud save, leaderboards and Medius limits (Row Level Security) — run each file once, in order
 supabase/functions/        medius-chat: the Edge Function that talks to Google Gemini for the Wizard's Counsel
 supabase/tests/            SQL behaviour checks (tools/test-sql.sh, local PostgreSQL) and Deno tests for medius-chat

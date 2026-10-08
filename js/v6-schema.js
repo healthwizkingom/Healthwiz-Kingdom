@@ -20,6 +20,23 @@ const V=8,KEY='healthwiz',BK='healthwiz_backup_',KEEP=3;
 const isObj=x=>!!x&&typeof x==='object'&&!Array.isArray(x);
 const MAPS=['b','claimed','en','xd','qx','qd','ck','q6','ex','xl','md','mg','gp'];
 
+// Security (comfort pass): an entry's structural fields are drawn into the page as they are (ids in data-id="…", values,
+// times, meal keys, numbers such as servings or sleep scores), so a crafted backup file, a tampered cloud copy or edited
+// storage could inject markup there. Every entry is checked here on load, cloud merge and backup import: ids, category,
+// date and time must have their usual shape, values and known numeric fields must be numbers (numeric strings are
+// converted quietly), and meal / kind keys must be plain words. Text fields (food names, notes) are escaped where shown.
+const NUMK=['qty','pm','aw','lat','rest','score','end','hrB','hrA','climbs','steps','kcal','u','custom','p','c','f','fb','km','dist','dur','sec','min','pace','met'],
+  WORDK=['meal','kind','st','feel','cat'];
+function cleanEntry(e,i){let f=0;const num=(v,blank)=>{if(typeof v==='number')return isFinite(v)?v:(f++,0);if(blank&&v==='')return '';if(v==null)return v;const n=+v;if(typeof v==='string'&&v.trim()!==''&&isFinite(n))return n;f++;return blank?'':0};
+  if(!/^[\w.:-]{1,80}$/.test(e.id)){e.id='m'+Date.now()+'_'+i;f++}
+  if(typeof e.c!=='string'||!/^[a-z0-9_]{1,24}$/.test(e.c)){e.c=String(e.c==null?'':e.c).toLowerCase().replace(/[^a-z0-9_]/g,'').slice(0,24)||'unknown';f++}
+  e.v=num(e.v);if(e.v==null)e.v=0;
+  if(typeof e.d!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(e.d)){const t=new Date();e.d=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');f++}
+  if(typeof e.t!=='string'||!/^\d{1,2}:\d{2}(:\d{2})?$/.test(e.t)){e.t='12:00';f++}
+  const m=e.m;NUMK.forEach(k=>{if(m[k]!=null)m[k]=num(m[k],['p','c','f','fb'].includes(k))});
+  WORDK.forEach(k=>{if(m[k]!=null&&!(typeof m[k]==='string'&&/^[\w -]{0,40}$/.test(m[k]))){m[k]=String(m[k]).replace(/[^\w -]/g,'').slice(0,40);f++}});
+  return f}
+
 // STEPS[n] upgrades a copy of the data from schema n to n+1.
 const STEPS={
 1:d=>{const R={'Shrine Visitor':'Tower Visitor','Shrine Regular':'Tower Regular'};
@@ -45,7 +62,7 @@ if(isObj(o.md)&&!Array.isArray(o.md.log)){o.md.log=[];fix++}
 if(isObj(o.mg)){['xp','n','c'].forEach(k=>{if(!isObj(o.mg[k])){o.mg[k]={};fix++}});if(!Array.isArray(o.mg.h)){o.mg.h=[];fix++}}
 if(isObj(o.gp)&&!isObj(o.gp.v)){o.gp.v={};fix++}
 if(!Array.isArray(x.e)){o.e=[];fix++}else{o.e=x.e.filter(e=>isObj(e));fix+=x.e.length-o.e.length;
-  o.e.forEach((e,i)=>{if(e.id==null){e.id='m'+Date.now()+i;fix++}else e.id=String(e.id);if(!isObj(e.m)){e.m={};fix++}if(typeof e.n!=='string')e.n=e.n==null?'':String(e.n)})}
+  o.e.forEach((e,i)=>{if(e.id==null){e.id='m'+Date.now()+i;fix++}else e.id=String(e.id);if(!isObj(e.m)){e.m={};fix++}if(typeof e.n!=='string')e.n=e.n==null?'':String(e.n);fix+=cleanEntry(e,i)})}
 o.s=Object.assign(DEF().s,isObj(x.s)?x.s:(fix++,{}));o.p=Object.assign(DEF().p,isObj(x.p)?x.p:(fix++,{}));
 MAPS.forEach(k=>{if(o[k]!=null&&!isObj(o[k])){o[k]={};fix++}});
 if(!(+o.xp>=0)){o.xp=0;fix++}else o.xp=+o.xp;return[o,fix]}
@@ -65,4 +82,4 @@ from=m.from;const[o,fix]=sanitize(m.data,DEF);
 if(m.from<V||fix){stash(raw,fix?'repaired':'pre-v'+V);try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}if(fix)tell('🛠️ Some saved data was damaged and has been repaired. The original was kept as a backup copy on this device.')}
 return o}
 
-return{V,migrate,sanitize,load,stash,get notice(){return notice},get migratedFrom(){return from}}})();
+return{V,migrate,sanitize,cleanEntry,load,stash,get notice(){return notice},get migratedFrom(){return from}}})();

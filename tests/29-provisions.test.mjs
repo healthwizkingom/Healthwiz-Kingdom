@@ -179,12 +179,12 @@ test('old Nutrition/Water routes and links never break: go(), Home, kingdom map,
     for (let c = 0; c < 3; c++) { await page.evaluate(() => document.getElementById('tut') && document.getElementById('tut').click()); const n = await page.evaluate(() => { const r = document.getElementById('tut'); return r ? r.querySelector('small').textContent.split(' ·')[0] : null; }); if (n !== s.n) break; }
   }
   const fw = seen.filter(s => s.v === 'food' || s.v === 'water');
-  assert.deepEqual(fw.map(s => s.v), ['food', 'food', 'food', 'food', 'water', 'water', 'water', 'water'], 'four Nutrition then four Water steps');
+  assert.deepEqual(fw.map(s => s.v), ['food', 'water'], 'one Nutrition then one Water step (short tour)');
   assert.ok(fw.every(s => s.spot === 'block'), 'each step found its spot: ' + fw.map(s => s.spot).join());
   const lines = await page.evaluate(() => TS.filter(s => s[0] === 'health' || s[0] === 'food' || s[0] === 'water').map(s => s[2]));
   assert.match(lines[0], /Food & Water, Sleep/, 'Health Hall line names one Food & Water tile');
-  assert.match(lines.find(l => /calories thou hast eaten/.test(l)), /Provisions Hall[\s\S]*NUTRITION or HYDRATION/);
-  assert.match(lines.find(l => /Well of Life/.test(l)), /HYDRATION side of the hall/);
+  assert.match(lines.find(l => /foods/.test(l)), /several foods[\s\S]*LOG SELECTED/);
+  assert.match(lines.find(l => /Well of Life/.test(l)), /Water Quest/);
   assert.deepEqual(errors, []);
   await ctx.close();
 });
