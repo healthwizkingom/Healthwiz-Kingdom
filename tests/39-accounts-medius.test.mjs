@@ -72,6 +72,7 @@ test('Wizard\'s Counsel signed out: the study and the breathing bubble, "Sign in
 test('Medius AI signed in: the session goes to medius-chat, the mood tag is hidden and played, crisis stays calm or concerned, limits are friendly', async () => {
   const S = fakeSupabase();
   S.aiReply = last => /help/.test(last) ? '[mood:chuckle] Oh dear, a chuckle.' : /plain/.test(last) ? 'No tag at all.' : /odd/.test(last) ? '[mood:grumpy] Hmm.' : '[mood:smile] Well met, Tester! What brings thee here?';
+  S.aiDelay = 600; // the 'thinking' state is checked while the reply is still on its way
   const { page, errors } = await device(S, { viewport: { width: 1000, height: 1100 } });
   const reqs = []; page.on('request', r => { if (/functions\/v1\/medius-chat/.test(r.url()) && r.method() === 'POST') reqs.push({ h: r.headers(), b: JSON.parse(r.postData()) }); });
   await signIn(page, S); await synced(page);

@@ -16,7 +16,7 @@ const stamp = () => new Date(clock += 1000).toISOString().replace('Z', '+00:00')
 
 export function fakeSupabase() {
   const S = { users: {}, rows: {}, board: {}, noBoard: false, sent: [], down: false, calls: [], race: 0, n: 0, mail: [], google: true, codes: {},
-    ai: [], aiReply: null, aiStatus: 200, aiBody: null, ask: [] };
+    ai: [], aiReply: null, aiDelay: 0, aiStatus: 200, aiBody: null, ask: [] };
   const session = u => ({ access_token: tok({ sub: u.id, email: u.email, role: 'authenticated', exp: 9e9 }), refresh_token: 'r-' + u.id, expires_in: 3600, user: { id: u.id, email: u.email } });
   const user = email => S.users[email] || (S.users[email] = { id: 'u' + (++S.n) + '-0000', email });
   S.handle = async route => {
@@ -82,8 +82,9 @@ function runs(S, fn, sub, body, send) {
 }
 
 // medius-chat: the same contract as supabase/functions/medius-chat (the reply carries the mood tag)
-function medius(S, body, send) {
+async function medius(S, body, send) {
   S.ask.push(body);
+  if (S.aiDelay) await new Promise(r => setTimeout(r, S.aiDelay));   // a reply that takes a moment, like the real one
   if (S.aiStatus !== 200) return send(S.aiStatus, S.aiBody || { error: 'ai' });
   const last = body.messages[body.messages.length - 1].content;
   const reply = typeof S.aiReply === 'function' ? S.aiReply(last, body) : S.aiReply || '[mood:smile] Well met, ' + body.name + '!';

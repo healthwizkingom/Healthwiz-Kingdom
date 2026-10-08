@@ -23,17 +23,19 @@ const MAPS=['b','claimed','en','xd','qx','qd','ck','q6','ex','xl','md','mg','gp'
 // Security (comfort pass): an entry's structural fields are drawn into the page as they are (ids in data-id="…", values,
 // times, meal keys, numbers such as servings or sleep scores), so a crafted backup file, a tampered cloud copy or edited
 // storage could inject markup there. Every entry is checked here on load, cloud merge and backup import: ids, category,
-// date and time must have their usual shape, values and known numeric fields must be numbers (numeric strings are
-// converted quietly), and meal / kind keys must be plain words. Text fields (food names, notes) are escaped where shown.
-const NUMK=['qty','pm','aw','lat','rest','score','end','hrB','hrA','climbs','steps','kcal','u','custom','p','c','f','fb','km','dist','dur','sec','min','pace','met'],
-  WORDK=['meal','kind','st','feel','cat'];
-function cleanEntry(e,i){let f=0;const num=(v,blank)=>{if(typeof v==='number')return isFinite(v)?v:(f++,0);if(blank&&v==='')return '';if(v==null)return v;const n=+v;if(typeof v==='string'&&v.trim()!==''&&isFinite(n))return n;f++;return blank?'':0};
+// date and time must have their usual shape, values and known numeric fields must be numbers, and meal / kind keys
+// plain words. Valid data is never changed; only values that could carry markup are replaced (and reported as repaired). Text fields (food names, notes) are escaped where shown.
+const NUMK=['qty','pm','aw','lat','rest','score','end','hrB','hrA','climbs','steps'],
+  WORDK=['meal','kind'];
+// valid data (numbers, numeric strings, null) is left exactly as it is; only values that could carry markup are replaced
+const numOk=v=>v==null||v===''||(typeof v==='number'&&isFinite(v))||(typeof v==='string'&&/^\s*-?\d+(\.\d+)?\s*$/.test(v));
+function cleanEntry(e,i){let f=0;
   if(!/^[\w.:-]{1,80}$/.test(e.id)){e.id='m'+Date.now()+'_'+i;f++}
   if(typeof e.c!=='string'||!/^[a-z0-9_]{1,24}$/.test(e.c)){e.c=String(e.c==null?'':e.c).toLowerCase().replace(/[^a-z0-9_]/g,'').slice(0,24)||'unknown';f++}
-  e.v=num(e.v);if(e.v==null)e.v=0;
-  if(typeof e.d!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(e.d)){const t=new Date();e.d=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');f++}
-  if(typeof e.t!=='string'||!/^\d{1,2}:\d{2}(:\d{2})?$/.test(e.t)){e.t='12:00';f++}
-  const m=e.m;NUMK.forEach(k=>{if(m[k]!=null)m[k]=num(m[k],['p','c','f','fb'].includes(k))});
+  if(!numOk(e.v)){e.v=0;f++}
+  if(e.d!=null&&!(typeof e.d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(e.d))){const t=new Date();e.d=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');f++}
+  if(e.t!=null&&!(typeof e.t==='string'&&/^\d{1,2}:\d{2}(:\d{2})?$/.test(e.t))){e.t='12:00';f++}
+  const m=e.m;NUMK.forEach(k=>{if(!numOk(m[k])){m[k]=0;f++}});
   WORDK.forEach(k=>{if(m[k]!=null&&!(typeof m[k]==='string'&&/^[\w -]{0,40}$/.test(m[k]))){m[k]=String(m[k]).replace(/[^\w -]/g,'').slice(0,40);f++}});
   return f}
 
