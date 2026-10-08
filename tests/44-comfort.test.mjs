@@ -172,3 +172,24 @@ test('security: markup in stored or imported entry fields is never injected (ids
   assert.equal(await page.locator('[data-xss]').count(), 0);
   await ctx.close();
 });
+
+test('every progress bar uses the modern style; a changed bar flows to its new value (still with reduced motion)', async () => {
+  for (const reducedMotion of ['no-preference', 'reduce']) {
+    const { page, ctx, errors } = await openApp({ context: { reducedMotion } });
+    for (const v of ['home', 'food', 'quests', 'sleep']) {
+      await go(page, v);
+      const bad = await page.evaluate(() => [...document.querySelectorAll('#main .bar, #main .db6bar, #main .esplit')].filter(b => { const c = getComputedStyle(b), a = getComputedStyle(b, '::after');
+        return parseFloat(c.borderTopWidth) > 0 || parseFloat(c.borderTopLeftRadius) < 4 || (a.content !== 'none' && a.display !== 'none' && /repeating/.test(a.backgroundImage)); }).map(b => b.className));
+      assert.deepEqual(bad, [], v + ': old-style bars');
+    }
+    await go(page, 'food');
+    const r = await page.evaluate(async () => { const q = () => document.querySelector('#fcal .bar i'), f = e => e.getBoundingClientRect().width / e.parentNode.getBoundingClientRect().width;
+      add('food', 1100, { name: 'X', por: '1', qty: 1, pm: 1, meal: 'lunch', src: 'x', u: 0 }, '', 0, 0, 10, 'm'); render(); render();
+      await new Promise(r => setTimeout(r, 150)); const a = f(q()); await new Promise(r => setTimeout(r, 1300)); return [a, f(q())]; });
+    assert.ok(Math.abs(r[1] - 0.5) < 0.02, 'settles on the real value ' + r);
+    if (reducedMotion === 'reduce') assert.ok(Math.abs(r[0] - 0.5) < 0.02, 'no flow with reduced motion ' + r);
+    else assert.ok(r[0] < 0.45, 'flows in ' + r);
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  }
+});

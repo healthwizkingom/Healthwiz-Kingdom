@@ -1259,7 +1259,10 @@ SKIP TUTORIAL / Esc unchanged.
 card with servings, portion and kcal-if-missing; LOG SELECTED logs all (all-or-nothing validation), one summary toast,
 locked against double taps. Same entries as before. Custom foods unchanged.
 
-**EXP bar** (`js/v6-expbar.js`): restyles the header and Hero Card bars after each render; flows from the last shown
+**Progress bars** (`js/v6-expbar.js`): every bar (`.bar` from `bar()`, the Dream Battle HUD bars, the macro energy
+split, the sleep-strength scale) is a slim rounded track with a soft fill in its own colour, no pixel segments; a bar
+whose value changed between two draws of the same page flows from its on-screen width to the new one. **EXP bar**:
+restyles the header and Hero Card bars after each render; flows from the last shown
 value on gain, level-up flows to full then refills; progressbar ARIA; static under reduced motion / performance mode.
 
 **Security.** `HWSchema.cleanEntry` (load, cloud merge, backup import): entry ids, category, date, time, value, known
