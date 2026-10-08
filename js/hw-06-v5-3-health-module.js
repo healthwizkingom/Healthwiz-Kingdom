@@ -80,6 +80,7 @@ if(o&&o.app==='HealthWiz'&&o.data)o=o.data;if(!o||typeof o!=='object'||!Array.is
 const mg=HWSchema.migrate(o);if(mg.err)return mg.err;o=mg.data; // v6: upgrade older backups
 const C=['food','water','sleep','pulse','stair','stress','bmi'],D=DEF(),ok=[];
 o.e.forEach((x,i)=>{if(x&&C.includes(x.c)&&/^\d{4}-\d{2}-\d{2}$/.test(x.d)&&x.v!==''&&x.v!=null&&isFinite(+x.v))ok.push({id:String(x.id||('i'+Date.now()+i)),c:x.c,v:+x.v,m:x.m&&typeof x.m==='object'?x.m:{},n:String(x.n||''),d:x.d,t:/^\d{2}:\d{2}$/.test(x.t)?x.t:'12:00'})});
+ok.forEach((x,i)=>HWSchema.cleanEntry(x,i)); // v6 (security): ids, numbers and keys checked like stored data
 const n=Object.assign(D,o,{e:ok,s:Object.assign(D.s,o.s&&typeof o.s==='object'?o.s:{}),p:Object.assign(D.p,o.p&&typeof o.p==='object'?o.p:{}),xp:Math.max(0,+o.xp||0)});
 ['b','claimed','en','xd','qx'].forEach(k=>{if(n[k]!=null&&(typeof n[k]!=='object'||Array.isArray(n[k])))n[k]={}});
 if(!(n.s.kcal>=800&&n.s.kcal<=5000))n.s.kcal=2200;if(!(n.s.water>=500&&n.s.water<=4000))n.s.water=2000;

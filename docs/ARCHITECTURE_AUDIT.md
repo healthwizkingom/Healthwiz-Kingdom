@@ -1244,3 +1244,27 @@ nods/breathing; his hands stay as painted (hand overlays were tried and removed)
 painted by code. Both keep the original rules and markup hooks (`#shs`, `acts.shst/shend`, the daily reward; `.kn`
 buttons, `klv`, the world layer), animate only while visible, and show a still frame for reduced motion. The map uses
 no frame loop at all (canvases painted once, CSS for motion), so idle pages still run no `requestAnimationFrame`.
+
+## Comfort pass (sleep → battle, short tour, multi-food logging, EXP bar, security)
+
+**Sleep → Dream Battle** (`js/v6-dream.js`). A successful `acts.slsave` (a new sleep entry exists) starts the battle by
+itself: once per saved entry, after any badge popup has closed, with a SKIP button (44 px) that shows the outcome at
+once. The entry is saved before anything plays. A second save within 1.5 s is ignored. Reduced motion: no live battle,
+the outcome is shown still and scrolled into view.
+
+**Medius tour** (`TS` in `js/hw-04-part.js`): 44 stops → 11 one-line stops; text appears at once with reduced motion.
+SKIP TUTORIAL / Esc unchanged.
+
+**Food** (`js/v6-foodsel.js`): tapping foods toggles them in a selection (no page redraw, search kept); SELECTED FOODS
+card with servings, portion and kcal-if-missing; LOG SELECTED logs all (all-or-nothing validation), one summary toast,
+locked against double taps. Same entries as before. Custom foods unchanged.
+
+**Progress bars** (`js/v6-expbar.js`): every bar (`.bar` from `bar()`, the Dream Battle HUD bars, the macro energy
+split, the sleep-strength scale) is a slim rounded track with a soft fill in its own colour, no pixel segments; a bar
+whose value changed between two draws of the same page flows from its on-screen width to the new one. **EXP bar**:
+restyles the header and Hero Card bars after each render; flows from the last shown
+value on gain, level-up flows to full then refills; progressbar ARIA; static under reduced motion / performance mode.
+
+**Security.** `HWSchema.cleanEntry` (load, cloud merge, backup import): entry ids, category, date, time, value, known
+numeric `m` fields and meal/kind keys must have their usual shape, closing stored-XSS sinks where these fields were
+drawn unescaped (`tests/44-comfort.test.mjs`).

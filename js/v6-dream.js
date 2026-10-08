@@ -24,7 +24,8 @@
       a portcullis and the princess, banner, chains, a perspective floor; foreground pillars and rubble. CSS on top:
       flickering flames and glow (opacity / scale only), shadows that sway with the flame, dust and embers.
       The princess, Princess Lyra of the Dream Realm, is an original pixel sprite drawn here.
-   The battle plays once per logged night per visit (REPLAY plays it again); reduced motion shows the outcome still.
+   The battle plays once per logged night per visit (REPLAY plays it again), and starts by itself right after a sleep log
+   is saved (SKIP shows the outcome at once); reduced motion shows the outcome still.
    Game visual of logged sleep only, never a medical measurement. */
 const HWDream=(()=>{
 const W=320,H=180,X=v=>(v/W*100).toFixed(2)+'%',Y=v=>(v/H*100).toFixed(2)+'%';
@@ -180,6 +181,10 @@ function play(){const el=$('#dbat');if(!el)return;const l=LC('sleep'),p0=strengt
   const burst=(n,pal,y)=>{const r=o.getBoundingClientRect();HWFX.burst(r.left+r.width*.4,r.top+r.height*(y||.4),{n,palette:pal,speed:2.6,life:600})};
   const shake=()=>{el.classList.remove('d-shk');void el.offsetWidth;el.classList.add('d-shk')};
   el.classList.remove('d-won','d-lost');el.classList.add('d-live');
+  // SKIP: a short way out while the battle plays (removed when it ends)
+  // (a sibling of the scene, which is role="img", placed over its bottom-right corner)
+  {const c=el.parentNode;let sk=c.querySelector('.db6skip');if(!sk){sk=document.createElement('button');sk.type='button';sk.className='db6skip';sk.dataset.a='dbskip';sk.textContent='SKIP ▶▶';sk.setAttribute('aria-label','Skip the battle and show the result');el.after(sk)}
+    sk.style.top=(el.offsetTop+el.offsetHeight-56)+'px';sk.style.right=(c.clientWidth-el.offsetLeft-el.offsetWidth+8)+'px'}
   HWRig.pose(k,p.s<.35?'tired':'ready');HWRig.pose(o,'idle');setBar('hp',100,100);setBar('en',p.s*100);
   k.style.setProperty('--x',X(56));o.style.setProperty('--x',X(226));
   HWRig.pose(k,'walk');HWRig.pose(o,'walk');
@@ -209,7 +214,13 @@ function play(){const el=$('#dbat');if(!el)return;const l=LC('sleep'),p0=strengt
     el.classList.add(p.win?'d-won':'d-lost');
     const lb=el.querySelector('.db6lb');if(lb)lb.textContent=p.win?'VICTORY · PRINCESS FREED':'THE ORC HOLDS';
     if(p.win&&!el.querySelector('.db6rw')){const d=document.createElement('div');d.className='db6rw';d.innerHTML=HWPixel.icon('achievement')+'<span>PRINCESS LYRA RESCUED</span>';el.appendChild(d)}
+    const sk=el.parentNode&&el.parentNode.querySelector('.db6skip');if(sk)sk.remove();
     stop()})}
+// SKIP: stop the timers and show the finished outcome at once
+function skip(){if(run){run.t.forEach(clearTimeout);run=null}const old=$('#dbat'),p0=strength(LC('sleep'),st.p.age);if(!old||!p0)return;
+  played[p0.last.id+':'+Math.round(p0.s*1000)]=1;const c=old.parentNode,sk=c.querySelector('.db6skip');if(sk)sk.remove();
+  const box=document.createElement('div');box.innerHTML=scene(plan(p0.s),false);c.replaceChild(box.firstChild,old);const b=c.querySelector('[data-a="dbreplay"]');if(b)b.focus({preventScroll:true})}
+acts.dbskip=skip;
 acts.dbreplay=()=>{const l=LC('sleep'),p0=strength(l,st.p.age);if(!p0)return;const c=$('#dbatc');if(!c)return;
   const k=p0.last.id+':'+Math.round(p0.s*1000);delete played[k];const old=$('#dbat');if(old&&old.parentNode){const box=document.createElement('div');box.innerHTML=scene(plan(p0.s),true);old.parentNode.replaceChild(box.firstChild,old)}
   if(HWMotion.reduced()){render();return}setTimeout(play,120)};
@@ -217,6 +228,20 @@ acts.dbreplay=()=>{const l=LC('sleep'),p0=strength(l,st.p.age);if(!p0)return;con
 // the original names stay: dbat() draws the card body, dbState() gives the old five-step state (0 = no sleep logged)
 dbat=card;
 dbState=function(){const p=strength(LC('sleep'),st.p.age);return p?Math.min(4,1+Math.floor(p.s*4)):0};
+// a successful sleep save starts the battle by itself (once per saved entry): the entry is already stored by then,
+// so leaving, skipping or a failure here never loses it. A second tap within a moment is ignored (no duplicate night).
+{const o=acts.slsave;let lock=0;acts.slsave=function(){const now=Date.now();if(now-lock<1500)return;
+  const n0=st.e.length,r=o.apply(this,arguments),e=st.e[st.e.length-1];
+  if(st.e.length>n0&&e&&e.c==='sleep'){lock=now;try{auto()}catch(err){console.error('[HWDream]',err)}}return r}}
+function auto(){const c=$('#dbatc'),p0=strength(LC('sleep'),st.p.age);if(!c||!p0)return;
+  const rm=HWMotion.reduced();delete played[p0.last.id+':'+Math.round(p0.s*1000)];
+  const old=$('#dbat');if(old){const box=document.createElement('div');box.innerHTML=scene(plan(p0.s),!rm);old.parentNode.replaceChild(box.firstChild,old)}
+  const el=$('#dbat');if(!el)return;el.scrollIntoView({behavior:rm?'auto':'smooth',block:'center'});
+  if(rm){played[p0.last.id+':'+Math.round(p0.s*1000)]=1;return}
+  // a badge popup (e.g. First Dream) covers the screen: start once it has closed, so the battle is never played unseen
+  let n=0;const go=()=>{if($('#dbat')!==el)return;if(document.querySelector('.bpop')&&++n<40){setTimeout(go,250);return}
+    el.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>{if($('#dbat')===el)play()},n?350:0)};
+  setTimeout(go,500*api.speed)}
 // autoplay after the Sleep page draws, once per logged night per visit
 HWEvents.on('page:viewed',e=>{if(!e||e.view!=='sleep')return;const el=$('#dbat');if(el&&!el.classList.contains('d-won')&&!el.classList.contains('d-lost')&&$('#dbat .db6hud'))setTimeout(()=>{if($('#dbat')===el)play()},650*api.speed)});
 
@@ -283,6 +308,9 @@ HWUI.css('dream',`
 .db6 .db6lb{position:absolute;left:8px;bottom:8px;z-index:12;font:8px var(--fh);color:#fff;background:rgba(0,0,0,.6);border:2px solid #fff;padding:3px 6px}
 .db6.d-won .db6lb{border-color:#f2c14e;color:#f2c14e}.db6.d-lost .db6lb{border-color:#d9453d}
 .db6 .db6rw{position:absolute;right:8px;bottom:8px;z-index:12;display:flex;align-items:center;gap:6px;font:8px/1.4 var(--fh);color:#2b2418;background:#f2c14e;border:2px solid #2b2418;padding:3px 6px;animation:pgin .3s steps(4)}
+#dbatc{position:relative}
+.db6skip{position:absolute;z-index:13;min-height:44px;min-width:44px;padding:6px 12px;font:8px/1.4 var(--fh);color:#fff;background:rgba(10,8,18,.82);border:2px solid #fff;cursor:pointer}
+.db6skip:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .db6sc{position:relative;margin:14px 0 2px;height:14px}
 .db6sc .d-tr{display:flex;height:10px;border:2px solid var(--ln)}
 .db6sc .d-tr i{display:block;height:100%}.db6sc .d-z0{background:#7a2a3a}.db6sc .d-z1{background:#b0503a}.db6sc .d-z2{background:#d9a02e}.db6sc .d-z3{background:#5cc05a}.db6sc .d-z4{background:#f2c14e}
@@ -293,5 +321,5 @@ HWUI.css('dream',`
 @media(prefers-reduced-motion:reduce){.db6 .db6moon,.db6 .db6pr .pa-dn,.db6 .db6pr.d-free,.db6 .db6tg,.db6 .db6fl i,.db6 .db6sd,.db6 .db6au,.db6 .db6z,.db6 .db6mo i,.db6 .db6mo u{animation:none!important}.db6 .db6ch,.db6 .db6gate{transition:none!important}.db6 .db6mo{display:none}}
 html.hw-q-performance .db6 .db6mo i:nth-child(2n),html.hw-q-performance .db6 .db6moon{display:none}html.hw-q-performance .db6 .db6sd,html.hw-q-performance .db6 .db6au{animation:none}
 `);
-const api={speed:1,strength,plan,dur,quality,tier,T,TIER,play,card,scene};
+const api={speed:1,strength,plan,dur,quality,tier,T,TIER,play,card,scene,skip,auto};
 return api})();

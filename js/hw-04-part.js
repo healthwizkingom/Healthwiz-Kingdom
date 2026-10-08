@@ -71,57 +71,27 @@ $('#main').innerHTML='<div class="pg tr-'+S.v+'">'+top+bk+pages[S.v]()+'<p class
 
 function go(v){if(v==='tut'){TUT.start();return}if(v==='home'&&S.v==='welcome'&&needOnb())v='onb';if(v==='onb'&&S.v!=='onb')S.ob=null;if(S.shp&&!S.shp.done){shStop();S.shp=null}const f=S.v==='welcome'&&v==='home'&&!TUT.seen();clearInterval(S.tm);S.pb.on=0;S.v=v;render();window.scrollTo(0,0);if(f)setTimeout(TUT.start,400)}
 const WIZ='assets/img/wiz.webp';
+// v6 (comfort pass): the tour is short — one line per stop, the essentials only. SKIP or Esc ends it at any step, and
+// Settings → TUTORIAL brings it back.
 const TS=[
-['home',0,"Hail, {name}! Thy registry is sealed and thy Quest Plan forged. I am Medius, Wizard King of the HealthWiz Kingdom, and I shall guide thee through its halls. Tap anywhere to walk on."],
-['home','#tstat',"First, thy health, {name}! These six tiles show today's real numbers with their units: water and calories against the goals forged from thy profile, then stairs, thy last workout heart rate, sleep and stress. Tap any tile to journey to its tracker."],
-['home','#encheck',"Each day, tell me how thy energy feeleth, from 1 to 5. 'Tis thine own rating, and with sleep and water it revealeth patterns in thy days."],
-['home','#hmac',"Thy Nutrients: protein, carbs, fat and fiber from today's meals, with typical healthy ranges. Values for menu foods are estimates from the dish type, so treat them as a guide."],
-['home','#cxh',"Health Connections compare thy days: energy after long sleep versus short, on days thou drankest enough water versus less. Patterns, not proof. They awaken once thou hast logged enough days."],
-['home','#pcard',"Behold thy Hero Card! Thy form is drawn from thy BMI range: Bone Wanderer, Arcane Wizard or Witch, Stalwart Knight, or royalty upon the throne. 'Tis a game costume, never a judgement."],
-['home','#pcard',"Here dwell thy Level, thy XP and the road to the next level. Five hearts kindle as thou finishest today's quests. The five Attributes count the days thou hast logged this week: game stats, not measures of thy body."],
-['home','#advq',"Adventure Progress! Five quests await each day: Water, Nutrition, Activity, Mind and Recovery. Each grants +20 XP, and all five grant a bonus +100. This is game progress, not a healer's verdict."],
-['home','#kmini',"The Kingdom Map. Eight regions await thee. Log deeds in a region and it shall bloom from Ruined to Thriving. Tap a region to travel there."],
-['home','#dsum',"Thy Daily Summary: quests complete, XP earned, and one gentle quest for the morrow."],
-['home','#nav',"Behold thy five portals: Home, Health, Quests, Kingdom and Settings. Every tracker now dwelleth in the Health Hall. Follow me!"],
-['health','#hub',"The Health Hall! Food & Water, Sleep, Stairs & Workout (with Running), Stress, BMI, Calories and Statistics, each tile a door. Inside any tracker, the BACK button returneth thee here."], // v6 (§31): one Food & Water tile; final polish: Running lives in Stairs
-['health','#plan',"Here lieth thy Personal Quest Plan, {name}: calories, protein, carbs, fat, fiber, water and sleep, all reckoned from thy height, weight, age, sex and activity. Open 'How these goals were calculated' to see my workings."],
-['food','~Calories consumed',"The Provisions Hall, where Nutrition Village and Water Valley share one page: tap NUTRITION or HYDRATION above to switch. Here in Nutrition Village are the calories thou hast eaten, thy daily target, and what remains. The bar and chart reveal the last seven days, with the highest and lowest."], // v6 (§31)
-['food','~PICK A FOOD',"Choose a meal chip, from Breakfast to Moreh, then a Menu Day, or search the larder by name. Foods come from the KOLEJ MARA KULIM Dewan Selera list. Tap a food to open it."],
-['food','[data-a="cf"]',"A food not on the list? Press ADD MORE FOOD and scribe thy own: name, serving, calories, and protein, carbs, fat and fiber if thou knowest them. For a listed food, choose servings with - and +, pick a portion size from 0.5× to 2.5×, then press ADD TO LOG."],
-['food','~FOOD LOG',"Each morsel is recorded here. The pencil edits an entry; the bin banishes it. A deletion by mistake may be undone from Settings."],
-['water','#wq',"The HYDRATION side of the hall: the Water Quest! Log water and thy knight walketh to the pond, drinketh, and carrieth a bucket to the Well of Life. Watch the well fill toward thy daily target."], // v6 (§31, final polish: the Water Quest scene)
-['water','~ADD WATER',"Tap +100, +250, +500 or +750 mL, or scribe a custom amount. Mark well: drinking beyond thy target is not better."],
-['water','~HYDRATION GRAPH',"The Hydration Graph showeth thy day, week or month. The village below groweth greener with each day thou trackest, never with excess in one day."],
-['water','~REMINDERS',"Shouldst thou wish it, set a gentle reminder here: hourly, every two hours, or a span of thine own choosing."],
-['sleep','#dbatc',"Behold the Dream Battle! Thy last night's sleep, its length and how restful it was, becometh thy knight's strength against the orc. Enough good sleep winneth the fight and freeth the princess. 'Tis a game picture of thy logged sleep, not a healer's verdict."], // final polish: strength from duration and quality
-['sleep','~LOG SLEEP',"The Dream Realm, a calm land beneath the moon. Record thy bedtime and waking time, how rested thou feltest, and how oft thou awokest."],
-['sleep','~SLEEP CONSISTENCY',"Here the moon tracketh how steady thy bedtimes were this week. The Dream Score and energy bar are game visualizations only, no measure of thy health."],
-['sleep','#sheepc',"When thou seekest rest, count the sheep that leap o'er the fence in thy hero's dream. Watch closely, {name}… a certain wizard may leap among them! Nearby lieth a Before Bed Checklist of gentle habits."],
-['stair','#st-casual',"Stair Mountain holdeth all thy climbing. First, the Wanderer's Stairs: casual climbs. Check in by GPS at a campus stairway, or pick one and log steps per climb and climbs by hand."], // v6 (stairs refactor): one Stairs page
-['stair','~PACE & BREATHE',"The Trial of Breath is thy workout. Choose a stairway and a pace, then press START: the rhythm guide breatheth with thee and timeth thy workout. SLOW DOWN eases the pace and STOP ends it. If dizzy or in pain, stop at once."],
-['stair','#sthrc',"Count thy pulse before and right after, and scribe both numbers: two heart waves, before and after. 'Tis no true ECG, and I never guess a number. Seal the workout to see thy energy, an estimate only."],
-['stair','#st-run',"The Running Road lieth at the foot of the mountain. Press START RUN and thy device's GPS measureth distance, time and pace; PAUSE and FINISH when done. Thy runs are kept on this device."], // final polish: Running is part of the Stairs page
-['stress','main .card',"The Mind Forest and the Storm Within. Say how thou feelest and what weigheth on thee: the sky, the creatures and thy knight's face follow thy stress rating. Then try breathing, grounding, writing or small steps, and watch the storm ease."], // final polish
-['stress','#counsel',"This is my study, {name}. First we breathe together with my magic bubble, then thou mayst speak freely of what troubleth thee. When thy heart is heavy, I set aside mine old tongue and speak plainly. I am an AI listener, not a therapist, and in an emergency I shall point thee to real help."],
-['bmi','main .card',"The Balance Tower. Enter height, weight and sex, then press SAVE BMI. The scale showeth thy range, and below appeareth thy game form. BMI is a screening number only."],
-['calc','main .card',"The Energy Forge. Thy goals were forged from thy weight, height, age, sex and activity. Change any of them here and press SAVE to reforge every goal at once: calories, macros, water and sleep. The recommended path is chosen from thy BMI. Those under 18 should ask a doctor or dietitian."],
-['stats','main .grid',"The Sage Archive. Choose Day, Week or Month to read thy trends for every tracker. It reflecteth only what thou hast logged."],
-['quests','#advq2',"The Quest Board! Today's five quests and their rewards gather here."],
-['quests','#qbd',"The door to the Badge Hall. When a badge unlocketh, a golden seal shall burst upon thy screen!"],
-['guide','#rep',"The End-of-Day Report: what thou loggedst, quests complete, XP earned, thy trends, and Tomorrow's Quest. Its counsel is general wellness, not medical advice."],
-['badges','#bdnext',"In the Badge Hall, Almost There showeth thy closest prizes. New badges reward breathing, grounding, writing, Quick Calm, bedtime rituals, Dream Stars and more."],
-['kingdom','#kmap',"The whole Kingdom, one connected realm! Golden roads glow between restored regions. Ruined lands lie in shadow until thou loggest deeds there."],
-['set','main .card',"Settings. Set thy calorie and water targets, choose light or dark, toggle sound, edit entries, or undo a deletion. EDIT PROFILE reopeneth my registry. Below lieth BACKUP & RESTORE: download thy data as a JSON scroll and restore it on any device. Thy data liveth only in this browser."],
-['set','#tutbtn',"Shouldst thou forget my words, press TUTORIAL here, and I shall appear once more."],
-['home','#mus',"The note at the top right turneth the music on or off."],
-['home',0,"Thy journey begins, {name}. Restore every region, and may thy health be ever bright!"]];
+['home',0,"Hail, {name}! I am Medius, Wizard King. A quick tour: tap to go on, or SKIP whenever thou wilt."],
+['home','#tstat',"Today's numbers at a glance. Tap a tile to open its tracker."],
+['home','#advq',"Five daily quests: Water, Nutrition, Activity, Mind and Recovery. Each one earneth XP."],
+['home','#pcard',"Thy Hero Card: level and XP. A game costume and game stats, never a judgement."],
+['health','#hub',"The Health Hall holdeth every tracker: Food & Water, Sleep, Stairs & Running, Stress, BMI and more."],
+['food','~PICK A FOOD',"Tap several foods, then LOG SELECTED once. Not on the list? ADD MORE FOOD."],
+['water','#wq',"The Water Quest: each sip thou loggest filleth the Well of Life."],
+['sleep','#dbatc',"Log thy sleep and the Dream Battle beginneth: the better thy rest, the stronger thy knight."],
+['stair','#st-casual',"Stair Mountain: climbs, workouts, and the Running Road below."],
+['stress','main .card',"The Mind Forest: rate thy stress and calm the Storm Within."],
+['set','#tutbtn',"Forget my words? Press TUTORIAL here and I return. Go forth, {name}!"]];
 const TUT=(()=>{let i=0,ty=0,full='',root,sp,tx,pg,cn;
 const seen=()=>{try{return localStorage.getItem('hwtut')}catch(e){return 1}},mark=()=>{try{localStorage.setItem('hwtut','1')}catch(e){}};
 const find=t=>!t?null:t[0]==='~'?[...document.querySelectorAll('main .card,main .snap,main .wq,main .hub,main header')].find(e=>e.textContent.includes(t.slice(1))):document.querySelector(t);
 function place(){const el=find(TS[i][1]);let r=null;if(el){el.scrollIntoView({block:'center'});r=el.getBoundingClientRect()}
 if(r&&r.width){sp.style.cssText='display:block;left:'+(r.left-6)+'px;top:'+(r.top-6)+'px;width:'+(r.width+12)+'px;height:'+(r.height+12)+'px'}else sp.style.display='none';
 root.style.background=r&&r.width?'':'rgba(8,12,30,.6)';cn.className='twc '+(r&&r.top>innerHeight-r.bottom?'top':'bot')+(r&&r.left+r.width/2<innerWidth*.3?' rt':'')}
-function show(){const s=TS[i];if(S.v!==s[0])go(s[0]);setTimeout(place,60);clearInterval(ty);full=s[2].replace(/\{name\}/g,(st.p.name||'').trim()||'traveller');let n=0;tx.textContent='';ty=setInterval(()=>{n+=2;tx.textContent=full.slice(0,n);if(n>=full.length)clearInterval(ty)},22);pg.textContent=(i+1)+' / '+TS.length+' · tap anywhere ▶'}
+function show(){const s=TS[i];if(S.v!==s[0])go(s[0]);setTimeout(place,60);clearInterval(ty);full=s[2].replace(/\{name\}/g,(st.p.name||'').trim()||'traveller');if(typeof HWMotion!=='undefined'&&HWMotion.reduced())tx.textContent=full;else{let n=0;tx.textContent='';ty=setInterval(()=>{n+=2;tx.textContent=full.slice(0,n);if(n>=full.length)clearInterval(ty)},16)}pg.textContent=(i+1)+' / '+TS.length+' · tap anywhere ▶'}
 function end(){clearInterval(ty);mark();if(root)root.remove();root=null;removeEventListener('resize',place);removeEventListener('keydown',key)}
 function next(){if(tx.textContent.length<full.length){clearInterval(ty);tx.textContent=full;return}if(++i>=TS.length){st.tutd=1;save();end();chkB();return}show()}
 function key(e){if(e.key==='Escape')end();else if(/^(Enter| |ArrowRight)$/.test(e.key)){e.preventDefault();next()}}
