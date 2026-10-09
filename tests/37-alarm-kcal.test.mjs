@@ -71,7 +71,8 @@ test('alarm card: honest note, suggestion from bedtime + sleep goal + 15 min, se
   await go(page, 'sleep');
   assert.equal((await state(page)).s.alarm, undefined, 'nothing written until the user changes something');
   const c = await page.textContent('#v6alm');
-  assert.match(c, /cannot ring reliably[\s\S]*iPhone/);
+  assert.match(c, /Rings only while HealthWiz is open on screen[\s\S]*Clock app/);
+  await page.click('#v6alm .hwh'); assert.match(await page.textContent('#hwh-pop'), /cannot ring reliably[\s\S]*iPhone/); await page.keyboard.press('Escape');
   assert.ok(!EMOJI.test(c), 'no emoji in the alarm card');
   for (const n of ['alarm', 'sleep', 'bell']) assert.ok(await page.locator('#v6alm .pxi-' + n).count() >= 1, n + ' icon');
   await page.fill('#al-bed', '23:30');

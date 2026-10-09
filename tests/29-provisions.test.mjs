@@ -30,7 +30,7 @@ test('one Food & Water tile opens Nutrition & Hydration: banner, title, both sys
   assert.equal(await page.getAttribute('#nst-water', 'aria-current'), null);
   assert.match(await txt(page, '#nst-food'), /Nutrition\s*560 \/ 2200 kcal\s*1 meal logged today/);
   assert.match(await txt(page, '#nst-water'), /Hydration\s*750 \/ 2000 mL\s*1250 mL to go/);
-  assert.match(await txt(page, '.nshd'), /NUTRITION & CALORIES\s*Nutrition Village\s*(RUINED|RECOVERING|DEVELOPING|THRIVING|FLOURISHING)/);
+  assert.match(await txt(page, '.nshd'), /NUTRITION & CALORIES\s*\??\s*Nutrition Village\s*(RUINED|RECOVERING|DEVELOPING|THRIVING|FLOURISHING)/);
   for (const id of ['fcal', 'fmac', 'fpick', 'flog', 'fwk']) assert.equal(await page.locator('#' + id).count(), 1, id);
   assert.equal(await page.locator('#wq').count(), 0, 'one half at a time');
   assert.match(await txt(page, 'main .dis'), /KOLEJ MARA KULIM[\s\S]*Needs vary by person/, 'one footnote for both');

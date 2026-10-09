@@ -25,7 +25,7 @@ test('every moved explanation sits behind a "?" button and is gone from the page
     ['stair', 'hrpic', /A heart-rate picture, not an ECG/, /A heart-rate picture, not an ECG/],
     ['bmi', 'bmigame', /Your game form follows your BMI range/, /game form follows your BMI range\. It is just for fun, not a health judgement/],
     ['score', 'scorenote', /A habit score from what you logged/, /A habit score from what you logged, not a diagnosis/],
-    ['score', 'scorewt', /reasoned judgement/, /reasoned judgement from the sources above[\s\S]*Edit WT in js\/v6-score\.js/],
+    ['score', 'scorewt', /reasoned judgement/, /reasoned judgement from the sources above[\s\S]*[Ee]dit WT in js\/v6-score\.js/],
     ['quests', 'questpick', /focus quest is picked from your own logs/, /weekly quests reset on Monday/],
     ['quests', 'streakrest', /One rest day a week keeps your gentle streak/, /One rest day a week keeps your gentle streak going/],
     ['stats', 'statcmp', /Completed days only \(today is still in progress\)/, /Completed days only[\s\S]*today is still in progress[\s\S]*not judgments/],

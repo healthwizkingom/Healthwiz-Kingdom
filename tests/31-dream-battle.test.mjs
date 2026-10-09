@@ -57,7 +57,7 @@ test('the battle on the Sleep page plays out for each level and ends as planned'
     assert.equal(await page.locator('#dbat .hwr').count(), 2, 'rigged knight and orc');
     assert.equal(await page.locator('#dbat .db6pr svg').count(), 2, 'the princess, worried and freed');
     assert.equal(await page.locator('#dbat .db6gate.d-up').count(), want.win ? 1 : 0, name + ': gate');
-    assert.match(await page.textContent('#dbatc'), /not a medical measurement/);
+    await page.click('#dbatc .hwh'); assert.match(await page.textContent('#hwh-pop'), /not a medical measurement/); await page.keyboard.press('Escape');
     assert.deepEqual(errors, []);
     await ctx.close();
   }
