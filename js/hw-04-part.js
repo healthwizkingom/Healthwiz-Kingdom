@@ -77,8 +77,8 @@ const WIZ='assets/img/wiz.webp';
 const TS=[
 ['home',0,"Hail, {name}! I am Medius, Wizard King. A quick tour: tap to go on, or SKIP whenever thou wilt."],
 ['home','#tstat',"Today's numbers at a glance. Tap a tile to open its tracker."],
-['home','#advq',"Five daily quests: Water, Nutrition, Activity, Mind and Recovery. Each one earneth XP."],
-['home','#pcard',"Thy Hero Card: level and XP. A game costume and game stats, never a judgement."],
+['home','#hmq',"Five daily quests: Water, Nutrition, Activity, Mind and Recovery. Each one earneth XP."],
+['home','#hmd-pcard',"Thy Hero Card (tap to open): level and XP. A game costume and game stats, never a judgement."],
 ['health','#hub',"The Health Hall holdeth every tracker: Food & Water, Sleep, Stairs & Running, Stress, BMI and more."],
 ['food','~PICK A FOOD',"Tap several foods, then LOG SELECTED once. Not on the list? ADD MORE FOOD."],
 ['water','#wq',"The Water Quest: each sip thou loggest filleth the Well of Life."],

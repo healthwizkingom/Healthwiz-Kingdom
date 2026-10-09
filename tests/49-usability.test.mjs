@@ -197,3 +197,30 @@ test('first sign-in KEEP / MERGE dialog: the tutorial waits for it and starts af
   assert.equal(await c.page.locator('#tut').count(), 0); assert.equal(await c.page.evaluate(() => S.v), 'onb');
   await c.ctx.close();
 });
+
+test('trackers: the first input is on screen at 390 × 844, on a first visit and after it', async () => {
+  for (const seen of [false, true]) {
+    const seed = JSON.parse(JSON.stringify(RETURNING)); if (seen) seed.ex.r = { food: '2026-10-01', water: '2026-10-01', sleep: '2026-10-01', stair: '2026-10-01', body: '2026-10-01' };
+    const { page, ctx, errors } = await openApp({ ...M, seed });
+    for (const [v, sel] of [['food', '#fpick .chip'], ['water', '[data-a="wa"]'], ['sleep', '#slb'], ['stair', '#stman .chip'], ['body', '#bh']]) {
+      await go(page, v);
+      const r = await page.evaluate(s => { const e = document.querySelector(s).getBoundingClientRect(); return { bottom: e.bottom, nav: document.querySelector('#nav').getBoundingClientRect().top }; }, sel);
+      assert.ok(r.bottom <= r.nav, `${v} (${seen ? 'later' : 'first'} visit): input bottom ${Math.round(r.bottom)} above the bar at ${Math.round(r.nav)}`);
+      assert.equal(await page.isHidden('#hwh3'), seen, v + ': the 3-line header is open on the first visit only, behind ? after');
+      assert.ok(await noScroll(page));
+    }
+    await page.tap('.hwq'); assert.equal(await page.isVisible('#hwh3'), !(await page.isHidden('#hwh3')));
+    assert.deepEqual(errors, []); await ctx.close();
+  }
+});
+
+test('Home for a new user is at most 3 screens; one Today\'s quests card opens the Quest Board', async () => {
+  const { page, ctx, errors } = await openApp(M);
+  await go(page, 'home'); await page.waitForTimeout(500);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollHeight) <= 3 * 844, 'home is at most 3 screens');
+  assert.equal(await page.locator('#advq, #v6q1, #dsum').count(), 0, 'the four quest cards are gone from Home');
+  assert.match(await page.textContent('#hmq'), /TODAY'S QUESTS\s*0\/5/);
+  await page.tap('#hmq [data-a="go"]'); assert.equal(await page.evaluate(() => S.v), 'quests');
+  assert.equal(await page.locator('#advq2').count(), 1);
+  assert.deepEqual(errors, []); await ctx.close();
+});

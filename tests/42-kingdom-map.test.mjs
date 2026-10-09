@@ -49,6 +49,7 @@ test('tap a region: the map zooms and pans to it, outlines it, opens its card; c
   // reduced motion: the card at once, no zoom
   const r = await openApp({ context: { reducedMotion: 'reduce' } });
   await go(r.page, 'home');
+  await r.page.click('#hmd-kmini > summary');   // the Kingdom map is a one-line row on Home until opened
   await r.page.click('#kmini .kn[data-v="sleep"]');
   assert.ok(await r.page.isVisible('#mo [aria-label="Region details"]'));
   assert.doesNotMatch(await r.page.getAttribute('#kmini .v6mz', 'style') || '', /scale/);

@@ -210,6 +210,7 @@ test('Kingdom map: every region shows its pixel icon (the label style no longer 
   const { page, ctx, errors } = await boot({ context: { colorScheme: 'dark' } });
   for (const view of ['kingdom', 'home']) {
     await go(page, view);
+    await page.evaluate(() => document.querySelectorAll('.hmd').forEach(d => { d.open = true; }));
     await page.waitForTimeout(100);
     const icons = await page.evaluate(() => [...document.querySelectorAll('.kn .ki')].map(k => { const e = k.querySelector('.pxe'), cs = e && getComputedStyle(e);
       return e ? { img: /^url\("data:image/.test(cs.backgroundImage), border: cs.borderTopWidth, w: e.getBoundingClientRect().width } : null; }));

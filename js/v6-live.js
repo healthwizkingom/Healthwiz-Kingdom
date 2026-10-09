@@ -95,7 +95,13 @@ function chip(){if(!on())return '';const s=R.wx.st;
 function titleChip(){if(!on())return '';const t=heatTip();
   return '<div class="v6wxt">'+chip().replace(/<\/?span[^>]*>/g,'')+(t?'<small>'+esc(t)+'</small>':'')+'</div>'}
 function homeWeather(){if(!on())return '';const t=heatTip();
-  return '<div class="card v6wxh" id="v6wxh"><div class="v6wxl">'+chip()+'</div>'+(t?'<p class="v6heat">'+esc(t)+'</p>':'')+'</div>'}
+  return '<div class="card v6wxh"><div class="v6wxl">'+chip()+'</div>'+(t?'<p class="v6heat">'+esc(t)+'</p>':'')+'</div>'}
+/* Home: weather and haze as ONE thin line (what the sky is, what the haze level is). Tapping it opens the two full cards. With no
+   reading at all (loading, or offline with nothing saved) there is nothing to show, so the line stays hidden until a reading arrives. */
+function homeLine(){if(!on())return '';const c=wx(),a=aq();
+  if(!c&&!a)return '<div id="v6wxh" hidden></div>';
+  const o=[];if(c)o.push(ICON[sky()]+' '+t0(c.temperature_2m)+' °C · '+(WMO[c.weather_code]||'Weather'));if(a){const L=band(a.pm2_5);o.push(L.i+' Haze '+L.k.toLowerCase())}
+  return '<details class="v6thin" id="v6wxh"><summary>'+esc(o.join(' · '))+' <small>Kulim · details</small></summary>'+homeWeather()+hazeCard()+'</details>'}
 
 /* ---------- haze (jerebu) ---------- */
 // PM2.5 µg/m³, upper bound inclusive
@@ -142,10 +148,11 @@ const swap=(sel,html)=>document.querySelectorAll(sel).forEach(el=>{if(html)el.ou
 function paint(){try{document.body.classList.toggle('hw-haze',hazy());
   if(typeof S==='undefined')return;
   if(S.v==='welcome'){if(typeof HWTitle!=='undefined')HWTitle.restyle();return}
-  swap('#v6wxh',homeWeather());swap('#v6haze',hazeCard());swap('.v6hzb',hazeBanner());swap('#v6live',card())}catch(e){console.warn('[HealthWiz] live paint:',e&&e.message)}}
+  swap('#v6wxh',homeLine());swap('.v6hzb',hazeBanner());swap('#v6live',card())}catch(e){console.warn('[HealthWiz] live paint:',e&&e.message)}}
 
 HWUI.css('live',`
 .v6wxh{padding:10px 12px}
+.v6thin{margin:0 0 10px}.v6thin>summary{display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;min-height:44px;padding:6px 10px;font-size:14px;cursor:pointer;background:var(--pn);border:3px solid var(--ln);box-shadow:3px 3px 0 var(--ln)}.v6thin>summary small{color:var(--mut);font-size:12px}.v6thin[open]>summary{margin-bottom:10px}
 .v6wxl{font:13px/1.5 var(--fb)}.v6wxc i{font-style:normal;color:var(--mut)}.v6wxu{color:var(--mut)}
 .v6heat{margin:8px 0 0;padding:6px 8px;border:2px dashed #e8812a;font-size:13px}
 .v6aq{border-left:10px solid var(--aq,var(--ln))}
@@ -163,7 +170,7 @@ body.hw-haze .amb .amsky{inset:0;background:linear-gradient(rgba(196,170,120,.42
 body.hw-haze .amb .amfar{opacity:.3}body.hw-haze .amb .amcl{opacity:.35}`);
 
 /* ---------- surfaces ---------- */
-{const p=pages.home;pages.home=(...a)=>{const h=p(...a),i=h.indexOf('<div class="hbar">'),j=i<0?-1:h.indexOf('</button></div>',i);const c=homeWeather()+hazeCard();
+{const p=pages.home;pages.home=(...a)=>{const h=p(...a),i=h.indexOf('<div class="hbar">'),j=i<0?-1:h.indexOf('</button></div>',i);const c=homeLine();
   return j<0?c+h:h.slice(0,j+15)+c+h.slice(j+15)}}
 // Stairs page: hazeBanner() and heatTip() sit just above the Running controls before a run (js/v6-running.js)
 // above APP & OFFLINE (which sits just above Backup & Restore)

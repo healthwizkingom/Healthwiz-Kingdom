@@ -124,6 +124,25 @@ function wrap(k){const p=pages[k];if(!p)return;pages[k]=function(){let h=p.apply
 ['food','water','sleep','stair','stress','body'].forEach(wrap);
 {const p=pages.health;pages.health=function(){const h=p.apply(this,arguments),i=h.indexOf('</p>');return i<0?nextCard()+h:h.slice(0,i+4)+nextCard()+h.slice(i+4)}}
 
+/* ---------- 5. a shorter Home ---------- */
+/* Home keeps today's health (tiles, energy, nutrients, 7-day trends, health connections). The game cards that repeated the quests
+   (Adventure Progress, Focus & Weekly, Daily Summary, Quest Progress) become ONE "Today's quests" card that opens the Quest Board,
+   where all of them still are. The Hero card and the Kingdom map stay, as one-line rows that open (same cards, same ids). */
+function questCard(d){const n=QD(d).filter(q=>q.p>=1).length;
+  return '<div class="card hmq" id="hmq"><h3>'+ico('quest')+' TODAY\'S QUESTS <b class="big">'+n+'/5</b></h3>'+bar(n/5*100,'var(--gold)')
+    +'<button class="g" data-a="go" data-v="quests" style="width:100%;margin-top:8px">OPEN THE QUEST BOARD</button><span class="gtag">🎮 GAME QUESTS · NOT A HEALTH MEASUREMENT</span></div>'}
+function shortHome(h){const t=document.createElement('template');t.innerHTML=h;const C=t.content,q=s=>C.querySelector(s);
+  ['#advq','#v6q1','#dsum','h2.sec'].forEach(s=>{const e=q(s);if(e)e.remove()});
+  C.querySelectorAll('.card').forEach(c=>{const h3=c.querySelector(':scope>h3');if(h3&&/QUEST PROGRESS/.test(h3.textContent))c.remove()});
+  const en=q('#encheck'),qc=document.createElement('template');qc.innerHTML=questCard(today());
+  if(en)en.after(qc.content);else{const ts=q('.tstat');if(ts)ts.after(qc.content)}
+  const fold=(sel,label)=>{const c=q(sel);if(!c)return;const d=document.createElement('details');d.className='hmd';d.id='hmd-'+sel.slice(1);
+    d.innerHTML='<summary class="card">'+label+'</summary>';c.replaceWith(d);d.appendChild(c)};
+  const L=lvl();fold('#pcard',ico('quest')+' <b>HERO CARD</b> <small>Lv '+(L.i+1)+' · '+esc(L.n)+' · game level</small>');
+  fold('#kmini',ico('map')+' <b>KINGDOM MAP</b> <small>'+KR.filter(r=>klv(r[3])).length+'/8 regions restored this week</small>');
+  return t.innerHTML}
+{const p=pages.home;pages.home=function(){return shortHome(p.apply(this,arguments))}}
+
 HWUI.css('hall',`
 .hwcr{display:flex;align-items:center;gap:8px;margin:0 0 8px}.hwcr .sm{flex:0 0 auto;min-height:44px;min-width:44px;margin:0}
 .hwcr .hwct{display:flex;align-items:center;gap:8px;flex:1 1 auto;min-width:0;margin:0;padding:0;background:none;border:0;box-shadow:none;min-height:0}.hwct>div{min-width:0}.hwct b{display:block;font:10px/1.5 var(--fh)}
@@ -135,5 +154,7 @@ HWUI.css('hall',`
 .hweg{display:block;margin-top:3px;font-size:12px;line-height:1.4;color:var(--mut);font-weight:400}.hweg[hidden]{display:none}
 .hub .hb small{display:block}.hub .hb .hwa{display:block;margin-top:4px;font:12px/1.4 var(--fb);font-weight:400;letter-spacing:0;color:var(--mut)}
 .hwnx p{margin:0 0 8px}
+.hmq h3{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.hmq .big{margin-left:auto}
+.hmd{margin:0 0 14px}.hmd>summary{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;min-height:44px;margin:0;padding:8px 12px;cursor:pointer}.hmd>summary small{font-size:12px;color:var(--mut)}.hmd[open]>summary{margin-bottom:10px}.hmd>.card{margin-bottom:0}
 `);
 return{head,next,examples,compact,tiles:TILE}})();

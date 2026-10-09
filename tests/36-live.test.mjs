@@ -83,7 +83,7 @@ test('haze: five PM2.5 levels with advice; card on Home, banner on Stairs, hazy 
   const card = await page.textContent('#v6haze');
   assert.match(card, /JEREBU CHECK/); assert.match(card, /UNHEALTHY/); assert.match(card, /PM2\.5 72 µg\/m³/);
   assert.match(card, /Avoid vigorous outdoor exercise; use indoor stairs or rest\./);
-  assert.match(card, /Open-Meteo Air Quality \(estimate\)/); await page.click('#v6haze .hwh'); assert.match(await page.textContent('#hwh-pop'), /modelled estimate, not an official reading/); assert.match(card, /at 14:00/); assert.match(card, /Open-Meteo/);
+  assert.match(card, /Open-Meteo Air Quality \(estimate\)/); await page.click('#v6wxh > summary'); await page.click('#v6haze .hwh'); assert.match(await page.textContent('#hwh-pop'), /modelled estimate, not an official reading/); assert.match(card, /at 14:00/); assert.match(card, /Open-Meteo/);
   assert.equal(await page.getAttribute('#v6haze a', 'href'), 'https://apims.doe.gov.my');
   assert.ok(await page.evaluate(() => document.body.classList.contains('hw-haze')), 'hazy kingdom sky');
   await go(page, 'stair');
@@ -111,8 +111,8 @@ test('offline / failing API: default scene, "Weather unavailable", nothing break
   assert.doesNotMatch(await page.textContent('[data-wx]'), /RAIN|CLOUDS|MIST|CLEAR/);
   assert.match(await page.textContent('#v6wxt'), /Weather unavailable/);
   await go(page, 'home');
-  assert.match(await page.textContent('#v6wxh'), /Weather unavailable/);
-  assert.match(await page.textContent('#v6haze'), /unavailable/);
+  assert.equal(await page.locator('#v6wxh').count(), 1, 'a placeholder, so a late reading can appear');
+  assert.equal(await page.isHidden('#v6wxh'), true, 'Home shows no weather or haze line when there is no reading');
   await go(page, 'stair');
   assert.match(await page.textContent('.v6hzb'), /unavailable/);
   assert.deepEqual((await state(page)).s, RETURNING.s, 'no new field is written just by visiting');
