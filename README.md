@@ -29,7 +29,7 @@ js/v6-ui.js                shared UI helpers (injected styles, completion banner
 js/v6-pixel.js             pixel-art standard: design tokens, panel/HUD classes, crisp pixel icons (guide: docs/PIXEL_STYLE.md)
 js/v6-emoji.js             every emoji the app shows drawn as pixel art (hand-drawn icon or the emoji pixelated)
 js/v6-provisions.js        Nutrition & Hydration as one page (the Provisions Hall): 'food' and 'water' are its two halves
-js/v6-stairs.js            the Stairs page: casual climbing (GPS + by hand), stair workout (heart rate before/after, calorie estimate), running (with calories burned, js/v6-running.js); one session model
+js/v6-stairs.js            the Stairs page: casual climbing (GPS + by hand), stair workout (heart rate before/after with f, T, ω of the pulse, calorie estimate, our project's VO₂ / kJ method), the Group 14 measured-stairways table, running (with calories burned, js/v6-running.js); one session model
 js/v6-motion.js            animation settings + performance modes (High / Balanced / Performance), off-screen pause
 js/v6-particles.js         one shared canvas particle system (level-up, badges, quests)
 js/v6-insights.js          "Medius notices": insights from your own baselines and trends
