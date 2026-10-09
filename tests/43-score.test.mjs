@@ -81,3 +81,11 @@ test('sleep, calorie intake, macronutrients and calories burned are scored from 
   assert.match(await page.textContent('#main'), /Calorie intake[\s\S]*Macronutrients[\s\S]*Calories burned[\s\S]*Sleep/);
   assert.deepEqual(errors, []); await ctx.close();
 });
+
+test('WHY THESE WEIGHTS links the Activity weight to our stair study, labelled as project data; weights unchanged', async () => {
+  const { page, ctx, errors } = await boot(RETURNING);
+  const t = await page.textContent('.v6why li:nth-child(2)');
+  assert.match(t, /Activity 25[\s\S]*Project data, not a clinical result\.[\s\S]*Our own stair study \(Group 14, 6 participants\): pulse rate rose 6–37% from the least to the most steep stair for every participant\./);
+  assert.deepEqual(await page.evaluate(() => HWScore.WT), { fv: 10, water: 5, kcal: 5, macro: 5, stairs: 15, burn: 10, hr: 15, sleep: 15, bmi: 10, stress: 10 });
+  assert.deepEqual(errors, []); await ctx.close();
+});

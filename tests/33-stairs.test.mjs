@@ -262,3 +262,56 @@ test('stairway counts agree (32 total, 28 mapped), every stairway shows θ and i
   assert.deepEqual(errors, []);
   await ctx.close();
 });
+
+// Group 14 report methods: VO2 / kJ (Uth et al. 2004), the pulse as periodic motion, the measured-stairways table
+test('project method: VO2 and kJ appear only with both heart rates and a profile weight; never saved or fed to the kcal estimate', async () => {
+  const { page, ctx, errors } = await boot();
+  await page.selectOption('#wk-loc', 'ST24'); await page.click('[data-a="pace"][data-i="2"]');
+  await page.fill('#wk-b', '72');
+  assert.equal(await page.locator('.stproj').count(), 0, 'one heart rate is not enough');
+  await page.fill('#wk-a', '130');
+  const box = await page.textContent('#wk-kcal');
+  assert.match(box, /OUR PROJECT'S METHOD[\s\S]*VO₂ ≈ 27\.6 mL\/kg\/min \(1\.66 L\/min\)/);
+  assert.doesNotMatch(await page.textContent('.stproj'), /kJ \(/, 'no duration: VO₂ only');
+  await page.fill('#wk-d', '8');
+  // 15.3 × 130/72 = 27.625 mL/kg/min; × 60 kg ÷ 1000 = 1.6575 L/min; × 8 min × 20.1 = 266.5 kJ; ÷ 4.184 = 63.7 kcal
+  assert.match(await page.textContent('.stproj'), /Energy released ≈ 267 kJ \(64 kcal\) in 8 min[\s\S]*VO₂ = 15\.3 × after ÷ before · energy = VO₂ × time × 20\.1 kJ\/L[\s\S]*Uth et al\., 2004[\s\S]*not a true maximum, so this is rough/);
+  assert.match(await page.textContent('#wk-kcal'), /ESTIMATED ENERGY USED[\s\S]*OUR PROJECT'S METHOD/, 'the MET + Keytel estimate stays, the project method sits beside it');
+  assert.deepEqual(await page.evaluate(() => { const v = HWStairs.projectVO2({ hrB: 72, hrA: 130, dur: 8 }); return [v.ml, v.lmin, v.kj, v.kcal].map(x => +x.toFixed(4)); }), [27.625, 1.6575, 266.5256, 63.701]);
+  assert.equal(await page.evaluate(() => HWStairs.projectVO2({ hrB: 72, hrA: 130, dur: 8 }, null)), null, 'no profile: nothing');
+  await page.fill('#wk-s', '30'); await page.fill('#wk-c', '3');
+  await page.click('[data-a="stwsave"]');
+  const e = stairs(await state(page))[0];
+  assert.equal(JSON.stringify(e.m).includes('27.6'), false, 'the project value is not saved');
+  assert.ok(e.m.kcal.v >= 79 && e.m.kcal.v <= 81, 'logged kcal is still MET + Keytel: ' + JSON.stringify(e.m.kcal));
+  assert.match(await page.textContent('#stlog'), /Project method \(estimate[\s\S]*VO₂ ≈ 27\.6 mL\/kg\/min[\s\S]*267 kJ \(64 kcal\) in 8 min/);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('pulse as periodic motion: f, T and ω under each trace with a help button', async () => {
+  const { page, ctx, errors } = await boot();
+  assert.match(await page.textContent('#st-pm-b'), /Enter a heart rate/);
+  await page.fill('#wk-b', '60'); await page.fill('#wk-a', '120');
+  assert.equal(await page.textContent('#st-pm-b'), '1.00 Hz · T 1.00 s · ω 6.28 rad/s');
+  assert.equal(await page.textContent('#st-pm-a'), '2.00 Hz · T 0.50 s · ω 12.57 rad/s');
+  await page.fill('#wk-a', '112');
+  assert.equal(await page.textContent('#st-pm-a'), '1.87 Hz · T 0.54 s · ω 11.73 rad/s');
+  await page.click('.stpm button');
+  assert.match(await page.textContent('body'), /approximately periodic motion[\s\S]*faster pulse[\s\S]*RR = 60 ÷ BPM/i);
+  assert.equal(await page.locator('.stpm button').count(), 2, 'one help button under each trace');
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('measured stairways card: the three report stairs, report rank vs app band', async () => {
+  const { page, ctx, errors } = await boot();
+  const rows = await page.$$eval('#ststudy tbody tr', r => r.map(x => [...x.cells].map(c => c.textContent.replace(/\s+/g, ' ').trim())));
+  assert.equal(rows.length, 3);
+  assert.deepEqual(rows.map(r => r.slice(1)), [['0.169', '0.311', '0.354', '28.52', 'Vigorous', 'Moderate'], ['0.157', '0.305', '0.343', '27.23', 'Moderate', 'Moderate'], ['0.149', '0.300', '0.335', '26.43', 'Mild', 'Moderate']]);
+  assert.match(rows.map(r => r[0]).join('|'), /A · Generator stairs \(ST20\)\|C · Block Aisyah stairs \(ST19\)\|B · Block Kenanga stairs \(ST14\)/);
+  // the report angles are the stored ones
+  assert.deepEqual(await page.evaluate(() => ['ST20', 'ST19', 'ST14'].map(i => STAIRS.find(s => s.id === i).angle)), [28.52, 27.23, 26.43]);
+  assert.match(await page.textContent('#ststudy'), /The report ranks these three stairs against each other\. The app uses fixed bands for all 32 campus stairways \(mild < 26°, moderate 26–31\.2°, vigorous > 31\.2°\), so all three are moderate here\./);
+  assert.equal(await page.evaluate(() => document.querySelector('#ststudy details').open), false, 'collapsed by default');
+  assert.equal(await page.evaluate(() => document.querySelector('#stman').compareDocumentPosition(document.querySelector('#ststudy')) & Node.DOCUMENT_POSITION_FOLLOWING), 4);
+  assert.deepEqual(errors, []); await ctx.close();
+});

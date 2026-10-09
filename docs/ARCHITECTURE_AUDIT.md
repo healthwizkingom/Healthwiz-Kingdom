@@ -1288,3 +1288,20 @@ activity's screen (back button, name, one sentence, illustration, START). Cards 
   added to `TN`, so "What helps you" counts them).
 - **Navigation:** every activity has ← back to the collection (also on the original tool screens and via "Back to activities");
   leaving the page stops timers and sound and returns the quest to the collection.
+
+## Report alignment: project method, pulse as periodic motion, measured stairways (`js/v6-stairs.js`, `js/v6-score.js`)
+
+Closes the gaps between the app and the Group 14 report. No saved-data change (`sv` stays 8): everything is computed at render
+time from `hrB`, `hrA`, `dur` and `st.p.w`. Health Score weights and sub-scores are untouched.
+- **OUR PROJECT'S METHOD** (Stair Workout, under the ESTIMATED ENERGY USED box; also one line in each saved workout in the
+  Session Chronicle). `projectVO2()`: VO₂ (mL/kg/min) = 15.3 × after ÷ before (Uth et al., 2004), L/min = VO₂ × kg ÷ 1000,
+  kJ = L/min × minutes × 20.1, kcal = kJ ÷ 4.184. Shown only with both heart rates and a confirmed profile weight; VO₂ only when
+  there is no duration. Labelled a classroom estimate. It is **not saved and not used in the Health Score**; the logged kcal is
+  still MET + Keytel.
+- **Pulse as a periodic motion.** `pulseSHM()` shows f (Hz) = BPM ÷ 60, T (s) = 1 ÷ f and ω (rad/s) = 2πf under each heart-rate
+  trace, with a "?" help (`pulseshm`). The trace already spaces beats by RR = 60 ÷ BPM, which is T.
+- **OUR MEASURED STAIRWAYS (GROUP 14 STUDY)**: collapsed card after the by-hand logging card, with the report's rise, run,
+  hypotenuse, θ and rank for ST20 / ST19 / ST14 next to the app band from `bandOf()`. The report ranks the three against each
+  other; the app's fixed bands call all three moderate.
+- **WHY THESE WEIGHTS** (`js/v6-score.js`): the Activity bullet cites the project's stair-study result, labelled project data.
+- Tests: `tests/33-stairs.test.mjs` (project method, f/T/ω, study table), `tests/43-score.test.mjs` (study line, weights unchanged).
