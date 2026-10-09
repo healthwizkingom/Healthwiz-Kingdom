@@ -90,7 +90,7 @@ test('Stairs page → Running section: explain, start, live metrics, noise filte
   assert.equal(await page.locator('#map [data-a="runmap"]').count(), 1, 'no map download until Running is wanted');
   await page.click('[data-a="stjump"][data-t="st-run"]');
   assert.equal(await page.evaluate(() => S.v), 'stair');
-  assert.match(await txt(page, '#main'), /BACK TO HEALTH[\s\S]*RUNNING ROAD[\s\S]*DISTANCE[\s\S]*TIME[\s\S]*AVG PACE/);
+  assert.match(await txt(page, '#main'), /HEALTH[\s\S]*RUNNING ROAD[\s\S]*DISTANCE[\s\S]*TIME[\s\S]*AVG PACE/);
   assert.match(await txt(page, '#nav .on'), /Health/);
   assert.deepEqual(await metrics(page), ['0.00', '0:00', '--:--']);
   assert.deepEqual([await page.isEnabled('[data-a="runstart"]'), await page.isDisabled('[data-a="runpause"]'), await page.isDisabled('[data-a="runfinish"]')], [true, true, true]);

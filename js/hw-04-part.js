@@ -65,8 +65,9 @@ function fitCover(){const s=document.querySelector('.zsv');if(s)s.setAttribute('
 addEventListener('resize',()=>{if(S.v==='welcome')fitCover()});
 function render(){if(S.v==='welcome'){document.body.classList.add('wel');$('#main').innerHTML=pages.welcome();fitCover();return}document.body.classList.remove('wel');if(S.v==='onb'){document.body.classList.add('onbm');$('#nav').innerHTML='';$('#main').innerHTML='<div class="pg">'+pages.onb()+'</div>';obType();musSync();return}document.body.classList.remove('onbm');const d=today();st.qx=st.qx||{};QD(d).forEach((q,i)=>{const k=d+':'+i;if(q.p>=1&&!st.qx[k]){st.qx[k]=1;gain(q.x,q.n+' complete!')}});if(quests(d).every(q=>q[1])&&!st.claimed[d]){st.claimed[d]=1;gain(100,'All daily quests complete!')}
 const par=PAR[S.v]||S.v;$('#nav').innerHTML=NAV.map(n=>'<button class="'+(par===n[0]?'on':'')+'" data-a="go" data-v="'+n[0]+'"><span class="ni">'+n[1]+'</span>'+n[2]+'</button>').join('');
-let top;if(S.v==='home'){document.body.style.setProperty('--tint',BN.home[3]);top=''}else top=hdr()+ban();
-const bk=PAR[S.v]?'<button class="g sm back" data-a="go" data-v="'+PAR[S.v]+'">◀ BACK TO '+NAV.find(n=>n[0]===PAR[S.v])[2].toUpperCase()+'</button>':'';
+const cp=typeof HWHall!=='undefined'&&HWHall.compact(S.v); // v6: trackers carry their own one-line row (banner + BACK + help) in js/v6-hall.js
+let top;if(S.v==='home'){document.body.style.setProperty('--tint',BN.home[3]);top=''}else top=hdr()+(cp?(ban(),''):ban());
+const bk=PAR[S.v]&&!cp?'<button class="g sm back" data-a="go" data-v="'+PAR[S.v]+'">◀ BACK TO '+NAV.find(n=>n[0]===PAR[S.v])[2].toUpperCase()+'</button>':'';
 $('#main').innerHTML='<div class="pg tr-'+S.v+'">'+top+bk+pages[S.v]()+'<p class="dis">'+(DIS[S.v]||DIS.home)+'<br>Turn Your Health Into an Adventure.</p></div>';if(S.v==='pulse')ecg();if(S.v==='sleep')slInit();if(S.v==='bmi')INP.bmi();if(S.v==='calc')calcOut();if(S.v==='body')INP.be();chkB();musSync()}
 
 function go(v){if(v==='tut'){TUT.start();return}if(v==='home'&&S.v==='welcome'&&needOnb())v='onb';if(v==='onb'&&S.v!=='onb')S.ob=null;if(S.shp&&!S.shp.done){shStop();S.shp=null}const f=S.v==='welcome'&&v==='home'&&!TUT.seen();clearInterval(S.tm);S.pb.on=0;S.v=v;render();window.scrollTo(0,0);if(f)setTimeout(TUT.start,400)}

@@ -139,6 +139,7 @@ test('battery: looping scenery pauses while scrolled out of view; idle pages run
   r = await loops();
   assert.deepEqual([r.off, r.running], [false, r.n], 'scrolled into view: running again');
   await go(page, 'water');
+  await page.evaluate(() => document.querySelector('#wq').scrollIntoView());   // the add-water form is now first, so the well scene is below the fold until scrolled to
   await settle(page, 400);
   assert.equal(await page.evaluate(() => document.querySelector('#wq').classList.contains('hw-off')), false, 'a scene in view keeps moving');
   for (const v of ['home', 'welcome']) {

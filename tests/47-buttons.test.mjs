@@ -52,19 +52,16 @@ test('disabled buttons are flat with a dashed edge; the help button is blue with
   await ctx.close();
 });
 
-test('jump buttons lead to the log forms (sleep and meals), by tap and keyboard', async () => {
+test('no jump buttons are needed: the sleep and meal forms are on screen when the page opens', async () => {
   const { page, ctx, errors } = await openApp({ seed: seedWith(''), viewport: { width: 390, height: 780 }, context: { hasTouch: true, isMobile: true } });
   await page.waitForSelector('.wl');
+  const onScreen = (page, sel) => page.evaluate(s => { const r = document.querySelector(s).getBoundingClientRect(); return r.top >= 0 && r.bottom <= document.querySelector('#nav').getBoundingClientRect().top }, sel);
   await go(page, 'sleep');
-  assert.match(await page.textContent('.hwjump'), /LOG LAST NIGHT'S SLEEP/);
-  await page.tap('.hwjump'); await page.waitForTimeout(700);
-  assert.equal(await page.evaluate(() => { const r = document.querySelector('#slb').getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight }), true, 'bedtime field on screen');
+  assert.equal(await onScreen(page, '#slb'), true, 'bedtime field on screen');
   await go(page, 'food');
-  assert.match(await page.textContent('.hwjump'), /LOG A MEAL/);
-  await page.focus('.hwjump'); await page.keyboard.press('Enter'); await page.waitForTimeout(700);
-  assert.equal(await page.evaluate(() => { const r = document.querySelector('#fpick').getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0 }), true, 'pick-a-food card on screen');
+  assert.equal(await page.evaluate(() => document.querySelector('#fpick .chip').getBoundingClientRect().top < document.querySelector('#nav').getBoundingClientRect().top - 20), true, 'pick-a-food card on screen');
   await go(page, 'water');
-  assert.equal(await page.locator('.hwjump').count(), 0, 'only on the two long pages');
+  assert.equal(await page.locator('.hwjump').count(), 0, 'no jump buttons any more');
   assert.deepEqual(errors, []);
   await ctx.close();
 });
