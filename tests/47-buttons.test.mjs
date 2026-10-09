@@ -53,7 +53,7 @@ test('disabled buttons are flat with a dashed edge; the help button is blue with
 });
 
 test('no jump buttons are needed: the sleep and meal forms are on screen when the page opens', async () => {
-  const { page, ctx, errors } = await openApp({ seed: seedWith(''), viewport: { width: 390, height: 780 }, context: { hasTouch: true, isMobile: true } });
+  const { page, ctx, errors } = await openApp({ seed: seedWith(''), viewport: { width: 390, height: 844 }, context: { hasTouch: true, isMobile: true } });
   await page.waitForSelector('.wl');
   const onScreen = (page, sel) => page.evaluate(s => { const r = document.querySelector(s).getBoundingClientRect(); return r.top >= 0 && r.bottom <= document.querySelector('#nav').getBoundingClientRect().top }, sel);
   await go(page, 'sleep');

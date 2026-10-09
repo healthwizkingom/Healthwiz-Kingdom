@@ -260,3 +260,18 @@ test('Wizard\'s Counsel: signed out, the button says to sign in and that breathi
   assert.equal(await page.locator('[data-a="csskip"]').count(), 1, 'the breathing step still works without an account');
   assert.deepEqual(errors, []); await ctx.close();
 });
+
+test('tap targets and text size: BACK, ?, edit, delete, crisis numbers are 44 px; labels and captions are at least 12 px', async () => {
+  const { page, ctx, errors } = await openApp({ ...M, seed: { ...RETURNING, e: [entry('water', 500, 0), entry('stress', 3, 0, {})] } });
+  for (const v of ['food', 'water', 'stress', 'stats', 'set']) {
+    await go(page, v);
+    const bad = await page.evaluate(() => [...document.querySelectorAll('#main .back, #main .hwh, #main .hwq, #main [data-a="edit"], #main [data-a="del"], #main .cshelp a')].filter(e => e.offsetParent).filter(e => { const r = e.getBoundingClientRect(); return r.height < 43.5 || r.width < 43.5; }).map(e => e.className + ' ' + e.textContent.slice(0, 12)));
+    assert.deepEqual(bad, [], v + ': small tap targets');
+    const tiny = await page.evaluate(() => { const o = []; const w = document.createTreeWalker(document.querySelector('#main'), NodeFilter.SHOW_TEXT); let n;
+      while (n = w.nextNode()) { const t = n.textContent.trim(), p = n.parentElement; if (!t || !/[A-Za-z0-9%]/.test(t) || !p.offsetParent || p.closest('button,h1,h2,h3,summary,header,nav,svg,canvas,.db6,.cns2,.stpo')) continue;
+        if (parseFloat(getComputedStyle(p).fontSize) < 11.99) o.push(p.tagName + '.' + p.className + ': ' + t.slice(0, 20)); } return o; });
+    assert.deepEqual(tiny, [], v + ': text under 12 px');
+    assert.ok(await noScroll(page), v + ' no horizontal scroll');
+  }
+  assert.deepEqual(errors, []); await ctx.close();
+});

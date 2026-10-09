@@ -55,7 +55,7 @@ function panel(k){const h=HEAD[k];if(!h)return '';
   return '<div class="card hwh3" id="hwh3" data-trk="'+k+'"'+(isOpen(k)?'':' hidden')+'>'+row('WHAT THIS IS',h.what)+row('WHAT TO ENTER',h.enter)+row('WHY IT MATTERS',h.why)+'</div>'}
 function bar_(k,help){const h=HEAD[k],o=isOpen(k);
   return '<div class="hwcr" id="hwcr"><button type="button" class="g sm back" data-a="go" data-v="'+(PAR[k]||'health')+'" aria-label="Back to the Health Hall">◀ HEALTH</button>'
-    +'<div class="bn hwct"><span>'+HWPixel.glyph(HWPixel.region(k)||BN[k][0],2)+'</span><div><b>'+BN[k][1]+'</b><small class="hwtg">'+h.title+' · '+KIND[h.kind]+'</small></div></div>'
+    +'<div class="bn hwct"><span>'+HWPixel.glyph(HWPixel.region(k)||BN[k][0],2)+'</span><div><b>'+BN[k][1]+'</b><small class="hwtg">'+KIND[h.kind]+'</small></div></div>'
     +(help?'<button type="button" class="g sm hwq" data-a="hwq" data-k="'+k+'" aria-expanded="'+(o?'true':'false')+'" aria-controls="hwh3" aria-label="What is this page for?">?</button>':'')+'</div>'}
 function head(k){return HEAD[k]?bar_(k,1)+panel(k):''}
 acts.hwq=d=>{const k=d.k;S.hq=S.hq||{};S.hq[k]=!isOpen(k);const p=document.getElementById('hwh3'),b=document.querySelector('.hwq');if(p)p.hidden=!S.hq[k];if(b)b.setAttribute('aria-expanded',S.hq[k]?'true':'false')};
@@ -143,13 +143,30 @@ function shortHome(h){const t=document.createElement('template');t.innerHTML=h;c
   return t.innerHTML}
 {const p=pages.home;pages.home=function(){return shortHome(p.apply(this,arguments))}}
 
+/* ---------- 6. tap targets and text size ---------- */
+/* Back, help "?", edit, delete, the crisis phone numbers and the other small buttons are at least 44 × 44 px. Labels and captions
+   in the main content are at least 12 px (they were 6 to 11 px). Buttons and headings keep their own sizes, and the little labels drawn
+   on the game scenes (Dream Battle, Storm Within, the Counsel's name plate) stay part of the picture. */
+HWUI.css('hall-size',`
+html #main .back,html #main button.sm,html #main .chip,html #main .hwh,html #main .hwq,html #main button[data-a="edit"],html #main button[data-a="del"]{min-height:44px;min-width:44px}
+html #main .hwh:not(.hwhl){width:44px;height:44px;margin:-9px -9px -9px -1px;font-size:14px}
+html #main summary{min-height:44px;display:flex;align-items:center}
+html #main .cshelp a,html #main .v6aq a,html #main .v6hzb a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:0 4px}
+html #main .v6shfs{min-width:44px;min-height:44px}
+html #main small,html #main em,html #main td,html #main th,html #main .gtag,html #main .tagk,html #main .tag,html #main .tl,html #main .ax,html #main .pxtag,html #main .xpb-gain,html #main .v6pk,html #main .v6mlab,
+html #main .mx span,html #main .rest,html #main .later,html #main .v6wk span,html #main .chl span,html #main .tg span,html #main .hwhr b,html #main .stlab,html #main .pcl,html #main .rbsort,
+html #main .attr b,html #main .empty b,html #main .v6ce b,html #main .tq b,html #main .an b,html #main .sthrh b,html #main .stclimb b,html #main .stkc b,html #main .hrdh b,html #main .v6hzb b,
+html #main .wq6hud b,html #main .wq6hud .num,html #main .bn b,html #main .nshd b,html #main .nsrg,html #main .nstl,html #main .stpo,html #main .hwtg{font-size:12px!important}
+`);
+
 HWUI.css('hall',`
-.hwcr{display:flex;align-items:center;gap:8px;margin:0 0 8px}.hwcr .sm{flex:0 0 auto;min-height:44px;min-width:44px;margin:0}
+.hwcr{display:flex;align-items:center;gap:8px;margin:0 0 4px}.hwcr .sm{flex:0 0 auto;min-height:44px;min-width:44px;margin:0}
 .hwcr .hwct{display:flex;align-items:center;gap:8px;flex:1 1 auto;min-width:0;margin:0;padding:0;background:none;border:0;box-shadow:none;min-height:0}.hwct>div{min-width:0}.hwct b{display:block;font:10px/1.5 var(--fh)}
+.pg.tr-food .nstabs,.pg.tr-water .nstabs{margin-bottom:12px}.pg.tr-food .nshd,.pg.tr-water .nshd{margin-bottom:8px}.pg.tr-food h2,.pg.tr-water h2{margin-bottom:8px}
 .hwtg{display:block;font-size:12px;line-height:1.3;color:var(--mut);font-weight:400}
 .hwq{font:12px var(--fh);padding:0 12px}
-.hwh3{padding:8px 12px;margin-bottom:10px}.hwh3[hidden]{display:none}
-.hwhr{padding:3px 0;border-top:2px dashed var(--ln);font-size:13px;line-height:1.35;overflow-wrap:anywhere}.hwhr:first-child{border-top:0}
+.hwh3{padding:6px 12px;margin-bottom:6px}.hwh3[hidden]{display:none}
+.hwhr{padding:2px 0;border-top:2px dashed var(--ln);font-size:13px;line-height:1.35;overflow-wrap:anywhere}.hwhr:first-child{border-top:0}
 .hwhr b{font:8px/1.8 var(--fh);color:var(--mut);margin-right:6px}
 .hweg{display:block;margin-top:3px;font-size:12px;line-height:1.4;color:var(--mut);font-weight:400}.hweg[hidden]{display:none}
 .hub .hb small{display:block}.hub .hb .hwa{display:block;margin-top:4px;font:12px/1.4 var(--fb);font-weight:400;letter-spacing:0;color:var(--mut)}
