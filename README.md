@@ -51,6 +51,7 @@ js/v6-ambient.js           the living world behind every page (themed by region)
 js/v6-food.js              Market Kitchen mini-game (pick foods from stalls, cook, build a balanced plate)
 js/v6-trail.js             Adventure Trail mini-game (follow trail blazes at forks, climb the stairs in rhythm)
 js/v6-grove.js             Calming Grove mini-game (follow a light over the pond as it grows and shrinks with your breath)
+js/v6-relief.js            Stress Quest activity collection: illustrated cards replace the "what would help you handle this?" options (Shake It Off, Empower Yourself, Arrow Focus, Reaction Focus, Calming Sounds + the original tools)
 js/v6-night.js             Night Watch mini-game (match star-chart constellations in the night sky)
 js/v6-badges.js            badge audit: duplicates retired, own icons, running / workout / Dream Battle badges
 js/v6-looks.js             themes (THEMES map, Settings swatches), the onboarding chamber, the Shadow Keep (title + Kingdom)
