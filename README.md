@@ -30,6 +30,7 @@ js/v6-pixel.js             pixel-art standard: design tokens, panel/HUD classes,
 js/v6-emoji.js             every emoji the app shows drawn as pixel art (hand-drawn icon or the emoji pixelated)
 js/v6-provisions.js        Nutrition & Hydration as one page (the Provisions Hall): 'food' and 'water' are its two halves
 js/v6-stairs.js            the Stairs page: casual climbing (GPS + by hand), stair workout (heart rate before/after with f, T, ω of the pulse, calorie estimate, our project's VO₂ / kJ method), the Group 14 measured-stairways table, running (with calories burned, js/v6-running.js); one session model
+js/v6-conditions.js        "Anything that affects your activity?": the conditions question in the registry, one rule table (quest order, stair goals behind a doctor note, pace note), st.p.conds
 js/v6-motion.js            animation settings + performance modes (High / Balanced / Performance), off-screen pause
 js/v6-particles.js         one shared canvas particle system (level-up, badges, quests)
 js/v6-insights.js          "Medius notices": insights from your own baselines and trends
@@ -79,6 +80,9 @@ manifest.webmanifest       web app manifest (name, colours, standalone display, 
 js/v6-help.js              contextual "?" help buttons (tap, click, keyboard; small panel with Escape / CLOSE); the moved explanations live here
 js/v6-buttons.js           button hierarchy: primary gold, quiet secondary with a visible edge in dark themes, clear disabled/hover/focus states, LOG A MEAL / LOG LAST NIGHT'S SLEEP jump buttons
 js/v6-when.js              "Log for…": one shared control to log for yesterday or an earlier date and time (never the future), used by Nutrition, Water, Sleep, Stairs, Stress, BMI and the energy check-in
+js/v6-body.js              Body & Energy: BMI + daily energy + macros as one page ('bmi' and 'calc' open it at their section)
+js/v6-log.js               Settings → ALL ENTRIES grouped by day (collapsible, totals), 14-day date chips, date picker, category filter
+js/v6-hall.js              usability: one shared 3-line header (what this is / what to enter / why) on every tracker, Health Hall tiles with today's value and the one input, a Next step line, example lines under empty inputs
 js/v6-safety.js            an error card instead of a blank screen
 assets/img/                the 15 images that were embedded as base64 in the original (the PNG art re-encoded as lossless WebP)
 assets/icons/              app icons (original pixel art, drawn by tools/make-icons.mjs)

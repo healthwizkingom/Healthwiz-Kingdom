@@ -7,7 +7,7 @@ const emp=(a,b)=>'<div class="empty"><b>'+a+'</b><small>'+b+'</small></div>';
 const QD=d=>{const ms=new Set(A('food',d).map(x=>x.m.meal)).size;return[
 {e:'💧',n:'Water quest',t:'Drink 500 ml',p:Math.min(1,wt(d)/500),v:'water',x:20},
 {e:'🍗',n:'Nutrition quest',t:'Log 2 meals',p:Math.min(1,ms/2),v:'food',x:20},
-{e:'🧗',n:'Activity quest',t:'Finish one stair session',p:A('stair',d).length?1:0,v:'stair',x:20},
+{e:'🧗',n:'Activity quest',t:'Finish one stair session',p:A('stair',d).length||(typeof HWCond!=='undefined'&&HWCond.moveDone(d))?1:0,v:'stair',x:20},
 {e:'🧠',n:'Mind quest',t:'Stress check-in or Wizard\'s Counsel',p:A('stress',d).length||(st.qd||{})[d]?1:0,v:'stress',x:20},
 {e:'🌙',n:'Recovery quest',t:'Log last night\'s sleep',p:A('sleep',d).length?1:0,v:'sleep',x:20}]};
 const advp=d=>Math.round(avg(QD(d).map(q=>q.p))*100);
@@ -67,7 +67,7 @@ function render(){if(S.v==='welcome'){document.body.classList.add('wel');$('#mai
 const par=PAR[S.v]||S.v;$('#nav').innerHTML=NAV.map(n=>'<button class="'+(par===n[0]?'on':'')+'" data-a="go" data-v="'+n[0]+'"><span class="ni">'+n[1]+'</span>'+n[2]+'</button>').join('');
 let top;if(S.v==='home'){document.body.style.setProperty('--tint',BN.home[3]);top=''}else top=hdr()+ban();
 const bk=PAR[S.v]?'<button class="g sm back" data-a="go" data-v="'+PAR[S.v]+'">◀ BACK TO '+NAV.find(n=>n[0]===PAR[S.v])[2].toUpperCase()+'</button>':'';
-$('#main').innerHTML='<div class="pg tr-'+S.v+'">'+top+bk+pages[S.v]()+'<p class="dis">'+(DIS[S.v]||DIS.home)+'<br>Turn Your Health Into an Adventure.</p></div>';if(S.v==='pulse')ecg();if(S.v==='sleep')slInit();if(S.v==='bmi')INP.bmi();if(S.v==='calc')calcOut();chkB();musSync()}
+$('#main').innerHTML='<div class="pg tr-'+S.v+'">'+top+bk+pages[S.v]()+'<p class="dis">'+(DIS[S.v]||DIS.home)+'<br>Turn Your Health Into an Adventure.</p></div>';if(S.v==='pulse')ecg();if(S.v==='sleep')slInit();if(S.v==='bmi')INP.bmi();if(S.v==='calc')calcOut();if(S.v==='body')INP.be();chkB();musSync()}
 
 function go(v){if(v==='tut'){TUT.start();return}if(v==='home'&&S.v==='welcome'&&needOnb())v='onb';if(v==='onb'&&S.v!=='onb')S.ob=null;if(S.shp&&!S.shp.done){shStop();S.shp=null}const f=S.v==='welcome'&&v==='home'&&!TUT.seen();clearInterval(S.tm);S.pb.on=0;S.v=v;render();window.scrollTo(0,0);if(f)setTimeout(TUT.start,400)}
 const WIZ='assets/img/wiz.webp';

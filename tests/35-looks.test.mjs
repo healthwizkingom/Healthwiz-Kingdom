@@ -58,7 +58,7 @@ test('onboarding chamber: runes light per step, burst and chime at the end, few 
   await page.click('[data-a="obsex"][data-v="f"]'); assert.equal(await lit(), 3);
   await page.fill('#obi', '160'); await page.click('[data-a="obn"]');
   await page.fill('#obi', '55'); await page.click('[data-a="obn"]');
-  await page.click('[data-a="obact"]'); assert.equal(await lit(), 6, 'review: all six steps done');
+  await page.click('[data-a="obact"]'); assert.equal(await lit(), 6, 'all six steps done (the optional conditions question follows)'); await page.click('[data-a="cdnext"]');
   const moving = await page.evaluate(() => [...document.querySelectorAll('.v6obc, .v6obc *, .v6rc, .v6rc *')].filter(e => getComputedStyle(e).animationName !== 'none').length);
   assert.ok(moving > 0 && moving < 30, 'animated elements: ' + moving);
   // the form card keeps its own parchment colours: dark text on a light scroll in every theme

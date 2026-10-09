@@ -145,4 +145,19 @@ let enter=null;
 acts.acskip=()=>enter();
 acts.aconb=()=>open(()=>{if(S.v==='onb')enter()});
 
+/* ---------- the tutorial after signing in ----------
+   The tutorial normally starts from the end of the Traveller's Registry (acts.obgo in js/hw-05-v5-4-module.js) or the first time the title
+   screen is left. An email link (or a Google redirect) reloads the page, so a new user who sealed the registry and then signed in lands back
+   on the title screen with that moment already gone: no tutorial, and no way to know it exists. So, once per sign-in on a device that has not
+   shown it (TUT.seen() is false) and has finished the registry, it starts on the Home screen as soon as the page is ready. It waits
+   while the first-sign-in KEEP / MERGE choice, the sign-in sheet or a sync is open or running, so it never starts on top of them.
+   Someone who has not finished the registry is left alone (the registry starts it at its end), and a returning user is never shown it again
+   (TUT marks itself seen when it ends or is skipped). */
+{let want=0,timer=0,n=0;
+  const busy=()=>{const s=C.status();return !!C.choice()||s.phase==='choose'||s.phase==='sync'||A!==null||!(D.getElementById('mo')||{hidden:true}).hidden||document.querySelector('.bpop:not(.out)')};
+  function go2(){if(!want)return;if(TUT.seen()){want=0;return}if(++n>240){want=0;return} // about two minutes of waiting at most
+    if(S.v==='onb'||!st.s.onb){want=0;return}   // new user still in the registry: it starts the tutorial itself
+    if(busy())return;want=0;clearInterval(timer);timer=0;if(!document.getElementById('tut'))TUT.start()}
+  HWEvents.on('cloud:signed-in',()=>{if(TUT.seen())return;want=1;n=0;clearInterval(timer);timer=setInterval(go2,500)});
+}
 return{open,card,choose,get sheet(){return A?A.step:null}}})();

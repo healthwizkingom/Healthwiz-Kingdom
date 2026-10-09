@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { openApp, closeBrowser, go, state } from './helpers.mjs';
+import { openApp, closeBrowser, go, state, fillSteps } from './helpers.mjs';
 
 after(closeBrowser);
 const PAGES = ['home', 'health', 'quests', 'kingdom', 'set', 'food', 'water', 'sleep', 'pulse', 'stair', 'stress', 'bmi', 'calc', 'stats', 'guide', 'badges'];
@@ -71,14 +71,14 @@ test('sleep, stair workout (heart rate), casual stairs and BMI save with their v
   await page.click('[data-a="slsave"]');
   await go(page, 'pulse'); // the old Pulse route opens the Workout on the Stairs page
   await page.selectOption('#wk-loc', 'ST20');
-  await page.fill('#wk-s', '10'); await page.fill('#wk-c', '2');
+  await fillSteps(page, '#wk-s', '10'); await page.fill('#wk-c', '2');
   await page.fill('#wk-b', '300');
   await page.click('[data-a="stwsave"]');
   await page.fill('#wk-b', '72');
   await page.click('[data-a="stwsave"]');
   await go(page, 'stair');
   await page.click('.sqlist .chip >> nth=0');
-  await page.fill('#ss', '12');
+  await fillSteps(page, '#ss', '12');
   await page.fill('#sc', '2');
   await page.click('[data-a="savestair"]');
   await go(page, 'bmi');
@@ -104,7 +104,7 @@ test('entries: edit, delete and undo', async () => {
   const { page, ctx, errors } = await openApp();
   await go(page, 'stair');
   await page.click('.sqlist .chip >> nth=0');
-  await page.fill('#ss', '10'); await page.fill('#sc', '7');
+  await fillSteps(page, '#ss', '10'); await page.fill('#sc', '7');
   await page.click('[data-a="savestair"]');
   await page.click('#stlog [data-a="edit"]');
   await page.fill('#ev', '75');
@@ -122,7 +122,7 @@ test('backup round trip: download, erase (two taps), restore from file', async (
   const { page, ctx, errors } = await openApp();
   await go(page, 'stair');
   await page.click('.sqlist .chip >> nth=0');
-  await page.fill('#ss', '10'); await page.fill('#sc', '7');
+  await fillSteps(page, '#ss', '10'); await page.fill('#sc', '7');
   await page.click('[data-a="savestair"]');
   await go(page, 'set');
   const [dl] = await Promise.all([page.waitForEvent('download'), page.click('[data-a="expj"]')]);

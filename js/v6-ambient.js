@@ -23,7 +23,7 @@
    bars, a clearer current tab, and clickable tiles that lift on hover. Badge cards put the date on its own line and stay
    opaque, and at most three toasts show at once. */
 const HWAmbient=(()=>{
-const THEME={home:'meadow',health:'meadow',bmi:'meadow',calc:'meadow',stats:'meadow',set:'meadow',
+const THEME={home:'meadow',health:'meadow',bmi:'meadow',calc:'meadow',body:'meadow',stats:'meadow',set:'meadow',
   food:'water',water:'water',sleep:'night',stair:'mountain',pulse:'mountain',run:'mountain',stress:'forest',
   quests:'hall',badges:'hall',guide:'hall',kingdom:'hall'};
 const W=320;

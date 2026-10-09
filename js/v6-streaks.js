@@ -25,9 +25,9 @@ const comebacks=()=>{const D=dys();let c=0;for(let i=1;i<D.length;i++)if((new Da
 
 /* ---------- feature discovery (persisted first visits) ---------- */
 const ex=()=>(st.ex=st.ex&&typeof st.ex==='object'?st.ex:{p:{}},st.ex.p=st.ex.p||{},st.ex);
-const FEAT=['stats','guide','kingdom','badges','calc','health'];
+const FEAT=['stats','guide','kingdom','badges','body','health'];
 HWEvents.on('page:viewed',e=>{if(FEAT.indexOf(e.view)>=0&&!ex().p[e.view]){ex().p[e.view]=today();save()}});
-const found=()=>FEAT.filter(v=>ex().p[v]).length;
+const found=()=>FEAT.filter(v=>ex().p[v]||(v==='body'&&ex().p.calc)).length; // 'calc' (Energy Forge) is now the Body & Energy page
 
 /* ---------- achievements (into the original badge system) ---------- */
 const fq=()=>Object.values((st.q6||{}).f||{}).filter(x=>x&&x.done).length;
