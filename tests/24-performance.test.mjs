@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { openApp, closeBrowser, go, state, RETURNING, yearOfLogs } from './helpers.mjs';
+import { openApp, closeBrowser, go, state, RETURNING, yearOfLogs, fillSteps } from './helpers.mjs';
 
 after(closeBrowser);
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -98,7 +98,7 @@ test('storage full: superseded upgrade copies are freed first; if that is not en
   await page.waitForSelector('.wl');
   await go(page, 'stair');
   await page.click('.sqlist .chip >> nth=0');
-  const log = async n => { await page.fill('#ss', String(n)); await page.fill('#sc', '1'); await page.click('[data-a="savestair"]'); };
+  const log = async n => { await fillSteps(page, '#ss', String(n)); await page.fill('#sc', '1'); await page.click('[data-a="savestair"]'); };
   // A: "full" until the pre-upgrade copy is gone → freed, retried, saved, no warning
   await page.evaluate(() => {
     localStorage.setItem('healthwiz_backup_pre-v8_1', 'old copy'); localStorage.setItem('healthwiz_backup_cloud_2', 'keep me');

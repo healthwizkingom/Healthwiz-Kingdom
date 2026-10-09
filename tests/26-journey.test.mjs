@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { openApp, closeBrowser, go, state, yearOfLogs } from './helpers.mjs';
+import { openApp, closeBrowser, go, state, yearOfLogs, fillSteps } from './helpers.mjs';
 
 after(closeBrowser);
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -74,8 +74,8 @@ test('a new adventurer’s first day on a phone, end to end, with zero console e
   await go(page, 'food'); await page.fill('#q', 'roti canai'); await page.tap('#fl .it'); await page.tap('[data-a="addfood"]');
   await go(page, 'sleep'); await page.fill('#slb', '23:00'); await page.fill('#slw', '07:00'); await page.tap('[data-a="slsave"]');
   await go(page, 'pulse'); await page.selectOption('#wk-loc', 'ST03'); await page.fill('#wk-b', '72'); await page.fill('#wk-a', '118');
-  await page.fill('#wk-s', '12'); await page.fill('#wk-c', '3'); await page.fill('#wk-d', '5'); await page.tap('[data-a="stwsave"]');
-  await go(page, 'stair'); await page.tap('.sqlist .chip >> nth=0'); await page.fill('#ss', '12'); await page.fill('#sc', '2'); await page.tap('[data-a="savestair"]');
+  await fillSteps(page, '#wk-s', '12'); await page.fill('#wk-c', '3'); await page.fill('#wk-d', '5'); await page.tap('[data-a="stwsave"]');
+  await go(page, 'stair'); await page.tap('.sqlist .chip >> nth=0'); await fillSteps(page, '#ss', '12'); await page.fill('#sc', '2'); await page.tap('[data-a="savestair"]');
   await go(page, 'bmi'); await page.fill('#bh', '160'); await page.fill('#bw', '52'); await page.tap('[data-a="savebmi"]');
   await go(page, 'home'); await page.tap('[data-a="ener"][data-i="4"]');
   await go(page, 'stair'); await page.tap('#stlog [data-a="edit"]'); await page.fill('#ev', '74'); await page.tap('[data-a="esave"]');

@@ -1,7 +1,7 @@
 // Contextual "?" help (js/v6-help.js) and backdated logging (js/v6-when.js).
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { openApp, closeBrowser, go, RETURNING, state, entry, daysAgo } from './helpers.mjs';
+import { openApp, closeBrowser, go, RETURNING, state, entry, daysAgo, fillSteps } from './helpers.mjs';
 
 after(closeBrowser);
 const boot = async (view, o = {}) => { const r = await openApp(o); await r.page.waitForSelector('.wl'); if (view) await go(r.page, view); return r; };
@@ -264,7 +264,7 @@ test('stairs by hand: backdated climb; workout for yesterday; a workout with dev
   const { page, ctx, errors } = await boot('stair');
   await page.click('[data-a="cat"][data-c="MODERATE"]');
   await page.click('.sqlist .chip >> nth=0');
-  await page.fill('#ss', '10'); await page.fill('#sc', '3');
+  await fillSteps(page, '#ss', '10'); await page.fill('#sc', '3');
   await openWhen(page, '#stman'); await page.click('#stman [data-hww="yest"]');
   await page.click('[data-a="savestair"]');
   let s = await state(page);
@@ -273,7 +273,7 @@ test('stairs by hand: backdated climb; workout for yesterday; a workout with dev
   // workout for yesterday
   await page.selectOption('#wk-loc', { index: 1 });
   await page.fill('#wk-b', '70'); await page.fill('#wk-a', '120');
-  await page.fill('#wk-s', '12'); await page.fill('#wk-c', '2'); await page.fill('#wk-d', '8');
+  await fillSteps(page, '#wk-s', '12'); await page.fill('#wk-c', '2'); await page.fill('#wk-d', '8');
   await openWhen(page, '#stseal'); await page.click('#stseal [data-hww="yest"]'); await page.fill('#stseal [data-hww-in="t"]', '17:30');
   await page.click('[data-a="stwsave"]');
   s = await state(page);

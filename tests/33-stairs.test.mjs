@@ -3,7 +3,7 @@
 // no pulse entries, no demo stairway, no invented numbers.
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { openApp, closeBrowser, go, RETURNING, state, entry } from './helpers.mjs';
+import { openApp, closeBrowser, go, RETURNING, state, entry, fillSteps } from './helpers.mjs';
 
 after(closeBrowser);
 const AT_ST20 = { latitude: 5.35202, longitude: 100.53838, accuracy: 12 };
@@ -51,16 +51,16 @@ test('one page, three sections in order; Pulse and Running are no longer separat
 
 test('casual climb by hand: needs a stairway and valid counts, saves one unified session, no pulse entry', async () => {
   const { page, ctx, errors } = await boot();
-  await page.fill('#ss', '12'); await page.fill('#sc', '2');
+  await fillSteps(page, '#ss', '12'); await page.fill('#sc', '2');
   await page.click('[data-a="savestair"]');
   assert.equal((await state(page)).e.length, 0, 'no stairway chosen: nothing saved, nothing invented');
   await page.click('[data-a="cat"][data-c="MODERATE"]');
   await page.click('.sqlist .chip:has-text("penjana elektrik")');
   assert.match(await page.textContent('.stloc'), /penjana elektrik[\s\S]*Moderate[\s\S]*5\.35199/);
-  await page.fill('#ss', '0'); await page.click('[data-a="savestair"]');
+  await fillSteps(page, '#ss', '0'); await page.click('[data-a="savestair"]');
   assert.equal((await state(page)).e.length, 0, 'invalid counts rejected');
-  await page.fill('#ss', '12'); await page.fill('#sc', '2');
-  assert.equal(await page.textContent('#tot'), '24');
+  await fillSteps(page, '#ss', '12'); await page.fill('#sc', '2');
+  assert.match(await page.textContent('#tot'), /12 steps × 2 climbs = 24 steps/);
   await page.click('#stman .hwwb'); await page.fill('#stman [data-hww-in="d"]', '2026-09-30'); await page.fill('#stman [data-hww-in="t"]', '07:15');
   await page.click('[data-a="savestair"]');
   const s = await state(page), e = s.e[0];
@@ -119,7 +119,7 @@ test('workout: timer, heart rate before and after (two traces), calorie estimate
   assert.equal(await page.getAttribute('#st-tr-a', 'data-bpm'), '130');
   assert.ok(await lit(page, 'st-tr-b') > 50 && await lit(page, 'st-tr-a') > 50, 'both traces drawn');
   assert.match(await page.textContent('#st-delta'), /72[\s\S]*130[\s\S]*\+58/);
-  await page.fill('#wk-s', '30'); await page.fill('#wk-c', '3'); await page.fill('#wk-d', '8');
+  await fillSteps(page, '#wk-s', '30'); await page.fill('#wk-c', '3'); await page.fill('#wk-d', '8');
   // RETURNING profile (onboarding done): 60 kg, 165 cm, 16 y, male. BMR = 600 + 1031.25 − 80 + 5 = 1556.25 kcal/day
   // A = 9.3 MET × 1556.25/1440 × 8 = 80.4; B (Keytel, HR 130) = (−55.0969 + 82.017 + 11.928 + 3.2272)/4.184 × 8 = 80.5
   const kc = await page.textContent('#wk-kcal');
@@ -160,7 +160,7 @@ test('missing data: no confirmed profile asks for it (no defaults used); invalid
   assert.match(await page.textContent('#wk-kcal'), /≈ 63[\s\S]*kcal/);
   assert.doesNotMatch(await page.textContent('#wk-kcal'), /range|under-18s/);
   await page.selectOption('#wk-loc', 'ST03');
-  await page.fill('#wk-s', '10'); await page.fill('#wk-c', '1');
+  await fillSteps(page, '#wk-s', '10'); await page.fill('#wk-c', '1');
   await page.fill('#wk-a', '400');
   await page.click('[data-a="stwsave"]');
   assert.equal(stairs(await state(page)).length, 0, '400 BPM rejected');
@@ -279,7 +279,7 @@ test('project method: VO2 and kJ appear only with both heart rates and a profile
   assert.match(await page.textContent('#wk-kcal'), /ESTIMATED ENERGY USED[\s\S]*OUR PROJECT'S METHOD/, 'the MET + Keytel estimate stays, the project method sits beside it');
   assert.deepEqual(await page.evaluate(() => { const v = HWStairs.projectVO2({ hrB: 72, hrA: 130, dur: 8 }); return [v.ml, v.lmin, v.kj, v.kcal].map(x => +x.toFixed(4)); }), [27.625, 1.6575, 266.526, 63.7012]);
   assert.equal(await page.evaluate(() => HWStairs.projectVO2({ hrB: 72, hrA: 130, dur: 8 }, null)), null, 'no profile: nothing');
-  await page.fill('#wk-s', '30'); await page.fill('#wk-c', '3');
+  await fillSteps(page, '#wk-s', '30'); await page.fill('#wk-c', '3');
   await page.click('[data-a="stwsave"]');
   const e = stairs(await state(page))[0];
   assert.equal(JSON.stringify(e.m).includes('27.6'), false, 'the project value is not saved');

@@ -87,9 +87,9 @@ const STUDY=[{k:'A',n:'Generator stairs',id:'ST20',rise:.169,run:.311,hyp:.354,t
 
 /* ---------- page state (memory; the workout draft also survives a refresh of this tab) ---------- */
 let pick=null; // id of the stairway the user chose (or checked in at); nothing is pre-selected
-const C={steps:'',climbs:'',d:'',t:''};
+const C={steps:'',climbs:'',d:'',t:'',r:null};
 // hrBd/hrAd: that number came from the device; cLo/cAv/cHi: climb heart rate (cSet: typed in, cDev: recorded, cl: running tally)
-const W0=()=>({hrB:'',hrA:'',steps:'',climbs:'',dur:'',durSet:0,ms:0,since:null,hrBd:0,hrAd:0,cLo:'',cAv:'',cHi:'',cSet:0,cDev:0,cl:null});
+const W0=()=>({hrB:'',hrA:'',steps:'',climbs:'',r:null,dur:'',durSet:0,ms:0,since:null,hrBd:0,hrAd:0,cLo:'',cAv:'',cHi:'',cSet:0,cDev:0,cl:null});
 let W=(()=>{try{const o=JSON.parse(sessionStorage.getItem(DK)||'null');return isO(o)?Object.assign(W0(),o,{since:null}):W0()}catch(e){return W0()}})();
 const keepW=()=>{try{sessionStorage.setItem(DK,JSON.stringify(W))}catch(e){}};
 const stair=()=>STAIRS.find(s=>s.id===pick)||null;
@@ -126,10 +126,37 @@ function study(){
   return '<div class="card stcard" id="ststudy"><details><summary><b>'+ico('chart')+' OUR MEASURED STAIRWAYS (GROUP 14 STUDY)</b></summary>'
     +'<div class="tscroll"><table class="tbl sttab"><thead><tr><th>Stairway</th><th>rise<br>(m)</th><th>run<br>(m)</th><th>hypotenuse<br>(m)</th><th>θ<br>(°)</th><th>report<br>rank</th><th>app<br>band</th></tr></thead><tbody>'+STUDY.map(row).join('')+'</tbody></table></div>'
     +'<small class="mut">Measured with tan θ = rise ÷ run. The report ranks these three stairs against each other. The app uses fixed bands for all '+STAIRS.length+' campus stairways (mild &lt; 26°, moderate 26–31.2°, vigorous &gt; 31.2°), so all three are moderate here.</small></details></div>'}
-function casual(){const tot=(+C.steps||0)*(+C.climbs||0);
+/* ---------- steps per climb as ranges, number of climbs as quick numbers ----------
+   Tap a range (its midpoint becomes the default, which can be changed in the number box) and a climb count, then save.
+   Custom opens the number box for an exact count. The saved record is unchanged: steps (1–1000) and climbs (1–500). */
+const RNG=[[1,5],[6,10],[11,15],[16,20],[21,25],[26,30],[31,40],[41,50],[51,100]],CLIMBS=[1,2,3,4,5,6,8,10];
+const mid=r=>Math.round((r[0]+r[1])/2); // 6–10 → 8; a .5 midpoint rounds up (31–40 → 36)
+const inRng=v=>RNG.findIndex(r=>v>=r[0]&&v<=r[1]);
+const CK={c:{s:'ss',c:'sc',i:'stc',t:'tot'},w:{s:'wk-s',c:'wk-c',i:'stw',t:'wk-tot'}};
+const cobj=k=>k==='w'?W:C;
+const showBox=(o)=>o.r==='c'||(o.r==null&&o.steps!=='')||(typeof o.r==='number');
+const totTxt=(s,c)=>s>0&&c>0?s+' steps × '+c+' climbs = <b>'+s*c+' steps</b>':'<span class="mut">Pick steps per climb and number of climbs to see the total.</span>';
+function counter(k){const m=CK[k],o=cobj(k),sv=+o.steps||0,cv=+o.climbs||0,v=o.steps!==''?+o.steps:null,ri=o.r==='c'?-1:v!=null?inRng(v):-1;
+  const chip=(a,t,on,x)=>'<button type="button" class="chip stchip'+(on?' on':'')+'" data-a="'+a+'" data-k="'+k+'"'+x+' aria-pressed="'+(on?'true':'false')+'">'+t+'</button>';
+  return '<div class="stcnt" id="stcnt-'+k+'"><b class="stlab" id="stl-'+k+'s">Steps per climb</b><small class="mut">Count the steps from the bottom to the top of one climb. Pick the range that fits.</small>'
+    +'<div class="stchips" role="group" aria-labelledby="stl-'+k+'s">'+RNG.map((r,i)=>chip('strng',r[0]+'–'+r[1],i===ri,' data-r="'+i+'"')).join('')+chip('strng','Custom',o.r==='c'||(v!=null&&ri<0),' data-r="c"')+'</div>'
+    +'<label class="stbox" id="'+m.s+'-w"'+(showBox(o)?'':' hidden')+'>Steps per climb <small class="mut">(change it if you counted exactly)</small><input id="'+m.s+'" data-in="'+m.i+'" type="number" min="1" max="1000" inputmode="numeric" value="'+esc(o.steps)+'"></label>'
+    +'<b class="stlab" id="stl-'+k+'c">Number of climbs</b>'
+    +'<div class="stchips" role="group" aria-labelledby="stl-'+k+'c">'+CLIMBS.map(n=>chip('stcl',String(n),cv===n,' data-n="'+n+'"')).join('')+'</div>'
+    +'<label>Or type the number of climbs<input id="'+m.c+'" data-in="'+m.i+'" type="number" min="1" max="500" inputmode="numeric" value="'+esc(o.climbs)+'"></label>'
+    +'<p class="stot" id="'+m.t+'" role="status">'+totTxt(sv,cv)+'</p></div>'}
+// in-place refresh after a tap or a typed number: keeps every other field on the page as it is
+function syncCnt(k){const m=CK[k],o=cobj(k),root=$id('stcnt-'+k);if(!root)return;const sv=+o.steps||0,cv=+o.climbs||0,v=o.steps!==''?+o.steps:null,ri=o.r==='c'?-1:v!=null?inRng(v):-1;
+  root.querySelectorAll('[data-a="strng"]').forEach(b=>{const on=b.dataset.r==='c'?(o.r==='c'||(v!=null&&ri<0)):+b.dataset.r===ri;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')});
+  root.querySelectorAll('[data-a="stcl"]').forEach(b=>{const on=+b.dataset.n===cv;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')});
+  const bx=$id(m.s+'-w');if(bx)bx.hidden=!showBox(o);[m.s,m.c].forEach(i=>{const e=$id('hwe-'+i);if(e)e.hidden=($id(i)||{}).value!==''});const t=$id(m.t);if(t)t.innerHTML=totTxt(sv,cv)}
+acts.strng=d=>{const k=d.k==='w'?'w':'c',m=CK[k],o=cobj(k),inp=$id(m.s);if(!inp)return;
+  if(d.r==='c'){o.r='c';const w=$id(m.s+'-w');if(w)w.hidden=false;syncCnt(k);inp.focus();return}
+  const r=RNG[+d.r];if(!r)return;o.r=+d.r;o.steps=String(mid(r));inp.value=o.steps;k==='w'?INP.stw(inp):INP.stc();syncCnt(k)};
+acts.stcl=d=>{const k=d.k==='w'?'w':'c',m=CK[k],o=cobj(k),inp=$id(m.c);if(!inp)return;o.climbs=String(+d.n);inp.value=o.climbs;k==='w'?INP.stw(inp):INP.stc();syncCnt(k)};
+function casual(){
   return '<div class="card stcard" id="stman"><h3>'+ico('scroll')+' LOG A CLIMB BY HAND</h3>'+picker()
-    +'<div class="row"><label>Steps per climb<input id="ss" data-in="stc" type="number" min="1" max="1000" inputmode="numeric" value="'+esc(C.steps)+'"></label><label>Number of climbs<input id="sc" data-in="stc" type="number" min="1" max="500" inputmode="numeric" value="'+esc(C.climbs)+'"></label></div>'
-    +'<p>Total: <b class="big" id="tot">'+tot+'</b> steps</p>'
+    +counter('c')
     +HWWhen.html({id:'stair',cats:['stair']})
     +btn('savestair','SAVE CLIMB','stsave')+'</div>'}
 
@@ -191,7 +218,7 @@ function workout(){const P=PACES[S.pb.pace],q=stair(),run=!!S.pb.on,ds=durW();
     +(hasHR?HWHR.panel():'')
     +'<div class="sthrs">'+trace('b',okHR(W.hrB))+trace('a',okHR(W.hrA))+'</div><p id="st-delta">'+delta()+'</p>'+climbHR()+'</div>'
     +'<div class="card stcard" id="stseal"><h3>'+ico('achievement')+' SEAL THE WORKOUT</h3>'+HWWhen.html({id:'wk',cats:['stair'],hint:'Heart rates read from a device are saved at the time they were taken, so a workout using them is saved for today.'})
-    +'<div class="row"><label>Steps per climb<input id="wk-s" data-in="stw" type="number" min="1" max="1000" inputmode="numeric" value="'+esc(W.steps)+'"></label><label>Number of climbs<input id="wk-c" data-in="stw" type="number" min="1" max="500" inputmode="numeric" value="'+esc(W.climbs)+'"></label></div>'
+    +counter('w')
     +'<label>Workout time (min)<input id="wk-d" data-in="stw" type="number" min="0.5" max="300" step="0.5" inputmode="decimal" placeholder="minutes" value="'+(ds!=null?ds:'')+'"></label><small class="mut" id="wk-dn">'+(W.durSet?'Typed in by you.':ds!=null?'From the Pace & Breathe timer.':'')+'</small>'
     +'<div id="wk-kcal">'+kcalAll()+'</div><div class="row stbtns">'+btn('stwsave','SAVE WORKOUT')+btn('stwreset','CLEAR','g')+'</div></div>'}
 
@@ -257,13 +284,13 @@ function watch(){if(hasIO){if(IOc)IOc.disconnect();IOc=new IntersectionObserver(
 /* ---------- live updates without a full render (keeps focus and typed values) ---------- */
 const $id=i=>document.getElementById(i);
 function liveKcal(){const k=$id('wk-kcal');if(k&&!k.contains(document.activeElement))k.innerHTML=kcalAll()}
-INP.stc=()=>{C.steps=$id('ss').value;C.climbs=$id('sc').value;$id('tot').textContent=(+C.steps||0)*(+C.climbs||0)};
+INP.stc=()=>{C.steps=$id('ss').value;C.climbs=$id('sc').value;syncCnt('c')};
 INP.stw=el=>{const v=k=>{const e=$id(k);return e?e.value:''},id=el&&el.id;W.hrB=v('wk-b');W.hrA=v('wk-a');W.steps=v('wk-s');W.climbs=v('wk-c');
   if(id==='wk-b')W.hrBd=0;if(id==='wk-a')W.hrAd=0; // typed over a device reading: it is the user's number now
   if($id('wk-lo')){W.cLo=v('wk-lo');W.cAv=v('wk-av');W.cHi=v('wk-hi')}
   if(id==='wk-lo'||id==='wk-av'||id==='wk-hi'){W.cSet=W.cLo+W.cAv+W.cHi!==''?1:0;W.cDev=0;const n=$id('st-cn');if(n)n.innerHTML=cNote()}
   if(el&&el.id==='wk-d'){W.dur=v('wk-d');W.durSet=W.dur!==''?1:0;const n=$id('wk-dn');if(n)n.textContent=W.durSet?'Typed in by you.':'From the Pace & Breathe timer.'}
-  keepW();['b','a'].forEach(k=>{const c=$id('st-tr-'+k),h=okHR(k==='b'?W.hrB:W.hrA),s=$id('st-hs-'+k);if(c){c.dataset.bpm=h||'';c.setAttribute('aria-label',(k==='b'?'BEFORE':'AFTER')+' WORKOUT heart rate: '+(h?h+' BPM, typed in by you':'not entered'))}
+  syncCnt('w');keepW();['b','a'].forEach(k=>{const c=$id('st-tr-'+k),h=okHR(k==='b'?W.hrB:W.hrA),s=$id('st-hs-'+k);if(c){c.dataset.bpm=h||'';c.setAttribute('aria-label',(k==='b'?'BEFORE':'AFTER')+' WORKOUT heart rate: '+(h?h+' BPM, typed in by you':'not entered'))}
     if(s)s.innerHTML=hsTxt(k,h);const pm=$id('st-pm-'+k);if(pm)pm.innerHTML=pmTxt(h)});
   const r=$id('st-rest');if(r)r.innerHTML=restTxt(okHR(W.hrB));const pk=$id('st-peak');if(pk)pk.innerHTML=peakTxt();
   const d=$id('st-delta');if(d)d.innerHTML=delta();liveKcal();draw()};
@@ -297,7 +324,7 @@ acts.savestair=()=>{INP.stc();const s=+C.steps,c=+C.climbs;
   if(!counts(s,c)){toast('Enter steps per climb (1–1000) and number of climbs (1–500)');return}
   const q=need('#stman .sqlist');if(!q)return;const w=HWWhen.stamp({sig:'k'+q.id+s+'x'+c});if(!w)return;
   add('stair',s*c,record(q,{kind:'casual',src:'manual',steps:s,climbs:c}),'',w.d,w.t,25,'Stair session');HWWhen.saved(w,'Climb');
-  C.steps=C.climbs=C.d=C.t='';render()};
+  C.steps=C.climbs=C.d=C.t='';C.r=null;render()};
 acts.stwsave=()=>{INP.stw();pause();const s=+W.steps,c=+W.climbs,b=W.hrB===''?null:okHR(W.hrB),a=W.hrA===''?null:okHR(W.hrA),dur=durW();
   if(!counts(s,c)){toast('Enter steps per climb (1–1000) and number of climbs (1–500)');return}
   if((W.hrB!==''&&!b)||(W.hrA!==''&&!a)){toast('Heart rates should be 30 to 220 BPM');return}
@@ -334,6 +361,10 @@ HWEvents.on('data:reset',()=>{pick=null;W=W0();try{sessionStorage.removeItem(DK)
 DIS.stair=DIS.pulse='General exercise pacing aid, not medical treatment. Heart rates are the numbers you counted and entered, or steady readings from your own heart-rate device that you chose to use; the trace is a picture, not an ECG, and nothing here is a diagnosis. Calorie numbers are estimates. Stop and get medical help for dizziness, chest pain, faintness or severe breathlessness.';
 
 HWUI.css('stairs',`
+.stcnt{margin:10px 0}.stlab{display:block;margin:10px 0 2px;font:9px/1.6 var(--fh)}
+.stchips{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px;margin:8px 0}
+.stchips .chip{min-height:44px;min-width:44px;padding:6px 4px;font:14px/1.2 var(--fn)}
+.stbox[hidden]{display:none}.stot{margin:8px 0;font-size:16px;overflow-wrap:anywhere}
 .sthud{margin:0 0 8px}.sthud .pxst{flex:1 1 130px}
 .ststats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:0 0 10px}
 .ststat{padding:8px 10px;background:var(--pn);border:var(--px-bw-c) solid var(--ln);display:flex;flex-direction:column;gap:2px}

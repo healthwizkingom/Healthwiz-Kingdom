@@ -85,3 +85,10 @@ export function yearOfLogs(days = 365, base = RETURNING) {
   }
   return Object.assign(JSON.parse(JSON.stringify(base)), { e, en, xd, xp: 30000 });
 }
+
+/** Fill "Steps per climb" (#ss casual, #wk-s workout): the number box is behind the Custom chip until a range is chosen. */
+export async function fillSteps(page, sel, value) {
+  const box = page.locator(sel);
+  if (!(await box.isVisible())) await page.locator(sel === '#ss' ? '#stcnt-c' : '#stcnt-w').locator('[data-a="strng"][data-r="c"]').click();
+  await box.fill(String(value));
+}

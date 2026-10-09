@@ -2,7 +2,7 @@
 // Bluetooth is a fake device (navigator.bluetooth stub); Supabase is a fake REST endpoint (page.route).
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { openApp, go, state, closeBrowser, RETURNING } from './helpers.mjs';
+import { openApp, go, state, closeBrowser, RETURNING, fillSteps } from './helpers.mjs';
 
 after(closeBrowser);
 const EMOJI = /\p{Extended_Pictographic}/u;
@@ -84,7 +84,7 @@ test('watch: connect, live pulsing heart + battery, steady reading → USE AS BE
   await page.evaluate(() => acts.pstop());
   await page.evaluate(() => window.__feed(120, 13));
   await page.click('[data-a="hruse"][data-k="a"]');
-  await page.fill('#wk-s', '20'); await page.fill('#wk-c', '3');
+  await fillSteps(page, '#wk-s', '20'); await page.fill('#wk-c', '3');
   await page.selectOption('#wk-loc', { index: 1 });
   await page.click('[data-a="stwsave"]');
   const e = (await state(page)).e.filter(x => x.c === 'stair').pop();
@@ -111,7 +111,7 @@ test('manual entry still works and is tagged manual; typing over a watch number 
   assert.equal((await page.textContent('#st-rest')).trim(), '');
   await page.fill('#wk-b', '105');
   assert.match(await page.textContent('#st-rest'), /Outside the usual resting range/);
-  await page.fill('#wk-b', '72'); await page.fill('#wk-a', '130'); await page.fill('#wk-s', '10'); await page.fill('#wk-c', '2');
+  await page.fill('#wk-b', '72'); await page.fill('#wk-a', '130'); await fillSteps(page, '#wk-s', '10'); await page.fill('#wk-c', '2');
   await page.selectOption('#wk-loc', { index: 1 });
   await page.click('[data-a="stwsave"]');
   const e = (await state(page)).e.filter(x => x.c === 'stair').pop();
