@@ -1268,3 +1268,23 @@ value on gain, level-up flows to full then refills; progressbar ARIA; static und
 **Security.** `HWSchema.cleanEntry` (load, cloud merge, backup import): entry ids, category, date, time, value, known
 numeric `m` fields and meal/kind keys must have their usual shape, closing stored-XSS sinks where these fields were
 drawn unescaped (`tests/44-comfort.test.mjs`).
+
+## Stress Quest activity collection (`js/v6-relief.js`, `tests/45-relief.test.mjs`)
+
+The "What would help you handle this?" list (five options per encounter, two of them unhelpful) is replaced by a scrollable
+collection of illustrated activity cards, shown automatically after the stress meter. `pages.stress` is wrapped (the original
+`hw-03-part.js` is unchanged): in the encounter phase the option list is swapped for the gallery; the new phase `rx` renders an
+activity's screen (back button, name, one sentence, illustration, START). Cards are CSS + inline SVG, the knight is the existing
+`kn.webp` (hidden if it fails to load); the soft rounded look is limited to this section, as asked, and uses the theme tokens.
+- **Cards:** Shake It Off (new, 40 s guided loosening-up with the knight), Empower Yourself (the original breathing exercise,
+  the orb is now a lantern glow), Arrow Focus (new, 12 rounds, no timer), Reaction Focus (new, 5 rounds, no score; tapping early
+  just waits again), Calming Sounds (new, four WebAudio soundscapes made from noise and a few notes, no audio files; background
+  music pauses and resumes; respects Settings → Sound), and the original Ground Yourself, Write It Away and Tiny Steps. The
+  Calming Grove launch card is unchanged below the collection.
+- **Mood and weather:** the original weather scene, meter and slider are untouched. `acts.sqt` (the "How do you feel now?" answer)
+  no longer moves the stress rating, so no activity changes the recorded mood or the weather; the answer is still kept as the
+  user's own report in `m.tech` (`{t, fb}`), and the end summary shows the rating as recorded.
+- **Stress data:** tech keys `breathe`, `ground`, `write`, `steps` as before, plus `shake`, `arrow`, `react`, `sound` (labels
+  added to `TN`, so "What helps you" counts them).
+- **Navigation:** every activity has ← back to the collection (also on the original tool screens and via "Back to activities");
+  leaving the page stops timers and sound and returns the quest to the collection.

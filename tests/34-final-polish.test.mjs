@@ -32,7 +32,7 @@ test('Storm Within: the knight\'s face follows the rating gradually, in words to
   await page.click('[data-a="sqe"]');
   assert.equal(await page.locator('#qsc .qs > .stk').count(), 1, 'knight is a direct part of the scene');
   assert.equal(await page.locator('#qsc .qcr .stk, #qsc .qcr .stpo').count(), 0);
-  await page.click('[data-a="sqp"][data-i="0"]'); await page.click('[data-a="sqa"]');
+  await page.click('[data-a="rxo"][data-id="lantern"]'); await page.click('[data-a="rxb"]');
   // five bands of words, two ratings each
   assert.deepEqual(seen.map(s => s.word), ['CALM', 'CALM', 'SLIGHTLY CONCERNED', 'SLIGHTLY CONCERNED', 'TENSE', 'TENSE', 'DISTRESSED', 'DISTRESSED', 'OVERWHELMED', 'OVERWHELMED']);
   assert.match(seen[9].label, /overwhelmed/);
