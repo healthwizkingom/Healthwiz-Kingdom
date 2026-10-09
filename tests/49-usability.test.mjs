@@ -84,3 +84,31 @@ test('Body & Energy: one page; bmi and calc routes open it at their section; unc
   assert.match(await fresh.page.textContent('#eout'), /does not guess/);
   assert.deepEqual(errors.concat(fresh.errors), []); await ctx.close(); await fresh.ctx.close();
 });
+
+const dAgo = n => { const x = new Date(); x.setDate(x.getDate() - n); return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); };
+const ent = (c, v, n, t, m = {}) => ({ id: c + n + t + v, c, v, m, n: '', d: dAgo(n), t });
+
+test('Settings log: grouped by day (newest first) with totals; one tap on Yesterday shows that day; date picker for older days; category filter applies; edit/delete kept', async () => {
+  const seed = { ...RETURNING, e: [ent('water', 250, 0, '08:00'), ent('water', 500, 0, '12:00'), ent('food', 500, 0, '09:00', { name: 'Roti', qty: 1, meal: 'breakfast' }),
+    ent('water', 300, 1, '10:15'), ent('food', 700, 1, '13:00', { name: 'Nasi', qty: 1, meal: 'lunch' }), ent('water', 200, 40, '09:00'), ent('pulse', 80, 0, '07:00', { st: 'Resting' })] };
+  const { page, ctx, errors } = await openApp({ ...M, seed });
+  await page.addLocatorHandler(page.locator('.bpop:not(.out)').first(), async o => { await o.click({ force: true }); });
+  await go(page, 'set');
+  assert.deepEqual(await page.$$eval('.lgd', d => d.map(x => x.dataset.d)), [dAgo(0), dAgo(1), dAgo(40)], 'newest day first; old pulse entries not listed');
+  assert.match(await page.textContent('.lgd >> nth=0 >> summary'), /3 entries · 500 kcal · 750 mL/);
+  assert.equal(await page.locator('.lgd[open]').count(), 1, 'only today is open');
+  await page.tap('.lgc >> text=Yesterday');                                    // tap 1
+  assert.equal(await page.locator('.lgd').count(), 1);
+  const water = page.locator('.lgd .er', { hasText: 'Water' });
+  assert.equal(await water.count(), 1); assert.match(await water.textContent(), /10:15/, 'time shown');
+  assert.equal(await water.locator('[data-a="edit"],[data-a="del"]').count(), 2, 'edit and delete kept');
+  await page.selectOption('select[data-ch="fc"]', 'food');                       // the filter applies to the chosen day
+  assert.equal(await page.locator('.lgd .er').count(), 1);
+  await page.selectOption('select[data-ch="fc"]', 'all');
+  await page.fill('input[data-ch="lgpick"]', dAgo(40));                         // an older day with no chip
+  assert.deepEqual(await page.$$eval('.lgd', d => d.map(x => x.dataset.d)), [dAgo(40)]);
+  await page.tap('.lgc >> text=All days');
+  assert.equal(await page.locator('.lgd').count(), 3);
+  assert.ok(await noScroll(page));
+  assert.deepEqual(errors, []); await ctx.close();
+});
