@@ -55,7 +55,7 @@ function plan(){const R=ids().map(i=>RULES[i]),cu=custom(),hide=R.some(r=>r.stai
   const changed=R.filter(r=>r.up.length||r.stairs||r.cap);
   return{active:R.length>0,custom:cu,rules:R,hide,cap:caps[0]||null,score,changed,
     why:R.length?'Sorted for you: '+[...new Set(R.map(r=>r.note))].join(', ')+', because you chose '+R.map(r=>r.label.toLowerCase()).join(' and ')+'.':''}}
-const stairsHidden=()=>plan().hide;
+const stairsHidden=()=>{const c=st.p&&st.p.conds;return Array.isArray(c)&&c.length>0&&c.some(i=>RULES[i]&&RULES[i].stairs==='doctor')}; // cheap: QD() asks this for every day it draws
 const blocked=area=>stairsHidden()&&(area==='stair'||area==='pulse'); // focus/weekly quests that need a stair session
 const moveDone=d=>stairsHidden()&&!!(st.qa||{})[d||today()];
 const stairsOpen=()=>!!(st.qa&&st.qa.show);
