@@ -277,7 +277,7 @@ test('project method: VO2 and kJ appear only with both heart rates and a profile
   // 15.3 × 130/72 = 27.625 mL/kg/min; × 60 kg ÷ 1000 = 1.6575 L/min; × 8 min × 20.1 = 266.5 kJ; ÷ 4.184 = 63.7 kcal
   assert.match(await page.textContent('.stproj'), /Energy released ≈ 267 kJ \(64 kcal\) in 8 min[\s\S]*VO₂ = 15\.3 × after ÷ before · energy = VO₂ × time × 20\.1 kJ\/L[\s\S]*Uth et al\., 2004[\s\S]*not a true maximum, so this is rough/);
   assert.match(await page.textContent('#wk-kcal'), /ESTIMATED ENERGY USED[\s\S]*OUR PROJECT'S METHOD/, 'the MET + Keytel estimate stays, the project method sits beside it');
-  assert.deepEqual(await page.evaluate(() => { const v = HWStairs.projectVO2({ hrB: 72, hrA: 130, dur: 8 }); return [v.ml, v.lmin, v.kj, v.kcal].map(x => +x.toFixed(4)); }), [27.625, 1.6575, 266.5256, 63.701]);
+  assert.deepEqual(await page.evaluate(() => { const v = HWStairs.projectVO2({ hrB: 72, hrA: 130, dur: 8 }); return [v.ml, v.lmin, v.kj, v.kcal].map(x => +x.toFixed(4)); }), [27.625, 1.6575, 266.526, 63.7012]);
   assert.equal(await page.evaluate(() => HWStairs.projectVO2({ hrB: 72, hrA: 130, dur: 8 }, null)), null, 'no profile: nothing');
   await page.fill('#wk-s', '30'); await page.fill('#wk-c', '3');
   await page.click('[data-a="stwsave"]');

@@ -124,7 +124,7 @@ function picker(){const q=stair();
 function study(){
   const row=r=>{const q=STAIRS.find(x=>x.id===r.id);return '<tr><td>'+r.k+' · '+esc(r.n)+' <small class="mut">('+r.id+')</small></td><td>'+r.rise.toFixed(3)+'</td><td>'+r.run.toFixed(3)+'</td><td>'+r.hyp.toFixed(3)+'</td><td>'+r.th.toFixed(2)+'</td><td>'+r.rank+'</td><td>'+CATN[bandOf(q?q.angle:r.th)]+'</td></tr>'};
   return '<div class="card stcard" id="ststudy"><details><summary><b>'+ico('chart')+' OUR MEASURED STAIRWAYS (GROUP 14 STUDY)</b></summary>'
-    +'<div class="tscroll"><table class="tbl sttab"><thead><tr><th>Stairway</th><th>rise (m)</th><th>run (m)</th><th>hypotenuse (m)</th><th>θ (°)</th><th>report rank</th><th>app band</th></tr></thead><tbody>'+STUDY.map(row).join('')+'</tbody></table></div>'
+    +'<div class="tscroll"><table class="tbl sttab"><thead><tr><th>Stairway</th><th>rise<br>(m)</th><th>run<br>(m)</th><th>hypotenuse<br>(m)</th><th>θ<br>(°)</th><th>report<br>rank</th><th>app<br>band</th></tr></thead><tbody>'+STUDY.map(row).join('')+'</tbody></table></div>'
     +'<small class="mut">Measured with tan θ = rise ÷ run. The report ranks these three stairs against each other. The app uses fixed bands for all '+STAIRS.length+' campus stairways (mild &lt; 26°, moderate 26–31.2°, vigorous &gt; 31.2°), so all three are moderate here.</small></details></div>'}
 function casual(){const tot=(+C.steps||0)*(+C.climbs||0);
   return '<div class="card stcard" id="stman"><h3>'+ico('scroll')+' LOG A CLIMB BY HAND</h3>'+picker()
@@ -351,7 +351,7 @@ HWUI.css('stairs',`
 .sthrh{display:flex;align-items:center;gap:6px;margin-bottom:6px}.sthrh b{font:var(--px-f1)/1.6 var(--fh)}
 .stpm{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:4px 0 6px;font-size:13px}.stpm small{font-size:13px;overflow-wrap:anywhere}
 #ststudy summary{cursor:pointer;min-height:44px;display:flex;align-items:center}#ststudy summary b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fh)}
-#ststudy .tbl{min-width:560px}#ststudy th,#ststudy td{text-align:left}
+#ststudy .tbl{min-width:0;width:100%;table-layout:fixed;font:11px/1.3 var(--fb)}#ststudy th,#ststudy td{text-align:left;padding:4px 2px;vertical-align:top}#ststudy td+td{white-space:nowrap}#ststudy th{font:600 9px/1.3 var(--fb);color:var(--mut);overflow-wrap:anywhere}#ststudy th:nth-child(1){width:17%}#ststudy th:nth-child(2),#ststudy th:nth-child(3){width:11%}#ststudy th:nth-child(5){width:10%}#ststudy th:nth-child(4){width:21%}#ststudy th:nth-child(6),#ststudy th:nth-child(7){width:16%}
 .sttr{width:100%;height:120px;display:block;border:3px solid var(--ln);image-rendering:pixelated}
 .stkc{margin:10px 0;padding:10px;border:var(--px-bw-c) dashed var(--ln);background:var(--p2)}.stkc>b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fh)}.stkc p{margin:6px 0}
 .sthrsvg{width:100%;max-width:560px;height:auto;display:block;shape-rendering:crispEdges}.sthrsvg text{font:9px var(--fb);fill:var(--mut)}
