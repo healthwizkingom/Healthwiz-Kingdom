@@ -42,7 +42,10 @@ test('fruit & veg portions come from the nutrition log (80 g a portion, dried fr
   assert.ok(Math.abs(L.reduce((a, x) => a + x.portions, 0) - want) < 1e-9);
   const sub = await page.evaluate(() => HWScore.compute().I.fv.sub);
   assert.ok(Math.abs(sub - want / 5 * 100) < 1e-9);
-  assert.match(await page.textContent('#main'), /FRUIT & VEGETABLES TODAY[\s\S]*Epal Merah[\s\S]*Sayur Campur/);
+  assert.equal(await page.locator('#ffv').count(), 0, 'the card moved to Nutrition');
+  await go(page, 'food');
+  assert.match(await page.textContent('#ffv'), /FRUIT & VEGETABLES TODAY[\s\S]*Epal Merah[\s\S]*Sayur Campur/);
+  await go(page, 'score');
   assert.equal(await page.locator('[data-a="fvup"], [data-a="fvdn"], #main [data-a="go"]:not([data-v="health"])').count(), 0, 'no buttons to log from this page');
   assert.deepEqual(errors, []); await ctx.close();
 });
@@ -50,7 +53,8 @@ test('fruit & veg portions come from the nutrition log (80 g a portion, dried fr
 test('no fruit or veg logged: the indicator is left out, not zero', async () => {
   const { page, ctx, errors } = await boot(RETURNING);
   assert.equal(await page.evaluate(() => HWScore.compute().I.fv), null);
-  assert.match(await page.textContent('#main'), /No fruit or vegetables in today's nutrition log yet/);
+  await go(page, 'food');
+  assert.match(await page.textContent('#ffv'), /0 of 5 portions[\s\S]*None logged today yet/);
   assert.deepEqual(errors, []); await ctx.close();
 });
 

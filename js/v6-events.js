@@ -50,7 +50,7 @@ const wrapAct=(k,f)=>{const o=acts[k];if(o)acts[k]=function(d,t,e){return f(o,d,
 wrapAct('esave',(o,d,t,e)=>{const x=st.e.find(y=>y.id===S.ed),b=x&&clone(x);return E.cause(()=>o(d,t,e),()=>{const a=b&&st.e.find(y=>y.id===b.id);return a&&JSON.stringify(a)!==JSON.stringify(b)?[['entry:edited',{entry:clone(a),before:b}]]:[]})});
 wrapAct('del',(o,d,t,e)=>{const x=st.e.find(y=>y.id===d.id),b=x&&clone(x);return E.cause(()=>o(d,t,e),()=>b&&!st.e.some(y=>y.id===b.id)?[['entry:deleted',{entry:b}]]:[])});
 wrapAct('undo',(o,d,t,e)=>{const u=UD&&clone(UD);return E.cause(()=>o(d,t,e),()=>u&&!UD&&st.e.some(y=>y.id===u.id)?[['entry:restored',{entry:u}]]:[])});
-wrapAct('ener',(o,d,t,e)=>{const k=today(),had=!!(st.en&&st.en[k]);return E.cause(()=>o(d,t,e),()=>st.en&&st.en[k]?[['energy:rated',{value:st.en[k].v,first:!had,date:k}]]:[])});
+wrapAct('ener',(o,d,t,e)=>{const k=typeof HWWhen!=='undefined'?HWWhen.date():today(),had=!!(st.en&&st.en[k]);return E.cause(()=>o(d,t,e),()=>st.en&&st.en[k]?[['energy:rated',{value:st.en[k].v,first:!had,date:k}]]:[])});
 // bulk changes: update baselines silently so old awards are not re-announced
 wrapAct('impm',(o,d,t,e)=>{const n0=st.e.length,had=!!S.imp;E.hush(()=>o(d,t,e));snap();if(had&&!S.imp)E.emit('data:imported',{mode:'merge',added:st.e.length-n0,total:st.e.length})});
 wrapAct('impr',(o,d,t,e)=>{const s0=st;E.hush(()=>o(d,t,e));snap();if(st!==s0)E.emit('data:imported',{mode:'replace',added:st.e.length,total:st.e.length})});

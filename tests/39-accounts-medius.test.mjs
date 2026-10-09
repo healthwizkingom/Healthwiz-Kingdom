@@ -52,7 +52,8 @@ test('Wizard\'s Counsel signed out: the study and the breathing bubble, "Sign in
   await go(page, 'stress');
   let t = await page.textContent('#counsel');
   assert.match(t, /If you might be in danger[\s\S]*999[\s\S]*03-7627 2929[\s\S]*15999/, 'crisis numbers before entering the study');
-  assert.match(t, /Messages are processed by Google Gemini to generate Medius's replies and are not saved by HealthWiz\./);
+  assert.match(t, /Medius is an AI listener, not a therapist or crisis service\./);
+  await page.click('#counsel .hwh[data-hwh="medpriv"]'); assert.match(await page.textContent('#hwh-pop'), /Messages are processed by Google Gemini to generate Medius's replies and are not saved by HealthWiz\./); await page.keyboard.press('Escape');
   await page.click('[data-a="csgo"]');
   assert.equal(await page.locator('#cnbub').count(), 1, 'the breathing bubble works');
   await page.click('[data-a="csskip"]');

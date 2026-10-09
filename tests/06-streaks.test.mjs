@@ -31,7 +31,9 @@ test('quest board shows the consistency card with gentle wording and a week view
   await go(page, 'quests');
   const t = await page.textContent('#v6streak');
   assert.match(t, /Current streak3/);
-  assert.match(t, /Rest days are part of the journey/);
+  assert.doesNotMatch(t, /Rest days are part of the journey/, 'moved behind the ? button');
+  await page.click('#v6streak .hwh');
+  assert.match(await page.textContent('#hwh-pop'), /Rest days are part of the journey/);
   assert.doesNotMatch(t, /fail|broke|lost your|missed/i);
   assert.equal((await page.$$('#v6streak .v6wk span')).length, 7);
   assert.match(await page.textContent('#main'), /best streak/, 'original streak card kept');

@@ -127,7 +127,7 @@ function download(){try{const b=new Blob([ics()],{type:'text/calendar'}),u=URL.c
 /* ---------- the Sleep page card ---------- */
 function card(){const a=cfg(),n=next(a),b=bedNow(),s=suggest(b),G=goalH(),plat=android()?'a':ios()?'i':'';
   return '<h3>'+ico('alarm',1,'Alarm clock')+' WAKE-UP ALARM</h3>'
-    +'<div class="v6alw" role="note">'+ico('warning')+'<span><b>Rings only while HealthWiz is open on screen.</b> A web page cannot ring reliably when the browser is closed, the tab is in the background or the phone is locked, especially on iPhone. For a sure alarm, also set your phone\'s Clock app below.</span></div>'
+    +'<div class="v6alw" role="note">'+ico('warning')+'<span><b>Rings only while HealthWiz is open on screen.</b> For a sure alarm, also set your phone\'s Clock app below.'+HWHelp.btn('alarmwhy')+'</span></div>'
     +'<div class="v6als">'+ico('sleep',1,'Moon')+'<div><label>Bedtime tonight<input id="al-bed" type="time" data-in="albed" value="'+esc(b)+'"></label>'
     +'<p id="al-sug">'+(s?'Suggested wake time: <b>'+s+'</b><br><small class="mut">'+esc(b)+' + '+G[0]+' h (the low end of your '+G[0]+'–'+G[1]+' h sleep goal) + '+FALL+' min to fall asleep.</small>':'Enter a bedtime.')+'</p>'
     +btn('alsug','USE '+(s||'--:--'),'sm g',s?'':' disabled')+'</div></div>'

@@ -153,7 +153,7 @@ function scale(p){const pos=Math.round(p.s*100);
     +'<div class="db6tl"><span>EXHAUSTED</span><span>WEARY</span><span>SHORT</span><span>READY</span><span>FULL</span></div>'}
 
 function card(){const l=LC('sleep'),p0=strength(l,st.p.age);
-  if(!p0)return scene(null,false)+'<p style="margin:0 0 4px">Log last night\'s sleep to begin the battle. The more rested the knight, the stronger he fights.</p><small class="mut">🎮 Game visual of your logged sleep, not a medical measurement.</small>';
+  if(!p0)return scene(null,false)+'<p style="margin:0 0 4px">Log last night\'s sleep to begin the battle. The more rested the knight, the stronger he fights.</p>';
   const p=plan(p0.s),key=p0.last.id+':'+Math.round(p.s*1000),live=!played[key]&&!HWMotion.reduced(),t=tier(p.s);
   const qn=p0.last.m||{},prev=p0.prev.length?' · earlier nights '+p0.prev.map(v=>v+' h').join(', '):'';
   const cap=p.win?(p.rounds.length<ROUNDS?'Well rested: the knight wins in '+p.rounds.length+' strikes and frees the princess.':'Rested enough: the knight wears the orc down and frees the princess.')
@@ -165,8 +165,7 @@ function card(){const l=LC('sleep'),p0=strength(l,st.p.age);
   +'<details><summary>How sleep becomes strength</summary><small><p>Strength = duration × (0.7 + 0.3 × quality). It changes gradually with every half hour, never in jumps.</p>'
   +'<p>Duration '+Math.round(p0.d*100)+'/100: last night against your age goal of '+p0.lo+'–'+p0.hi+' h'+(p0.prev.length?', blended 75/25 with the nights before (now '+Math.round(p0.deff*100)+'/100)':'')+'.</p>'
   +'<p>Quality '+Math.round(p0.q*100)+'/100: restfulness '+(qn.rest||3)+'/5, '+(qn.aw||0)+' awakening'+((qn.aw||0)===1?'':'s')+', '+(qn.lat||0)+' min to fall asleep.</p>'
-  +'<p>At '+Math.round(T*100)+' or more the knight defeats the orc; above that he wins faster.</p></small></details>'
-  +'<small class="mut">🎮 Game visual of your logged sleep, not a medical measurement.</small>'}
+  +'<p>At '+Math.round(T*100)+' or more the knight defeats the orc; above that he wins faster.</p></small></details>'}
 
 /* ---------- the battle, played once per night per visit ---------- */
 function play(){const el=$('#dbat');if(!el)return;const l=LC('sleep'),p0=strength(l,st.p.age);if(!p0)return;

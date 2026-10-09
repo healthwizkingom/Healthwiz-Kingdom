@@ -136,16 +136,16 @@ const btn=(a,t,c,x)=>'<button class="'+(c||'')+'" data-a="'+a+'"'+(x||'')+'>'+t+
 const LBL={fv:'Fruit & veg',water:'Water',kcal:'Calorie intake',macro:'Macronutrients',stairs:'Stairs',burn:'Calories burned',hr:'Resting heart rate',sleep:'Sleep',bmi:'BMI',stress:'Stress'};
 function head(C){
   const s=C.score,b=s==null?null:band(s);
-  return '<div class="card"><div class="row" style="gap:6px">'+btn('scw','TODAY','chip'+(W==='day'?' on':''),' data-w="day"')+btn('scw','LAST 7 DAYS','chip'+(W==='week'?' on':''),' data-w="week"')+'</div>'
+  return '<div class="card"><div class="row" style="gap:6px">'+btn('scw','TODAY','chip'+(W==='day'?' on':''),' data-w="day"')+btn('scw','LAST 7 DAYS','chip'+(W==='week'?' on':''),' data-w="week"')+HWHelp.btn('scorenote')+'</div>'
   +(s==null?'<p class="mut">No data yet for this period. Log something and your Health Score appears here.</p>'
   :'<div class="v6sc"><b class="v6scn" style="color:'+b[1]+'">'+s+'</b><span class="v6scd">/ 100</span><div><b>'+b[0]+'</b><small class="mut">'+C.covered+' of '+GROUP.length+' areas logged'+(C.covered<GROUP.length?' · missing ones are left out, not counted as zero':'')+'</small></div></div>'+bar(s,b[1]))
-  +'<small class="mut">A habit score from what you logged, not a diagnosis.</small></div>'}
+  +'</div>'}
 function fvCard(){
   const d=today(),L=fvFoods(d),t=fvOf(d);
-  return '<div class="card"><h3>🥦 FRUIT &amp; VEGETABLES TODAY</h3><p><b class="big">'+r1(t)+'</b> of '+FV_GOAL+' portions <small class="mut">(1 portion = 80 g; dried fruit 30 g)</small></p>'+bar(t/FV_GOAL*100,'var(--grn)')
+  return '<div class="card" id="ffv"><h3>🥦 FRUIT &amp; VEGETABLES TODAY '+HWHelp.btn('fvinfo')+'</h3><p><b class="big">'+r1(t)+'</b> of '+FV_GOAL+' portions</p>'+bar(t/FV_GOAL*100,'var(--grn)')
   +(L.length?'<ul class="v6fvl">'+L.map(f=>'<li>'+(f.kind==='fruit'?'🍎 ':'🥬 ')+esc(f.name)+' <span class="mut">'+r1(f.portions)+' portion'+(r1(f.portions)===1?'':'s')+'</span></li>').join('')+'</ul>'
-    :'<p class="mut">No fruit or vegetables in today\'s nutrition log yet.</p>')
-  +'<small class="mut">Counted automatically from the fruit and vegetable dishes in your nutrition log.</small></div>'}
+    :'<p class="mut">None logged today yet.</p>')
+  +'</div>'}
 function table(C){
   let rows='';
   for(const k in WT){const i=C.I[k];
@@ -155,18 +155,18 @@ function table(C){
 function recCard(C){
   return C.score==null?'':'<div class="card"><h3>💡 RECOMMENDATIONS</h3>'+recs(C.I,C.score).map(r=>'<p><b>'+r[0]+' '+r[1]+'</b><br>'+r[2].map(esc).join(' ')+'</p>').join('')+'<small class="mut">General wellness guidance, not medical advice.</small></div>'}
 function whyCard(){
-  return '<div class="card"><h3>🔬 WHY THESE WEIGHTS</h3><p>Nutrition 25 · Activity 25 · Heart rate 15 · Sleep 15 · BMI 10 · Stress 10 (total 100).</p>'
+  return '<div class="card"><h3>🔬 WHY THESE WEIGHTS '+HWHelp.btn('scorewt')+'</h3><p>Nutrition 25 · Activity 25 · Heart rate 15 · Sleep 15 · BMI 10 · Stress 10 (total 100).</p>'
   +'<ul class="v6why"><li><b>Nutrition 25</b>: diet is a major daily lever for health. Fruit &amp; veg 10 (WHO: ≥400 g a day), water 5 (your target ≈ 35 mL per kg), calories 5 (your target from the Calorie Forge, Mifflin-St Jeor) and macronutrients 5 (% of energy within the AMDR ranges, IOM).</li>'
   +'<li><b>Activity 25</b>: physical activity has the strongest evidence for lowering cardiovascular risk (WHO, 2020). Stairs 15, the activity this project measures directly; calories burned 10, from stair workouts and runs (ACSM: about 1,000 kcal a week).</li>'
   +'<li><b>Heart rate 15</b>: resting heart rate is a quick, objective fitness marker (typical 60–100 BPM, AHA), but caffeine, sleep and anxiety affect it.</li>'
   +'<li><b>Sleep 15</b>: 8–10 h for teens and 7–9 h for adults (AASM); short sleep is linked to stress, overeating and poorer learning.</li>'
   +'<li><b>BMI 10</b>: a screening tool only (WHO 18.5–24.9); it ignores muscle and body shape.</li>'
   +'<li><b>Stress 10</b>: linked to sleep, eating and wellbeing, but self-rated (perceived stress, Cohen et al., 1983), so its weight is limited.</li></ul>'
-  +'<small class="mut">These weights are the team\'s reasoned judgement from the sources above, not a validated clinical formula. Edit WT in js/v6-score.js to change them.</small></div>'}
+  +'</div>'}
 
 pages.score=()=>{
   const C=compute();
-  return '<h2>🏆 HEALTH SCORE</h2><p class="mut">Your logged habits, weighed into one score, with advice for each area.</p>'+head(C)+fvCard()+table(C)+recCard(C)+whyCard()
+  return '<h2>🏆 HEALTH SCORE</h2><p class="mut">Your logged habits, weighed into one score, with advice for each area.</p>'+head(C)+table(C)+recCard(C)+whyCard()
    +'<div class="card"><small class="mut">Supports UN Sustainable Development Goal 3: Good Health and Well-being. HealthWiz is a wellness tracker, not a medical device.</small></div>'};
 
 acts.scw=d=>{W=d.w==='week'?'week':'day';render()};
@@ -179,4 +179,4 @@ HWUI.css('score',`
 .v6sc{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:10px 0 6px}.v6scn{font:var(--px-f3,28px)/1 var(--fh);font-size:44px}.v6scd{opacity:.7}
 .v6sc div{display:flex;flex-direction:column;margin-left:8px}.v6fv{align-items:center;gap:12px}.v6why{margin:6px 0 8px 18px}.v6why li{margin:4px 0}.v6fvl{margin:6px 0 8px 18px}.v6fvl li{margin:2px 0}
 `);
-return{compute,fvFoods,WT}})();
+return{compute,fvFoods,fvCard,WT}})();

@@ -59,7 +59,7 @@ test('casual climb by hand: needs a stairway and valid counts, saves one unified
   assert.equal((await state(page)).e.length, 0, 'invalid counts rejected');
   await page.fill('#ss', '12'); await page.fill('#sc', '2');
   assert.equal(await page.textContent('#tot'), '24');
-  await page.fill('#sdt', '2026-09-30'); await page.fill('#stm', '07:15');
+  await page.click('#stman .hwwb'); await page.fill('#stman [data-hww-in="d"]', '2026-09-30'); await page.fill('#stman [data-hww-in="t"]', '07:15');
   await page.click('[data-a="savestair"]');
   const s = await state(page), e = s.e[0];
   assert.equal(s.e.length, 1);

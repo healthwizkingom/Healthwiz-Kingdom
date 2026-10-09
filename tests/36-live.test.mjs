@@ -83,7 +83,7 @@ test('haze: five PM2.5 levels with advice; card on Home, banner on Stairs, hazy 
   const card = await page.textContent('#v6haze');
   assert.match(card, /JEREBU CHECK/); assert.match(card, /UNHEALTHY/); assert.match(card, /PM2\.5 72 µg\/m³/);
   assert.match(card, /Avoid vigorous outdoor exercise; use indoor stairs or rest\./);
-  assert.match(card, /modelled estimate/); assert.match(card, /at 14:00/); assert.match(card, /Open-Meteo/);
+  assert.match(card, /Open-Meteo Air Quality \(estimate\)/); await page.click('#v6haze .hwh'); assert.match(await page.textContent('#hwh-pop'), /modelled estimate, not an official reading/); assert.match(card, /at 14:00/); assert.match(card, /Open-Meteo/);
   assert.equal(await page.getAttribute('#v6haze a', 'href'), 'https://apims.doe.gov.my');
   assert.ok(await page.evaluate(() => document.body.classList.contains('hw-haze')), 'hazy kingdom sky');
   await go(page, 'stair');
