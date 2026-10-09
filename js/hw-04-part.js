@@ -79,12 +79,12 @@ const TS=[
 ['home','#tstat',"Today's numbers at a glance. Tap a tile to open its tracker."],
 ['home','#hmq',"Five daily quests: Water, Nutrition, Activity, Mind and Recovery. Each one earneth XP."],
 ['home','#hmd-pcard',"Thy Hero Card (tap to open): level and XP. A game costume and game stats, never a judgement."],
-['health','#hub',"The Health Hall holdeth every tracker: Food & Water, Sleep, Stairs & Running, Stress, BMI and more."],
+['health','#hub',"Every tracker lives here: Food & Water, Sleep, Stairs, Stress, and Body & Energy (BMI and calorie goals)."],
 ['food','~PICK A FOOD',"Tap several foods, then LOG SELECTED once. Not on the list? ADD MORE FOOD."],
 ['water','#wq',"The Water Quest: each sip thou loggest filleth the Well of Life."],
 ['sleep','#dbatc',"Log thy sleep and the Dream Battle beginneth: the better thy rest, the stronger thy knight."],
 ['stair','#st-casual',"Stair Mountain: climbs, workouts, and the Running Road below."],
-['stress','main .card',"The Mind Forest: rate thy stress and calm the Storm Within."],
+['stress','main .card',"The Mind Forest: pick the face that fits thy mood and calm the Storm Within."],
 ['set','#tutbtn',"Forget my words? Press TUTORIAL here and I return. Go forth, {name}!"]];
 const TUT=(()=>{let i=0,ty=0,full='',root,sp,tx,pg,cn;
 const seen=()=>{try{return localStorage.getItem('hwtut')}catch(e){return 1}},mark=()=>{try{localStorage.setItem('hwtut','1')}catch(e){}};

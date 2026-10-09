@@ -275,3 +275,20 @@ test('tap targets and text size: BACK, ?, edit, delete, crisis numbers are 44 px
   }
   assert.deepEqual(errors, []); await ctx.close();
 });
+
+test('small fixes: Registry says Conditions; stress header matches the five feelings; tour names Body & Energy; log rows read in full', async () => {
+  const seed = { ...RETURNING, p: { ...RETURNING.p, conds: [] }, e: [
+    entry('stress', 3, 0, { feel: '🙂 Calm', end: 2 }), entry('stair', 120, 0, { loc: 'Block', climbs: 2, steps: 60 })] };
+  const { page, ctx, errors } = await openApp({ ...M, seed });
+  await go(page, 'stress');
+  assert.match(await page.textContent('#hwh3'), /Pick the face that fits how you feel[\s\S]*very calm 1, calm 3, neutral 5, stressed 7, very stressed 9/);
+  assert.doesNotMatch(await page.textContent('#hwh3'), /from 1 \(calm\) to 10/);
+  await go(page, 'set');
+  const t = await page.textContent('#v6log');
+  assert.match(t, /Stress 3 → 2\/10 \(felt calm\)/);
+  assert.match(t, /Stairs: Block, 2 × 60 steps/);
+  assert.match(await page.evaluate(() => TS.map(s => s[2]).join('|')), /Body & Energy \(BMI and calorie goals\)/);
+  await page.evaluate(() => { obInit(); S.ob.i = 6; S.v = 'onb'; render(); });
+  assert.deepEqual(await page.$$eval('.er > span:first-child', x => x.map(e => e.textContent).slice(-2)), ['Activity', 'Conditions'], 'the conditions row is labelled Conditions, not Activity');
+  assert.deepEqual(errors, []); await ctx.close();
+});

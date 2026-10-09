@@ -35,7 +35,7 @@ const HEAD={
     why:'Turns movement into a daily step count and shows how your pulse changes with effort.'},
   stress:{icon:'mind',title:'STRESS CHECK-IN',kind:'you',
     what:'A quick check of how stressed you feel right now.',
-    enter:'A number from 1 (calm) to 10 (very stressed), then what helps.',
+    enter:'Pick the face that fits how you feel now. It sets a starting number out of 10 (very calm 1, calm 3, neutral 5, stressed 7, very stressed 9). Then choose what helps.',
     why:'Your own ratings show what calms you over time. It is a check-in, not a diagnosis.'},
   body:{icon:'balance',title:'BODY & ENERGY',kind:'est',
     what:'Your BMI (a screening number) and an estimate of the calories your body uses in a day.',
@@ -94,7 +94,7 @@ const TILE={
   food:{val:d=>'Food '+fmt(kc(d))+' / '+fmt(st.s.kcal)+' kcal<br>Water '+fmt(wt(d))+' / '+fmt(st.s.water)+' mL',act:d=>'Tap to pick a food or add '+(wt(d)>=st.s.water?'a drink':'250 mL')},
   sleep:{val:d=>{const s=A('sleep',d).pop();return s?s.v+' h slept':'not logged today'},act:d=>done('sleep',d)?'Logged · tap to review':'Tap to enter bedtime + wake-up'},
   stair:{keep:1,act:d=>done('stair',d)?'Tap to add a climb: steps × climbs':'Tap to enter steps × climbs'},
-  stress:{val:d=>str(d)==null?'no check-in yet':str(d)+'/10 today',act:d=>done('stress',d)?'Tap for another check-in':'Tap to rate 1–10'},
+  stress:{val:d=>str(d)==null?'no check-in yet':str(d)+'/10 today',act:d=>done('stress',d)?'Tap for another check-in':'Tap to pick how you feel'},
   body:{val:()=>(st.s.onb||st.p.cfm?'BMI '+bmi():'BMI not set')+(st.s.set?' · '+fmt(st.s.kcal)+' kcal goal':''),act:()=>'Tap to enter height + weight'},
   stats:{val:()=>'all your trends',act:()=>'Nothing to enter'},
   score:{keep:1,act:()=>'Nothing to enter · uses your logs'}
@@ -109,7 +109,7 @@ const NEXT=[
   ['food','Food','No meal logged yet today. Pick what you ate.'],
   ['sleep','Sleep','Last night is not logged. Enter your bedtime and wake-up time.'],
   ['stair','Stairs','No climb logged yet today. Enter steps per climb and the number of climbs.'],
-  ['stress','Stress','No check-in yet today. Rate how stressed you feel, 1 to 10.']];
+  ['stress','Stress','No check-in yet today. Pick the face that fits how you feel.']];
 function next(d){d=d||today();return NEXT.find(n=>!done(n[0],d)&&!(n[0]==='stair'&&typeof HWCond!=='undefined'&&HWCond.stairsHidden()))||null} // stairs wait behind a doctor note for some conditions
 function nextCard(){const n=next();
   return '<div class="card hwnx" id="hwnext"><h3>'+ico('quest')+' NEXT STEP</h3>'+(n
