@@ -19,6 +19,8 @@ const CAMPUS='Kolej MARA Kulim',OFF=1500,BASE=35,EXTRA=65,WEAK=150,NEAR=400,SHOW
 const isO=x=>!!x&&typeof x==='object'&&!Array.isArray(x);
 const gp=()=>{if(!isO(st.gp))st.gp={ok:0,v:{}};if(!isO(st.gp.v))st.gp.v={};return st.gp};
 const mapped=()=>STAIRS.filter(hasXY);
+/** One source for every stairway count: total and on-map from STAIRS, discovered from st.gp. */
+const counts=()=>{const n=mapped().length,found=Object.keys(gp().v).filter(k=>mapped().some(s=>s.id===k)).length;return{total:STAIRS.length,mapped:n,unmapped:STAIRS.length-n,found}};
 // metres between two lat/lng points (haversine)
 function dist(a,b,c,d){const R=6371e3,r=Math.PI/180,x=Math.sin((c-a)*r/2),y=Math.sin((d-b)*r/2);return 2*R*Math.asin(Math.sqrt(x*x+Math.cos(a*r)*Math.cos(c*r)*y*y))}
 const radius=acc=>BASE+Math.min(Math.max(+acc||0,0),EXTRA);
@@ -44,12 +46,12 @@ html.hw-rm #v6gps .v6gpw,html.hw-still #v6gps .v6gpw{animation:none}
 const CAT={MILD:'🌿 Mild',MODERATE:'⚔️ Moderate',VIGOROUS:'🔥 Vigorous'};
 const btn=(a,t,cls,extra)=>'<button class="'+(cls||'')+'" data-a="'+a+'"'+(extra||'')+'>'+t+'</button>';
 const manual='<p class="mut" style="margin-top:8px">You can always log a climb by hand with the form below.</p>';
-function card(){const n=mapped().length,un=STAIRS.length-n,found=Object.keys(gp().v).filter(k=>STAIRS.some(s=>s.id===k)).length;
+function card(){const K=counts(),n=K.mapped,un=K.unmapped,found=K.found;
   let h='<h2>📍 GPS CHECK-IN</h2>';
   if(U.k==='idle'||U.k==='done'){
     if(U.k==='done')h+='<p role="status">✅ Checked in at <b>'+esc(U.name)+'</b>. Your stair log, quests and Stair Mountain are updated.</p>';
-    h+='<p>Standing at a stairway at '+CAMPUS+'? Find it by GPS and check in with one tap. '+n+' of '+STAIRS.length+' stairways are on the map'+(un?'; the other '+un+' can be logged by hand below':'')+'.</p>'
-      +'<p class="mut">Stairways discovered: <b>'+found+' / '+n+'</b></p>'+btn('gpsfind','FIND STAIRS NEAR ME')
+    h+='<p>Standing at a stairway at '+CAMPUS+'? Find it by GPS and check in with one tap. '+n+' of '+K.total+' stairways are on the map'+(un?'; the other '+un+' can be logged by hand below':'')+'.</p>'
+      +'<p class="mut">Stairways discovered by GPS check-in: <b>'+found+' of '+n+'</b> on the map ('+K.total+' stairways in total).</p>'+btn('gpsfind','FIND STAIRS NEAR ME')
       +(gp().ok?'<p class="mut" style="margin-top:8px">Location is read only when you tap. '+btn('gpsoff','TURN OFF LOCATION','sm g')+'</p>':'');
     return h}
   if(U.k==='explain')return h+'<h3>WHY LOCATION?</h3><ul><li>To find the stairway you are standing at, so you can check in without searching the list.</li><li>Your position is read <b>once</b>, only when you tap. There is no tracking in the background.</li><li>Your position is never saved, shared or shown to anyone. Only the stairway you check in at is logged.</li><li>Your browser will ask for permission. You can say no and still log by hand.</li></ul><div class="row">'+btn('gpsok','ALLOW LOCATION')+btn('gpsno','NOT NOW','g')+'</div>';
@@ -61,7 +63,7 @@ function card(){const n=mapped().length,un=STAIRS.length-n,found=Object.keys(gp(
     if(!L.length)h+='<p>No stairway has map coordinates yet.</p>';
     else if(L[0].d>OFF)h+='<p>You seem to be away from '+CAMPUS+'. GPS check-in only works at the campus stairways ('+fmt(L[0].d)+' away). You can still log a session by hand.</p>';
     else if(!close.length)h+='<p>No mapped stairway within '+NEAR+' m. The nearest is <b>'+esc(L[0].s.name)+'</b>, '+fmt(L[0].d)+' away.</p>';
-    else h+=close.map(x=>'<div class="v6gpl"><div><b>'+esc(x.s.name)+'</b><small>'+CAT[x.s.cat]+' · '+esc(x.s.floor)+' · '+fmt(x.d)+' away</small>'
+    else h+=close.map(x=>'<div class="v6gpl"><div><b>'+esc(x.s.name)+'</b><small>'+CAT[x.s.cat]+' · θ '+x.s.angle.toFixed(2)+'° · '+esc(x.s.floor)+' · '+fmt(x.d)+' away</small>'
       +(x.here?'<span class="ok">✅ YOU ARE HERE</span>':'<small>Walk closer to check in.</small>')+'</div>'
       +(x.here?btn('gpspick','CHECK IN','sm',' data-i="'+x.i+'" aria-label="Check in at '+esc(x.s.name)+'"'):'')+'</div>').join('');
     return h+'<div class="row" style="margin-top:8px">'+btn('gpsfind','↻ REFRESH','g')+btn('gpsno','CLOSE','g')+'</div>'+manual}
@@ -113,4 +115,4 @@ acts.gpsconfirm=()=>{if(U.k!=='confirm')return;
 HWEvents.on('data:reset',()=>{gen++;U={k:'idle'}});HWEvents.on('data:imported',()=>{gen++;U={k:'idle'}});
 HWEvents.on('page:viewed',e=>{if(e.view!=='stair'){gen++;U={k:'idle'}}});
 
-return{nearby,dist,radius,WEAK,card:cardSafe,get state(){return U.k}}})();
+return{nearby,dist,radius,counts,WEAK,card:cardSafe,get state(){return U.k}}})();
