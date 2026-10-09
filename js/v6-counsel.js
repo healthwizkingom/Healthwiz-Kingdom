@@ -60,8 +60,9 @@ function help(on){return '<div class="cshelp'+(on?' on':'')+'" id="cshelp" tabin
   +'<li>Talian Kasih: <a href="tel:15999"><b>15999</b></a></li><li>Your campus counselling unit, or a trusted friend or family member</li></ul></div>'}
 function signedOut(){return '<div class="csout">'+ico('lock')+'<div><b>Sign in to talk with Medius</b><p>An account lets Medius AI answer you. Nothing you write is saved, and the breathing bubble works without one.</p>'
   +'<button data-a="cssign">'+ico('account')+' SIGN IN TO TALK WITH MEDIUS</button></div></div>'}
-acts.cssign=()=>{if(typeof HWAccount!=='undefined')HWAccount.open(()=>{if(S.cs)csPaint()})};
-HWEvents.on('cloud:signed-in',()=>{if(S.cs&&S.cs.ph==='chat')csPaint()});
+acts.cssign=()=>{if(typeof HWAccount!=='undefined')HWAccount.open(()=>{if(S.cs)csPaint();else if(S.v==='stress')render()})};
+HWEvents.on('cloud:signed-in',()=>{if(S.cs&&S.cs.ph==='chat')csPaint();else if(!S.cs&&S.v==='stress'&&document.getElementById('counsel'))csPaint0()});
+function csPaint0(){const el=document.getElementById('counsel');if(el&&typeof counsel==='function')el.outerHTML=counsel()}
 HWEvents.on('cloud:signed-out',()=>{if(S.cs&&S.cs.ph==='chat')csPaint()});
 
 /* ---------- the study's overlay ---------- */

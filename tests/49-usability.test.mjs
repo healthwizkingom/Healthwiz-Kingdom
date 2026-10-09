@@ -250,3 +250,13 @@ test('one popup at a time: no reward for opening a page; XP toasts merge and wai
   assert.ok(await page.evaluate(() => document.querySelectorAll('#toasts div, .bpop').length) <= 1, 'toast and badge card never show together');
   assert.deepEqual(errors, []); await ctx.close();
 });
+
+test('Wizard\'s Counsel: signed out, the button says to sign in and that breathing still works, before the breathing step', async () => {
+  const { page, ctx, errors } = await openApp(M);
+  await go(page, 'stress');
+  assert.match(await page.textContent('#counsel [data-a="csgo"]'), /Sign in to talk with Medius \(breathing still works\)$/);
+  assert.equal(await page.locator('#counsel [data-a="cssign"]').count(), 1, 'and a way to sign in right there');
+  await page.tap('#counsel [data-a="csgo"]');
+  assert.equal(await page.locator('[data-a="csskip"]').count(), 1, 'the breathing step still works without an account');
+  assert.deepEqual(errors, []); await ctx.close();
+});
