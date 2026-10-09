@@ -142,10 +142,10 @@ function head(C){
   +'</div>'}
 function fvCard(){
   const d=today(),L=fvFoods(d),t=fvOf(d);
-  return '<div class="card" id="ffv"><h3>🥦 FRUIT &amp; VEGETABLES TODAY</h3><p><b class="big">'+r1(t)+'</b> of '+FV_GOAL+' portions <small class="mut">(1 portion = 80 g; dried fruit 30 g)</small></p>'+bar(t/FV_GOAL*100,'var(--grn)')
+  return '<div class="card" id="ffv"><h3>🥦 FRUIT &amp; VEGETABLES TODAY '+HWHelp.btn('fvinfo')+'</h3><p><b class="big">'+r1(t)+'</b> of '+FV_GOAL+' portions</p>'+bar(t/FV_GOAL*100,'var(--grn)')
   +(L.length?'<ul class="v6fvl">'+L.map(f=>'<li>'+(f.kind==='fruit'?'🍎 ':'🥬 ')+esc(f.name)+' <span class="mut">'+r1(f.portions)+' portion'+(r1(f.portions)===1?'':'s')+'</span></li>').join('')+'</ul>'
-    :'<p class="mut">No fruit or vegetables in today\'s nutrition log yet.</p>')
-  +'<small class="mut">Counted automatically from the fruit and vegetable dishes in your nutrition log.</small></div>'}
+    :'<p class="mut">None logged today yet.</p>')
+  +'</div>'}
 function table(C){
   let rows='';
   for(const k in WT){const i=C.I[k];

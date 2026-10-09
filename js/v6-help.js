@@ -64,24 +64,26 @@ if(typeof HWEvents!=='undefined')HWEvents.on('page:viewed',()=>close(false));
 /* ---------- the texts (moved here from inline notes; wording unchanged unless a short visible line replaced it) ---------- */
 reg('nutintro','Nutrition & calories','<p>Log your meals to see calories and nutrients, today and over the week.</p>');
 reg('nutest','Estimated nutrient values (EST)','<p><b>EST</b> means estimated. Macro values for menu foods are estimated from typical dish composition. Custom foods use the numbers you entered.</p>');
-reg('sleepgame','Sleep visuals are a game','<p>Game visualization based on logged sleep and restfulness. The Dream Battle, the Dream Score and the Energy Restored bar are game visuals of your logged sleep, not a medical measurement.</p>');
+reg('sleepgame','Sleep visuals are a game','<p>Game visuals made from the sleep you logged. They are not a medical measurement.</p>');
 reg('sleepscore','HealthWiz Sleep Score','<p>HealthWiz Sleep Score is a game score from your logged sleep. It is <b>NOT</b> a medical measurement.</p>');
 reg('alarmwhy','Why the alarm can miss','<p>A web page cannot ring reliably when the browser is closed, the tab is in the background or the phone is locked, especially on iPhone.</p><p>For a sure alarm, also set your phone\'s Clock app.</p>');
 reg('hrpic','Heart-rate picture','<p>A heart-rate picture, <b>not an ECG</b>.</p>');
 reg('runboard','Runners\' Board: what is shown','<p>Nickname + weekly running totals only. Distance and pace come from GPS and are estimates.</p><p>What is shared is listed before you join. Leaving deletes your nickname and all your weekly totals from the server; your runs stay on this device.</p>');
-reg('medpriv','Privacy and AI limits','<p><b>Medius is an AI listener, not a therapist or crisis service.</b> Your words are not saved.</p><p>Messages are processed by Google Gemini to generate Medius\'s replies and are not saved by HealthWiz.</p><p>If you might be in danger, use the emergency and support numbers shown on this card.</p>');
+reg('medpriv','Privacy and AI limits','<p><b>Medius is an AI listener, not a therapist or crisis service.</b> Your words are not saved.</p><p>Messages are processed by Google Gemini to generate Medius\'s replies and are not saved by HealthWiz.</p><p>In danger? Use the numbers on this card.</p>');
 reg('bmigame','Your game form','<p>Your game form follows your BMI range. It is just for fun, not a health judgement.</p>');
 reg('streakrest','Rest days and your gentle streak','<p>One rest day a week keeps your gentle streak going. Rest days are part of the journey — nothing is lost.</p>');
 reg('questpick','How quests are chosen','<p>The focus quest is picked from your own logs each day; weekly quests reset on Monday. All targets stay within your own plan.</p>');
 reg('statcmp','About this comparison','<p><b>Completed days only</b> (today is still in progress). Averages use days with data; stair steps are totals. Changes are descriptions, not judgments.</p>');
 reg('scorenote','About the Health Score','<p>A habit score from what you logged, <b>not a diagnosis</b>.</p>');
-reg('scorewt','About these weights','<p>These weights are the team\'s reasoned judgement from the sources above, not a validated clinical formula. Edit WT in js/v6-score.js to change them.</p>');
+reg('scorewt','About these weights','<p>These weights are the team\'s reasoned judgement from the sources above, not a validated clinical formula.</p><p class="mut"><small>For developers: edit WT in js/v6-score.js to change them.</small></p>');
+reg('fvinfo','Fruit & vegetables','<p>1 portion = 80 g (dried fruit 30 g). Counted automatically from the fruit and vegetable dishes in your nutrition log.</p>');
 
 HWUI.css('help',`
-.hwh{position:relative;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;box-sizing:border-box;min-width:24px;width:24px;min-height:24px;height:24px;padding:0;margin:0 0 0 6px;font:9px/1 var(--fh);color:var(--ink);background:var(--p2);border:2px solid var(--ln);box-shadow:inset -2px -2px 0 rgba(0,0,0,.2),2px 2px 0 var(--ln);border-radius:0;-webkit-font-smoothing:none;text-transform:none;letter-spacing:0}
+.hwh{position:relative;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;box-sizing:border-box;min-width:26px;width:26px;min-height:26px;height:26px;padding:0;margin:0 0 0 6px;font:bold 11px/1 var(--fh);color:#fff;background:#1f6fb0;border:2px solid var(--ln);box-shadow:inset -2px -2px 0 rgba(0,0,0,.2),2px 2px 0 var(--ln);border-radius:0;-webkit-font-smoothing:none;text-transform:none;letter-spacing:0}
 .hwh:after{content:"";position:absolute;inset:-10px}
 .hwh:active{transform:translate(1px,1px);box-shadow:inset -2px -2px 0 rgba(0,0,0,.2),1px 1px 0 var(--ln)}
-.hwh[aria-expanded="true"]{background:var(--gold)}
+.hwh[aria-expanded="true"]{background:var(--gold);color:#2b2418}
+:root[data-theme="dark"] .hwh{border-color:#9fc4e8}@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .hwh{border-color:#9fc4e8}}
 .hwh:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
 .hwh.hwhl{width:auto;padding:0 8px;font-size:8px;white-space:nowrap}
 h3 .hwh,h2 .hwh{margin-left:8px}

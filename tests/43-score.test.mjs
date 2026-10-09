@@ -50,7 +50,8 @@ test('fruit & veg portions come from the nutrition log (80 g a portion, dried fr
 test('no fruit or veg logged: the indicator is left out, not zero', async () => {
   const { page, ctx, errors } = await boot(RETURNING);
   assert.equal(await page.evaluate(() => HWScore.compute().I.fv), null);
-  assert.match(await page.textContent('#main'), /No fruit or vegetables in today's nutrition log yet/);
+  await go(page, 'food');
+  assert.match(await page.textContent('#ffv'), /0 of 5 portions[\s\S]*None logged today yet/);
   assert.deepEqual(errors, []); await ctx.close();
 });
 

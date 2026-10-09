@@ -104,7 +104,10 @@ if(typeof HWEvents!=='undefined')HWEvents.on('data:reset',()=>reset());
 
 HWUI.css('when',`
 .hww{margin:8px 0}.hwwr{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.hwwb{min-height:36px;padding:6px 10px;font:12px/1.3 var(--fb);text-align:left}
+.hwwb{min-height:40px;padding:6px 12px;font:13px/1.3 var(--fb);text-align:left}
+.hwwb:not(.on){background:var(--pn);color:#1b5a91;border:2px dashed #1b5a91;box-shadow:none}
+.hwwb.on{font-weight:bold}
+:root[data-theme="dark"] .hwwb:not(.on){color:#9fd0ff;border-color:#9fd0ff}@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .hwwb:not(.on){color:#9fd0ff;border-color:#9fd0ff}}
 .hwwp{margin-top:8px;padding:10px;background:var(--p2);border:3px solid var(--ln)}
 .hwwp .row{margin:0 0 8px}.hwwp label{flex:1 1 130px;min-width:0}.hwwp input{min-width:0}
 .hwwn{min-height:1.3em;margin:0 0 6px;font-size:12px;color:var(--red)}.hwwh{margin:0 0 8px;font-size:12px;color:var(--mut)}
