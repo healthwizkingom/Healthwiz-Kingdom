@@ -37,14 +37,10 @@ const HEAD={
     what:'A quick check of how stressed you feel right now.',
     enter:'A number from 1 (calm) to 10 (very stressed), then what helps.',
     why:'Your own ratings show what calms you over time. It is a check-in, not a diagnosis.'},
-  bmi:{icon:'balance',title:'BMI',kind:'est',
-    what:'Body mass index: a screening number worked out from height and weight.',
-    enter:'Your height in cm and weight in kg.',
-    why:'Gives a rough weight-for-height category. It does not diagnose anything.'},
-  calc:{icon:'energy',title:'DAILY ENERGY',kind:'est',
-    what:'An estimate of the calories your body uses in a day.',
-    enter:'Your age, sex, height, weight and how active you are.',
-    why:'Sets your calorie target and nutrient goals. It is an estimate, not a prescription.'}
+  body:{icon:'balance',title:'BODY & ENERGY',kind:'est',
+    what:'Your BMI (a screening number) and an estimate of the calories your body uses in a day.',
+    enter:'Height in cm, weight in kg, age, sex and how active you are.',
+    why:'Gives a rough weight-for-height category and sets your calorie and nutrient goals. Estimates, not a diagnosis.'}
 };
 const KIND={you:'ENTERED BY YOU',est:'ESTIMATE FROM YOUR ENTRIES'};
 function head(k){const h=HEAD[k];if(!h)return '';
@@ -64,6 +60,7 @@ const EG={
   ck:'Example: 250 (kcal in one standard serving).',
   cn:'Example: Roti canai',cs:'Example: 1 plate, or 150 g',cc:'Example: 350 (from the food label)',
   cp:'Example: 12',cb:'Example: 45',cfa:'Example: 10',cfb:'Example: 3',
+  bh:'Example: 165',bw:'Example: 58',ka:'Example: 16',
   sld:'Fills itself from your two times, for example 7.5.',
   'wk-b':'Example: 72 (beats counted for 15 s, times 4)','wk-a':'Example: 110',
   'wk-s':'Example: 20','wk-c':'Example: 3','wk-d':'Example: 5',
@@ -84,9 +81,7 @@ const TILE={
   sleep:{val:d=>{const s=A('sleep',d).pop();return s?s.v+' h slept':'not logged today'},act:d=>done('sleep',d)?'Logged · tap to review':'Tap to enter bedtime + wake-up'},
   stair:{keep:1,act:d=>done('stair',d)?'Tap to add a climb: steps × climbs':'Tap to enter steps × climbs'},
   stress:{val:d=>str(d)==null?'no check-in yet':str(d)+'/10 today',act:d=>done('stress',d)?'Tap for another check-in':'Tap to rate 1–10'},
-  bmi:{val:()=>st.s.onb||st.p.cfm?'BMI '+bmi()+' (from your profile)':'not set yet',act:()=>'Tap to enter height + weight'},
-  calc:{val:()=>st.s.set?fmt(st.s.kcal)+' kcal target':'not set yet',act:()=>'Tap to enter age, weight, height'},
-  body:{val:()=>st.s.set?fmt(st.s.kcal)+' kcal target':'not set yet',act:()=>'Tap to enter height + weight'},
+  body:{val:()=>(st.s.onb||st.p.cfm?'BMI '+bmi():'BMI not set')+(st.s.set?' · '+fmt(st.s.kcal)+' kcal goal':''),act:()=>'Tap to enter height + weight'},
   stats:{val:()=>'all your trends',act:()=>'Nothing to enter'},
   score:{keep:1,act:()=>'Nothing to enter · uses your logs'}
 };
@@ -111,7 +106,7 @@ function nextCard(){const n=next();
 function wrap(k){const p=pages[k];if(!p)return;pages[k]=function(){let h=p.apply(this,arguments);
   if(k==='stress'){const q=S.sq;if(q&&q.ph&&q.ph!=='start')return examples(h)}   // inside a stress quest the header would only get in the way
   return examples(place(h,k))}}
-['food','water','sleep','stair','stress','bmi','calc'].forEach(wrap);
+['food','water','sleep','stair','stress','body'].forEach(wrap);
 {const p=pages.health;pages.health=function(){const h=p.apply(this,arguments),i=h.indexOf('</p>');return i<0?nextCard()+h:h.slice(0,i+4)+nextCard()+h.slice(i+4)}}
 
 HWUI.css('hall',`
