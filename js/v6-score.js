@@ -152,8 +152,14 @@ function table(C){
     rows+='<tr><td>'+LBL[k]+'</td><td>'+(i?esc(i.txt):'<span class="mut">not logged</span>')+'</td><td>'+(i?Math.round(i.sub):'–')+'</td><td>'+WT[k]+'</td><td>'+(i&&C.w?r1(WT[k]*i.sub/100/C.w*100):'–')+'</td></tr>'}
   return '<div class="card"><h3>📋 HOW YOUR SCORE ADDS UP</h3><div class="tscroll"><table class="tbl"><thead><tr><th>INDICATOR</th><th>YOUR VALUE</th><th>SUB-SCORE /100</th><th>WEIGHT</th><th>POINTS</th></tr></thead><tbody>'+rows+'</tbody></table></div>'
   +'<small class="mut">Score = Σ (weight × sub-score) ÷ Σ weight of the indicators with data. Points are each indicator\'s share of the final score.</small></div>'}
-function recCard(C){
+// The plain list of the six areas (recs() above). js/v6-orb.js shows the same advice as the orb reading and quest cards;
+// this list is what the page falls back to if that file is missing or fails, so the advice never disappears.
+function recList(C){
   return C.score==null?'':'<div class="card"><h3>💡 RECOMMENDATIONS</h3>'+recs(C.I,C.score).map(r=>'<p><b>'+r[0]+' '+r[1]+'</b><br>'+r[2].map(esc).join(' ')+'</p>').join('')+'<small class="mut">General wellness guidance, not medical advice.</small></div>'}
+function recCard(C){
+  const plain=recList(C);
+  if(typeof HWOrb==='undefined')return plain;
+  try{return HWOrb.section(C,plain)}catch(e){return plain}}
 function whyCard(){
   return '<div class="card"><h3>🔬 WHY THESE WEIGHTS '+HWHelp.btn('scorewt')+'</h3><p>Nutrition 25 · Activity 25 · Heart rate 15 · Sleep 15 · BMI 10 · Stress 10 (total 100).</p>'
   +'<ul class="v6why"><li><b>Nutrition 25</b>: diet is a major daily lever for health. Fruit &amp; veg 10 (WHO: ≥400 g a day), water 5 (your target ≈ 35 mL per kg), calories 5 (your target from the Calorie Forge, Mifflin-St Jeor) and macronutrients 5 (% of energy within the AMDR ranges, IOM).</li>'
@@ -179,4 +185,6 @@ HWUI.css('score',`
 .v6sc{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:10px 0 6px}.v6scn{font:var(--px-f3,28px)/1 var(--fh);font-size:44px}.v6scd{opacity:.7}
 .v6sc div{display:flex;flex-direction:column;margin-left:8px}.v6fv{align-items:center;gap:12px}.v6why{margin:6px 0 8px 18px}.v6why li{margin:4px 0}.v6fvl{margin:6px 0 8px 18px}.v6fvl li{margin:2px 0}
 `);
-return{compute,fvFoods,fvCard,WT}})();
+// read-only access to the goals and helpers the recommendations use, for js/v6-orb.js
+const K={FV_GOAL,STAIR_GOAL,BURN_GOAL,CLASSN,lastWorkout,macroOff,r1,win:()=>W};
+return{compute,fvFoods,fvCard,WT,recs,K}})();

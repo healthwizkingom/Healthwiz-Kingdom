@@ -27,8 +27,12 @@ test('score uses the stated weights; missing indicators are left out, not zero',
   await ctx.close();
   const r = await boot(full); const c = await r.page.evaluate(() => HWScore.compute());
   assert.equal(c.covered, 5); assert.ok(c.score > 0 && c.score <= 100);
-  assert.match(await r.page.textContent('#main'), /HOW YOUR SCORE ADDS UP[\s\S]*RECOMMENDATIONS[\s\S]*WHY THESE WEIGHTS/);
-  for (const t of ['Healthy eating habits', 'Stair climbing and exercise level', 'Stress management', 'Maintaining a healthy BMI', 'Improving cardiovascular fitness', 'Sleep']) assert.match(await r.page.textContent('#main'), new RegExp(t));
+  // the recommendations are read out of the Health Orb (js/v6-orb.js, tests/48-orb.test.mjs); SHOW RECOMMENDATIONS skips the scene
+  assert.match(await r.page.textContent('#main'), /HOW YOUR SCORE ADDS UP[\s\S]*THE HEALTH ORB[\s\S]*WHY THESE WEIGHTS/);
+  await r.page.click('[data-a="orbshow"]');
+  assert.match(await r.page.textContent('#main'), /HOW YOUR SCORE ADDS UP[\s\S]*YOUR HEALTH QUESTS[\s\S]*WHY THESE WEIGHTS/);
+  const areas = await r.page.$$eval('.v6oc', a => a.map(x => x.dataset.area));
+  for (const t of ['nutrition', 'water', 'activity', 'sleep', 'stress', 'bmi', 'heart']) assert.ok(areas.includes(t), 'a card for ' + t);
   assert.deepEqual(errors, []); await r.ctx.close();
 });
 
@@ -46,7 +50,8 @@ test('fruit & veg portions come from the nutrition log (80 g a portion, dried fr
   await go(page, 'food');
   assert.match(await page.textContent('#ffv'), /FRUIT & VEGETABLES TODAY[\s\S]*Epal Merah[\s\S]*Sayur Campur/);
   await go(page, 'score');
-  assert.equal(await page.locator('[data-a="fvup"], [data-a="fvdn"], #main [data-a="go"]:not([data-v="health"])').count(), 0, 'no buttons to log from this page');
+  assert.equal(await page.locator('[data-a="fvup"], [data-a="fvdn"]').count(), 0, 'no buttons to log from this page');
+  assert.equal(await page.locator('#main [data-a="go"]:not([data-v="health"])').count(), 0, 'the quest cards only appear after the orb is read');
   assert.deepEqual(errors, []); await ctx.close();
 });
 
