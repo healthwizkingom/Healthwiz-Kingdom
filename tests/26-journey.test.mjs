@@ -61,6 +61,7 @@ test('a new adventurer’s first day on a phone, end to end, with zero console e
   await page.tap('[data-a="obsex"][data-v="f"]');
   await answer('160'); await answer('52');
   await page.tap('[data-a="obact"]');
+  await page.tap('[data-a="cdnext"]'); // the conditions question (optional: nothing chosen)
   await page.tap('[data-a="obf"]');
   await page.tap('[data-a="obgo"]');
   // Medius offers a free account once; SKIP carries on into the kingdom

@@ -15,7 +15,7 @@ const PRECACHE = [
   './', 'index.html', 'manifest.webmanifest',
   'js/hw-01-menu-data.js', 'js/v6-schema.js', 'js/hw-02-core.js', 'js/hw-03-part.js', 'js/hw-04-part.js',
   'js/hw-05-v5-4-module.js', 'js/hw-06-v5-3-health-module.js', 'js/v6-events.js', 'js/v6-ui.js', 'js/v6-pixel.js',
-  'js/v6-emoji.js', 'js/v6-provisions.js', 'js/v6-hr.js', 'js/v6-stairs.js', 'js/v6-motion.js', 'js/v6-particles.js', 'js/v6-insights.js', 'js/v6-quests.js',
+  'js/v6-emoji.js', 'js/v6-provisions.js', 'js/v6-hr.js', 'js/v6-stairs.js', 'js/v6-conditions.js', 'js/v6-motion.js', 'js/v6-particles.js', 'js/v6-insights.js', 'js/v6-quests.js',
   'js/v6-streaks.js', 'js/v6-xp.js', 'js/v6-kingdom.js', 'js/v6-medius.js', 'js/v6-charts.js', 'js/v6-world.js',
   'js/v6-title.js', 'js/v6-games.js', 'js/v6-water.js', 'js/v6-rig.js', 'js/v6-waterquest.js', 'js/v6-dream.js', 'js/v6-storm.js', 'js/v6-ambient.js', 'js/v6-food.js', 'js/v6-trail.js', 'js/v6-grove.js', 'js/v6-relief.js', 'js/v6-night.js',
   'js/v6-gps.js', 'js/v6-pwa.js',

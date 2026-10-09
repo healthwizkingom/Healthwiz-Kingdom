@@ -96,7 +96,7 @@ const NEXT=[
   ['sleep','Sleep','Last night is not logged. Enter your bedtime and wake-up time.'],
   ['stair','Stairs','No climb logged yet today. Enter steps per climb and the number of climbs.'],
   ['stress','Stress','No check-in yet today. Rate how stressed you feel, 1 to 10.']];
-function next(d){d=d||today();return NEXT.find(n=>!done(n[0],d))||null}
+function next(d){d=d||today();return NEXT.find(n=>!done(n[0],d)&&!(n[0]==='stair'&&typeof HWCond!=='undefined'&&HWCond.stairsHidden()))||null} // stairs wait behind a doctor note for some conditions
 function nextCard(){const n=next();
   return '<div class="card hwnx" id="hwnext"><h3>'+ico('quest')+' NEXT STEP</h3>'+(n
     ?'<p><b>'+n[1]+':</b> '+n[2]+'</p><button data-a="go" data-v="'+n[0]+'" style="width:100%">OPEN '+n[1].toUpperCase()+'</button>'

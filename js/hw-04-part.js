@@ -7,7 +7,7 @@ const emp=(a,b)=>'<div class="empty"><b>'+a+'</b><small>'+b+'</small></div>';
 const QD=d=>{const ms=new Set(A('food',d).map(x=>x.m.meal)).size;return[
 {e:'💧',n:'Water quest',t:'Drink 500 ml',p:Math.min(1,wt(d)/500),v:'water',x:20},
 {e:'🍗',n:'Nutrition quest',t:'Log 2 meals',p:Math.min(1,ms/2),v:'food',x:20},
-{e:'🧗',n:'Activity quest',t:'Finish one stair session',p:A('stair',d).length?1:0,v:'stair',x:20},
+{e:'🧗',n:'Activity quest',t:'Finish one stair session',p:A('stair',d).length||(typeof HWCond!=='undefined'&&HWCond.moveDone(d))?1:0,v:'stair',x:20},
 {e:'🧠',n:'Mind quest',t:'Stress check-in or Wizard\'s Counsel',p:A('stress',d).length||(st.qd||{})[d]?1:0,v:'stress',x:20},
 {e:'🌙',n:'Recovery quest',t:'Log last night\'s sleep',p:A('sleep',d).length?1:0,v:'sleep',x:20}]};
 const advp=d=>Math.round(avg(QD(d).map(q=>q.p))*100);

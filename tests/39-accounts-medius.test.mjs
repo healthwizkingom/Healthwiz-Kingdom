@@ -19,7 +19,7 @@ async function registry(page) {
   await answer('Aina'); await answer('16');
   await page.click('[data-a="obsex"][data-v="f"]');
   await answer('160'); await answer('52');
-  await page.click('[data-a="obact"]'); await page.click('[data-a="obf"]');
+  await page.click('[data-a="obact"]'); await page.click('[data-a="cdnext"]'); await page.click('[data-a="obf"]');
   await page.click('[data-a="obgo"]');
 }
 

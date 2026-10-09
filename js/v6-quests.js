@@ -12,6 +12,8 @@ const q6=()=>(st.q6=st.q6||{f:{},w:{}},st.q6.f=st.q6.f||{},st.q6.w=st.q6.w||{},s
 const r50=x=>Math.round(x/50)*50;
 const breathed=d=>A('stress',d).some(e=>Array.isArray(e.m.tech)&&e.m.tech.length)||!!(st.qd||{})[d];
 const ckN=d=>((st.ck||{})[d]||[]).reduce((s,x)=>s+(x?1:0),0);
+// stair-based quests wait while stairs are behind the 'check with your doctor first' note (js/v6-conditions.js)
+const blocked=a=>typeof HWCond!=='undefined'&&HWCond.blocked(a);
 const fiberFood=d=>A('food',d).some(e=>{const x=emac(e);return x&&x.fb>=3});
 
 // Focus quest catalog: id → {area, icon, name, text(t), prog(d,t) → 0..1, xp, target()}
@@ -32,12 +34,12 @@ const FROM={'water-down':'water-goal','water-target':'water-goal','water-today':
 const WHY={'water-goal':'your water has been below your usual or your target','meals-3':'some meals may be missing from your log','fiber':'estimated fiber has been on the low side','wind-down':'your nights have been short or irregular','breathe':'your stress check-ins have been higher','two-climbs':'Stair Mountain has been quiet'};
 
 function pickFocus(d){const top=(typeof HWInsights!=='undefined'?HWInsights.top(5):[]).filter(x=>x.tone==='notice'||x.area==='stair');
-  for(const x of top){const id=FROM[x.id];if(id)return{id,why:'Chosen because '+WHY[id]+'.'}}
+  for(const x of top){const id=FROM[x.id];if(id&&!blocked(FOCUS[id].area))return{id,why:'Chosen because '+WHY[id]+'.'}}
   // nothing to address → gentle variety, prefer areas not logged in the last 3 days
-  const quiet=['energy','pulse','fiber','wind-down','breathe','two-climbs'].filter(id=>{const a=FOCUS[id].area;return a==='energy'?!rng(3).some(enr):!rng(3).some(x=>a==='pulse'?hrS(x):A(a==='fiber'?'food':a,x).length)});
-  const pool=quiet.length?quiet:Object.keys(FOCUS),i=(+d.replace(/-/g,''))%pool.length;
+  const quiet=['energy','pulse','fiber','wind-down','breathe','two-climbs'].filter(id=>{const a=FOCUS[id].area;if(blocked(a))return false;return a==='energy'?!rng(3).some(enr):!rng(3).some(x=>a==='pulse'?hrS(x):A(a==='fiber'?'food':a,x).length)});
+  const pool=quiet.length?quiet:Object.keys(FOCUS).filter(id=>!blocked(FOCUS[id].area)),i=(+d.replace(/-/g,''))%pool.length;
   return{id:pool[i],why:quiet.length?'Chosen to visit a quiet corner of your kingdom.':'A little variety for today.'}}
-function focus(d){d=d||today();const F=q6().f;if(!F[d]||!FOCUS[F[d].id]){const p=pickFocus(d),q=FOCUS[p.id];F[d]={id:p.id,t:q.target?q.target():0,why:p.why,done:0};save()}
+function focus(d){d=d||today();const F=q6().f;if(!F[d]||!FOCUS[F[d].id]||blocked(FOCUS[F[d].id].area)){const p=pickFocus(d),q=FOCUS[p.id];F[d]={id:p.id,t:q.target?q.target():0,why:p.why,done:0};save()}
   const s=F[d],q=FOCUS[s.id];return Object.assign({},q,s,{kind:'focus',key:d,date:d,p:Math.min(1,Math.max(0,q.prog(d,s.t)||0)),desc:q.text(s.t)})}
 
 // Weekly quests (Monday-based week key)
@@ -51,9 +53,9 @@ const WEEK={
 'w-meals':{area:'food',icon:'🍽️',xp:40,go:'food',name:'Village feasts',goal:3,text:g=>'Log 3 different meals on '+g+' days this week.',count:D=>D.filter(d=>new Set(A('food',d).map(x=>x.m.meal)).size>=3).length},
 'w-energy':{area:'energy',icon:'⚡',xp:30,go:'home',name:'Energy journal',goal:4,text:g=>'Rate your energy on '+g+' days this week.',count:D=>D.filter(d=>enr(d)).length}};
 function pickWeek(k){const prev=wdaysOf(ymd(new Date(new Date(k+'T12:00:00').getTime()-7*864e5))),score=id=>WEEK[id].count(prev)/WEEK[id].goal;
-  return Object.keys(WEEK).sort((a,b)=>score(a)-score(b)||a.localeCompare(b)).slice(0,3)}
+  return Object.keys(WEEK).filter(id=>!blocked(WEEK[id].area)).sort((a,b)=>score(a)-score(b)||a.localeCompare(b)).slice(0,3)}
 function weekly(){const k=wkey(),W=q6().w;if(!W[k]||!Array.isArray(W[k].ids)){W[k]={ids:pickWeek(k),done:{}};save()}const D=wdaysOf(k).filter(d=>d<=today());
-  return W[k].ids.filter(id=>WEEK[id]).map(id=>{const q=WEEK[id],n=q.count(D);return Object.assign({},q,{kind:'weekly',key:k,id,n,p:Math.min(1,n/q.goal),desc:q.text(q.goal),done:W[k].done[id]||0})})}
+  return W[k].ids.filter(id=>WEEK[id]&&!blocked(WEEK[id].area)).map(id=>{const q=WEEK[id],n=q.count(D);return Object.assign({},q,{kind:'weekly',key:k,id,n,p:Math.min(1,n/q.goal),desc:q.text(q.goal),done:W[k].done[id]||0})})}
 
 // completion: award once, celebrate, announce
 let checking=0;
