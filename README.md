@@ -79,6 +79,7 @@ manifest.webmanifest       web app manifest (name, colours, standalone display, 
 js/v6-help.js              contextual "?" help buttons (tap, click, keyboard; small panel with Escape / CLOSE); the moved explanations live here
 js/v6-buttons.js           button hierarchy: primary gold, quiet secondary with a visible edge in dark themes, clear disabled/hover/focus states, LOG A MEAL / LOG LAST NIGHT'S SLEEP jump buttons
 js/v6-when.js              "Log for…": one shared control to log for yesterday or an earlier date and time (never the future), used by Nutrition, Water, Sleep, Stairs, Stress, BMI and the energy check-in
+js/v6-hall.js              usability: one shared 3-line header (what this is / what to enter / why) on every tracker, Health Hall tiles with today's value and the one input, a Next step line, example lines under empty inputs
 js/v6-safety.js            an error card instead of a blank screen
 assets/img/                the 15 images that were embedded as base64 in the original (the PNG art re-encoded as lossless WebP)
 assets/icons/              app icons (original pixel art, drawn by tools/make-icons.mjs)

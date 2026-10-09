@@ -20,7 +20,7 @@ test('one Food & Water tile opens Nutrition & Hydration: banner, title, both sys
   await go(page, 'health');
   const tiles = await page.$$eval('#hub .hb', b => b.map(x => x.dataset.v));
   assert.deepEqual(tiles.filter(v => v === 'food' || v === 'water'), ['food'], 'one tile for both');
-  assert.match(await txt(page, '#hub [data-v="food"]'), /Food & Water[\s\S]*Provisions Hall[\s\S]*560 kcal · 750 mL today/);
+  assert.match(await txt(page, '#hub [data-v="food"]'), /Food & Water[\s\S]*Provisions Hall[\s\S]*Food 560 \/ 2,200 kcal[\s\S]*Water 750 \/ 2,000 mL[\s\S]*Tap to pick a food or add 250 mL/);
   await page.click('#hub [data-v="food"]');
   assert.equal(await page.evaluate(() => S.v), 'food');
   assert.equal(await txt(page, 'main h2'), 'NUTRITION & HYDRATION');
