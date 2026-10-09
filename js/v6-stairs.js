@@ -4,7 +4,7 @@
    reference lands somewhere sensible.
 
    Sections (in page order)
-     1. WANDERER'S STAIRS · casual stair climbing: GPS check-in (js/v6-gps.js) and logging a climb by hand.
+     1. CASUAL CLIMBING (no heading, one help line) · GPS check-in (js/v6-gps.js) and logging a climb by hand.
      2. TRIAL OF BREATH · stair workout: Pace & Breathe (the original rhythm guide, now also the workout timer),
         heart rate BEFORE and AFTER (typed in by the user, drawn as two traces), stairs, time and a calorie ESTIMATE.
      3. RUNNING ROAD · the GPS run tracker (js/v6-running.js), unchanged apart from where it is shown.
@@ -83,20 +83,27 @@ const durW=()=>W.durSet?num(W.dur):(secsW()>=30?mins(secsW()):null);
 const ico=(n,s)=>HWPixel.icon(n,s||1);
 const btn=(a,t,cls,x)=>'<button class="'+(cls||'')+'" data-a="'+a+'"'+(x||'')+'>'+t+'</button>';
 const CATN={MILD:'Mild',MODERATE:'Moderate',VIGOROUS:'Vigorous'};
+// intensity band from a stairway's stored angle θ (degrees): mild < 26°, moderate 26–31.2°, vigorous > 31.2°
+const BAND_RANGE={MILD:'< 26°',MODERATE:'26–31.2°',VIGOROUS:'> 31.2°'};
+const bandOf=a=>a<26?'MILD':a<=31.2?'MODERATE':'VIGOROUS';
+const deg=a=>(+a).toFixed(2)+'°';
+const GOAL=100; // steps a day: this app's default personal goal, not a health measurement or guideline
 
 /* ---------- pieces ---------- */
 function hud(){const d=today(),R=rng(7),L=all(),wk=L.filter(s=>R.includes(s.d)),n=sp(d),last=L.filter(s=>s.kind==='workout'&&(s.hrB||s.hrA)).pop();
-  return '<div class="pxhud pxdk sthud"><span class="pxst">'+ico('stairs')+'<b>'+n+'</b>steps today</span><span class="pxst">'+ico('quest')+'<b>'+wk.length+'</b>sessions · 7 days</span>'
-    +'<span class="pxst">'+ico('energy')+'<b>'+wk.filter(s=>s.kind==='workout').length+'</b>workouts · 7 days</span>'
-    +'<span class="pxst">'+ico('heart')+'<b>'+(last?(last.hrB||'–')+'→'+(last.hrA||'–'):'–')+'</b>BPM last workout</span></div>'
-    +'<div class="stgoal"><small>DAILY CLIMB '+Math.min(n,100)+' / 100 STEPS</small>'+bar(n,'var(--grn)')+'</div>'
-    +'<div class="stjump" role="navigation" aria-label="Sections of this page">'+[['st-casual','stairs','Casual climbing'],['st-workout','energy','Workout'],['st-run','running','Running']].map(x=>btn('stjump',ico(x[1])+' '+x[2],'g sm',' data-t="'+x[0]+'"')).join('')+'</div>'}
+  const t=(ic,v,u,l)=>'<div class="ststat"><span class="stsv">'+ico(ic)+'<b>'+v+'</b> <small>'+u+'</small></span><span class="stsl">'+l+'</span></div>';
+  return '<div class="ststats" role="group" aria-label="Stair activity summary">'
+    +t('stairs',n,'steps','Today')+t('quest',wk.length,'sessions','Last 7 days')+t('energy',wk.filter(s=>s.kind==='workout').length,'workouts','Last 7 days')
+    +t('heart',last?(last.hrB||'–')+' → '+(last.hrA||'–'):'–','BPM','Last workout: before → after')+'</div>'
+    +'<div class="stgoal"><small>Personal goal: '+Math.min(n,GOAL)+' of '+GOAL+' steps today. Source: default set by this app. It is not a health measurement or a recommendation.</small>'+bar(n/GOAL*100,'var(--grn)')+'</div>'
+    +'<div class="stjump" role="navigation" aria-label="Sections of this page">'+[['st-workout','energy','Workout and heart rate'],['st-run','running','Run tracker']].map(x=>btn('stjump',ico(x[1])+' '+x[2],'g sm',' data-t="'+x[0]+'"')).join('')+'</div>'}
 const head=(id,icon,name,plain,line)=>'<div class="sthd" id="'+id+'">'+ico(icon,2)+'<div><b>'+name+'</b><span class="pxtag">'+plain+'</span><small>'+line+'</small></div></div>';
 
 function picker(){const q=stair();
-  return '<div class="row stcats">'+CATS.map(c=>btn('cat',c[1]+'<br><small>'+stairsOf(c[1]).length+' stairways</small>','chip'+(S.cat===c[1]?' on':''),' data-c="'+c[1]+'"')).join('')+'</div>'
-    +'<div class="sqlist">'+stairsOf(S.cat).map(s=>'<button class="chip '+(q===s?'on':'')+'" data-a="loc" data-i="'+STAIRS.indexOf(s)+'"'+(q===s?' aria-pressed="true"':'')+'><span class="sqn">'+esc(s.name)+'</span><span class="sqf">'+esc(s.floor)+' · '+s.angle.toFixed(2)+'°</span></button>').join('')+'</div>'
-    +'<p class="stloc">'+ico('map')+' '+(q?'<b>'+esc(q.name)+'</b> · '+CATN[q.cat]+' · '+(hasXY(q)?q.lat.toFixed(5)+', '+q.lng.toFixed(5):'no map coordinates'):'<span class="mut">No stairway chosen yet. Tap one above, or check in by GPS.</span>')+'</p>'}
+  return '<div class="row stcats">'+CATS.map(c=>btn('cat',CATN[c[1]]+'<br><small>'+BAND_RANGE[c[1]]+' · '+stairsOf(c[1]).length+' stairways</small>','chip'+(S.cat===c[1]?' on':''),' data-c="'+c[1]+'"')).join('')+'</div>'
+    +'<div class="sqlist">'+stairsOf(S.cat).map(s=>'<button class="chip '+(q===s?'on':'')+'" data-a="loc" data-i="'+STAIRS.indexOf(s)+'"'+(q===s?' aria-pressed="true"':'')+'><span class="sqn">'+esc(s.name)+'</span><span class="sqf">'+esc(s.floor)+' · θ '+deg(s.angle)+' · '+CATN[bandOf(s.angle)]+'</span></button>').join('')+'</div>'
+    +'<p class="stnote mut">'+STAIRS.length+' stairways at Kolej MARA Kulim: '+CATS.map(c=>CATN[c[1]]+' '+stairsOf(c[1]).length).join(' + ')+'. Bands by angle: '+CATS.map(c=>CATN[c[1]]+' '+BAND_RANGE[c[1]]).join(', ')+'. θ = tan⁻¹(rise ÷ run), estimated from the stairway\'s stored data. It is an estimate, not a measurement.</p>'
+    +'<p class="stloc">'+ico('map')+' '+(q?'<b>'+esc(q.name)+'</b> · '+CATN[bandOf(q.angle)]+' · θ '+deg(q.angle)+' · '+(hasXY(q)?q.lat.toFixed(5)+', '+q.lng.toFixed(5):'no map coordinates'):'<span class="mut">No stairway chosen yet. Tap one above, or check in by GPS.</span>')+'</p>'}
 function casual(){const tot=(+C.steps||0)*(+C.climbs||0);
   return '<div class="card stcard" id="stman"><h3>'+ico('scroll')+' LOG A CLIMB BY HAND</h3>'+picker()
     +'<div class="row"><label>Steps per climb<input id="ss" data-in="stc" type="number" min="1" max="1000" inputmode="numeric" value="'+esc(C.steps)+'"></label><label>Number of climbs<input id="sc" data-in="stc" type="number" min="1" max="500" inputmode="numeric" value="'+esc(C.climbs)+'"></label></div>'
@@ -184,8 +191,7 @@ function chronicle(){const L=all().slice(-10).reverse();
 
 pages.stair=()=>{const g=typeof HWGps!=='undefined'?HWGps.card():'',r=typeof HWRun!=='undefined'?HWRun.section():'';
   Promise.resolve().then(watch);
-  return '<h2>🧗 STAIR QUEST</h2>'+hud()
-    +head('st-casual','stairs',"WANDERER'S STAIRS",'CASUAL STAIR CLIMBING','Climb any time. Check in by GPS at a campus stairway, or log a climb by hand.')
+  return hud()+'<p id="st-casual" class="stnote">Check in by GPS at a campus stairway, or log a climb by hand. Climb at any time.</p>'
     +(g?'<div class="card" id="v6gps">'+g+'</div>':'')+casual()
     +head('st-workout','energy','TRIAL OF BREATH','STAIR WORKOUT','A timed, paced stair workout with your heart rate before and after, and an energy estimate.')
     +workout()+chart()+chronicle()+'<!--stair-games-->'
@@ -295,8 +301,11 @@ DIS.stair=DIS.pulse='General exercise pacing aid, not medical treatment. Heart r
 
 HWUI.css('stairs',`
 .sthud{margin:0 0 8px}.sthud .pxst{flex:1 1 130px}
-.stgoal{margin:0 0 12px}.stgoal small{font:var(--px-f1)/1.6 var(--fh)}
-.stjump{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}.stjump button{flex:1 1 120px;display:flex;align-items:center;justify-content:center;gap:6px}
+.ststats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:0 0 10px}
+.ststat{padding:8px 10px;background:var(--pn);border:var(--px-bw-c) solid var(--ln);display:flex;flex-direction:column;gap:2px}
+.stsv{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.stsv b{font-size:22px;line-height:1.2}.stsv small,.stsl{font-size:13px;color:var(--mut)}
+.stgoal{margin:0 0 12px}.stgoal small{font-size:13px;color:var(--mut)}.stnote{font-size:13px;margin:8px 0}
+.stjump{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}.stjump button{flex:1 1 120px;min-height:44px;display:flex;align-items:center;justify-content:center;gap:6px}
 .sthd{display:flex;align-items:center;gap:12px;margin:22px 0 12px;padding:10px 12px;background:var(--pn);border:var(--px-bw) solid var(--ln);box-shadow:var(--px-bevel),var(--px-sh);scroll-margin-top:12px}
 .sthd>div{min-width:0;display:flex;flex-direction:column;gap:4px;align-items:flex-start}.sthd b{font:var(--px-f2)/1.3 var(--fh);overflow-wrap:anywhere}.sthd small{font-size:13px}
 .stcard h3,#sthrg h3,#stlog h3{display:flex;align-items:center;gap:8px}

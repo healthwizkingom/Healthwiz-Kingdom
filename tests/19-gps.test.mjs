@@ -18,7 +18,7 @@ const find = page => page.click('#v6gps [data-a="gpsfind"]');
 
 test('GPS check-in: explanation first, one reading, nearby list, confirm logs a stair session, discovery once, position never saved', async () => {
   const { page, ctx, errors } = await boot({ pos: AT_ST20 });
-  assert.match(await page.textContent('#v6gps'), /GPS CHECK-IN[\s\S]*at Kolej MARA Kulim\?[\s\S]*28 of 32 stairways are on the map; the other 4 can be logged by hand[\s\S]*discovered: 0 \/ 28/);
+  assert.match(await page.textContent('#v6gps'), /GPS CHECK-IN[\s\S]*at Kolej MARA Kulim\?[\s\S]*28 of 32 stairways are on the map; the other 4 can be logged by hand[\s\S]*discovered by GPS check-in: 0 of 28 on the map \(32 stairways in total\)/);
   const order = await page.evaluate(() => { const h = document.querySelector('#main').innerHTML; return h.indexOf('v6gps') < h.indexOf('SAVE CLIMB'); });
   assert.ok(order, 'card sits above the manual form');
   await find(page);
@@ -49,7 +49,7 @@ test('GPS check-in: explanation first, one reading, nearby list, confirm logs a 
   const xp = () => page.evaluate(() => HWEvents.recent('xp:gained').map(x => [x.amount, x.reason]).filter(x => /check-in|Discovered/.test(x[1])));
   assert.deepEqual(await xp(), [[25, 'Stair check-in'], [5, 'Discovered Tangga sebelah rumah penjana elektrik ke Dewan Kenanga']], '25 for the session + 5 for the discovery');
   assert.ok(s.gp.v.ST20);
-  assert.match(await page.textContent('#v6gps'), /discovered: 1 \/ 28/);
+  assert.match(await page.textContent('#v6gps'), /discovered by GPS check-in: 1 of 28 on the map/);
   assert.match(await page.textContent('.sqlist .chip.on'), /penjana elektrik/, 'the manual form now points at that stairway');
   const raw = await page.evaluate(() => localStorage.getItem('healthwiz'));
   assert.ok(!raw.includes('5.35202') && !raw.includes('100.53838'), 'the user position is never stored');

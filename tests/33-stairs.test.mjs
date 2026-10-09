@@ -16,7 +16,9 @@ test('one page, three sections in order; Pulse and Running are no longer separat
   const { page, ctx, errors } = await boot();
   const order = await page.evaluate(() => { const h = document.querySelector('#main').innerHTML; return ['id="st-casual"', 'id="v6gps"', 'id="stman"', 'id="st-workout"', 'PACE &amp; BREATHE', 'id="sthrc"', 'id="stseal"', 'id="stlog"', 'id="st-run"', 'id="v6run"'].map(k => h.indexOf(k)); });
   assert.ok(order.every((v, i) => v >= 0 && (i === 0 || v > order[i - 1])), 'casual → workout → running: ' + order);
-  assert.match(await page.textContent('#st-casual'), /WANDERER'S STAIRS[\s\S]*CASUAL STAIR CLIMBING/);
+  assert.match(await page.textContent('.bn b'), /^Stairs$/);
+  assert.doesNotMatch(await page.textContent('main'), /Stair Mountain|summit path|WANDERER|STAIR QUEST|Casual climbing/);
+  assert.match(await page.textContent('#st-casual'), /Check in by GPS[\s\S]*log a climb by hand/);
   assert.match(await page.textContent('#st-workout'), /TRIAL OF BREATH[\s\S]*STAIR WORKOUT/);
   assert.match(await page.textContent('#st-run'), /RUNNING ROAD[\s\S]*RUNNING/);
   // no demo / placeholder stairway, no default selection
@@ -229,6 +231,34 @@ test('360 px: no sideways scroll, sections stack, heart-rate cards fit', async (
   await page.tap('[data-a="stjump"][data-t="st-workout"]');
   await page.waitForTimeout(700);
   assert.ok(await page.evaluate(() => Math.abs(document.getElementById('st-workout').getBoundingClientRect().top) < 60));
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test('stairway counts agree (32 total, 28 mapped), every stairway shows θ and its band, goal is labelled as a personal goal', async () => {
+  const { page, ctx, errors } = await boot();
+  const d = await page.evaluate(() => ({ n: STAIRS.length, k: HWGps.counts(),
+    by: CATS.map(c => stairsOf(c[1]).length), bad: STAIRS.filter(s => stairsOf(s.cat).includes(s) && ({ MILD: s.angle < 26, MODERATE: s.angle >= 26 && s.angle <= 31.2, VIGOROUS: s.angle > 31.2 })[s.cat] !== true).map(s => s.id) }));
+  assert.deepEqual([d.n, d.k.total, d.k.mapped, d.k.unmapped, d.k.found], [32, 32, 28, 4, 0]);
+  assert.deepEqual(d.by, [11, 11, 10]);
+  assert.deepEqual(d.bad, [], 'stored category matches the angle band');
+  const gps = await page.textContent('#v6gps');
+  assert.match(gps, /28 of 32 stairways are on the map/);
+  assert.match(gps, /discovered by GPS check-in: 0 of 28 on the map \(32 stairways in total\)/);
+  const man = await page.textContent('#stman');
+  assert.match(man, /32 stairways[\s\S]*Mild 11 \+ Moderate 11 \+ Vigorous 10/);
+  assert.match(man, /Mild < 26°, Moderate 26–31\.2°, Vigorous > 31\.2°/);
+  assert.match(man, /θ = tan⁻¹\(rise ÷ run\), estimated from the stairway's stored data/);
+  for (const [c, n] of [['MILD', 11], ['MODERATE', 11], ['VIGOROUS', 10]]) {
+    await page.click(`[data-a="cat"][data-c="${c}"]`);
+    const t = await page.$$eval('.sqlist .sqf', e => e.map(x => x.textContent));
+    assert.equal(t.length, n);
+    assert.ok(t.every(x => /θ \d+\.\d\d° · (Mild|Moderate|Vigorous)/.test(x)), t.join('|'));
+  }
+  assert.match(await page.textContent('.sthud, .ststats'), /steps[\s\S]*Today[\s\S]*sessions[\s\S]*workouts[\s\S]*BPM/);
+  assert.match(await page.textContent('.stgoal'), /Personal goal: 0 of 100 steps[\s\S]*not a health measurement/);
+  const small = await page.$$eval('#main button', b => b.filter(x => x.offsetParent && x.getBoundingClientRect().height < 44 && x.closest('.stjump,.stcats,.sqlist')).length);
+  assert.equal(small, 0, 'jump, category and stairway buttons are at least 44px tall');
   assert.deepEqual(errors, []);
   await ctx.close();
 });
