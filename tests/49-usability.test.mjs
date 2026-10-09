@@ -2,7 +2,8 @@
 // Body & Energy. More items are added below by later commits.
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { openApp, closeBrowser, go, state, RETURNING } from './helpers.mjs';
+import { openApp, closeBrowser, go, state, RETURNING, entry, APP_URL } from './helpers.mjs';
+import { URL0, CLOUD, tok, fakeSupabase, device, signIn, synced, water } from './cloud-fake.mjs';
 
 after(closeBrowser);
 const M = { viewport: { width: 390, height: 844 }, context: { hasTouch: true, isMobile: true } };
@@ -147,4 +148,52 @@ test('quest start: the registry asks about conditions after activity; a knee pro
   assert.match(await page.textContent('#advq2'), /Finish one stair session/);
   assert.ok(await noScroll(page));
   assert.deepEqual(errors, []); await ctx.close();
+});
+
+// ---- item 6: the tutorial after signing in ----
+const cloudBefore = S => async p => { await p.route(URL0 + '/**', S.handle); await p.addInitScript(c => { if (!sessionStorage.getItem('cl')) { localStorage.setItem('healthwiz_cloud', c); sessionStorage.setItem('cl', '1'); } }, CLOUD); };
+const openLink = async (page, url) => { await page.goto('about:blank'); await page.goto(url); }; // a link opened in a new tab is a full page load
+const linkFor = (S, email) => { S.users[email] = { id: 'u9-0000', email }; return APP_URL + '#access_token=' + tok({ sub: 'u9-0000', email, role: 'authenticated', exp: 9e9 }) + '&refresh_token=r-u9-0000&expires_in=3600&token_type=bearer&type=magiclink'; };
+
+test('email link: a new user who finished the registry lands on Home with the tutorial running; after SKIP a returning sign-in does not show it again', async () => {
+  const S = fakeSupabase();
+  const { page, ctx, errors } = await openApp({ ...M, fresh: true, before: cloudBefore(S) });
+  await page.waitForSelector('.wl'); await page.tap('[data-a="go"][data-v="home"]'); await page.waitForSelector('#obt');
+  const fill = async v => { await page.fill('#obi', String(v)); await page.tap('[data-a="obn"]'); };
+  await fill('Aina'); await fill(19); await page.tap('[data-a="obsex"][data-v="f"]'); await fill(160); await fill(55);
+  await page.tap('[data-a="obact"]'); await page.tap('[data-a="cdnext"]'); await page.tap('[data-a="obf"]'); await page.tap('[data-a="obgo"]');
+  assert.equal(await page.evaluate(() => S.ob.i), 8, 'Medius offers an account'); assert.equal(await page.locator('#tut').count(), 0);
+  // the emailed link reloads the page: the registry is over, the tutorial never started
+  await openLink(page, linkFor(S, 'aina@example.com'));
+  await page.waitForSelector('#tut', { timeout: 8000 });
+  assert.equal(await page.evaluate(() => S.v), 'home', 'on the Home screen');
+  assert.equal(await page.evaluate(() => HWCloud.status().signed), true);
+  assert.equal(await page.locator('#tut').count(), 1, 'one tutorial, not two');
+  await page.tap('#tut .tsk');
+  assert.equal(await page.evaluate(() => localStorage.getItem('hwtut')), '1');
+  await openLink(page, linkFor(S, 'aina@example.com')); await page.waitForTimeout(2500);   // signing in again on the same device
+  assert.equal(await page.locator('#tut').count(), 0, 'a returning user is not shown the tutorial again');
+  assert.deepEqual(errors.filter(e => !/sessionStorage/.test(e)), [], 'only the init scripts of the blank tab complain'); await ctx.close();
+});
+
+test('first sign-in KEEP / MERGE dialog: the tutorial waits for it and starts after the choice; nothing starts for a user still in the registry', async () => {
+  const S = fakeSupabase();
+  const a = await device(S, { viewport: M.viewport }); await signIn(a.page, S); await water(a.page, 250); await synced(a.page); await a.ctx.close();
+  const seed = { ...RETURNING, e: [entry('water', 500, 0)] };
+  const b = await device(S, { seed, viewport: M.viewport });
+  await b.page.evaluate(() => localStorage.removeItem('hwtut'));                 // this device never showed the tutorial
+  await signIn(b.page, S);
+  await b.page.waitForSelector('[data-a="acmerge"]');
+  await b.page.waitForTimeout(1800);
+  assert.equal(await b.page.locator('#tut').count(), 0, 'not on top of the dialog');
+  await b.page.click('[data-a="acmerge"]');
+  await b.page.waitForSelector('#tut', { timeout: 8000 });
+  assert.equal(await b.page.evaluate(() => S.v), 'home');
+  assert.deepEqual(a.errors.concat(b.errors), []); await b.ctx.close();
+  // a brand-new user in the middle of the registry is left alone
+  const S2 = fakeSupabase(), c = await openApp({ ...M, fresh: true, before: cloudBefore(S2) });
+  await c.page.waitForSelector('.wl'); await c.page.tap('[data-a="go"][data-v="home"]'); await c.page.waitForSelector('#obt');
+  await c.page.evaluate(() => HWEvents.emit('cloud:signed-in', { via: 'email' })); await c.page.waitForTimeout(1500);
+  assert.equal(await c.page.locator('#tut').count(), 0); assert.equal(await c.page.evaluate(() => S.v), 'onb');
+  await c.ctx.close();
 });
