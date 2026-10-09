@@ -21,7 +21,8 @@ test('sleep log starts the Dream Battle by itself, once, with SKIP; the night is
   await page.waitForSelector('.bpop', { timeout: 3000 });
   await page.waitForTimeout(900);
   assert.equal(await page.locator('#dbat.d-live').count(), 0, 'battle waits behind the badge popup');
-  for (let k = 0; k < 5 && await page.locator('.bpop').count(); k++) { await page.tap('.bpop', { force: true }); await page.waitForTimeout(400); }
+  // badge cards now come one after another: close each as it shows, then the battle starts
+  for (let k = 0; k < 14 && !(await page.locator('#dbat.d-live').count()); k++) { if (await page.locator('.bpop').count()) await page.tap('.bpop', { force: true }); await page.waitForTimeout(300); }
   await page.waitForSelector('#dbat.d-live', { timeout: 3000 });
   assert.equal(await page.locator('.db6skip').count(), 1, 'SKIP is offered while it plays');
   const box = await page.locator('.db6skip').boundingBox();
@@ -105,7 +106,7 @@ test('food: several foods selected without a redraw, one LOG SELECTED, totals up
   const k = food.reduce((a, e) => a + e.v, 0);
   assert.match(await page.textContent('#fcal'), new RegExp('Calories consumed\\s*' + k));
   assert.equal(await page.evaluate(() => HWFoodSel.selected.length), 0, 'selection cleared after logging');
-  await page.waitForTimeout(500);
+  await page.waitForFunction(() => /Logged 2 foods/.test(document.getElementById('toasts').textContent), null, { timeout: 8000 });   // popups now come one at a time
   const toasts = await page.evaluate(() => [...document.querySelectorAll('#toasts > div')].map(d => d.textContent));
   assert.ok(toasts.some(t => /Logged 2 foods/.test(t)), 'one summary toast: ' + toasts);
   assert.ok(!toasts.some(t => /^\+10 XP Meal logged/.test(t)), 'no toast per food');

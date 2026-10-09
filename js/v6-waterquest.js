@@ -188,6 +188,7 @@ function flow(v,prev,now){const W0=$('#wq'),ch=$('#wqch');
   if(!W0||!ch||!W0.classList.contains('wq6')){render();return}
   if(run&&run.W===W0){meters(W0);flText('+'+v+' mL',1);run.v+=v;return}
   const R=run={W:W0,v:v,t:[]},sp=api.speed;
+  {const b=W0.getBoundingClientRect(),H=innerHeight||document.documentElement.clientHeight;if(b.bottom<0||b.top>H-60)W0.scrollIntoView({block:'nearest',behavior:'auto'})} // the add-water form now comes first on the page, so bring the well into view to watch it fill
   const at=(ms,f)=>{R.t.push(setTimeout(()=>{if(run!==R)return;if(!W0.isConnected){end();return}try{f()}catch(e){console.error('[HWWaterQuest]',e);end()}},ms*sp))};
   const end=()=>{R.t.forEach(clearTimeout);if(run===R)run=null;if(heldDone){const f=heldDone;heldDone=null;f()}};
   const rf=W0.querySelector('.wq6rf'),wl=W0.querySelector('.wqwell'),pr=$('#wqpr');

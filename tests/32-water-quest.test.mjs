@@ -33,6 +33,7 @@ test('layered scene: painted far / mid / foreground layers, water life, the rigg
 test('logging water: the knight walks, kneels, drinks, carries, pours, celebrates; the well and gauge rise; saved once', async () => {
   const { page, ctx, errors } = await boot();
   await page.evaluate(() => { HWWaterQuest.speed = 0.4; });
+  await page.waitForFunction(() => !document.querySelector('.bpop') && HWPop.idle(), null, { timeout: 20000 });   // badge cards come one at a time; start from a clear screen
   const n0 = (await state(page)).e.length;
   const seen = page.evaluate(() => new Promise(res => { const S = new Set(), t0 = Date.now();
     const f = () => { const r = document.querySelector('#wqch svg.hwr'); if (r) { const m = /s-([\w-]+)/.exec(r.getAttribute('class')); if (m) S.add(m[1]); }

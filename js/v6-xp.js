@@ -19,6 +19,6 @@ const _add=add;add=function(c,v,m,note,d,t,xp,msg){const cap=CAP[c],k=today();
     else{const X=xl();X[k]=X[k]||{};X[k][c]=n+1;prune()}}
   return _add.call(this,c,v,m,note,d,t,xp,msg)};
 
-// exploration: first visit to each region page gives a small one-time reward
-HWEvents.on('page:viewed',e=>{if(!REGIONS[e.view])return;const X=(st.ex=st.ex||{p:{}});X.r=X.r||{};if(X.r[e.view])return;X.r[e.view]=today();save();setTimeout(()=>gain(5,'Explored '+REGIONS[e.view]),0)});
+// exploration: the first visit to each region page is noted (no reward)
+HWEvents.on('page:viewed',e=>{if(!REGIONS[e.view])return;const X=(st.ex=st.ex||{p:{}});X.r=X.r||{};if(X.r[e.view])return;X.r[e.view]=today();save()}); // the visit is still noted (Hall of Heroes counts it) but opening a page no longer pays XP: no popup for just looking
 return{CAP,used,remaining:(c)=>CAP[c]==null?Infinity:Math.max(0,CAP[c]-used(c))}})();

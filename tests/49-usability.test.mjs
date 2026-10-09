@@ -224,3 +224,29 @@ test('Home for a new user is at most 3 screens; one Today\'s quests card opens t
   assert.equal(await page.locator('#advq2').count(), 1);
   assert.deepEqual(errors, []); await ctx.close();
 });
+
+test('one popup at a time: no reward for opening a page; XP toasts merge and wait while a field has focus; badge cards wait for the toast', async () => {
+  const { page, ctx, errors } = await openApp(M);
+  const xp0 = await page.evaluate(() => st.xp);
+  for (const v of ['food', 'water', 'sleep', 'stair', 'stress', 'body']) {
+    await go(page, v);
+    assert.ok(await page.evaluate(() => document.querySelectorAll('#toasts div, .v6cel, .bpop').length) <= 1, v + ': at most one overlay on a first visit');
+  }
+  await page.waitForTimeout(500);
+  assert.equal(await page.evaluate(() => st.xp), xp0, 'opening a page pays nothing');
+  assert.equal(await page.evaluate(() => /Explored/.test(document.getElementById('toasts').textContent)), false);
+  await go(page, 'water');
+  await page.focus('#wc');
+  await page.evaluate(() => { toast('+5 XP Water'); toast('+5 XP Meal'); });
+  await page.waitForTimeout(300);
+  assert.equal(await page.locator('#toasts div').count(), 0, 'XP toasts do not show over a field with focus');
+  await page.evaluate(() => { toast('Check height and weight'); });
+  await page.waitForTimeout(200);
+  assert.equal(await page.locator('#toasts div').count(), 1, 'feedback for what you just did is not held back');
+  await page.evaluate(() => document.activeElement.blur());
+  await page.waitForFunction(() => /\+10 XP/.test(document.getElementById('toasts').textContent), null, { timeout: 8000 });
+  await page.evaluate(() => { bpop(['🥤', 'First Sip', 'Log water once']); toast('Saved'); });
+  await page.waitForTimeout(300);
+  assert.ok(await page.evaluate(() => document.querySelectorAll('#toasts div, .bpop').length) <= 1, 'toast and badge card never show together');
+  assert.deepEqual(errors, []); await ctx.close();
+});

@@ -231,10 +231,10 @@ test('sleep: overnight session is filed under the wake-up day; yesterday and old
   assert.equal(s.e.length, 1);
   assert.deepEqual([s.e[0].c, s.e[0].v, s.e[0].d, s.e[0].t, s.e[0].m.bed, s.e[0].m.wake], ['sleep', 7.3, daysAgo(1), '06:45', '23:30', '06:45']);
   // again for the same day: the first tap only warns
-  await page.waitForTimeout(1300);
+  await page.waitForTimeout(1700);   // past the 1.5 s double-tap guard (js/v6-dream.js)
   await page.click('[data-a="slsave"]');
   assert.equal((await state(page)).e.length, 1, 'asked first');
-  await page.waitForTimeout(1300);
+  await page.waitForTimeout(1700);
   await page.click('[data-a="slsave"]');
   assert.equal((await state(page)).e.length, 2, 'second tap confirms');
   // an older date

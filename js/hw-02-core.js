@@ -22,7 +22,7 @@ function persist(){SVq=0;const j=JSON.stringify(st),w=()=>localStorage.setItem('
 const S={v:'welcome',meal:'breakfast',src:'d'+new Date().getDate(),q:'',sel:null,qty:1,pm:1,ck:'',cf:0,loc:0,cat:'MILD',rg:'w',sq:{ph:0,n:0},pb:{pace:1,on:0,k:0},fc:'all',tm:0};
 const acts={},INP={},CH={};let UD=null,ac;
 function sfx(f,d){if(!st.s.sound)return;try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();const o=ac.createOscillator(),g=ac.createGain();o.type='square';o.frequency.value=f||440;g.gain.value=.04;o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+(d||.1))}catch(e){}}
-function toast(m){const d=document.createElement('div');d.innerHTML=m;$('#toasts').appendChild(d);setTimeout(()=>d.remove(),3200)}
+function toast(m){if(typeof HWPop!=='undefined')return HWPop.toast(m);const d=document.createElement('div');d.innerHTML=m;$('#toasts').appendChild(d);setTimeout(()=>d.remove(),3200)}
 function spr(map,pal,sc){const c=document.createElement('canvas');c.width=map[0].length;c.height=map.length;const x=c.getContext('2d');map.forEach((r,y)=>[...r].forEach((ch,i)=>{if(pal[ch]){x.fillStyle=pal[ch];x.fillRect(i,y,1,1)}}));return '<img class="px" alt="" src="'+c.toDataURL()+'" width="'+c.width*sc+'" height="'+c.height*sc+'">'}
 const HERO=sc=>'<img class="hero" alt="" src="'+KN+'" width="'+16*sc+'" style="height:auto">';
 const HEART=sc=>spr(['.rr.rr.','rrrrrrr','rrrrrrr','.rrrrr.','..rrr..','...r...'],{r:'#e0483f'},sc);

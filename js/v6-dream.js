@@ -238,7 +238,7 @@ function auto(){const c=$('#dbatc'),p0=strength(LC('sleep'),st.p.age);if(!c||!p0
   const el=$('#dbat');if(!el)return;el.scrollIntoView({behavior:rm?'auto':'smooth',block:'center'});
   if(rm){played[p0.last.id+':'+Math.round(p0.s*1000)]=1;return}
   // a badge popup (e.g. First Dream) covers the screen: start once it has closed, so the battle is never played unseen
-  let n=0;const go=()=>{if($('#dbat')!==el)return;if(document.querySelector('.bpop')&&++n<40){setTimeout(go,250);return}
+  let n=0;const go=()=>{if($('#dbat')!==el)return;if((document.querySelector('.bpop')||(typeof HWPop!=='undefined'&&HWPop.badgePending()))&&++n<40){setTimeout(go,250);return}
     el.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>{if($('#dbat')===el)play()},n?350:0)};
   setTimeout(go,500*api.speed)}
 // autoplay after the Sleep page draws, once per logged night per visit
