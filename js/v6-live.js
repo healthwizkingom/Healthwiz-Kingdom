@@ -112,7 +112,8 @@ function level(){const a=aq();return a?band(a.pm2_5).n:0}
 const hazy=()=>level()>=3;
 const num=(v,d)=>fin(v)?(+v).toFixed(d):'–';
 const OFFICIAL='<a href="https://apims.doe.gov.my" target="_blank" rel="noopener">official reading: APIMS ↗</a>';
-function src(){const a=aq();return 'at '+esc(obs(a.time)||hm(R.aq.at))+' · Open-Meteo Air Quality · <b>modelled estimate</b>, not an official reading'+(R.aq.stale?' · fetched '+esc(hm(R.aq.at)):'')+' · '+OFFICIAL}
+const AQ_HELP='<p><b>A modelled estimate, not an official reading.</b> These numbers come from the Open-Meteo Air Quality model for Kulim, not from a sensor on campus, so they can differ from what is measured on the ground.</p><p>For the official reading, check APIMS (the Department of Environment\'s air pollutant index) before hard outdoor exercise.</p>';
+function src(){const a=aq();return 'at '+esc(obs(a.time)||hm(R.aq.at))+' · Open-Meteo Air Quality (estimate)'+(R.aq.stale?' · fetched '+esc(hm(R.aq.at)):'')+' · '+OFFICIAL+(typeof HWHelp!=='undefined'?HWHelp.btn('aqsrc','Air-quality source',AQ_HELP):'')}
 function hazeCard(){if(!on())return '';const a=aq();
   if(!a)return '<div class="card v6aq" id="v6haze"><h3>🌫️ JEREBU CHECK</h3><p class="mut">'+(R.aq.st==='loading'?'⏳ Checking the haze level for Kulim…':'Haze reading unavailable right now.')+'</p><small class="mut">Before hard outdoor exercise, check the '+OFFICIAL+'.</small></div>';
   const L=band(a.pm2_5);

@@ -27,7 +27,7 @@ function row(x,k){const f=F[x.i],n=esc(f[0]),t=tot(x);
     +'<b class="fsk" data-kc="'+k+'">'+(t==null?'– kcal':t+' kcal')+'</b>'
     +'<button class="g fsrm" data-a="fsrm" data-k="'+k+'" aria-label="Remove '+n+'">✕</button></div></div>'}
 function tray(){if(!sel.length)return '';
-  return '<h3>SELECTED FOODS ('+sel.length+')</h3><small class="mut">Logged as <b>'+esc(MN(S.meal))+'</b>. Tap a food in the list again to remove it.</small>'
+  return '<h3>SELECTED FOODS ('+sel.length+')</h3><small class="mut">Logged as <b>'+esc(MN(S.meal))+'</b>'+(HWWhen.custom()?' for <b>'+esc(HWWhen.label(HWWhen.date(),HWWhen.time(),true))+'</b>':'')+'. Tap a food in the list again to remove it.</small>'
     +sel.map(row).join('')
     +'<p class="fstot" id="fstot">Total <b class="num">'+total()+'</b> kcal</p>'
     +'<div class="fsact"><button data-a="addfood" class="fslog">LOG SELECTED ('+sel.length+')</button><button class="g" data-a="fsclr">CLEAR</button></div>'}
@@ -44,6 +44,7 @@ const _fi=foodItems;foodItems=function(){return mark(_fi.apply(this,arguments))}
 {const P=pages.food;pages.food=function(){const h=P.apply(this,arguments);
   return h.replace(/(<div id="fl">[\s\S]*?<\/div>)(<\/div><div class="card" id="flog">)/,(m,a,b)=>a+'<div class="fsel" id="fsel" aria-live="polite"'+(sel.length?'':' hidden')+'>'+tray()+'</div><div class="fsbar" id="fsbar"'+(sel.length?'':' hidden')+'>'+barHtml()+'</div>'+b)}}
 HWEvents.on('page:viewed',e=>{if(e&&e.view==='food')watch()});
+document.addEventListener('hww:change',()=>{if(sel.length)sync()});
 
 /* ---------- actions ---------- */
 const O={pick:acts.pick,addfood:acts.addfood,qm:acts.qm,qp:acts.qp};
@@ -67,10 +68,11 @@ function batch(fn,done){quiet++;let r;try{r=fn()}finally{setTimeout(()=>{quiet--
 acts.addfood=(d,t,e)=>{if(!sel.length)return O.addfood(d,t,e);if(busy)return;
   const bad=sel.findIndex(x=>kOf(x)==null);
   if(bad>=0){toast('Enter kcal per serving for '+esc(F[sel[bad].i][0])+' (0–3000)');const inp=document.querySelector('[data-in="fsck"][data-k="'+bad+'"]');if(inp)inp.focus();return}
+  const w=HWWhen.stamp({sig:'sel'+sel.map(x=>x.i+'x'+x.qty+'/'+x.pm).join()+S.meal});if(!w)return;
   busy=1;document.querySelectorAll('[data-a="addfood"]').forEach(b=>{b.disabled=true;b.setAttribute('aria-busy','true')});
   const list=sel.slice(),meal=S.meal,x0=st.xp,kcal=total();let n=0;
-  try{batch(()=>{list.forEach(x=>{const f=F[x.i],k=kOf(x);add('food',Math.round(k*x.qty*x.pm),{name:f[0],por:f[1],qty:x.qty,pm:x.pm,meal,src:'KOLEJ MARA KULIM',u:f[2]==null?1:0},'',0,0,10,'Meal logged');n++})},
-      ()=>{const xp=st.xp-x0;_t('Logged '+n+' food'+(n===1?'':'s')+' · '+kcal+' kcal'+(xp>0?' · +'+xp+' XP':''))})}
+  try{batch(()=>{list.forEach(x=>{const f=F[x.i],k=kOf(x);add('food',Math.round(k*x.qty*x.pm),{name:f[0],por:f[1],qty:x.qty,pm:x.pm,meal,src:'KOLEJ MARA KULIM',u:f[2]==null?1:0},'',w.d,w.t,10,'Meal logged');n++})},
+      ()=>{const xp=st.xp-x0;_t('Logged '+n+' food'+(n===1?'':'s')+' · '+kcal+' kcal'+(w.back?' · for '+HWWhen.label(w.d,w.t,true):'')+(xp>0?' · +'+xp+' XP':''))})}
   catch(err){console.error('[HWFoodSel]',err)}
   finally{sel=sel.slice(n);S.sel=null;S.ck='';render();setTimeout(()=>{busy=0},600)}};
 

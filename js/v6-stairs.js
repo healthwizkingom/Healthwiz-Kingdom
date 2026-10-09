@@ -101,7 +101,7 @@ function casual(){const tot=(+C.steps||0)*(+C.climbs||0);
   return '<div class="card stcard" id="stman"><h3>'+ico('scroll')+' LOG A CLIMB BY HAND</h3>'+picker()
     +'<div class="row"><label>Steps per climb<input id="ss" data-in="stc" type="number" min="1" max="1000" inputmode="numeric" value="'+esc(C.steps)+'"></label><label>Number of climbs<input id="sc" data-in="stc" type="number" min="1" max="500" inputmode="numeric" value="'+esc(C.climbs)+'"></label></div>'
     +'<p>Total: <b class="big" id="tot">'+tot+'</b> steps</p>'
-    +'<div class="row"><label>Date<input id="sdt" data-in="stc" type="date" value="'+esc(C.d||today())+'"></label><label>Time<input id="stm" data-in="stc" type="time" value="'+esc(C.t||nowT())+'"></label></div>'
+    +HWWhen.html({id:'stair',cats:['stair']})
     +btn('savestair','SAVE CLIMB','stsave')+'</div>'}
 
 // heart-rate trace for one moment of the workout
@@ -147,12 +147,12 @@ function workout(){const P=PACES[S.pb.pace],q=stair(),run=!!S.pb.on,ds=durW();
     +'<div class="sttimer"><small>WORKOUT TIME</small><b class="num" id="wk-time" role="timer">'+clock(secsW())+'</b></div>'
     +'<div class="row" style="margin-top:10px">'+(run?btn('slow','SLOW DOWN','g')+'<button data-a="pstop" style="background:var(--red);color:#fff">STOP ACTIVITY</button>':btn('pstart',W.ms?'RESUME':'START'))+'</div>'
     +'<div class="warn">Stop right away if you feel dizzy, faint, have chest pain or severe breathlessness, and seek medical attention. You never have to keep this pace.</div></div>'
-    +'<div class="card stcard" id="sthrc"><h3>'+ico('heart')+' HEART RATE · THIS WORKOUT</h3><p class="mut">Count your pulse before you start and again right after you stop, or read it from a heart-rate device. Only numbers you type in or choose to use are saved.</p>'
+    +'<div class="card stcard" id="sthrc"><h3>'+ico('heart')+' HEART RATE · THIS WORKOUT '+HWHelp.btn('hrpic')+'</h3><p class="mut">Count your pulse before you start and again right after you stop, or read it from a heart-rate device. Only numbers you type in or choose to use are saved.</p>'
     +(hasHR?HWHR.panel():'')
-    +'<div class="sthrs">'+trace('b',okHR(W.hrB))+trace('a',okHR(W.hrA))+'</div><p id="st-delta">'+delta()+'</p>'+climbHR()+'<small class="mut">A heart-rate picture, not an ECG.</small></div>'
-    +'<div class="card stcard" id="stseal"><h3>'+ico('achievement')+' SEAL THE WORKOUT</h3>'
+    +'<div class="sthrs">'+trace('b',okHR(W.hrB))+trace('a',okHR(W.hrA))+'</div><p id="st-delta">'+delta()+'</p>'+climbHR()+'</div>'
+    +'<div class="card stcard" id="stseal"><h3>'+ico('achievement')+' SEAL THE WORKOUT</h3>'+HWWhen.html({id:'wk',cats:['stair'],hint:'Heart rates read from a device are saved at the time they were taken, so a workout using them is saved for today.'})
     +'<div class="row"><label>Steps per climb<input id="wk-s" data-in="stw" type="number" min="1" max="1000" inputmode="numeric" value="'+esc(W.steps)+'"></label><label>Number of climbs<input id="wk-c" data-in="stw" type="number" min="1" max="500" inputmode="numeric" value="'+esc(W.climbs)+'"></label></div>'
-    +'<label>Workout time (min)<input id="wk-d" data-in="stw" type="number" min="0.5" max="300" step="0.5" inputmode="decimal" value="'+(ds!=null?ds:'')+'"></label><small class="mut" id="wk-dn">'+(W.durSet?'Typed in by you.':ds!=null?'From the Pace & Breathe timer.':'Start the timer, or type the minutes.')+'</small>'
+    +'<label>Workout time (min)<input id="wk-d" data-in="stw" type="number" min="0.5" max="300" step="0.5" inputmode="decimal" placeholder="minutes" value="'+(ds!=null?ds:'')+'"></label><small class="mut" id="wk-dn">'+(W.durSet?'Typed in by you.':ds!=null?'From the Pace & Breathe timer.':'')+'</small>'
     +'<div id="wk-kcal">'+kcalBox()+'</div><div class="row stbtns">'+btn('stwsave','SAVE WORKOUT')+btn('stwreset','CLEAR','g')+'</div></div>'}
 
 // heart rate of recent workouts: one column per workout, before (circle) and after (square) joined by a line
@@ -217,7 +217,7 @@ function watch(){if(hasIO){if(IOc)IOc.disconnect();IOc=new IntersectionObserver(
 /* ---------- live updates without a full render (keeps focus and typed values) ---------- */
 const $id=i=>document.getElementById(i);
 function liveKcal(){const k=$id('wk-kcal');if(k&&!k.contains(document.activeElement))k.innerHTML=kcalBox()}
-INP.stc=()=>{C.steps=$id('ss').value;C.climbs=$id('sc').value;C.d=$id('sdt').value;C.t=$id('stm').value;$id('tot').textContent=(+C.steps||0)*(+C.climbs||0)};
+INP.stc=()=>{C.steps=$id('ss').value;C.climbs=$id('sc').value;$id('tot').textContent=(+C.steps||0)*(+C.climbs||0)};
 INP.stw=el=>{const v=k=>{const e=$id(k);return e?e.value:''},id=el&&el.id;W.hrB=v('wk-b');W.hrA=v('wk-a');W.steps=v('wk-s');W.climbs=v('wk-c');
   if(id==='wk-b')W.hrBd=0;if(id==='wk-a')W.hrAd=0; // typed over a device reading: it is the user's number now
   if($id('wk-lo')){W.cLo=v('wk-lo');W.cAv=v('wk-av');W.cHi=v('wk-hi')}
@@ -255,8 +255,8 @@ const need=sel=>{const q=stair();if(!q){toast('Choose a stairway first (or check
 const counts=(s,c)=>Number.isInteger(s)&&s>=1&&s<=1000&&Number.isInteger(c)&&c>=1&&c<=500;
 acts.savestair=()=>{INP.stc();const s=+C.steps,c=+C.climbs;
   if(!counts(s,c)){toast('Enter steps per climb (1–1000) and number of climbs (1–500)');return}
-  const q=need('#stman .sqlist');if(!q)return;const d=C.d||today(),t=C.t||nowT();
-  add('stair',s*c,record(q,{kind:'casual',src:'manual',steps:s,climbs:c}),'',d,t,25,'Stair session');
+  const q=need('#stman .sqlist');if(!q)return;const w=HWWhen.stamp({sig:'k'+q.id+s+'x'+c});if(!w)return;
+  add('stair',s*c,record(q,{kind:'casual',src:'manual',steps:s,climbs:c}),'',w.d,w.t,25,'Stair session');HWWhen.saved(w,'Climb');
   C.steps=C.climbs=C.d=C.t='';render()};
 acts.stwsave=()=>{INP.stw();pause();const s=+W.steps,c=+W.climbs,b=W.hrB===''?null:okHR(W.hrB),a=W.hrA===''?null:okHR(W.hrA),dur=durW();
   if(!counts(s,c)){toast('Enter steps per climb (1–1000) and number of climbs (1–500)');return}
@@ -267,8 +267,10 @@ acts.stwsave=()=>{INP.stw();pause();const s=+W.steps,c=+W.climbs,b=W.hrB===''?nu
   if((lo&&av&&lo>av)||(av&&hi&&av>hi)||(lo&&hi&&lo>hi)){toast('Climb heart rate: lowest ≤ average ≤ highest');return}
   const q=need('#wk-loc');if(!q)return;const pace=PACES[S.pb.pace][1],e=estimate({pace,dur,hrA:a});
   const dv={};if(W.hrBd&&b)dv.b=1;if(W.hrAd&&a)dv.a=1;if(W.cDev&&(lo||av||hi))dv.c=1;const nd=Object.keys(dv).length,ng=(b?1:0)+(a?1:0)+(lo||av||hi?1:0),pk=peak(hi,a);
+  if(nd&&HWWhen.custom()){toast('📅 This workout uses heart rates read from your device just now, so it can only be saved for now. Choose USE NOW, or clear the device readings.');return}
+  const w=HWWhen.stamp({sig:'w'+q.id+s+'x'+c+'/'+dur});if(!w)return;
   add('stair',s*c,record(q,{kind:'workout',src:nd?'device':'manual',steps:s,climbs:c,pace,dur:dur||0,hrB:b,hrA:a,kcal:e.v?{v:e.v,lo:e.lo,hi:e.hi,m:e.m}:null,
-    hrS:nd?(nd===ng?'device':'mixed'):undefined,hrLo:lo,hrAv:av,hrHi:hi,hrPct:pk&&pk.pct||null,hrDev:nd?dv:null}),'',today(),nowT(),25,'Workout saved');
+    hrS:nd?(nd===ng?'device':'mixed'):undefined,hrLo:lo,hrAv:av,hrHi:hi,hrPct:pk&&pk.pct||null,hrDev:nd?dv:null}),'',w.d,w.t,25,'Workout saved');HWWhen.saved(w,'Workout');
   clearInterval(S.tm);S.pb.on=0;W=W0();try{sessionStorage.removeItem(DK)}catch(x){}render()};
 acts.stwreset=()=>{pause();clearInterval(S.tm);S.pb.on=0;W=W0();try{sessionStorage.removeItem(DK)}catch(e){}render();toast('Workout cleared. Nothing was saved.')};
 acts.stprof=()=>{const v=i=>{const e=$id(i);return e?e.value:''},a=+v('pf-a'),sx=v('pf-s'),h=+v('pf-h'),w=+v('pf-w');

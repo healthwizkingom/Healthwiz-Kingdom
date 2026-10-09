@@ -158,7 +158,7 @@ function join(){const nm=B.draft||(B.draft=suggest());
     +(acct()?' Signed in, your entry follows your account to every device.':'')+'</p>'
     +'<label>Nickname (3–16 characters; please don\'t use your real name)<input id="rbnick" maxlength="16" autocomplete="off" spellcheck="false" value="'+esc(nm)+'"></label>'
     +'<button data-a="rbjoin"'+(online()&&cfg()?'':' disabled')+'>'+ico('achievement')+' JOIN THE RUNNERS\' BOARD</button></div>'}
-function card(){const c=cfg();let h='<div class="card" id="v6rb"><h3>'+ico('achievement')+' RUNNERS\' BOARD</h3>';
+function card(){const c=cfg();let h='<div class="card" id="v6rb"><h3>'+ico('achievement')+' RUNNERS\' BOARD '+HWHelp.btn('runboard')+'</h3>';
   if(!c)return h+'<p class="mut">The running leaderboard is not set up on this copy of HealthWiz. Your runs still work and stay on this device.</p></div>';
   h+='<div class="v6tabs rbtabs" role="group" aria-label="Choose a board">'+TABS.map(t=>'<button class="sm'+(t[0]===tab?'':' g')+'" data-a="rbtab" data-v="'+t[0]+'" aria-pressed="'+(t[0]===tab)+'">'+t[1]+'</button>').join('')+'</div>';
   if(tab!=='5k')h+='<div class="rbsort" role="group" aria-label="Rank by"><small>RANK BY</small>'+[['km','DISTANCE'],['runs','CONSISTENCY']].map(s=>'<button class="sm'+(s[0]===sort?'':' g')+'" data-a="rbsort" data-v="'+s[0]+'" aria-pressed="'+(s[0]===sort)+'">'+s[1]+'</button>').join('')+'</div>';
@@ -170,7 +170,7 @@ function card(){const c=cfg();let h='<div class="card" id="v6rb"><h3>'+ico('achi
       +'<small class="mut">Leaving deletes your nickname and all your weekly totals from the server. Your runs stay on this device.</small></details>'
     :join();
   if(note)h+='<div class="warn" role="alert">'+note+'</div>';
-  return h+'<small class="mut">Nickname + weekly running totals only. Distance and pace come from GPS and are estimates.</small></div>'}
+  return h+'</div>'}
 function paint(){const el=D.getElementById('v6rb');if(!el)return;const inp=el.querySelector('#rbnick'),v=inp?inp.value:null,a=D.activeElement,
   foc=a&&el.contains(a)?(a.id?'#'+a.id:a.dataset&&a.dataset.a?'[data-a="'+a.dataset.a+'"]'+(a.dataset.v?'[data-v="'+a.dataset.v+'"]':''):null):null,open=!!el.querySelector('details[open]');
   el.outerHTML=card();const n=D.getElementById('v6rb');if(!n)return;

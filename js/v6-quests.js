@@ -66,7 +66,7 @@ function award(q){gain(q.xp,(q.kind==='focus'?'Focus quest: ':'Weekly quest: ')+
 
 // UI (§32): title, description, why, progress, reward, area, completion state
 function row(q){const ok=q.p>=1||q.done;return '<div class="aq'+(ok?' dn':'')+'"><span class="ae">'+q.icon+'</span><div class="an"><b>'+esc(q.name)+'<span class="tagk">'+(q.kind==='focus'?'FOCUS':'WEEKLY')+'</span></b><small>'+esc(q.desc)+(q.kind==='weekly'?' ('+Math.min(q.n,q.goal)+'/'+q.goal+')':'')+'</small>'+(q.why?'<small class="why">'+esc(q.why)+'</small>':'')+bar(q.p*100,ok?'var(--grn)':'var(--gold)')+'</div><span class="ax">'+(ok?'✔ +':'+')+q.xp+' XP</span><button class="sm g" data-a="go" data-v="'+q.go+'" aria-label="Open '+esc(q.name)+'">▶</button></div>'}
-function card(id){if(S.v==='welcome')return '';const f=focus(),W=weekly();return '<div class="card v6q" id="'+id+'"><h3>🎯 FOCUS & WEEKLY QUESTS</h3>'+row(f)+W.map(row).join('')+'<p class="mut" style="margin:8px 0 0;font-size:12px">The focus quest is picked from your own logs each day; weekly quests reset on Monday. All targets stay within your own plan.</p><span class="gtag">🎮 GAME QUESTS · NOT MEDICAL ADVICE</span></div>'}
+function card(id){if(S.v==='welcome')return '';const f=focus(),W=weekly();return '<div class="card v6q" id="'+id+'"><h3>🎯 FOCUS & WEEKLY QUESTS '+HWHelp.btn('questpick')+'</h3>'+row(f)+W.map(row).join('')+'<span class="gtag">🎮 GAME QUESTS · NOT MEDICAL ADVICE</span></div>'}
 
 // surfaces: quest board (after the original adventure card) and home (after it too)
 const after=(h,id,c)=>{const i=h.indexOf('id="'+id+'"');if(i<0)return h+c;const end=h.indexOf('<span class="gtag">',i),close=end>=0?h.indexOf('</div>',end)+6:-1;return close>5?h.slice(0,close)+c+h.slice(close):h+c};

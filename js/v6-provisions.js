@@ -12,7 +12,7 @@
 const HWProvisions=(()=>{
 const NUT=pages.food,HYD=pages.water; // the two sections, as js/hw-02-core.js builds them
 const SYS={food:{n:'Nutrition',icon:'food',title:'NUTRITION & CALORIES',region:'Nutrition Village',
-    line:'Log your meals to see calories and nutrients, today and over the week.'},
+    line:'',help:1},
   water:{n:'Hydration',icon:'water',title:'WATER QUEST',region:'Water Valley',
     line:'Restore the Well of Life — every sip you log physically fills the village well.'}};
 const other=v=>v==='water'?'food':'water';
@@ -32,8 +32,8 @@ function sys(v,on,d){let val,goal,unit,pct,col,line;
 function page(v,body){const d=today(),o=other(v),s=kstate(v),S0=SYS[v];
   return '<h2>NUTRITION & HYDRATION</h2>'
     +'<div class="nstabs" role="group" aria-label="Nutrition and hydration">'+sys('food',v==='food',d)+sys('water',v==='water',d)+'</div>'
-    +'<div class="nshd">'+HWPixel.icon(S0.icon,2)+'<div><b>'+S0.title+'</b><span class="nsrg">'+S0.region
-      +(s?' <span class="pxtag">'+s.toUpperCase()+'</span>':'')+'</span><small>'+S0.line+'</small></div></div>'
+    +'<div class="nshd">'+HWPixel.icon(S0.icon,2)+'<div><b>'+S0.title+(S0.help?HWHelp.btn('nutintro'):'')+'</b><span class="nsrg">'+S0.region
+      +(s?' <span class="pxtag">'+s.toUpperCase()+'</span>':'')+'</span>'+(S0.line?'<small>'+S0.line+'</small>':'')+'</div></div>'
     +body()
     +'<button class="g nsgo" data-a="nstab" data-v="'+o+'">'+HWPixel.icon(SYS[o].icon)+' GO TO '+SYS[o].n.toUpperCase()+' ▶</button>'}
 pages.food=()=>page('food',NUT);
@@ -63,7 +63,7 @@ HWUI.css('provisions',`
 .nshd{display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:8px 12px;background:var(--pn);border:var(--px-bw-c) solid var(--ln);box-shadow:var(--px-sh-c)}
 .nshd>div{min-width:0}.nshd b{display:block;font:10px/1.6 var(--fh)}.nshd small{display:block;margin-top:2px}
 .nsrg{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:13px}
-.nsg{display:grid;grid-template-columns:1fr;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px;margin-bottom:14px}.nsg>.card{margin-bottom:0}#fcal .grid{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
+.nscol{display:flex;flex-direction:column;gap:14px;min-width:0}.nscol>.card{margin-bottom:0}.nsg{display:grid;grid-template-columns:1fr;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px;margin-bottom:14px}.nsg>.card{margin-bottom:0}#fcal .grid{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
 .pg.tr-food .card>h3,.pg.tr-water .card>h3{display:flex;align-items:center;gap:8px}
 .nsgo{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:0 0 14px}
 .pg.v6nsw,.pg.v6nsw.tr-water{animation:none}.pg.v6nsw>.nstabs~*{animation:pgin .3s steps(4)}.pg.v6nsw.tr-water>.nstabs~*{animation:trw .55s steps(6)}
