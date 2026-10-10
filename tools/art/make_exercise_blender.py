@@ -1,0 +1,434 @@
+#!/usr/bin/env python3
+"""Training Hall sprites rendered in Blender: an anatomically modelled, anime-styled HealthWiz knight as pixel art.
+
+Pipeline:
+  1. export: the stand-in's poses (tools/art/make_exercise.py: EX, ORDER, MAPPOSE, knight(), cam) as rig targets
+     (joint positions and torso frame), shoulder shrug, dumbbell axes and props, plus the camera direction per move;
+  2. Blender: tools/art/blender_exercise_render.py builds the knight on a MakeHuman body (MPFB add-on, CC0 assets),
+     retargets the poses to its rig, keyframes the 22 moves and renders ambient occlusion, normal, position and
+     material passes (headless Cycles, CPU, no anti-aliasing);
+  3. pack, in the style of docs/PIXEL_STYLE.md (a modern pixel-art RPG, light from the top left):
+       * cel shading from the normals: key light from the top left, a rim light on the far edge, ambient occlusion in
+         the creases, a glint on steel and gold; 4 tones per material from the 28-colour PAL, no dithering;
+       * a selective outline: ink around the silhouette, the material's own darkest tone on inner edges;
+       * a hard oval ground shadow; the camera looks down a little (EL degrees) so the floor reads;
+     then writes moves.webp (1536 x 8448) and muscles.webp (512 x 7680) at RES = 4 (the page draws them at the
+     384 x 2112 / 128 x 1920 layout size, so the face and hair get four times the detail), lossless, and rewrites MAP-DATA in
+     js/v6-exercise.js. The muscle masks come from the stand-in's classify() on the rendered surface points, with the
+     rig's own joints.
+
+Needs Blender 4.2 LTS with the MPFB extension (extensions.blender.org/add-ons/mpfb) and the MakeHuman system asset
+pack (CC0) unpacked into MPFB's user data folder.
+Run:  BLENDER=/path/to/blender python3 tools/art/make_exercise_blender.py [--only curl,squat] [--no-blender]
+      --only renders and packs a preview sheet (SCRATCH/preview.png) without touching the app's art.
+Intermediate files go to SCRATCH (not the repo).
+"""
+import json
+import os
+import subprocess
+import sys
+import tempfile
+
+import numpy as np
+from PIL import Image, ImageDraw
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import make_exercise as ME  # noqa: E402  (palette, outline, to_img, check_palette, rle, write_js, save, poses)
+
+# material key -> 5 palette entries, dark to light; the 5th is the glint
+RAMPS = {
+    'skin': ['sk1', 'sk2', 'sk3', 'sk3', 'sk3'],      # anime skin is lit flat: the light tones only (face: two)
+    'glove': ['ink', 'hr0', 'lt1', 'hr1', 'hr1'],
+    'coat': ['ink', 'st0', 'ir1', 'st1', 'st2'],
+    'trim': ['gd0', 'gd1', 'gd2', 'gd3', 'wht'],
+    'steel': ['st1', 'st2', 'st3', 'st4', 'wht'],
+    'hair': ['hr0', 'hr1', 'hr1', 'hr2', 'hr3'],       # the knight's brown (assets/img/kn.webp), mostly mid-dark
+    'eye': ['ink', 'cp1', 'cp2', 'cp3', 'wht'],
+    'brow': ['hr0', 'hr0', 'hr1', 'hr1', 'hr1'],
+    'nose': ['sk2', 'sk2', 'sk3', 'sk3', 'sk3'],       # the nose and mouth marks render as skin; the face
+    'mouth': ['sk2', 'sk2', 'sk3', 'sk3', 'sk3'],      # pattern (FRONT_FACE) draws them
+    'boots': ['ink', 'hr0', 'lt1', 'hr1', 'hr2'],
+    'cape': ['cp0', 'cp1', 'cp2', 'cp3', 'cp3'],
+    'gem': ['bl0', 'bl1', 'bl2', 'bl2', 'wht'],
+    'iron': ['ink', 'st0', 'ir1', 'st1', 'st2'],
+    'pad': ['hr0', 'lt1', 'hr1', 'sk1', 'sk1'],
+    'chrome': ['st1', 'st2', 'st3', 'st4', 'wht'],
+}
+KEYS = list(RAMPS)
+GLINT = {'steel', 'trim', 'chrome', 'gem'}
+RES = 4                                   # sheet pixels per layout pixel (the page draws the sheets at layout size)
+EL = 12                                   # camera elevation for the moves (degrees, looking down)
+TONES = (.42, .62, .80)                   # cut-offs of the light level between the 4 tones
+SHADOW_ALPHA = 96                         # hard ground shadow: ink at a fixed opacity, no blur
+SCRATCH = os.environ.get('EXERCISE_SCRATCH', os.path.join(tempfile.gettempdir(), 'exercise_blender'))
+BLENDER = os.environ.get('BLENDER', 'blender')
+BLEND_OUT = os.path.join(HERE, 'exercise_knight.blend')
+LUT = np.array([[ME.PAL[RAMPS[k][t]] for t in range(5)] for k in KEYS], np.uint8)
+
+
+# ---------- export ----------
+def ser(q):
+    k = {}
+    for key, v in q.k.items():
+        k[key] = v.tolist() if isinstance(v, np.ndarray) else float(v) if isinstance(v, np.generic) else v
+    return {'kind': q.kind, 'mat': q.mat, 'k': k}
+
+
+def rig_pose(P):
+    """Targets for the rig: the stand-in's joints and torso frame, shrug and dumbbell axes, and its props."""
+    _, sk = ME.knight(P, shield=False, cape=False)
+    J = {'pel': np.asarray(P['pel'], float)}
+    for s, sd in ((1, 'L'), (-1, 'R')):
+        sh, el, wr, hd = sk['arm', s]
+        J.update({'sh' + sd: sh, 'el' + sd: el, 'wr' + sd: wr, 'tip' + sd: wr + ME.nrm(hd - wr) * 6})
+        hp, kn, an, ft = sk['leg', s]
+        J.update({'hp' + sd: hp, 'kn' + sd: kn, 'an' + sd: an, 'ft' + sd: ft})
+    db = P.get('db')
+    if db is not None:
+        db = [ME.nrm(db[0]), ME.nrm(db[1])] if np.ndim(db) == 2 else [ME.nrm(db)] * 2
+        db = [np.asarray(a, float).tolist() for a in db]
+    return {'joints': {k: np.asarray(v, float).tolist() for k, v in J.items()}, 'M': sk['M'].tolist(),
+            'shrug': float(P.get('shrug', 0)), 'db': db, 'props': [ser(q) for q in P.get('props', [])]}
+
+
+def view(yaw, el, center=(0, 0, 0), scale=1.0):
+    r, u, f = ME.cam(yaw, el)
+    return {'r': r.tolist(), 'u': u.tolist(), 'f': f.tolist(), 'center': list(map(float, center)), 'scale': float(scale)}
+
+
+def export(path):
+    moves = []
+    for name in ME.ORDER:
+        yaw, A, B = ME.EX[name]
+        poses = [A, ME.lerp_pose(A, B, .5), B]
+        moves.append({'name': name, 'cam': view(yaw, EL), 'poses': [rig_pose(P) for P in poses]})
+    views = []
+    for name, yaw in (('front', 0), ('back', 180)):
+        v = view(yaw, 0, [0, 40, 0], 1.0)
+        v['name'] = name
+        views.append(v)
+    preview_rgb = {k: [(c / 255) ** 2.2 for c in ME.PAL[RAMPS[k][2]]] for k in KEYS}
+    tex = os.path.join(os.path.dirname(path), 'face.png')
+    face_texture(tex)
+    json.dump({'keys': KEYS, 'res': RES, 'preview_rgb': preview_rgb, 'moves': moves,
+               'face': {'tex': tex, 'ss': FACE_SS, 'eye_u': FACE_EYE_U, 'eye_v': FACE_EYE_V, 'none': NONE,
+                        'dark': [ME.PAL[k] for k in FACE_DARK]},
+               'map': {'pose': rig_pose(ME.MAPPOSE), 'views': views}}, open(path, 'w'))
+
+
+def run_blender(pose_json, out_dir, only=''):
+    cmd = [BLENDER, '-b', '--addons', 'bl_ext.user_default.mpfb', '-P', os.path.join(HERE, 'blender_exercise_render.py'),
+           '--', pose_json, out_dir, BLEND_OUT, only]
+    subprocess.run(cmd, check=True)
+
+
+# ---------- pack ----------
+def load(out_dir, name):
+    return np.load(os.path.join(out_dir, name))
+
+
+def to_stand(v):
+    """Blender (x, y forward, z up) -> stand-in (x, y up, z forward)."""
+    return np.stack([v[..., 0], v[..., 2], -v[..., 1]], -1)
+
+
+def passes(out_dir, stem):
+    ao, nrm = load(out_dir, stem + '_ao.npy'), load(out_dir, stem + '_nrm.npy')
+    pos, idp = load(out_dir, stem + '_pos.npy'), load(out_dir, stem + '_id.npy')
+    ids = np.rint(idp[..., 0] * 32).astype(int)            # key index + 1, 0 = background
+    valid = np.all((pos[..., :3] > .002) & (pos[..., :3] < .998), axis=-1)
+    fg = (ids > 0) & (ids <= len(KEYS)) & valid
+    N = to_stand(nrm[..., :3] * 2 - 1)
+    N /= np.maximum(np.linalg.norm(N, axis=-1, keepdims=True), 1e-6)
+    return fg, np.where(fg, ids, 0), N, to_stand(pos[..., :3] * 256 - 128), np.clip(ao[..., 0], 0, 1)
+
+
+def tones(fg, ids, N, ao, cam):
+    """Cel tone 0..3 per pixel (4 = glint): key light, ambient occlusion, rim light and glint."""
+    r, u, f = (np.array(cam[k]) for k in ('r', 'u', 'f'))
+    n = np.stack([N @ r, N @ u, -(N @ f)], -1)              # camera space, z toward the viewer
+    lam = n @ ME.LIGHT
+    v = (0.5 * lam + 0.5) * (0.55 + 0.45 * ao)              # half-lambert, darkened in the creases
+    t = np.select([v < TONES[0], v < TONES[1], v < TONES[2]], [0, 1, 2], 3)
+    rim = (n[..., 0] > .6) & (n[..., 2] < .5) & (lam < .2)  # far edge, away from the key light
+    t = np.where(rim, np.minimum(t + 1, 3), t)
+    h = ME.nrm(ME.LIGHT + np.array([0, 0, 1.0]))
+    shiny = np.isin(ids, [KEYS.index(k) + 1 for k in GLINT])
+    t = np.where(shiny & (n @ h > .965) & (ao > .8), 4, t)
+    return smooth_hair(np.where(fg, t, 0), ids)
+
+
+def smooth_hair(t, ids):
+    """Overlapping locks leave single stray tones; a 3 x 3 majority vote over the hair gives flat anime bands."""
+    hair = ids == KEYS.index('hair') + 1
+    H, W = t.shape
+    pad_t, pad_h = np.pad(t, 1), np.pad(hair, 1)
+    votes = np.zeros((5, H, W), int)
+    for dy in (-1, 0, 1):
+        for dx in (-1, 0, 1):
+            tt, hh = pad_t[1 + dy:H + 1 + dy, 1 + dx:W + 1 + dx], pad_h[1 + dy:H + 1 + dy, 1 + dx:W + 1 + dx]
+            for k in range(5):
+                votes[k] += (tt == k) & hh
+    return np.where(hair, votes.argmax(axis=0), t)
+
+
+def ground_shadow(cam, fg_a, W, H):
+    """Hard oval shadow on the floor under the knight and the props, behind everything else."""
+    cx, cz, hx, hz = cam['floor']
+    r, u = np.array(cam['r']), np.array(cam['u'])
+    c, s = np.array(cam['center']), cam['scale'] * RES
+    th = np.linspace(0, 2 * np.pi, 48, endpoint=False)
+    pts = np.stack([cx + hx * np.cos(th), np.zeros_like(th), cz + hz * np.sin(th)], -1) - c
+    m = Image.new('L', (W, H), 0)
+    ImageDraw.Draw(m).polygon([(W / 2 + float(p @ r) * s, H / 2 - float(p @ u) * s) for p in pts], fill=255)
+    return (np.asarray(m) > 0) & ~fg_a
+
+
+# ---------- the face ----------
+# The face is a painted texture (palette colours only) that Blender projects onto the head, the way anime games paint
+# faces: clean shapes that follow the head in every pose. Blender renders it at FACE_SS x the sprite resolution and
+# reduces each block to its majority colour (thin dark lines win when they cover a quarter of the block), so shapes
+# turn into clean pixel clusters. Texture space: u across the face (the picture's left to right), v up; the eyes sit
+# at u = .5 -+ FACE_EYE_U, v = FACE_EYE_V, and Blender scales the projection to the head's real eye spacing.
+FACE_TEX, FACE_SS, FACE_EYE_U, FACE_EYE_V = 1024, 4, .2, .6875
+PAINT_EYE_U, PAINT_EYE_SCALE = .238, 1.1   # the painted eyes: a little wider apart and larger than the head's
+NONE = (255, 0, 255)          # 'no face here' in the face pass (not a palette colour)
+FACE_DARK = ('ink', 'hr0', 'cp0')
+EYE_COLOURS = ('ink', 'cp0', 'cp1', 'cp2', 'cp3', 'gd2', 'wht', 'st3', 'st4')  # what the eyes are painted with
+
+
+def paint_eye(im, cx, cy, s, k=1.0):
+    """One eye, s = -1 on the left of the picture (outer corner to the left), +1 on the right (mirrored); the
+    catch-lights are not mirrored, they stay on the lit (left) side of the pupil."""
+    C = lambda k: ME.PAL[k] + (255,)
+    P = lambda x, y: (cx - x * k if s > 0 else cx + x * k, cy + y * k)
+    opening = [P(-150, 8), P(-110, -40), P(-60, -64), P(20, -72), P(95, -55), P(150, 4), P(125, 42), P(40, 70),
+               P(-60, 68), P(-125, 42)]
+    layer = Image.new('RGBA', im.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(layer)
+    d.polygon(opening, fill=C('st4'))                                            # the white
+    d.polygon([P(-150, 8), P(-110, -40), P(-60, -64), P(20, -72), P(95, -55), P(150, 4), P(150, -20),
+               P(95, -30), P(20, -46), P(-60, -38), P(-110, -14)], fill=C('st3'))  # the lid's shadow on the white
+    px, py = P(12, 6)
+    iris = Image.new('L', im.size, 0)
+    q = lambda v: v * k
+    ImageDraw.Draw(iris).ellipse((px - q(84), py - q(104), px + q(84), py + q(104)), fill=255)
+    bands = Image.new('RGBA', im.size, (0, 0, 0, 0))
+    db = ImageDraw.Draw(bands)
+    for y0, y1, col in ((-110, -28, 'cp0'), (-28, 8, 'cp1'), (8, 46, 'cp2'), (46, 110, 'cp3')):  # deep red to bright
+        db.rectangle((px - q(90), py + q(y0), px + q(90), py + q(y1)), fill=C(col))
+    db.ellipse((px - q(46), py + q(52), px + q(46), py + q(86)), fill=C('gd2'))  # an amber glow at the bottom
+    db.ellipse((px - q(26), py - q(52), px + q(26), py + q(38)), fill=C('ink'))  # the pupil, upright
+    hx = px - q(40)                                                              # catch-lights on the lit side
+    db.ellipse((hx - q(22), py - q(62), hx + q(22), py - q(18)), fill=C('wht'))
+    db.ellipse((px + q(22), py + q(34), px + q(40), py + q(52)), fill=C('st4'))
+    layer.paste(bands, (0, 0), Image.composite(bands, Image.new('RGBA', im.size), iris).split()[3])
+    mask = Image.new('L', im.size, 0)
+    ImageDraw.Draw(mask).polygon(opening, fill=255)
+    im.paste(layer, (0, 0), Image.composite(layer, Image.new('RGBA', im.size), mask).split()[3])
+    d = ImageDraw.Draw(im)
+    lash = [P(-198, -48), P(-150, -34), P(-110, -86), P(-60, -112), P(20, -120), P(95, -102), P(158, -34),
+            P(165, 2), P(150, 4), P(95, -55), P(20, -72), P(-60, -64), P(-110, -40), P(-150, 8), P(-172, -8)]
+    d.polygon(lash, fill=C('ink'))                                               # upper lash with the outer wing
+    d.polygon([P(95, -102), P(158, -34), P(165, 2), P(150, 4), P(95, -55)], fill=C('hr0'))  # thinner toward the nose
+    d.polygon([P(-142, 30), P(-125, 42), P(-60, 68), P(-20, 72), P(-20, 86), P(-60, 84), P(-128, 58),
+               P(-148, 40)], fill=C('hr1'))                                      # soft lower lash, hugging the eye
+    d.polygon([P(-195, -168), P(-100, -194), P(0, -206), P(100, -204), P(162, -194), P(162, -164), P(100, -170),
+               P(0, -172), P(-100, -166), P(-195, -163)], fill=C('hr0'))         # the brow: a low arch, tapered
+    d.polygon([P(-195, -168), P(-100, -194), P(-100, -166), P(-195, -163)], fill=C('hr1'))  # its lighter tail
+
+
+def face_texture(path):
+    """Paint the knight's face (palette colours only) and save it as a PNG for Blender."""
+    T = FACE_TEX
+    im = Image.new('RGBA', (T, T), (0, 0, 0, 0))
+    C = lambda k: ME.PAL[k] + (255,)
+    d = ImageDraw.Draw(im)
+    d.rectangle((0, 0, T - 1, T - 1), fill=C('sk3'))     # skin over the whole front and sides, shaded from the light
+    ey = round((1 - FACE_EYE_V) * T)
+    for s in (-1, 1):
+        paint_eye(im, round((.5 + s * PAINT_EYE_U) * T), ey, s, PAINT_EYE_SCALE)
+    d = ImageDraw.Draw(im)
+    # the nose: one connected shape, light from the top left: a soft line down the shaded side into the tip's shadow
+    d.polygon([(522, 440), (552, 440), (574, 598), (586, 618), (562, 642), (500, 644), (470, 630), (482, 612),
+               (540, 604)], fill=C('sk2'))
+    d.ellipse((502, 618, 540, 640), fill=C('sk1'))
+    # the mouth: a short, slightly curved line, darker at the centre, and a soft shadow under the lower lip
+    d.polygon([(424, 774), (512, 760), (600, 774), (600, 796), (512, 788), (424, 796)], fill=C('sk1'))
+    d.polygon([(456, 770), (512, 760), (568, 770), (568, 794), (512, 788), (456, 794)], fill=C('sk0'))
+    d.ellipse((478, 816, 546, 842), fill=C('sk2'))
+    im.save(path)
+
+
+def face_pass(out_dir, stem):
+    p = os.path.join(out_dir, stem + '_face.npy')
+    return np.load(p) if os.path.exists(p) else None
+
+
+def majority(t, mask, passes=2):
+    """Clean colour clusters: each masked pixel takes the most common tone among its masked 3 x 3 neighbours."""
+    H, W = t.shape
+    for _ in range(passes):
+        pt, pm = np.pad(t, 1), np.pad(mask, 1)
+        votes = np.zeros((5, H, W), int)
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                tt, mm = pt[1 + dy:H + 1 + dy, 1 + dx:W + 1 + dx], pm[1 + dy:H + 1 + dy, 1 + dx:W + 1 + dx]
+                for k in range(5):
+                    votes[k] += (tt == k) & mm
+        t = np.where(mask, votes.argmax(axis=0), t)
+    return t
+
+
+def face_tones(t, ids, N, cam, face):
+    """Skin tone on the face (skin ramp: 0 sk1, 1 sk2, 2 sk3): one clean highlight tone, a slim midtone band along
+    the contour on the shaded side and under the bangs, the darkest tone only under the jaw; smoothed into clusters."""
+    if not face.any():
+        return t
+    r, u, f = (np.array(cam[k]) for k in ('r', 'u', 'f'))
+    lam = np.stack([N @ r, N @ u, -(N @ f)], -1) @ ME.LIGHT
+    inner, dist = face.copy(), np.zeros(face.shape, int)
+    for _ in range(2 * RES):
+        p = np.pad(inner, 1)
+        inner = inner & p[:-2, 1:-1] & p[2:, 1:-1] & p[1:-1, :-2] & p[1:-1, 2:]
+        dist += inner
+    ft = np.full(face.shape, 2)
+    ft = np.where(face & (lam < -.15) & (dist < RES), 1, ft)
+    ft = np.where(face & (lam < -.6) & (dist < RES // 2 + 1), 0, ft)
+    hair = ids == KEYS.index('hair') + 1
+    under = np.zeros_like(hair)
+    for dy in range(1, 3):                                   # a thin shadow just below the bangs
+        under[dy:] |= hair[:-dy]
+    ft = np.where(under & face, np.minimum(ft, 1), ft)
+    ft = majority(ft, face, 3)
+    return np.where(face, ft, t)
+
+
+def outline_sel(rgb, fg, depth, ids, face=None):
+    """Ink around the silhouette; inner edges (depth breaks) in the darkest tone of the nearer material, but none
+    inside the face (it is painted)."""
+    out, a = ME.outline(rgb, fg, np.where(fg, 0.0, 1e9))   # silhouette only
+    H, W = fg.shape
+    dp = np.pad(np.where(fg, depth, 1e9), 1, constant_values=1e9)
+    brk = np.zeros_like(fg)
+    for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+        brk |= fg & (depth - dp[1 + dy:H + 1 + dy, 1 + dx:W + 1 + dx] > 3.0)
+    if face is not None:
+        brk &= ~face
+    dark = LUT[np.clip(ids - 1, 0, len(KEYS) - 1), 0]
+    out[brk] = dark[brk]
+    return out, a
+
+
+def shade(out_dir, stem, cam, shadow=True):
+    fg, ids, N, P, ao = passes(out_dir, stem)
+    f = np.array(cam['f'])
+    depth = np.where(fg, (P - (np.array(cam['center']) - f * 200)) @ f, 1e9)
+    t = tones(fg, ids, N, ao, cam)
+    fp = face_pass(out_dir, stem)
+    skin = ids == KEYS.index('skin') + 1
+    face = skin & np.any(fp != NONE, axis=-1) if fp is not None else np.zeros_like(skin)
+    t = face_tones(t, ids, N, cam, face)
+    rgb = LUT[np.clip(ids - 1, 0, len(KEYS) - 1), t]
+    if fp is not None:
+        painted = face & np.any(fp != ME.PAL['sk3'], axis=-1)   # features; plain skin keeps its shading
+        rgb[painted] = fp[painted]
+        # anime convention: the eyes show through the bangs (the brows, nose and mouth stay under them)
+        eye_ink = np.zeros(skin.shape, bool)
+        for k in EYE_COLOURS:
+            eye_ink |= np.all(fp == ME.PAL[k], axis=-1)
+        through = eye_ink & (ids == KEYS.index('hair') + 1)
+        rgb[through] = fp[through]
+    out, a = outline_sel(rgb, fg, depth, ids, face)
+    im = np.asarray(ME.to_img(out, a)).copy()
+    if shadow:
+        sh = ground_shadow(cam, a, *fg.shape[::-1])
+        im[sh, :3] = ME.PAL['ink']
+        im[sh, 3] = SHADOW_ALPHA
+    return Image.fromarray(im, 'RGBA'), fg, t, P
+
+
+def moves_sheet(out_dir, cams, names):
+    S = 96 * RES
+    sheet = Image.new('RGBA', (S * 4, S * len(names)), (0, 0, 0, 0))
+    for row, name in enumerate(names):
+        frames = [shade(out_dir, '%s_%d' % (name, f), cams[name])[0] for f in (1, 2, 3)]
+        for i, fi in enumerate([0, 1, 2, 1]):
+            sheet.paste(frames[fi], (i * S, row * S))
+    return sheet
+
+
+def map_skeleton(out_dir):
+    """The rig's joints at the map pose, in the shape classify() expects."""
+    j = {k: np.array(v) for k, v in json.load(open(os.path.join(out_dir, 'map_skeleton.json'))).items()}
+    sk = {'M': np.eye(3)}
+    for sd, s in (('l', 1), ('r', -1)):
+        sk['arm', s] = (j['upperarm_' + sd], j['lowerarm_' + sd], j['hand_' + sd], j['middle_01_' + sd])
+        sk['leg', s] = (j['thigh_' + sd], j['calf_' + sd], j['foot_' + sd], j['ball_' + sd])
+    return sk
+
+
+def muscles_sheet(out_dir, cams):
+    W, H = 64 * RES, 96 * RES
+    sheet = Image.new('RGBA', (W * 2, H * (1 + len(ME.MUSCLES))), (0, 0, 0, 0))
+    sk = map_skeleton(out_dir)
+    maps = {}
+    for col, name in enumerate(('front', 'back')):
+        im, fg, t, P = shade(out_dir, 'map_' + name, cams['map_' + name], shadow=False)
+        sheet.paste(im, (col * W, 0))
+        ids = np.full((H, W), -1)
+        for yy, xx in zip(*np.where(fg)):
+            ids[yy, xx] = ME.classify(P[yy, xx], sk)
+        tt = np.minimum(t, 3)
+        for i in range(len(ME.MUSCLES)):
+            m = ids == i
+            mk = np.zeros((H, W, 4), np.uint8)
+            for k in range(3):  # tones 0-1 -> the darkest teal, 2 -> middle, 3 -> lightest
+                sel = m & (np.clip(tt - 1, 0, 2) == k)
+                mk[sel, :3] = ME.TEAL[k]
+                mk[sel, 3] = 255
+            sheet.paste(Image.fromarray(mk, 'RGBA'), (col * W, (1 + i) * H))
+            seen = (col == 0 and i in (4, 7, 13, 14, 15, 16, 11)) or (col == 1 and i in (0, 1, 2, 3, 6, 12, 17, 18))
+            if seen and not m.any():
+                print('WARNING: no pixels for', ME.MUSCLES[i], 'in view', name, file=sys.stderr)
+        maps[name] = ME.rle(ids[RES // 2::RES, RES // 2::RES])  # the tap map stays 64 x 96 per view
+    return sheet, maps
+
+
+def preview(out_dir, cams, names, path):
+    """A review sheet: the frames at 1x on the page's dark panel, and the same at 4x."""
+    sheet = moves_sheet(out_dir, cams, names)
+    bg = Image.new('RGBA', sheet.size, (30, 34, 58, 255))
+    bg.alpha_composite(sheet)
+    big = bg.resize((bg.width * 4, bg.height * 4), Image.NEAREST)
+    out = Image.new('RGBA', (big.width + bg.width + 16, max(big.height, bg.height)), (20, 22, 36, 255))
+    out.paste(bg, (0, 0))
+    out.paste(big, (bg.width + 16, 0))
+    out.save(path)
+
+
+if __name__ == '__main__':
+    args = sys.argv[1:]
+    only = args[args.index('--only') + 1] if '--only' in args else ''
+    os.makedirs(SCRATCH, exist_ok=True)
+    pose_json = os.path.join(SCRATCH, 'poses.json')
+    out_dir = os.path.join(SCRATCH, 'render')
+    os.makedirs(out_dir, exist_ok=True)
+    if '--no-blender' not in args:
+        export(pose_json)
+        run_blender(pose_json, out_dir, only)
+    cams = json.load(open(os.path.join(out_dir, 'cams.json')))
+    if only:
+        names = [n for n in ME.ORDER if n in only.split(',')]
+        preview(out_dir, cams, names, os.path.join(SCRATCH, 'preview.png'))
+        print('preview', os.path.join(SCRATCH, 'preview.png'), file=sys.stderr)
+        sys.exit(0)
+    mv = moves_sheet(out_dir, cams, ME.ORDER)
+    print('moves colours', ME.check_palette(mv), file=sys.stderr)
+    ME.save(mv, 'moves.webp')
+    ms, maps = muscles_sheet(out_dir, cams)
+    print('map colours', ME.check_palette(ms, ME.TEAL), file=sys.stderr)
+    ME.save(ms, 'muscles.webp')
+    ME.write_js(maps)
+    print('MAP-DATA rewritten', file=sys.stderr)

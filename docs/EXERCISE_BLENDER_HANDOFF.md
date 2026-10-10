@@ -1,5 +1,23 @@
 # Training Hall art: Blender handoff
 
+## Status: done (Blender 4.2 LTS, headless)
+
+The sheets and the tap map now come from Blender. The connector still could not be reached from a cloud session, so
+Blender ran from the terminal instead (no viewport screenshots). To rebuild:
+
+    BLENDER=/path/to/blender python3 tools/art/make_exercise_blender.py     # add --no-blender to repack the last renders
+
+* `tools/art/make_exercise_blender.py` exports the stand-in's poses plus armour detail (shoulder plates with gold
+  rims, gauntlet cuffs, boot tops, chest emblem), runs Blender, then shades and packs the sheets in the
+  `docs/PIXEL_STYLE.md` style: cel shading with the key light from the top left, rim light, ambient occlusion and a
+  glint on metal; ink silhouette with inner edges in each material's darkest tone; a hard oval ground shadow; the
+  camera looks down 12 degrees for the moves (the muscle map stays straight on).
+* `tools/art/blender_exercise_render.py` is the Blender side; `tools/art/exercise_knight.blend` is the saved scene
+  (one collection per move, keyframed at frames 1-3, plus the muscle map).
+* The muscle masks use `classify()` from the stand-in on the surface points Blender rendered.
+
+The rest of this note is the original handoff, kept for the layout the page expects.
+
 The Exercise page (`js/v6-exercise.js`) is finished and tested. Its art comes from a stand-in, `tools/art/make_exercise.py`
 (a small Python ray-marcher), because the Blender connector could not be reached from the session that built the page.
 This note is for the next session, where Blender is connected. Only the two sprite sheets and the tap map change; the page
