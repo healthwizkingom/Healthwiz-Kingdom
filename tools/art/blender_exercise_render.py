@@ -337,8 +337,8 @@ for az in range(120, 241, 24):   # the back mass: full at the nape, just below t
     p, o = on_skull(az, 8, .03)
     ribbon(p, DOWN + BACK * .25, o * .2 + DOWN, .12 if 150 <= az <= 210 else .06, .07, .3)
 # bangs: like the reference, one continuous curtain over the whole forehead from the crown to the brows, its lower
-# edge cut into pointed, side-swept tips that fall to the eyes; the middle tip is the longest (to the nose bridge)
-TIPS = [(-66, -8), (-44, -22), (-22, -18), (-4, -36), (16, -20), (38, -24), (60, -10)]  # (azimuth, elevation of the point)
+# edge cut into pointed, side-swept tips that fall to the eyes (none down the middle of the face)
+TIPS = [(-66, -8), (-44, -22), (-22, -18), (-4, -22), (16, -20), (38, -24), (60, -10)]  # (azimuth, elevation of the point)
 
 
 def bang_end(az):
@@ -385,9 +385,6 @@ for side in (1, -1):
     c = sum(vs, Vector()) / len(vs)
     front = min(v.y for v in vs)
     ell(Vector((c.x * 1.05, front - .011 * m, c.z)), (.016 * m, .005 * m, .011 * m), 'eye', 'head', 'anime_eye')
-face_front = min(v.y for v in (eyes.matrix_world @ w.co for w in eyes.data.vertices))
-ell(Vector((0, face_front - .022 * m, eye_c.z - .038 * m)), (.006 * m, .008 * m, .008 * m), 'nose', 'head', 'nose_mark')
-ell(Vector((0, face_front - .006 * m, eye_c.z - .072 * m)), (.012 * m, .006 * m, .004 * m), 'mouth', 'head', 'mouth_mark')
 
 # torso: cuirass (breast and back plate) with a gold collar and the blue gem; belt with a gold buckle
 chest = bone_world('spine_03')

@@ -177,6 +177,7 @@ def outline_sel(rgb, fg, depth, ids):
     brk = np.zeros_like(fg)
     for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1)):
         brk |= fg & (depth - dp[1 + dy:H + 1 + dy, 1 + dx:W + 1 + dx] > 3.0)
+    brk &= ~face_skin(ids)                                   # no depth lines inside the face: it is drawn by hand
     dark = LUT[np.clip(ids - 1, 0, len(KEYS) - 1), 0]
     out[brk] = dark[brk]
     return out, a
@@ -253,31 +254,64 @@ def front_face(width, left_eye, eye_at, brow, brow_at, centre):
     return sorted((dy, ''.join(r)) for dy, r in rows.items())
 
 
-FRONT[4] = front_face(
-    32,
-    [(-1, 'L.........'),        # the lid flicks up at the outer corner
-     (0, 'LLLLLLLLLl'),         # heavy upper lid, thinner toward the nose
-     (1, 'LWiippiiW.'),         # dark top of the iris, the pupil
-     (2, 'WWiHppiIW.'),         # catch-light beside the pupil
-     (3, '.WIIiiIIW.'),         # bright lower iris
-     (4, '..WIIIIW..'),
-     (5, '...wwww...')],        # soft lower lid
-    3,
-    [(-8, 'BB....'), (-7, '.BBBBB'), (-6, '....BBBBB')],   # brows: raised outer ends, lower toward the nose
-    1,
-    [(9, '.................n..............'),            # the nose: a shadow down one side and under the tip
-     (10, '.................n..............'),
-     (11, '...............nn...............'),
-     (15, '.............MmmmmM.............'),           # the mouth
-     (16, '...............ww...............')])          # lower-lip shadow
-# both catch-lights sit toward the light (top left), so the right eye's is not mirrored
-FRONT[4] = [(dy, row[:20] + 'WIiHppiWW' + row[29:]) if dy == 2 else (dy, row) for dy, row in FRONT[4]]
+def mirror_eye(text):
+    """The right eye: the left one mirrored, but with its catch-light kept on the lit (left) side of the pupil."""
+    t = list(text[::-1])
+    if 'H' in t and 'K' in t:
+        h = t.index('H')
+        k = min(i for i, ch in enumerate(t) if ch == 'K')
+        t[h] = t[h - 1] if h > 0 and t[h - 1] not in 'HK.' else t[h + 1]
+        t[k - 1] = 'H'
+    return ''.join(t)
+
+
+def front_face_4(width=32, eye_at=3):
+    """The 4x front face. Eyes are 10 px wide, outer corner first; the right eye mirrors the left (catch-lights stay
+    on the lit side). Columns are centred on the nose bridge."""
+    eye = [(-2, 'Ll........'),     # the lash's outer wing
+           (-1, '.LKKKKKKl.'),     # upper lash: tapered, an ink core
+           (0, '.KabKKbaW.'),      # deep red under the lid, the pupil, a touch of white at the inner corner
+           (1, '.WbHKKbb..'),      # white at the outer corner, the catch-light beside the pupil
+           (2, '..cccccc..'),      # mid red
+           (3, '..dgddgd..'),      # bright lower iris with amber glints
+           (4, '...dddd...'),      # the iris rounds off at the bottom
+           (5, '.uuu......')]      # a short, soft lower lash at the outer corner
+    brow = [(-6, 'lll.......'),    # thin, sharp brows: a light tail at the outer end ...
+            (-5, '...LLLLLL.')]    # ... and a firm body toward the nose; level, composed
+    rows = {}
+
+    def place(dy, col, text):
+        row = rows.setdefault(dy, ['.'] * width)
+        for i, ch in enumerate(text):
+            if ch != '.':
+                row[col + i] = ch
+
+    for dy, text in eye + brow:
+        place(dy, eye_at, text)
+        place(dy, width - eye_at - len(text), mirror_eye(text))
+    for dy, col, text in ((6, 17, 'v'), (7, 17, 'v'), (8, 17, 'v'),   # the nose: one connected shape, a soft line
+                          (9, 15, 'NNv'),                              # down the shaded side into the tip's shadow
+                          (13, 14, 'MmmmM')):                          # the mouth: a short upper-lip line, soft ends
+        place(dy, col, text)
+    return sorted((dy, ''.join(r)) for dy, r in rows.items())
+
+
+FRONT[4] = front_face_4()
 SIDE = {1: [(0, 'LLLl'), (1, 'IiW.')],
         2: [(-1, '....L'), (0, 'LLLLL'), (1, 'iHiW.'), (2, 'III..'), (3, '.w...')],
-        4: [(-1, '......L'), (0, 'LLLLLLL'), (1, 'iippiW.'), (2, 'IHpiWW.'), (3, 'IIiIW..'), (4, '.IIW...'),
-            (5, '.www...')]}
-FACE_INK = {'B': 'hr0', 'L': 'hr0', 'l': 'hr1', 'I': 'cp3', 'i': 'cp1', 'p': 'cp0', 'H': 'wht', 'W': 'st4',
-            'w': 'sk1', 'n': 'sk1', 'm': 'sk0', 'M': 'sk1'}
+        4: [(-6, '.LLLlll'),        # the brow, tapering back
+            (-2, '.....Ll'),        # the lash's wing
+            (-1, 'LKKKKl.'),        # upper lash
+            (0, 'aKKaW..'),         # deep red under the lid, the pupil, a touch of white
+            (1, 'bHKb...'),         # catch-light
+            (2, 'cccc...'),
+            (3, 'dgd....'),         # bright lower iris
+            (4, 'dd.....'),
+            (5, '.uu....')]}        # soft lower lash
+FACE_INK = {'B': 'hr0', 'L': 'hr0', 'l': 'hr1', 'K': 'ink', 'I': 'cp3', 'i': 'cp1', 'p': 'cp0', 'a': 'cp0',
+            'b': 'cp1', 'c': 'cp2', 'd': 'cp3', 'g': 'gd2', 'H': 'wht', 'S': 'st3', 'W': 'st4', 'w': 'sk1',
+            'u': 'sk1', 'v': 'sk2', 'n': 'sk1', 'N': 'sk1', 'm': 'sk0', 'M': 'sk1'}
+SKIN_ONLY = 'nNmMwuv'   # these sit on skin only; eyes and brows may cover bang tips
 
 
 def draw_eyes(rgb, ids, front=None, side=None, ink=None):
@@ -295,7 +329,7 @@ def draw_eyes(rgb, ids, front=None, side=None, ink=None):
     def put(y, x, ch):
         if ch == '.' or not (0 <= y < H and 0 <= x < W):
             return
-        if (skin if ch in 'nmMw' else faceish)[y, x]:
+        if (skin if ch in SKIN_ONLY else faceish)[y, x]:
             rgb[y, x] = ME.PAL[ink[ch]]
 
     ys, xs = np.where(E)
@@ -310,9 +344,13 @@ def draw_eyes(rgb, ids, front=None, side=None, ink=None):
     hx = np.where(on(('hair',))[max(0, int(cy) - 8 * RES):int(cy) + 8 * RES])[1]
     out = 1 if len(hx) and hx.mean() > cx else -1
     x_in = int(round(cx)) - out * RES
+    drawn = np.zeros_like(E)
     for dy, row in side:
         for i, ch in enumerate(row):
             put(ys.min() + dy, x_in + out * i, ch)
+            if ch != '.' and 0 <= ys.min() + dy < H and 0 <= x_in + out * i < W:
+                drawn[ys.min() + dy, x_in + out * i] = True
+    rgb[E & ~drawn] = ME.PAL['sk3']                          # the far eye's edge, seen past the nose, is just skin
 
 
 def face_skin(ids, reach=7 * RES):
@@ -326,12 +364,56 @@ def face_skin(ids, reach=7 * RES):
     return skin & near
 
 
+def majority(t, mask, passes=2):
+    """Clean colour clusters: each masked pixel takes the most common tone among its masked 3 x 3 neighbours."""
+    H, W = t.shape
+    for _ in range(passes):
+        pt, pm = np.pad(t, 1), np.pad(mask, 1)
+        votes = np.zeros((5, H, W), int)
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                tt, mm = pt[1 + dy:H + 1 + dy, 1 + dx:W + 1 + dx], pm[1 + dy:H + 1 + dy, 1 + dx:W + 1 + dx]
+                for k in range(5):
+                    votes[k] += (tt == k) & mm
+        t = np.where(mask, votes.argmax(axis=0), t)
+    return t
+
+
+def face_tones(t, ids, N, cam):
+    """Skin on the face from the light: highlight (sk3) and midtone (sk2), shadow (sk1) only under the jaw where the
+    face turns away, cleaned into smooth clusters, with the bangs casting a shadow on the forehead. The darkest skin tone is kept for
+    the mouth only, so the face never turns muddy."""
+    face = face_skin(ids)
+    if not face.any():
+        return t
+    r, u, f = (np.array(cam[k]) for k in ('r', 'u', 'f'))
+    lam = np.stack([N @ r, N @ u, -(N @ f)], -1) @ ME.LIGHT
+    # anime shading: highlight everywhere, a clean midtone band along the face's edge on the shaded side, and the
+    # darkest tone only on the underside of the jaw
+    edge = face.copy()
+    dist = np.zeros(face.shape, int)
+    for d in range(1, 3 * RES):
+        p = np.pad(edge, 1)
+        edge = edge & p[:-2, 1:-1] & p[2:, 1:-1] & p[1:-1, :-2] & p[1:-1, 2:]
+        dist += edge
+    ft = np.full(face.shape, 2)
+    ft = np.where(face & (lam < -.05) & (dist < RES), 1, ft)
+    ft = np.where(face & (lam < -.55) & (dist < RES), 0, ft)
+    ft = majority(ft, face, 2)
+    hair = ids == KEYS.index('hair') + 1
+    under = np.zeros_like(hair)
+    for dy in range(1, 3):                                   # a thin band just below the bangs
+        under[dy:] |= hair[:-dy]
+    ft = np.where(under & face, np.minimum(ft, 1), ft)
+    return np.where(face, ft, t)
+
+
 def shade(out_dir, stem, cam, shadow=True):
     fg, ids, N, P, ao = passes(out_dir, stem)
     f = np.array(cam['f'])
     depth = np.where(fg, (P - (np.array(cam['center']) - f * 200)) @ f, 1e9)
     t = tones(fg, ids, N, ao, cam)
-    t = np.where(face_skin(ids), np.maximum(t, 2), t)        # the face takes the two lightest skin tones
+    t = face_tones(t, ids, N, cam)
     rgb = LUT[np.clip(ids - 1, 0, len(KEYS) - 1), t]
     draw_eyes(rgb, ids)
     out, a = outline_sel(rgb, fg, depth, ids)
