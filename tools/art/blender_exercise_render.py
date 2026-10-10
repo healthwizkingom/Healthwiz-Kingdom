@@ -164,7 +164,7 @@ def face_material(frame, half, eye_v):
     front = nt.nodes.new('ShaderNodeMath')                  # only the front of the head (z out of the face)
     front.operation = 'GREATER_THAN'
     nt.links.new(sep.outputs['Z'], front.inputs[0])
-    front.inputs[1].default_value = -.07 * K
+    front.inputs[1].default_value = -.12 * K            # the face and its sides, not the back of the head
     k = nt.nodes.new('ShaderNodeMath')
     k.operation = 'MULTIPLY'
     nt.links.new(tex.outputs['Alpha'], k.inputs[0])
@@ -283,6 +283,12 @@ macro = TargetService.get_default_macro_info_dict()
 macro.update({'gender': 1.0, 'age': .45, 'muscle': .85, 'weight': .42, 'proportions': 1.0, 'height': .7})
 macro['race'] = {'asian': .5, 'caucasian': .5, 'african': 0.0}
 BODY = HumanService.create_human(macro_detail_dict=macro, scale=0.1)
+# a mature anime-hero head (MakeHuman's sculpted shape targets): an inverted-triangle head, a little narrower, a
+# narrower jaw with a defined, gently pointed chin, leaner cheeks and slightly raised cheekbones
+FACE_SHAPE = [('head-invertedtriangular', .45), ('head-scale-horiz-decr', .15), ('chin-width-decr', .5),
+              ('chin-triangle', .35), ('chin-prominent-incr', .25), ('l-cheek-volume-decr', .4),
+              ('r-cheek-volume-decr', .4), ('l-cheek-bones-incr', .3), ('r-cheek-bones-incr', .3)]
+TargetService.bulk_load_targets(BODY, [{'target': n, 'value': v} for n, v in FACE_SHAPE])
 RIG = HumanService.add_builtin_rig(BODY, 'game_engine')
 ASSET = {}
 for key, sub, kind in (('coat', 'clothes/male_elegantsuit01/male_elegantsuit01.mhclo', 'Clothes'),

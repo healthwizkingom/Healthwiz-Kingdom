@@ -245,7 +245,7 @@ def face_texture(path):
     im = Image.new('RGBA', (T, T), (0, 0, 0, 0))
     C = lambda k: ME.PAL[k] + (255,)
     d = ImageDraw.Draw(im)
-    d.ellipse((30, 40, T - 30, T - 10), fill=C('sk3'))                           # skin, shaded later from the light
+    d.rectangle((0, 0, T - 1, T - 1), fill=C('sk3'))     # skin over the whole front and sides, shaded from the light
     ey = round((1 - FACE_EYE_V) * T)
     for s in (-1, 1):
         paint_eye(im, round((.5 + s * PAINT_EYE_U) * T), ey, s, PAINT_EYE_SCALE)
