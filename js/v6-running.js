@@ -1,5 +1,5 @@
 /* v6: GPS running tracker, Strava style. Not part of the original.
-   Shown as the RUNNING ROAD section at the bottom of the Stairs page (js/v6-stairs.js); the old 'run' route opens it.
+   Shown as the RUNNING ROAD section on the Training Hall (Exercise) page (js/v6-exercise.js); the old 'run' route opens it.
    Flow: why location is needed (asked once) → START RUN → navigator.geolocation.watchPosition (high accuracy) →
    every good fix adds its Haversine distance (HWGps.dist, js/v6-gps.js) and extends the route line on the map →
    PAUSE / RESUME → FINISH RUN saves the workout. Leaving the page does not stop a run: it records until FINISH.
@@ -220,8 +220,8 @@ function chip(){if(!R||W==null)return'';if(!sig)return'<span class="v6rg" id="v6
   if(sig.lost)return'<span class="v6rg lost" id="v6rg">GPS SIGNAL LOST</span>';
   return sig.acc<=MAXACC?'<span class="v6rg ok" id="v6rg">GPS ±'+Math.round(sig.acc)+' M</span>':'<span class="v6rg weak" id="v6rg">GPS WEAK ±'+Math.round(sig.acc)+' M · NOT COUNTED</span>'}
 const kcalTxt=(m,s,done)=>{const k=done?kcalRun(done):kcalOf(m,s);return k==null?'–':'≈'+k};
-function kcalNote(m,s,done){if(!weight())return '<b>Calories burned needs your weight.</b> HealthWiz never guesses it. Add age, sex, height and weight in the profile form of the Workout section.<br>'
-    +btn('stjump','COMPLETE YOUR PROFILE','sm',' data-t="wk-kcal"');
+function kcalNote(m,s,done){if(!weight())return '<b>Calories burned needs your weight.</b> HealthWiz never guesses it. Add age, sex, height and weight on the Body &amp; Energy page.<br>'
+    +btn('go','COMPLETE YOUR PROFILE','sm',' data-v="body"');
   const k=done?kcalRun(done):kcalOf(m,s),p=goalPct(k);
   return k==null?'Calories appear after the first few metres. <span class="mut">≈ estimate (±20–30%)</span>'
     :'<b>≈ '+k+' kcal</b> burned · <span class="mut">≈ estimate (±20–30%) from your speed and weight</span>'+(p!=null?'<br>≈ '+p+'% of today\'s calorie goal ('+st.s.kcal+' kcal). Your food target is not changed.':'')}
@@ -259,14 +259,14 @@ function runs(){const L=DB.runs.slice().reverse(),wk=Date.now()-7*864e5,W7=L.fil
   let h='<h3>📜 RECENT RUNS</h3>';
   if(!L.length)h+='<p class="mut">No runs yet. Your finished runs appear here.</p>';
   else h+='<p class="mut">'+totals(td,'Today')+(bt&&goalPct(bt.v)!=null?' (≈ '+goalPct(bt.v)+'% of today\'s calorie goal)':'')+'<br>'+totals(W7,'Last 7 days')+'</p>'
-    +(weight()?'<p class="mut"><small>Calories are an ≈ estimate (±20–30%) from each run\'s speed and your weight.</small></p>':'<p class="mut"><small>Add your weight (Workout section profile) to see calories burned.</small></p>')
+    +(weight()?'<p class="mut"><small>Calories are an ≈ estimate (±20–30%) from each run\'s speed and your weight.</small></p>':'<p class="mut"><small>Add your weight on the Body &amp; Energy page to see calories burned.</small></p>')
     +L.slice(0,SHOW).map(r=>{const k=kcalRun(r);return '<div class="v6rl"><div><b>'+km(r.dist)+' km · '+clock(r.dur)+(k!=null?' · <span class="v6rkx">'+flame()+'≈'+k+' kcal</span>':'')+'</b><small>'+esc(when(r))+' · '+fmtPace(r.pace)+' /km · '+(r.up?'☁️ in your cloud':r.bad?'⚠️ not accepted by the cloud':'📱 on this device')+'</small></div>'
       +btn('rundel',arm===r.id?'TAP AGAIN':'DELETE','sm g',' data-id="'+esc(r.id)+'" aria-label="'+(arm===r.id?'Tap again to delete':'Delete')+' the run of '+esc(when(r))+'"')+'</div>'}).join('');
   return h+'<p class="mut" role="status" style="margin-top:8px">'+cloudLine()+'</p>'}
-// the Running section of the Stairs page (js/v6-stairs.js); the old 'run' route opens that section
-const ON='stair',here=()=>S.v===ON;
+// the Running section of the Training Hall page (js/v6-exercise.js); the old 'run' route opens that section
+const ON='exercise',here=()=>S.v===ON;
 // the map (and Leaflet + tiles from the internet) loads only when wanted: arriving at Running, a run started or
-// recorded, or SHOW MAP; then once the map is on screen. Someone only logging stairs never loads it.
+// recorded, or SHOW MAP; then once the map is on screen. Someone only training never loads it.
 let IO=null,want=0;
 function lazy(){if(IO){IO.disconnect();IO=null}const el=D.getElementById('map');if(!el||el===M.el)return;
   if(!want&&!R){el.innerHTML='<div class="v6rmt"><small>The route map loads when you start a run.</small>'+btn('runmap','🗺️ SHOW MAP','sm g')+'</div>';return}
@@ -280,7 +280,7 @@ function section(){Promise.resolve().then(lazy);
   return weather()+'<div class="card" id="v6run">'+card()+'</div>'
     +'<div class="card v6rmc"><div class="row v6rmh"><h3>🗺️ ROUTE</h3>'+btn('runcentre','⌖ CENTRE','sm g',' aria-label="Centre the map on the route"')+'</div><div id="map" role="region" aria-label="Route map"></div></div>'
     +'<div class="card" id="v6runs">'+runs()+'</div>'}
-pages.run=()=>pages.stair();
+pages.run=()=>pages.exercise(); // the old 'run' route: js/v6-exercise.js opens the Training Hall at the Running Road
 let T=0;function tick(on){clearInterval(T);T=0;if(on&&R&&R.since!=null)T=setInterval(()=>{if(!here()||!R||R.since==null){tick(0);return}show()},1000)}
 function paint(){const el=D.getElementById('v6run');if(el){el.innerHTML=card();paintWx()}tick(here())}
 function paintRuns(){const el=D.getElementById('v6runs');if(el)el.innerHTML=runs()}
@@ -290,13 +290,12 @@ function show(){if(!here()||!R)return;const s=secs(),set=(i,t)=>{const e=D.getEl
   const kn=D.getElementById('v6rkn'),nh=kcalNote(R.dist,s);if(kn&&kn.dataset.h!==nh&&!kn.contains(D.activeElement)){kn.innerHTML=nh;kn.dataset.h=nh}
   const c=chip(),g=D.getElementById('v6rg');if(c!==ch&&g&&c){g.outerHTML=c;ch=c}}
 
-// no Health Hall tile of its own any more: Running lives at the bottom of the Stairs page. Its tile shows a run in
+// no Health Hall tile of its own any more: Running lives on the Training Hall (Exercise) page. Its tile shows a run in
 // progress (so a recording run is never hidden), and its footnote gains this line.
-{const h=HUB.find(x=>x[0]==='stair');if(h){const f=h[4];h[4]=d=>R?(R.since!=null?'🔴 run recording · ':'⏸ run paused · ')+km(R.dist)+' km':f(d)}}
+{const h=HUB.find(x=>x[0]==='exercise');if(h){const f=h[4];h[4]=d=>R?(R.since!=null?'🔴 run recording · ':'⏸ run paused · ')+km(R.dist)+' km':f(d)}}
 PAR.run='health';
 BN.run=['🏃','Running Road','The road calls. Lace up, adventurer.','rgba(232,89,12,.3)'];
 DIS.run='General exercise tracker, not medical advice. GPS distance and pace are estimates and can drift near tall buildings and trees. Watch the road, not the screen, and stop if you feel dizzy, faint or have chest pain.';
-DIS.stair=(DIS.stair||'')+' Running: '+DIS.run;
 
 acts.runstart=()=>{arm='';if(R)return;if(!DB.ok){U={k:'explain'};paint();return}start()};
 acts.runok=()=>{DB.ok=1;keep();start()};
@@ -315,7 +314,7 @@ function showMap(){want=1;lazy()}
 // triggers: uploads ride on the cloud save's own rhythm; leaving the page keeps a run recording
 HWEvents.on('app:ready',()=>sync());HWEvents.on('live:updated',()=>{if(here())paintWx()});HWEvents.on('cloud:synced',()=>sync());addEventListener('online',()=>sync());
 HWEvents.on('page:viewed',e=>{if(e.view===ON){tick(1);sync();return}tick(0);if(IO){IO.disconnect();IO=null}unmount();arm='';
-  if(R&&R.since!=null&&e.from===ON)toast('🏃 Your run is still recording. Health → Stairs & Workout → Running to see it or finish it.')});
+  if(R&&R.since!=null&&e.from===ON)toast('🏃 Your run is still recording. Health → Exercise → Running Road to see it or finish it.')});
 D.addEventListener('visibilitychange',()=>{if(D.visibilityState==='visible'){if(R&&R.since!=null)wake(1)}else if(R)live()});
 addEventListener('pagehide',()=>{if(R)live()});
 HWEvents.on('data:reset',()=>{drop();DB={ok:0,runs:[],del:[]};try{localStorage.removeItem(K)}catch(e){}U={k:'idle'};arm=''});

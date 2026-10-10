@@ -6,7 +6,6 @@ after(closeBrowser);
 const days = n => Array.from({ length: n }, (_, i) => entry('water', 500, i + 1));
 const seed = (n, f, extra = {}) => ({ ...RETURNING, e: days(n), mg: { ...RETURNING.mg, c: f ? { water: { f } } : {} }, ...extra });
 const boot = async (s, o = {}) => { const r = await openApp({ seed: s, ...o }); await r.page.waitForSelector('.wl'); await go(r.page, 'water'); return r; };
-const play = async page => { await page.evaluate(() => { HWGames.timeScale = 0.05; HWGames.open('water'); }); };
 
 test('well scene follows the original well stage; the original scene is untouched', async () => {
   for (const [n, lv] of [[0, 0], [5, 2], [22, 5]]) {
@@ -53,64 +52,11 @@ test('reduced motion: no ripples or particles', async () => {
   await ctx.close();
 });
 
-test('Well Garden: launch card, keyboard play, bloom, XP once, discovery, no water logged', async () => {
+// The Well Garden mini-game was removed. Discoveries it saved earlier still show on the well scene (test above).
+test('the Water page has no Well Garden launch card any more', async () => {
   const { page, ctx, errors } = await boot(seed(2, 0));
-  assert.match(await page.textContent('#v6gl-water'), /Well Garden[\s\S]*\+10 XP once a day/);
-  const order = await page.evaluate(() => { const h = document.querySelector('#main').innerHTML; return h.indexOf('v6gl-water') < h.indexOf('WORLD PROGRESSION'); });
-  assert.ok(order, 'launch card before World Progression');
-  const s0 = await state(page);
-  await play(page);
-  assert.equal(await page.locator('.v6gw .pt').count(), 5);
-  assert.match(await page.textContent('.v6gst'), /Watered 0 \/ 5/);
-  for (const k of ['1', '2', '3', '4', '5', '5']) await page.keyboard.press(k);
-  await page.waitForSelector('.v6gdone', { timeout: 20000 });
-  assert.match(await page.textContent('.v6gdone'), /GARDEN BLOOMS[\s\S]*5 bucket trips[\s\S]*Well frog[\s\S]*\+10 XP/);
-  let s = await state(page);
-  assert.equal(s.xp - s0.xp, 10);
-  assert.equal(s.e.length, s0.e.length, 'the game never logs water');
-  assert.equal(s.mg.c.water.b, 1);
-  assert.equal(s.mg.c.water.f, 1);
-  await page.click('[data-g-again]');
-  await page.waitForSelector('.v6gw .pt');
-  assert.equal(await page.locator('.v6gw .v6wsp').filter({ has: page.locator('rect[fill="#4cae4c"]') }).count(), 1, 'frog in the garden');
-  for (let i = 0; i < 8; i++) await page.click('.v6gctl button');
-  await page.waitForSelector('.v6gdone', { timeout: 20000 });
-  assert.match(await page.textContent('.v6gdone'), /5 bucket trips[\s\S]*already earned/);
-  s = await state(page);
-  assert.equal(s.xp - s0.xp, 10, 'replays give no XP');
-  assert.equal(s.mg.c.water.b, 2);
-  assert.equal(s.mg.c.water.f, 1, 'one discovery a day');
-  await page.click('.v6gdone [data-gx]');
-  await page.waitForFunction(() => !document.querySelector('.v6g'));
-  assert.match(await page.textContent('#v6gl-water'), /played 2× · 2 gardens bloomed/);
-  assert.equal(await page.locator('.v6wqd svg rect[fill="#4cae4c"]').count() > 0, true, 'frog by the page well');
-  assert.deepEqual(errors, []);
-  await ctx.close();
-});
-
-test('patches are labelled buttons that report their state', async () => {
-  const { page, ctx, errors } = await boot(seed(0, 0));
-  await play(page);
-  assert.equal(await page.getAttribute('.pt[data-i="0"]', 'aria-label'), 'Garden patch 1, dry');
-  await page.click('.pt[data-i="0"]');
-  await page.waitForFunction(() => document.querySelector('.pt[data-i="0"]').getAttribute('aria-label') === 'Garden patch 1, in bloom', null, { timeout: 10000 });
-  assert.match(await page.textContent('.v6gst'), /Watered 1 \/ 5/);
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => !document.querySelector('.v6g'));
-  assert.equal((await state(page)).mg.n.water, undefined, 'leaving early is not a play');
-  assert.deepEqual(errors, []);
-  await ctx.close();
-});
-
-test('reduced motion and a 360 px phone: the game still completes and fits', async () => {
-  const { page, ctx, errors } = await boot(seed(22, 4, { s: { ...RETURNING.s, rm: 1 } }), { viewport: { width: 360, height: 800 } });
-  await play(page);
-  const [sw, cw] = await page.evaluate(() => [document.querySelector('.v6gbody').scrollWidth, document.querySelector('.v6gbody').clientWidth]);
-  assert.ok(sw <= cw, sw + ' > ' + cw);
-  await page.click('.v6gctl button'); await page.click('.v6gctl button'); await page.click('.v6gctl button'); await page.click('.v6gctl button'); await page.click('.v6gctl button');
-  await page.waitForSelector('.v6gdone', { timeout: 20000 });
-  assert.match(await page.textContent('.v6gdone'), /Village Restored/);
-  assert.equal(await page.evaluate(() => HWFX.live), 0);
+  assert.equal(await page.locator('#v6gl-water').count(), 0);
+  assert.equal(await page.evaluate(() => HWGames.games.some(g => g.id === 'water')), false);
   assert.deepEqual(errors, []);
   await ctx.close();
 });

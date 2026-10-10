@@ -109,8 +109,8 @@ leather `#3a2418`. Add a 1-pixel ink outline around the silhouette (`outline()`)
 
 * `tests/24-performance.test.mjs`: lossless WebP (VP8L), no image over 100 KB except `moves.webp` (180 KB), all of
   `assets/img/` (subfolders included) ≤ 680 KB. The 4x sheets are about 169 KB together, leaving about 17 KB of room.
-* `tests/51-exercise.test.mjs`: the sheet sizes at 4x detail (1536 × 8448 and 512 × 7680), every muscle has map pixels, one
-  sprite row per move.
+* `tests/51-exercise.test.mjs`: the sheet sizes at 4x detail (1536 × 8448 and 512 × 7680), every muscle except Abdominals has map pixels,
+  one sprite row per drawn move (22), and the seven moves without a sprite row are exactly the ones listed below.
 * Keep the file names: they are listed in `sw.js` PRECACHE and embedded by `tools/build-standalone.mjs`.
 
 ## Still open
@@ -118,3 +118,24 @@ leather `#3a2418`. Add a 1-pixel ink outline around the silhouette (`outline()`)
 * The KMKU equipment list: which dumbbells, benches, cable and machines the school gym actually has. The props in the
   sprites (flat and incline bench, hyperextension bench, cable, dip bars, leg extension, leg curl bench, step) should match
   it, and any move without equipment there may need a swap.
+
+## Art still to draw (added in code without it)
+
+The Training Hall has more moves than the committed sprite sheet. These carry `sprite: null` (second field of their `MOVES`
+entry in `js/v6-exercise.js`); the tutorial shows a pixel icon and says "Animation not drawn yet" until a row exists:
+
+| Move id | Move | Muscle it is listed under | Notes for the pose |
+|---|---|---|---|
+| `pushup` | Push-up | Mid chest, Triceps | plank, hands under shoulders, 4 frames down and up |
+| `inclinepu` | Incline push-up | Lower chest | hands on the bench prop, body straight |
+| `decline` | Decline push-up | Upper chest | feet on the bench prop, hands on the floor |
+| `pike` | Pike push-up | Front delt | hips high (inverted V), head lowers between the hands |
+| `pullup` | Pull-up | Lats | overhand grip on a bar, chest to the bar |
+| `chin` | Chin-up | Biceps, Lats | underhand grip, chin over the bar |
+| `situp` | Sit-up | Abdominals | on the back, knees bent, curl up toward the knees |
+
+Abdominals (`abs`, last entry of `MUS`, listed in `NOMASK`) has no mask row in `muscles.webp` and no pixels in `MAP-DATA`, so
+it is chosen from the muscle list and lights nothing. Drawing it needs a 20th mask row (the sheet becomes 512 × 8064), a new
+`MAP-DATA` block, and removing `abs` from `NOMASK`. Appending the seven moves as rows 22–28 makes `moves.webp` 1536 × 11264
+at 4x; check the 180 KB limit above, and update the sizes in `tests/51-exercise.test.mjs`. Until then Calisthenics offers
+these bodyweight moves without an animation (the drawn bodyweight moves are Squat, Dips, Back raise and Calf raise).

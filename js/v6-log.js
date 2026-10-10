@@ -4,7 +4,7 @@
    have entries) and a "Pick a date…" field show one day only, so yesterday's water entry is one tap away (Yesterday), and an older day
    is a date pick. The category filter still applies, to whichever day is shown. Each entry keeps its time and its edit and delete
    buttons (the shared row() from the original). Nothing is stored: the chosen day, the open rows and "show more" live in S (this tab).
-   Old 'pulse' entries stay in the save and are still not listed (js/v6-stairs.js). */
+   Old 'pulse' entries stay in the save and are still not listed; BPM logged in Heartstone Hall (m.when) is listed (js/v6-stairs.js). */
 const HWLog=(()=>{
 const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],WD=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const CATS=['all','food','water','sleep','stair','stress','bmi'],PAGE=30;
@@ -16,7 +16,7 @@ const fmt=n=>(Math.round(n*10)/10).toLocaleString('en');
 function totals(a){const s=c=>a.filter(e=>e.c===c),sm=c=>s(c).reduce((x,e)=>x+(+e.v||0),0),o=[];
   if(s('food').length)o.push(fmt(sm('food'))+' kcal');if(s('water').length)o.push(fmt(sm('water'))+' mL');if(s('stair').length)o.push(fmt(sm('stair'))+' steps');
   if(s('sleep').length)o.push(fmt(sm('sleep'))+' h sleep');if(s('stress').length)o.push('stress avg '+fmt(sm('stress')/s('stress').length)+'/10');if(s('bmi').length)o.push('BMI '+fmt(s('bmi').slice(-1)[0].v));return o.join(' · ')}
-const shown=()=>ALL().filter(e=>e.c!=='pulse'&&(S.fc==='all'||e.c===S.fc));
+const shown=()=>ALL().filter(e=>(e.c!=='pulse'||(e.m&&(e.m.when==='before'||e.m.when==='after')))&&(S.fc==='all'||e.c===S.fc)); // old pulse entries stay unlisted; logged BPM (m.when) is listed
 function groups(a){const m=new Map();a.forEach(e=>{if(!m.has(e.d))m.set(e.d,[]);m.get(e.d).push(e)});
   return [...m.keys()].sort().reverse().map(d=>({d,a:m.get(d).sort((x,y)=>y.t.localeCompare(x.t))}))}
 function chips(G){const T=today(),have=new Map(G.map(g=>[g.d,g.a.length])),R=Array.from({length:14},(_,i)=>back(i)).filter(d=>have.has(d)),sel=S.ld||null;

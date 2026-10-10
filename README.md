@@ -29,7 +29,8 @@ js/v6-ui.js                shared UI helpers (injected styles, completion banner
 js/v6-pixel.js             pixel-art standard: design tokens, panel/HUD classes, crisp pixel icons (guide: docs/PIXEL_STYLE.md)
 js/v6-emoji.js             every emoji the app shows drawn as pixel art (hand-drawn icon or the emoji pixelated)
 js/v6-provisions.js        Nutrition & Hydration as one page (the Provisions Hall): 'food' and 'water' are its two halves
-js/v6-stairs.js            the Stairs page: casual climbing (GPS + by hand), stair workout (heart rate before/after with f, T, ω of the pulse, calorie estimate, our project's VO₂ / kJ method), the Group 14 measured-stairways table, running (with calories burned, js/v6-running.js); one session model
+js/v6-stairs.js            the Stairs page: two halves side by side, casual stairs (GPS check-in first, then by hand) and workout & heart rate (LOG BPM before/after, f, T, ω of the pulse, calorie estimate and our project's VO₂ / kJ method behind a ? button), the Group 14 measured-stairways table; one session model
+js/v6-hrlog.js             hrLast(): the newest counted heart rate (logged BPM or a workout), used by the hub tile, kingdom panel and Stairs page
 js/v6-conditions.js        "Anything that affects your activity?": the conditions question in the registry, one rule table (quest order, stair goals behind a doctor note, pace note), st.p.conds
 js/v6-motion.js            animation settings + performance modes (High / Balanced / Performance), off-screen pause
 js/v6-particles.js         one shared canvas particle system (level-up, badges, quests)
@@ -43,29 +44,28 @@ js/v6-charts.js            touch/keyboard/screen-reader charts, empty states, we
 js/v6-world.js             visible world progression on the map + kingdom chronicle
 js/v6-title.js             title screen: time of day, weather, returning-player ribbon, tap reactions
 js/v6-games.js             mini-game framework: scene, HUD, character, timers, rewards, completion
-js/v6-water.js             Well Garden mini-game; well stage, discoveries, ripples and sprites used by the Water Quest scene
+js/v6-water.js             well stage, earlier discoveries, ripples and sprites used by the Water Quest scene (the Well Garden game was removed)
 js/v6-rig.js               character rig: the knight and orc cut into jointed parts with pose classes; pixel-art scene painter
 js/v6-waterquest.js        Water Quest: layered valley scene by time of day and the knight's walk → drink → carry → pour sequence
 js/v6-dream.js             Dream Battle: continuous sleep → strength, torch-lit dungeon, princess, deterministic battle
 js/v6-storm.js             Storm Within: the knight's face, posture and surroundings follow the stress rating, smoothly
 js/v6-ambient.js           the living world behind every page (themed by region) and the shared finish for buttons, cards, bars
-js/v6-food.js              Market Kitchen mini-game (pick foods from stalls, cook, build a balanced plate)
-js/v6-trail.js             Adventure Trail mini-game (follow trail blazes at forks, climb the stairs in rhythm)
 js/v6-grove.js             Calming Grove mini-game (follow a light over the pond as it grows and shrinks with your breath)
 js/v6-relief.js            Stress Quest activity collection: illustrated cards replace the "what would help you handle this?" options (Shake It Off, Empower Yourself, Arrow Focus, Reaction Focus, Calming Sounds + the original tools)
-js/v6-night.js             Night Watch mini-game (match star-chart constellations in the night sky)
 js/v6-badges.js            badge audit: duplicates retired, own icons, running / workout / Dream Battle badges
 js/v6-looks.js             themes (THEMES map, Settings swatches), the onboarding chamber, the Shadow Keep (title + Kingdom)
 js/v6-gps.js               GPS check-in on the Stairs page (one reading on tap, nearest stairway, confirm, discovery)
 js/v6-pwa.js               install as an app + offline: manifest/icon links, service worker, offline badge, Settings card
-js/v6-cloud.js             optional account engine: email magic link / 6-digit code and Google sign-in, user_data sync (offline queue, merge)
+js/v6-cloud.js             optional account engine: email magic link / code and Google sign-in, user_data sync (offline queue, merge)
 js/v6-account.js           the account's screens: Settings → ACCOUNT, "What happens when you sign in", sign-in steps, onboarding offer
 js/v6-counsel.js           the Wizard's Counsel → medius-chat Edge Function (signed in), crisis help for everyone, Medius's reactions
 js/v6-board.js             Hall of Heroes: opt-in leaderboard of game progress only (Quest Board card + Settings privacy card)
 js/v6-live.js              live weather + haze (jerebu) for Kolej MARA Kulim from Open-Meteo: title sky, Home chip + JEREBU CHECK, hazeBanner() + heat tip above Running, Settings → LIVE DATA
 js/v6-alarm.js             wake-up alarm on the Sleep page: in-app alarm (sounds, snooze, bedside clock), Android Clock intent, iPhone steps, .ics reminder
-js/v6-hr.js                smartwatch / chest-strap heart rate over Web Bluetooth (0x180D/0x2A37, battery 0x180F) for the Workout on the Stairs page; "Will my watch work?" sheet
-js/v6-runboard.js          Runners' Board: opt-in running leaderboard (nickname + weekly totals only) under Running; rows follow the account when signed in
+js/v6-hr.js                smartwatch / chest-strap heart rate over Web Bluetooth (0x180D/0x2A37, battery 0x180F) for the Workout on the Stairs page (and BPM logged in Heartstone Hall); "Will my watch work?" sheet
+js/v6-runboard.js          Runners' Board: opt-in running leaderboard (nickname + weekly totals only) under Running Road on the Training Hall; rows follow the account when signed in
+js/v6-running.js           GPS run tracker (RUNNING ROAD on the Training Hall page): distance, moving time, pace, calories burned estimate
+js/v6-exercise.js          the Wizard's Training Hall: goal (Calisthenics is bodyweight only), one Muscle & move screen with the tutorial, session, Running Road
 js/v6-sheep.js             the Counting Sheep dream on the Sleep page: one animated pixel-art canvas scene, full screen
 js/v6-map.js               the Kingdom map as a living pixel-art map (layered canvases + CSS-animated details, zoom to a region)
 js/v6-score.js             Health Score page (Health Hall): five indicators weighted into one 0–100 score, fruit & veg servings, recommendations in five areas

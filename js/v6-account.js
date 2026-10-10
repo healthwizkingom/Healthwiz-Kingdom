@@ -35,14 +35,14 @@ function sheet(){const s=A,err=s.err?'<p class="warn" role="alert">'+s.err+'</p>
     +(G?'<button class="v6acg" data-a="acgoogle"'+(s.busy?' disabled':'')+'>CONTINUE WITH GOOGLE</button><p class="v6acor"><span>or with your email</span></p>':'')
     +'<label>Email<input id="acem" type="email" autocomplete="email" inputmode="email" spellcheck="false" maxlength="200" value="'+esc(s.email||'')+'"></label>'
     +'<button data-a="acmail" style="width:100%"'+(s.busy?' disabled':'')+'>'+ico('mail')+' '+(s.busy?'SENDING…':'SEND SIGN-IN EMAIL')+'</button>'
-    +'<small class="mut">We email you a sign-in link and a 6-digit code. Use either one.</small>'+err
+    +'<small class="mut">We email you a sign-in link and a code. Use either one.</small>'+err
     +'<div class="row" style="margin-top:8px"><button class="g sm" data-a="acwhy">◀ BACK</button><button class="g sm" data-a="acx">NOT NOW</button></div>';
   else if(s.step==='mail')h='<h3 id="v6ach">'+ico('mail')+' CHECK YOUR EMAIL</h3><p>We sent a sign-in link and a code to <b>'+esc(s.email)+'</b>.</p>'
-    +'<p>Open the link on this device, or type the 6-digit code here:</p>'
+    +'<p>Open the link on this device, or type the code from the email here (numbers only):</p>'
     +'<label>Code from the email<input id="accode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" spellcheck="false"></label>'
     +'<button data-a="accode" style="width:100%"'+(s.busy?' disabled':'')+'>'+(s.busy?'CHECKING…':'SIGN IN')+'</button>'+err
     +'<div class="row" style="margin-top:8px"><button class="g sm" data-a="acresend"'+(s.busy?' disabled':'')+'>SEND AGAIN</button><button class="g sm" data-a="acother">USE ANOTHER EMAIL</button><button class="g sm" data-a="acx">CLOSE</button></div>'
-    +'<small class="mut">Not there? Look in spam or promotions. The link and the code work once and expire after an hour.</small>';
+    +'<small class="mut">Not there? Look in spam or promotions. The link and the code work once and expire after an hour. If you open the link, the code no longer works.</small>';
   else if(s.step==='choose'){const c=C.choice()||{},n=st.e.length;
     h='<h3 id="v6ach">'+ico('cloud')+' THIS ACCOUNT ALREADY HAS DATA</h3><p>Choose what to keep. Nothing changes until you choose.</p>'
     +'<div class="v6acs"><b>THIS DEVICE</b><span>'+n+' entr'+(n===1?'y':'ies')+' · '+(+st.xp||0)+' XP</span></div>'

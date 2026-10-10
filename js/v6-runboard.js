@@ -1,5 +1,5 @@
 /* v6: online running leaderboard, the RUNNERS' ROAD board. Not part of the original.
-   Shown under RUNNING ROAD on the Stairs page (js/v6-stairs.js). Backend: supabase/migrations/20261006000000_run_scores.sql.
+   Shown under RUNNING ROAD on the Training Hall (Exercise) page (js/v6-exercise.js). Backend: supabase/migrations/20261006000000_run_scores.sql.
    * Opt-in. Nothing is sent until the player joins with a nickname (3–16 characters, no profanity, not their profile
      name). Shared: that nickname and weekly running totals (distance, number of runs, best 5K time), nothing else:
      no health data, no route or location, no weight, no account. LEAVE deletes every row of this device.
@@ -223,7 +223,7 @@ HWEvents.on('cloud:signed-out',()=>{if(!B.acct)return;clearTimeout(T);B={dev:uui
 /* ---------- triggers: a saved or deleted run updates the board ---------- */
 {const f=acts.runfinish,d=acts.rundel;acts.runfinish=(...a)=>{const r=f(...a);setTimeout(push,0);return r};acts.rundel=(...a)=>{const r=d(...a);setTimeout(push,0);return r}}
 HWEvents.on('app:ready',()=>{link().then(()=>{if(B.on)push()})});
-HWEvents.on('page:viewed',e=>{arm=0;note='';if(e.view==='stair'&&B.on)push()});
+HWEvents.on('page:viewed',e=>{arm=0;note='';if(e.view==='exercise'&&B.on)push()});
 addEventListener('online',()=>{link().then(()=>{if(B.on)push()});paint()});addEventListener('offline',()=>paint());
 // Reset on this device: leave the board too, so no orphaned entry stays online (best effort; offline it stays until LEAVE)
 HWEvents.on('data:reset',()=>{const dev=B.dev,on=B.on&&!B.acct;clearTimeout(T);if(on&&online())rpc('leave_run_board',{p_device_id:dev}).catch(()=>{});

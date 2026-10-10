@@ -46,9 +46,11 @@ const sum=(c,d)=>A(c,d).reduce((a,x)=>a+(+x.v||0),0);
 const kc=d=>sum('food',d),wt=d=>sum('water',d),sp=d=>sum('stair',d);
 const cl=d=>A('stair',d).reduce((a,x)=>a+(+x.m.climbs||0),0);
 const avg=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:null;
-// v6 (stairs refactor): heart rate comes from stair workouts only (before / after, typed in by the user; js/v6-stairs.js).
-// Old 'pulse' entries stay in the save untouched but are no longer read here.
-const hrv=(d,k)=>A('stair',d).map(x=>+(x.m||{})[k]).filter(v=>v>=30&&v<=220),hrS=d=>A('stair',d).filter(x=>x.m&&(+x.m.hrB||+x.m.hrA)).length;
+// v6 (stairs refactor, heart-rate log): heart rate comes from stair workouts (before / after, typed in by the user; js/v6-stairs.js)
+// and from BPM logged in Heartstone Hall: 'pulse' entries {v: BPM, m: {when: 'before'|'after'}}. A sealed workout links the logs it
+// used (m.sess), so nothing is counted twice. Old 'pulse' entries without m.when stay in the save untouched and are not read here.
+const hrL=(d,k)=>A('pulse',d).filter(x=>x.m&&(x.m.when==='before'||x.m.when==='after')&&!x.m.sess&&(!k||x.m.when===(k==='hrB'?'before':'after')));
+const hrv=(d,k)=>A('stair',d).map(x=>+(x.m||{})[k]).concat(hrL(d,k).map(x=>+x.v)).filter(v=>v>=30&&v<=220),hrS=d=>A('stair',d).filter(x=>x.m&&(+x.m.hrB||+x.m.hrA)).length+hrL(d).length;
 const rest=d=>{const a=hrv(d,'hrB');return a.length?Math.round(avg(a)):null}; // before a workout
 const hr=d=>{const a=hrv(d,'hrA');return a.length?Math.round(avg(a)):null}; // right after a workout
 const str=d=>{const a=A('stress',d).map(x=>x.v);return a.length?+avg(a).toFixed(1):null};

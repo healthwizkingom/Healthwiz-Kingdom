@@ -1,15 +1,20 @@
 /* v6 (exercise page): the Wizard's Training Hall, opened from the EXERCISE tile in the Health Hall. Not part of the original.
    One page, one screen per step (S.xs.step):
      goal  Medius asks why you are training: Hypertrophy, Calisthenics, Strength, Endurance or Custom (reps, sets, rest).
-     map   the knight's muscle map (front and back). Tap a muscle: it lights up in mana-teal with the muscles that work with it,
-           and its exercises are listed. The same choice is offered as a list of buttons for keyboard and screen readers.
-     tut   the exercise's tutorial: a looping 4-frame pixel animation (a still first frame with reduced motion), three cues,
-           the reps for the chosen goal and a stop rule.
+           Calisthenics offers bodyweight moves only. The RUNNING ROAD (GPS run tracker, js/v6-running.js, and the Runners'
+           Board, js/v6-runboard.js) is shown below, here and on the next screen; the old 'run' route opens it.
+     map   MUSCLE & MOVE, one screen (Muscle and Learn were merged): the knight's muscle map (front and back). Tap a muscle:
+           it lights up in mana-teal with the muscles that work with it, and its moves are listed. Choosing a move shows
+           its tutorial right below: a looping 4-frame pixel animation (a still first frame with reduced motion), three
+           cues, the reps for the chosen goal and a stop rule. The same choice is offered as a list for keyboard and screen readers.
      run   the session: set counter, reps done, a rest countdown, FINISH, and "I feel dizzy" / "Chest pain", which stop the
            session at once and show help. Nothing is logged for a stopped session.
      done  the finish card: minutes, sets and reps (what you did), then a calorie, VO2 and kJ ESTIMATE, then the game reward.
    Art: assets/img/exercise/moves.webp (one row per move, 4 frames of 96 px) and muscles.webp (the map and one mask per muscle),
    made by tools/art/make_exercise.py, which also writes the MAP-DATA block below (which muscle is under each map pixel).
+   Moves added after the art was drawn (push-ups, pull-up, chin-up, pike push-up, sit-up) have no sprite row yet (sprite: null):
+   the tutorial shows a pixel icon and says so. The same goes for Abdominals, which has no mask on the map (NOMASK): it is
+   chosen from the muscle list and lights nothing. Both need the Blender pipeline (tools/art/) to be drawn properly.
 
    One saved entry per finished session, a normal entry in st.e:
      {c:'exercise', v: minutes, m:{goal, ex, name, mus, sets, reps:[per set], rt:'6–8', rest, fail, dur, met, code,
@@ -57,31 +62,33 @@ const restTxt=s=>s>=60?(s%60?Math.floor(s/60)+' min '+(s%60)+' s':s/60+' min'):s
 const MUS=[
   ['traps','Traps','back',['shrug'],['upperback']],
   ['upperback','Upper back','back',['row_sup'],['lats','reardelt','biceps']],
-  ['lats','Lats','back',['row_neu'],['upperback','biceps','reardelt']],
+  ['lats','Lats','back',['row_neu','pullup','chin'],['upperback','biceps','reardelt']],
   ['erectors','Erector spinae','back',['back_raise'],['hamstrings']],
-  ['frontdelt','Front delt','front',['press','front_raise'],['sidedelt','triceps','upperchest']],
+  ['frontdelt','Front delt','front',['press','front_raise','pike'],['sidedelt','triceps','upperchest']],
   ['sidedelt','Side delt','front',['lat_raise'],['frontdelt','traps']],
   ['reardelt','Rear delt','back',['rear_fly'],['upperback','traps']],
-  ['biceps','Biceps','front',['curl'],['brachialis','brachioradialis','forearmflex']],
+  ['biceps','Biceps','front',['curl','chin'],['brachialis','brachioradialis','forearmflex']],
   ['brachialis','Brachialis','front',['hammer'],['brachioradialis','biceps']],
   ['brachioradialis','Brachioradialis','front',['hammer'],['brachialis','biceps']],
   ['forearmext','Forearm extensors','back',['wrist_ext'],['brachioradialis']],
   ['forearmflex','Forearm flexors','front',['wrist_curl'],[]],
-  ['triceps','Triceps','back',['pushdown','oh_ext','skull'],['frontdelt']],
-  ['upperchest','Upper chest','front',['incline'],['frontdelt','triceps','midchest']],
-  ['midchest','Mid chest','front',['flat'],['upperchest','lowerchest','frontdelt','triceps']],
-  ['lowerchest','Lower chest','front',['dips'],['midchest','triceps']],
+  ['triceps','Triceps','back',['pushdown','oh_ext','skull','dips','pushup'],['frontdelt']],
+  ['upperchest','Upper chest','front',['incline','decline'],['frontdelt','triceps','midchest']],
+  ['midchest','Mid chest','front',['flat','pushup'],['upperchest','lowerchest','frontdelt','triceps']],
+  ['lowerchest','Lower chest','front',['dips','inclinepu'],['midchest','triceps']],
   ['quads','Quads','front',['squat','leg_ext'],['erectors']],
   ['hamstrings','Hamstrings','back',['leg_curl'],['calves']],
-  ['calves','Calves','back',['calf'],[]]];
+  ['calves','Calves','back',['calf'],[]],
+  ['abs','Abdominals','front',['situp'],[]]]; // the last muscle has no mask on the map (NOMASK)
 const MI=id=>MUS.findIndex(m=>m[0]===id);
+const NOMASK={abs:1}; // muscles with no mask in muscles.webp: chosen from the list, nothing lights on the map
 const PAIR={brachialis:'brachioradialis',brachioradialis:'brachialis'}; // lit together, both at full strength
-// id: [name, sprite row, cue lines, bodyweight swap for Calisthenics]
+// id: [name, sprite row (null = not drawn yet), cue lines, bodyweight: 1 = needs no weights, so Calisthenics offers it]
 const MOVES={
   shrug:['Dumbbell shrug',0,['Stand tall, dumbbells at your sides.','Lift your shoulders straight up to your ears.','Pause, then lower slowly. Do not roll the shoulders.']],
   row_sup:['Dumbbell row, palms forward',1,['Hinge at the hips, back flat, knees soft.','Palms face forward. Pull the elbows back past your ribs.','Squeeze the shoulder blades, then lower with control.']],
   row_neu:['Dumbbell row, palms in',2,['Hinge at the hips, back flat, knees soft.','Palms face each other. Pull the elbows close along your sides.','Lead with the elbows, then lower slowly.']],
-  back_raise:['Back raise',3,['Hips on the pad, heels locked, arms crossed.','Lower your chest slowly toward the floor.','Raise until your body is a straight line. Do not arch past it.']],
+  back_raise:['Back raise',3,['Hips on the pad, heels locked, arms crossed.','Lower your chest slowly toward the floor.','Raise until your body is a straight line. Do not arch past it.'],1],
   press:['Shoulder press',4,['Dumbbells at shoulder height, elbows under the wrists.','Press straight up until the arms are long.','Lower back to the shoulders. Keep your ribs down.']],
   front_raise:['Front raise',5,['Stand tall, dumbbells in front of your thighs.','Raise the arms forward to shoulder height.','Lower slowly. No swinging.']],
   lat_raise:['Lateral raise',6,['Stand tall, slight bend in the elbows.','Raise the arms out to the sides to shoulder height.','Lead with the elbows, lower slowly.']],
@@ -95,11 +102,19 @@ const MOVES={
   skull:['Skullcrusher',14,['Lie on the bench, arms straight up.','Bend only the elbows, lowering toward your forehead.','Straighten back up. Upper arms stay still.']],
   incline:['Incline dumbbell press',15,['Bench at about 30 degrees, feet flat.','Press the dumbbells up over the upper chest.','Lower until the elbows are just below the bench.']],
   flat:['Flat dumbbell press',16,['Lie flat, feet on the floor, shoulder blades back.','Press the dumbbells up over the chest.','Lower slowly, elbows at about 45 degrees.']],
-  dips:['Dips',17,['Arms straight on the bars, lean slightly forward.','Lower until the upper arms are level with the bars.','Press back up. Stop higher if the shoulders hurt.']],
-  squat:['Squat',18,['Feet shoulder-width, chest up.','Sit back and down until the thighs are about level.','Drive up through the whole foot. Knees follow the toes.']],
+  dips:['Dips',17,['Arms straight on the bars, lean slightly forward.','Lower until the upper arms are level with the bars.','Press back up. Stop higher if the shoulders hurt.'],1],
+  squat:['Squat',18,['Feet shoulder-width, chest up.','Sit back and down until the thighs are about level.','Drive up through the whole foot. Knees follow the toes.'],1],
   leg_ext:['Leg extension',19,['Sit tall, pad on the front of the ankles.','Straighten the knees until the legs are long.','Lower slowly. No kicking.']],
   leg_curl:['Leg curl',20,['Lie face down, pad behind the ankles.','Curl the heels toward your hips.','Lower slowly. Hips stay on the bench.']],
-  calf:['Calf raise',21,['Balls of the feet on a step, hold on for balance.','Rise up onto your toes as high as you can.','Lower the heels slowly below the step.']]};
+  calf:['Calf raise',21,['Balls of the feet on a step, hold on for balance.','Rise up onto your toes as high as you can.','Lower the heels slowly below the step.'],1],
+  // bodyweight moves added after the art was drawn: no sprite row yet (null), so the tutorial shows an icon and says the animation is not drawn
+  pushup:['Push-up',null,['Hands under the shoulders, body in one straight line.','Lower your chest to just above the floor, elbows at about 45 degrees.','Press back up until the arms are straight. Do not let the hips sag.'],1],
+  inclinepu:['Incline push-up',null,['Hands on a sturdy bench or rail, body in one straight line.','Lower your chest toward the edge, elbows at about 45 degrees.','Press back up. The higher the hands, the easier it is.'],1],
+  decline:['Decline push-up',null,['Feet on a sturdy bench, hands on the floor under the shoulders.','Lower your chest toward the floor, body in one straight line.','Press back up. Do not let the hips sag or the lower back arch.'],1],
+  pike:['Pike push-up',null,['Hips high in an upside-down V, hands shoulder-width, head between the arms.','Bend the elbows and lower the top of your head toward the floor.','Press back up through the shoulders. Keep the legs as straight as you can.'],1],
+  pullup:['Pull-up',null,['Hang from a bar with an overhand grip, a little wider than the shoulders.','Pull your chest toward the bar, elbows down and back.','Lower all the way down slowly. No swinging or kicking.'],1],
+  chin:['Chin-up',null,['Hang from a bar with an underhand grip, shoulder-width.','Pull until your chin is over the bar, elbows close to your sides.','Lower all the way down slowly. No swinging or kicking.'],1],
+  situp:['Sit-up',null,['Lie on your back, knees bent, feet flat, arms crossed on your chest.','Curl your upper body up toward your knees, breathing out.','Lower back down with control. Do not pull on your neck.'],1]};
 // Medius: one line per step (archaic voice, as elsewhere in the kingdom)
 const SAY={
   goal:'Why are you training today?',
@@ -136,7 +151,7 @@ const sum=L=>L.reduce((a,b)=>a+(+b||0),0);
 function day(d){const L=A('exercise',d||today());return{n:L.length,min:Math.round(sum(L.map(e=>e.v))*10)/10,kcal:sum(L.map(e=>((e.m||{}).kcal||{}).v))}}
 
 /* ---------- pieces ---------- */
-const STEPS=[['goal','Goal','scroll'],['map','Muscle','workout'],['tut','Learn','wizard'],['run','Train','energy'],['done','Reward','star']];
+const STEPS=[['goal','Goal','scroll'],['map','Muscle & move','workout'],['run','Train','energy'],['done','Reward','star']];
 function runes(step){const i=STEPS.findIndex(s=>s[0]===step);
   return '<ol class="xrun" aria-label="Step '+(i+1)+' of '+STEPS.length+'">'+STEPS.map((s,j)=>'<li class="'+(j<i?'dn':j===i?'on':'')+'"'+(j===i?' aria-current="step"':'')+'>'+ico(s[2])+'<span>'+s[1]+'</span></li>').join('')+'</ol>'}
 function medius(t){return '<div class="xmed" role="note"><img class="av" src="assets/img/wiz.webp" alt="" width="44" height="44"><p><b>MEDIUS</b>'+t+'</p></div>'}
@@ -144,8 +159,15 @@ const head=(icon,t)=>'<h3 class="pxh">'+ico(icon)+' '+t+'</h3>';
 function stopRule(P){return P.fail?'Sets to failure: stop when one more clean rep is not possible. Stop at once for sharp pain, dizziness or chest pain.'
   :P.gate?'Stop 2–3 reps before failure: your profile lists a condition where sets to failure wait for a doctor\'s OK. Stop at once for sharp pain, dizziness or chest pain.'
   :'Stop 2 reps before your form breaks. Stop at once for sharp pain, dizziness or chest pain.'}
+/** Moves for a muscle under the chosen goal: Calisthenics keeps only the bodyweight ones. */
+const movesOf=(i,k)=>MUS[i][3].filter(id=>k!=='cal'||MOVES[id][3]===1);
+const bodyweight=id=>!!MOVES[id]&&MOVES[id][3]===1;
 const repsLine=P=>P.sets+' sets × '+P.rt+' reps'+(P.fail?' to failure':'')+' · rest '+restTxt(P.rest);
 
+/** RUNNING ROAD: the GPS run tracker and the Runners' Board (they moved here from the Stairs page). */
+function running(){if(typeof HWRun==='undefined')return '';
+  return '<div class="xrunsec" id="xrun-s"><h3 class="pxh xrh" id="xrun-h">'+ico('running')+' RUNNING ROAD</h3><p class="xsm mut">Track a run by GPS: distance, time and pace.</p>'
+    +HWRun.section()+(typeof HWRunBoard!=='undefined'?HWRunBoard.section():'')+'</div>'}
 function goalScreen(){const p=prefs(),sel=p.g;
   const card=k=>{const G=GOALS[k],P=plan(k,p),on=sel===k;
     return '<button type="button" class="xgo'+(on?' on':'')+'" data-a="xgoal" data-k="'+k+'" aria-pressed="'+(on?'true':'false')+'"><b>'+G.n+'</b><small>'+G.why+'</small>'
@@ -159,28 +181,33 @@ function goalScreen(){const p=prefs(),sel=p.g;
     +btn('xnext',sel?'CHOOSE A MUSCLE ▶':'PICK A GOAL FIRST','xpri',sel?'':' disabled')+'</div>'}
 
 function fig(v,sel){const s=sel>=0?MUS[sel]:null,lit=s?[sel].concat(PAIR[s[0]]?[MI(PAIR[s[0]])]:[]):[],syn=s?s[4].map(MI).filter(i=>i>=0&&lit.indexOf(i)<0):[];
-  const col=v==='front'?0:1,layer=(i,c)=>'<i class="xmm '+c+'" style="--c:'+col+';--r:'+(i+1)+'"></i>';
-  return '<div class="xmfig" data-view="'+v+'" role="img" aria-label="Knight, '+v+' view'+(s?', '+s[1]+' lit':'')+'"><i class="xmm base" style="--c:'+col+';--r:0"></i>'
+  const col=v==='front'?0:1,mk=i=>!NOMASK[MUS[i][0]],layer=(i,c)=>mk(i)?'<i class="xmm '+c+'" style="--c:'+col+';--r:'+(i+1)+'"></i>':'';
+  return '<div class="xmfig" data-view="'+v+'" role="img" aria-label="Knight, '+v+' view'+(s&&mk(sel)?', '+s[1]+' lit':'')+'"><i class="xmm base" style="--c:'+col+';--r:0"></i>'
     +syn.map(i=>layer(i,'syn')).join('')+lit.map(i=>layer(i,'lit')).join('')+'<span class="xmv">'+v.toUpperCase()+'</span></div>'}
-function mapScreen(){const x=X(),sel=x.mus?MI(x.mus):-1,P=plan(),s=sel>=0?MUS[sel]:null;
-  const chips=v=>MUS.map((m,i)=>m[2]!==v?'':'<button type="button" class="chip'+(i===sel?' on':'')+'" data-a="xmus" data-m="'+m[0]+'" aria-pressed="'+(i===sel?'true':'false')+'">'+m[1]+'</button>').join('');
-  const moves=s?s[3].map(id=>'<button type="button" class="xex'+(x.ex===id?' on':'')+'" data-a="xex" data-e="'+id+'" aria-pressed="'+(x.ex===id?'true':'false')+'">'+ico('workout')+' '+MOVES[id][0]+'</button>').join(''):'';
-  const syn=s&&s[4].length?'<p class="xsm mut">Works with: '+s[4].map(id=>MUS[MI(id)][1]).join(', ')+(PAIR[s[0]]?' (lit together with '+MUS[MI(PAIR[s[0]])][1]+')':'')+'</p>':'';
-  return runes('map')+medius(SAY.map)+'<div class="pxp pxn pxdk xpan">'+head('workout','THE KNIGHT\'S MUSCLE MAP')
-    +'<p class="xsm">Goal: <b>'+P.n+'</b> · '+repsLine(P)+' '+btn('xback','CHANGE','g sm',' data-to="goal"')+'</p>'
-    +'<div class="xmap">'+fig('front',sel)+fig('back',sel)+'</div>'
-    +'<div class="xsel" aria-live="polite">'+(s?'<b class="xmn">'+s[1]+'</b>'+syn+'<div class="xexs">'+moves+'</div>':'<p class="mut">No muscle chosen yet. Tap one on the knight, or pick from the list.</p>')+'</div>'
-    +'<details class="xlist"'+(x.list?' open':'')+'><summary>Muscle list</summary><div class="xchips"><b>FRONT</b>'+chips('front')+'</div><div class="xchips"><b>BACK</b>'+chips('back')+'</div></details>'
-    +btn('xtut',x.ex?'OPEN TUTORIAL ▶':'PICK AN EXERCISE FIRST','xpri',x.ex?'':' disabled')+'</div>'}
-
+/** The move's animation: its sprite row, or (for moves not drawn yet) a pixel icon and a plain note. */
 function sprite(id,big){const M=MOVES[id];
+  if(M[1]==null)return '<div class="xspr xnone'+(big?' big':'')+'" role="img" aria-label="'+M[0]+': animation not drawn yet">'+ico('workout',3)+'<small>Animation not drawn yet. Follow the cues.</small></div>';
   return '<div class="xspr'+(HWUI.reduced()?' still':'')+(big?' big':'')+'" role="img" aria-label="'+M[0]+', '+(HWUI.reduced()?'first frame':'looping animation')+'" style="--r:'+M[1]+'"></div>'}
-function tutScreen(){const x=X(),M=MOVES[x.ex],P=plan();
-  return runes('tut')+medius(SAY.tut[x.say%SAY.tut.length])+'<div class="pxp pxn pxdk xpan">'+head('wizard','TUTORIAL · '+M[0].toUpperCase())
+/** The tutorial for the chosen move, shown under the muscle's move list on the same screen. */
+function learn(P){const x=X(),M=MOVES[x.ex];
+  return '<div class="xlearn" id="xlearn"><h4 class="xlh">'+ico('wizard')+' '+M[0].toUpperCase()+'</h4>'
     +'<div class="xtut">'+sprite(x.ex,1)+'<div><ol class="xcue">'+M[2].map(c=>'<li>'+c+'</li>').join('')+'</ol>'
     +'<p class="xreps"><b>'+P.rt+'</b> reps <span>× '+P.sets+' sets'+(P.fail?' to failure':'')+'</span></p><p class="xsm">Rest '+restTxt(P.rest)+' between sets.</p></div></div>'
-    +'<p class="warn xstop" role="note"><b>Stop rule:</b> '+stopRule(P)+'</p>'
-    +'<div class="row xrow">'+btn('xback','◀ MUSCLES','g',' data-to="map"')+btn('xstart','START SESSION ▶','xpri')+'</div></div>'}
+    +'<p class="warn xstop" role="note"><b>Stop rule:</b> '+stopRule(P)+'</p></div>'}
+function mapScreen(){const x=X(),sel=x.mus?MI(x.mus):-1,P=plan(),s=sel>=0?MUS[sel]:null,list=s?movesOf(sel,P.k):[];
+  if(x.ex&&list.indexOf(x.ex)<0)x.ex=list[0]||null; // a goal change can remove the chosen move (Calisthenics: bodyweight only)
+  const chips=v=>MUS.map((m,i)=>m[2]!==v?'':'<button type="button" class="chip'+(i===sel?' on':'')+(movesOf(i,P.k).length?'':' xdim')+'" data-a="xmus" data-m="'+m[0]+'" aria-pressed="'+(i===sel?'true':'false')+'">'+m[1]+'</button>').join('');
+  const moves=list.map(id=>'<button type="button" class="xex'+(x.ex===id?' on':'')+'" data-a="xex" data-e="'+id+'" aria-pressed="'+(x.ex===id?'true':'false')+'">'+ico('workout')+' '+MOVES[id][0]+'</button>').join('');
+  const syn=s&&s[4].length?'<p class="xsm mut">Works with: '+s[4].map(id=>MUS[MI(id)][1]).join(', ')+(PAIR[s[0]]?' (lit together with '+MUS[MI(PAIR[s[0]])][1]+')':'')+'</p>':'';
+  const note=s?(NOMASK[s[0]]?'<p class="xsm mut">'+s[1]+' are not drawn on the knight yet, so nothing lights up. The moves below still work.</p>':''):'';
+  const none=s&&!list.length?'<p class="xsm cqnote">No bodyweight move for '+s[1]+' yet. Pick another muscle, or change the goal.</p>':'';
+  return runes('map')+medius(x.ex?SAY.tut[x.say%SAY.tut.length]:SAY.map)+'<div class="pxp pxn pxdk xpan">'+head('workout','PICK A MUSCLE, THEN A MOVE')
+    +'<p class="xsm">Goal: <b>'+P.n+'</b> · '+repsLine(P)+' '+btn('xback','CHANGE','g sm',' data-to="goal"')+'</p>'
+    +'<div class="xmerge"><div class="xmap">'+fig('front',sel)+fig('back',sel)+'</div>'
+    +'<div class="xside"><div class="xsel" aria-live="polite">'+(s?'<b class="xmn">'+s[1]+'</b>'+syn+note+none+'<div class="xexs">'+moves+'</div>':'<p class="mut">No muscle chosen yet. Tap one on the knight, or pick from the list.</p>')+'</div>'
+    +(x.ex?learn(P):'')+'</div></div>'
+    +'<details class="xlist"'+(x.list?' open':'')+'><summary>Muscle list</summary><div class="xchips"><b>FRONT</b>'+chips('front')+'</div><div class="xchips"><b>BACK</b>'+chips('back')+'</div></details>'
+    +btn('xstart',x.ex?'START SESSION ▶':'PICK A MOVE FIRST','xpri',x.ex?'':' disabled')+'</div>'}
 
 function runScreen(){const x=X(),P=plan(),M=MOVES[x.ex],done=x.reps.length,last=done>=P.sets,rest=x.restEnd>Date.now()?Math.ceil((x.restEnd-Date.now())/1000):0;
   const sets='<div class="xsets" aria-label="'+done+' of '+P.sets+' sets done">'+Array.from({length:P.sets},(_,i)=>'<i class="'+(i<done?'dn':i===done?'on':'')+'">'+(i<done?x.reps[i]:'')+'</i>').join('')+'</div>';
@@ -220,7 +247,8 @@ const H2='<h2 class="xh2">'+ico('workout')+' THE WIZARD\'S TRAINING HALL</h2>';
 pages.exercise=()=>{const x=X();
   if(x.stop)return H2+helpScreen();
   if(x.step==='run'&&x.restEnd>Date.now())tick(1);
-  return H2+'<div class="xwrap">'+(x.step==='map'?mapScreen():x.step==='tut'&&x.ex?tutScreen():x.step==='run'&&x.ex?runScreen():x.step==='done'?doneScreen():goalScreen())+'</div>'};
+  const run=x.step==='run'&&x.ex,done=x.step==='done';
+  return H2+'<div class="xwrap">'+(x.step==='map'?mapScreen():run?runScreen():done?doneScreen():goalScreen())+'</div>'+(run||done?'':running())};
 function tick(start){if(start){clearInterval(S.tm);S.tm=setInterval(()=>tick(),1000);return}
   const x=X(),left=Math.ceil((x.restEnd-Date.now())/1000),el=document.getElementById('xrest'),t=document.getElementById('xel');
   if(S.v!=='exercise'||x.step!=='run'){clearInterval(S.tm);return}
@@ -235,13 +263,12 @@ function readOwn(){const p=prefs(),v=id=>{const el=document.getElementById(id);r
   if(p.g==='cal')p.k={reps:clampI(v('xk-reps'),1,50,p.k.reps),sets:clampI(v('xk-sets'),1,10,p.k.sets)};
   keep(p)}
 acts.xnext=()=>{if(!prefs().g)return;readOwn();to('map')};
-acts.xback=d=>to(d.to||'goal');
-function pick(id,at){const x=X();if(MI(id)<0)return;x.mus=id;x.ex=MUS[MI(id)][3][0];render();
+acts.xback=d=>to(d.to==='map'?'map':'goal');
+function pick(id,at){const x=X();if(MI(id)<0)return;x.mus=id;x.ex=movesOf(MI(id),plan().k)[0]||null;x.say++;render();{const e=document.querySelector('.xsel');if(e&&e.getBoundingClientRect().bottom>innerHeight)e.scrollIntoView({block:'nearest',behavior:HWUI.reduced()?'auto':'smooth'})}
   if(typeof HWFX!=='undefined'&&at)HWFX.burst(at[0],at[1],{n:16,colors:['#3ee6d0','#aafff0','#1aa596','#fff8c0'],speed:2,gravity:.02,life:700,up:1})}
 acts.xmus=(d,el)=>{const r=el.getBoundingClientRect();pick(d.m,[r.left+r.width/2,r.top+r.height/2])};
-acts.xex=d=>{X().ex=d.e;render()};
-acts.xtut=()=>{const x=X();if(!x.ex)return;x.say++;to('tut')};
-acts.xstart=()=>{const x=X();x.reps=[];x.restEnd=0;x.t0=Date.now();x.stop=null;x.saved=null;to('run')};
+acts.xex=d=>{const x=X();if(!bodyweight(d.e)&&plan().k==='cal')return;x.ex=d.e;x.say++;render()};
+acts.xstart=()=>{const x=X();if(!x.ex)return;x.reps=[];x.restEnd=0;x.t0=Date.now();x.stop=null;x.saved=null;to('run')};
 acts.xset=()=>{const x=X(),P=plan(),el=document.getElementById('xrep'),n=clampI(el?el.value:P.lo,0,100,P.lo);x.reps.push(n);
   if(x.reps.length<P.sets){x.restEnd=Date.now()+P.rest*1000;tick(1)}render()};
 acts.xskip=()=>{X().restEnd=0;clearInterval(S.tm);render()};
@@ -263,9 +290,13 @@ document.addEventListener('click',e=>{const f=e.target.closest&&e.target.closest
   if(i>=0)pick(MUS[i][0],[e.clientX,e.clientY])});
 
 /* ---------- wire-up ---------- */
-BN.exercise=['workout','Training Hall','Medius trains knights here. Pick a goal, a muscle and a move.','rgba(62,230,208,.25)'];
-DIS.exercise='A general exercise aid, not medical advice. Calories, VO₂ and kJ are estimates from MET values (2024 Compendium of Physical Activities) and your body weight. Stop and get help for chest pain, dizziness or faintness. XP and glows are game rewards, not health measurements.';
+BN.exercise=['workout','Training Hall','Medius trains knights here. Pick a goal, then a muscle and a move.','rgba(62,230,208,.25)'];
+DIS.exercise='A general exercise aid, not medical advice. Calories, VO₂ and kJ are estimates from MET values (2024 Compendium of Physical Activities) and your body weight. Stop and get help for chest pain, dizziness or faintness. XP and glows are game rewards, not health measurements.'+(typeof DIS.run==='string'?' Running: '+DIS.run:'');
 {const h=HUB.find(x=>x[0]==='exercise');if(h)h[1]=ico('workout',2)}
+// the old Running route opens the Running Road on this page (an unfinished session is not abandoned)
+{const g0=go;go=function(v){if(v!=='run')return g0.apply(this,arguments);if(typeof HWRun!=='undefined')HWRun.wantMap();
+  const x=X();if(x.step==='run'&&!x.stop)toast('Finish or stop your training session to see the Running Road.');else{x.stop=null;if(x.step!=='map')x.step='goal'}
+  const r=g0.call(this,'exercise'),el=document.getElementById('xrun-h');if(el)el.scrollIntoView({block:'start'});return r}}
 
 HWUI.css('exercise',`
 .tr-exercise{--xm:#0f7f73;--xm2:#3ee6d0}
@@ -305,6 +336,7 @@ HWUI.css('exercise',`
 .xspr{--s:2;flex:0 0 auto;width:calc(96px*var(--s));height:calc(96px*var(--s));background:rgba(0,0,0,.2) url(assets/img/exercise/moves.webp) no-repeat;image-rendering:pixelated;
   background-size:calc(384px*var(--s)) calc(2112px*var(--s));background-position:0 calc(var(--r)*-96px*var(--s));border:2px solid var(--px-hud-ln,var(--ln));animation:xspr 1.6s steps(4) infinite}
 .xspr.big{--s:3}
+.xspr.xnone{background:rgba(0,0,0,.2);animation:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:8px;text-align:center}.xspr.xnone small{font-size:12px;line-height:1.4;color:var(--mut)}
 @keyframes xspr{to{background-position:calc(-384px*var(--s)) calc(var(--r)*-96px*var(--s))}}
 .xspr.still,html.hw-rm .xspr{animation:none}
 .xcue{margin:0 0 8px;padding-left:20px;font-size:14px;line-height:1.5}.xcue li{margin:2px 0}
@@ -325,5 +357,11 @@ HWUI.css('exercise',`
 html.hw-rm .xdone,html.hw-rm .xmm.lit{animation:none}
 @media(prefers-reduced-motion:reduce){.xspr,.xdone,.xmm.lit{animation:none}}
 @media(max-width:520px){.xmfig{--s:2}.xspr.big{--s:2}.xmap{gap:8px}}
+.xmerge{display:flex;flex-direction:column;gap:12px}.xside{min-width:0;display:flex;flex-direction:column;gap:12px}
+@media(min-width:760px){.xmerge{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start}.xmerge .xmap{margin:0}}
+.xlearn{padding:10px;border:2px dashed var(--xm2);background:rgba(62,230,208,.06)}.xlh{display:flex;align-items:center;gap:6px;margin:0 0 8px;font:9px/1.6 var(--fh);color:var(--xm)}
+.xchips .chip.xdim{opacity:.55}
+.xrunsec{margin-top:18px}.xrh{display:flex;align-items:center;gap:8px;margin:0 0 6px}
+@media(max-width:420px){.xmfig{--s:1.7}}
 `);
 return{GOALS,MUS,MOVES,plan,estimate,day,hit,grid,prefs,SHEET}})();
