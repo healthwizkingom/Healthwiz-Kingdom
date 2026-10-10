@@ -328,26 +328,43 @@ DOWN, BACK = -Z, Y
 for az in range(0, 360, 40):     # crown: layered, close to the head
     p, o = on_skull(az, 64)
     ribbon(p, o * .3 + DOWN * .6 + BACK * .2, DOWN + o * .05, .1, .08, .3)
-for az in range(62, 299, 22):    # the mane: sides hug the head, the back flares a little at the tips
+for az in range(62, 299, 22):    # the mane: hugs the head and ends just below the ears
     back = abs(math.cos(math.radians(az))) < .5 and math.cos(math.radians(az)) < 0
     p, o = on_skull(az, 34, .02)
     ribbon(p, DOWN + o * (.14 if back else .08) + BACK * .15, o * (.45 if back else .25) + DOWN * .5,
-           .155, .07 if back else .062, .3)
-for az in range(120, 241, 24):   # the back mass to the nape
+           .085, .07 if back else .062, .3)  # just below the ears
+for az in range(120, 241, 24):   # the back mass: full at the nape, just below the ears where it shows beside the face
     p, o = on_skull(az, 8, .03)
-    ribbon(p, DOWN + BACK * .25, o * .2 + DOWN, .14, .07, .3)
-# bangs: a long curtain from high on the crown, lying on the forehead and swept toward the knight's right (-x),
-# pointed tips falling past the eyes; one longer lock between the eyes to the nose
-for az, ln, w in ((-52, .17, .05), (-30, .165, .052), (-19, .17, .055), (-8, .175, .05), (4, .168, .055), (16, .16, .05),
-                  (38, .155, .048), (58, .165, .045)):
-    p, o = on_skull(az, 70, .04)
-    ribbon(p, DOWN * .8 - Y * .75 - X * .2, DOWN * 1.2 + Y * .25 - X * .1, ln, w, .25, name='bang')  # over the brow
-p, o = on_skull(-6, 68, .05)
-ribbon(p, DOWN * .8 - Y * .75 - X * .1, DOWN * 1.3 + Y * .3, .21, .04, .25, name='bang_centre')
-# side locks in front of the ears, curving in toward the jaw with pointed tips
+    ribbon(p, DOWN + BACK * .25, o * .2 + DOWN, .12 if 150 <= az <= 210 else .06, .07, .3)
+# bangs: like the reference, one continuous curtain over the whole forehead from the crown to the brows, its lower
+# edge cut into pointed, side-swept tips that fall to the eyes; the middle tip is the longest (to the nose bridge)
+TIPS = [(-66, -8), (-44, -22), (-22, -18), (-4, -36), (16, -20), (38, -24), (60, -10)]  # (azimuth, elevation of the point)
+
+
+def bang_end(az):
+    """Elevation where the curtain ends at this azimuth: points at the tips, notches between them."""
+    near = sorted(TIPS, key=lambda t: abs(t[0] - az))[:2]
+    (a0, e0), (a1, e1) = sorted(near)
+    f = 0 if a1 == a0 else min(max((az - a0) / (a1 - a0), 0), 1)
+    tip = e0 if f < .5 else e1
+    return tip + (4 - tip) * (1 - abs(f - .5) * 2) ** 1.4  # notch halfway between two tips, at the brows
+
+
+def curtain(u, v):
+    az = -78 + 156 * u
+    el = 78 + (bang_end(az) - 78) * v
+    a, e = math.radians(az - 14 * v), math.radians(el)          # swept toward the knight's right as it falls
+    rs = 1.07 + .03 * v
+    o = Vector((math.sin(a) * math.cos(e), -math.cos(a) * math.cos(e), math.sin(e)))
+    return skull + Vector((o.x * .1, o.y * .104, o.z * .1)) * m * rs
+
+
+bangs = part(sheet('bangs', 60, 16, curtain), 'hair', Matrix.Identity(4), 'head', 'bangs')
+bangs.modifiers.new('thickness', 'SOLIDIFY').thickness = .007 * m
+# short side locks in front of the ears, curving in toward the cheeks with pointed tips
 for s in (1, -1):
     p, o = on_skull(s * 80, 34, .04)
-    ribbon(p, DOWN * 1.5 - Y * .12, -X * s * .5 + DOWN, .17, .04, .28, name='side_lock')
+    ribbon(p, DOWN * 1.5 - Y * .12, -X * s * .5 + DOWN, .065, .04, .28, name='side_lock')
 # two strands springing up from the crown
 for dx, lean in ((-.01, -.6), (.012, .5)):
     p, o = on_skull(15, 86, .06)
