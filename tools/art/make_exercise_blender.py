@@ -43,7 +43,7 @@ RAMPS = {
     'coat': ['ink', 'st0', 'ir1', 'st1', 'st2'],
     'trim': ['gd0', 'gd1', 'gd2', 'gd3', 'wht'],
     'steel': ['st1', 'st2', 'st3', 'st4', 'wht'],
-    'hair': ['cp0', 'cp1', 'cp2', 'cp3', 'gd2'],
+    'hair': ['cp0', 'cp1', 'cp1', 'cp2', 'cp3'],       # deep crimson, orange-red only where the light is strongest
     'eye': ['ink', 'cp1', 'cp2', 'cp3', 'wht'],
     'brow': ['ink', 'hr0', 'cp0', 'cp1', 'cp1'],
     'boots': ['ink', 'hr0', 'lt1', 'hr1', 'hr2'],
@@ -192,21 +192,68 @@ def ground_shadow(cam, fg_a, W, H):
     return (np.asarray(m) > 0) & ~fg_a
 
 
+def components(mask):
+    """4-connected pixel groups of a small mask, as lists of (y, x)."""
+    seen, out = np.zeros_like(mask), []
+    for y, x in zip(*np.where(mask)):
+        if seen[y, x]:
+            continue
+        stack, comp = [(y, x)], []
+        seen[y, x] = True
+        while stack:
+            cy, cx = stack.pop()
+            comp.append((cy, cx))
+            for ny, nx in ((cy - 1, cx), (cy + 1, cx), (cy, cx - 1), (cy, cx + 1)):
+                if 0 <= ny < mask.shape[0] and 0 <= nx < mask.shape[1] and mask[ny, nx] and not seen[ny, nx]:
+                    seen[ny, nx] = True
+                    stack.append((ny, nx))
+        out.append(comp)
+    return out
+
+
 def draw_eyes(rgb, ids):
-    """At 96 px an eye renders as about one pixel, so draw it like a pixel artist: a dark lash line on top and a
-    red iris under it (two pixels tall), where the eye mesh shows."""
+    """Anime eyes, drawn as a pixel artist would at this size (the eye meshes only say where): a thick dark upper lash
+    that flicks up at the outer corner, a red iris dark above and bright below with a white catch-light, and a white
+    corner. Bangs drawn over the eye stay on top."""
     E = ids == KEYS.index('eye') + 1
-    if not E.any():
+    eyes = [c for c in components(E) if len(c) >= 1]
+    if not eyes:
         return
-    above = np.zeros_like(E)
-    above[1:] = E[:-1]
-    top = E & ~above                                        # the eye's top row: the lash line
-    rgb[E] = ME.PAL['cp2']
-    below = np.zeros_like(E)
-    below[1:] = top[:-1]
-    skin = ids == KEYS.index('skin') + 1
-    rgb[below & skin] = ME.PAL['cp2']                       # a one-pixel eye gets its iris under the lash
-    rgb[top] = ME.PAL['ink']
+    face = (ids == KEYS.index('skin') + 1) | E
+    hair = ids == KEYS.index('hair') + 1
+    centres = [(np.mean([p[0] for p in c]), np.mean([p[1] for p in c]), c) for c in eyes]
+    mid_x = np.mean([c[1] for c in centres]) if len(centres) > 1 else None
+    ink, dark, bright, white = ME.PAL['ink'], ME.PAL['cp1'], ME.PAL['cp3'], ME.PAL['wht']
+    H, W = ids.shape
+
+    def put(y, x, col):
+        if 0 <= y < H and 0 <= x < W and face[y, x]:
+            rgb[y, x] = col
+
+    for cy, cx, comp in centres:
+        if mid_x is not None:
+            out_dir = 1 if cx > mid_x else -1
+        else:                                   # one eye in view: the outer corner is toward the hair mass
+            hy, hx = np.where(hair[max(0, int(cy) - 12):int(cy) + 12])
+            out_dir = 1 if len(hx) and hx.mean() > cx else -1
+        xs = [p[1] for p in comp]
+        w = int(np.clip(max(xs) - min(xs) + 1, 3, 5))
+        y0 = min(p[0] for p in comp)
+        x_in = int(round(cx)) - out_dir * (w // 2)
+        cols = [x_in + out_dir * i for i in range(w)]
+        for x in cols:                          # upper lash, and its flick past the outer corner
+            put(y0, x, ink)
+        put(y0, cols[-1] + out_dir, ink)
+        put(y0 - 1, cols[-1] + out_dir, ink)
+        iris = cols[1:-1] if w >= 4 else cols[:-1]
+        for x in iris:
+            put(y0 + 1, x, dark)
+            put(y0 + 2, x, bright)
+        put(y0 + 1, iris[0], white)             # catch-light
+        put(y0 + 1, cols[-1], ink)              # the lash wraps the outer corner
+        if w >= 4:
+            put(y0 + 1, cols[0], white)         # white of the eye at the inner corner
+            put(y0 + 2, cols[-1], white)        # and under the outer corner
 
 
 def shade(out_dir, stem, cam, shadow=True):

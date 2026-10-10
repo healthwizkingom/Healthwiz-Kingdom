@@ -286,7 +286,7 @@ X, Y, Z = Vector((1, 0, 0)), Vector((0, 1, 0)), Vector((0, 0, 1))  # the rest po
 eyes = ASSET['eye']
 eye_c = sum((eyes.matrix_world @ Vector(c) for c in eyes.bound_box), Vector()) / 8
 skull = Vector((0, eye_c.y + .085 * m, eye_c.z + .025 * m))
-ell(skull + Vector((0, .02, .022)) * m, (.104 * m, .108 * m, .104 * m), 'hair', 'head', 'hair_cap')
+ell(skull + Vector((0, .022, .03)) * m, (.112 * m, .112 * m, .108 * m), 'hair', 'head', 'hair_cap')
 
 
 def ribbon(base, d, bend, length, width, flat=.35, name='hair_lock'):
@@ -321,31 +321,37 @@ def on_skull(az, el, lift=0.0):
 
 
 DOWN, BACK = -Z, Y
-# the mane: wide, flat locks from the crown that hug the head and fall down and back, in overlapping layers
-for az in range(36, 325, 24):
-    p, o = on_skull(az, 46)
-    ribbon(p, DOWN + BACK * .45 + o * .12, DOWN - o * .45, .145 + .015 * math.cos(math.radians(az * 3)), .075, .3)
-for az in range(66, 295, 28):    # a lower layer to the nape
-    p, o = on_skull(az, 12, .02)
-    ribbon(p, DOWN + BACK * .2 + o * .08, DOWN - o * .3, .11, .062, .3)
-for az in range(0, 360, 45):     # crown: swept back over the top
-    p, o = on_skull(az, 74)
-    ribbon(p, BACK + DOWN * .55 + o * .1, DOWN - o * .25, .11, .07, .3)
-# fringe: pointed locks falling over the forehead to the brows, a little uneven
-for az, ln, tilt in ((-40, .085, -.35), (-15, .1, -.12), (12, .095, .15), (38, .08, .4)):
-    p, o = on_skull(az, 50, .03)
-    ribbon(p, DOWN + o * .22 + X * tilt, -o * .3 + X * tilt * .5, ln, .046, .3, name='fringe')
-# side locks framing the face down to the jaw
+# The hair follows the silhouette of the reference sheets (shape only; the geometry is this file's own): wide and
+# voluminous, layered locks flicking outward at cheek and jaw height, heavy pointed bangs past the eyes with one lock
+# between them, long side locks framing the face, two strands springing up on the crown, and a broad low tail.
+for az in range(0, 360, 40):     # crown: puffed layers, rounded on top
+    p, o = on_skull(az, 64)
+    ribbon(p, o * .6 + DOWN * .55 + BACK * .15, DOWN + o * .2, .1, .085, .3)
+for az in range(62, 299, 22):    # the mane: wide locks falling past the ears, tips flicking out
+    p, o = on_skull(az, 34, .03)
+    ribbon(p, DOWN + o * .32 + BACK * .12, o * 1.1 + DOWN * .2, .155, .078, .3)
+for az in range(120, 241, 24):   # the back mass to the nape
+    p, o = on_skull(az, 8, .03)
+    ribbon(p, DOWN + BACK * .25, o * .5 + DOWN, .14, .075, .3)
+# bangs: thick pointed locks from the hairline falling past the eyes; the middle one between the eyes
+for az, ln, tilt in ((-46, .14, -.3), (-24, .13, -.15), (0, .15, .0), (22, .125, .12), (44, .14, .3)):
+    p, o = on_skull(az, 56, .05)
+    ribbon(p, DOWN - Y * .03 + X * tilt, -Y * .08 + X * tilt * .6, ln, .05 if az else .034, .28, name='bang')
+# side locks framing the face to below the jaw, flicking out at the tips
 for s in (1, -1):
-    p, o = on_skull(s * 76, 32, .03)
-    ribbon(p, DOWN * 1.4 - Y * .2 + X * s * .08, -o * .3, .15, .042, .3, name='side_lock')
-# one lifted lock on top, and a short low tail tied at the nape
-p, o = on_skull(10, 85, .04)
-ribbon(p, Z + BACK * .4, BACK + DOWN * .7, .075, .028, .3, name='lifted_lock')
-nape, _ = on_skull(180, -30)
-ring(nape + BACK * .005 * m, BACK + DOWN, .024 * m, .009 * m, 'boots', 'head', 'hair_tie')
-for dx in (-.012, 0, .012):
-    ribbon(nape + X * dx * m, DOWN * 1.5 + BACK * .3, DOWN + X * dx * 15, .2, .038, .3, name='tail')
+    p, o = on_skull(s * 88, 26, .05)
+    ribbon(p, DOWN * 1.5 - Y * .05 + X * s * .08, X * s * 1.2, .19, .045, .28, name='side_lock')
+# two strands springing up from the crown
+for dx, lean in ((-.01, -.6), (.012, .5)):
+    p, o = on_skull(15, 86, .06)
+    ribbon(p + X * dx * m, Z * 1.2 + X * lean * .3 + BACK * .2, X * lean + BACK * .5 - Z * .4, .06, .016, .3,
+           name='crown_strand')
+# a broad low tail, tied at the nape, falling to the upper back with flicks at the end
+nape, _ = on_skull(180, -26)
+ring(nape + BACK * .01 * m, BACK + DOWN * .6, .03 * m, .011 * m, 'boots', 'head', 'hair_tie')
+for dx in (-.02, -.007, .007, .02):
+    ribbon(nape + X * dx * m + BACK * .01 * m, DOWN * 1.6 + BACK * .35, DOWN + X * dx * 30 + BACK * .3, .3, .05, .3,
+           name='tail')
 
 
 # anime eyes: MakeHuman's eyeballs sit behind its eyelids, so each eye gets a flat almond on the face surface
