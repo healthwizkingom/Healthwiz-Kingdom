@@ -36,7 +36,7 @@ for (const [name, w, h] of SIZES) {
       // the end of every page clears the bottom bar (§94 bottom navigation)
       for (const v of ['home', 'set', 'stats']) {
         await go(page, v);
-        const gap = await page.evaluate(() => { scrollTo(0, document.documentElement.scrollHeight); const els = [...document.querySelectorAll('#main button, #main input, #main select')].filter(e => e.offsetParent); const last = els[els.length - 1].getBoundingClientRect(); return document.querySelector('#nav').getBoundingClientRect().top - last.bottom; });
+        const gap = await page.evaluate(() => { scrollTo(0, document.documentElement.scrollHeight); const els = [...document.querySelectorAll('#main button, #main input, #main select')].filter(e => e.offsetParent && (!e.checkVisibility || e.checkVisibility())); const last = els[els.length - 1].getBoundingClientRect(); return document.querySelector('#nav').getBoundingClientRect().top - last.bottom; });
         assert.ok(gap >= 0, `${v}: the last control is ${-gap}px under the navigation bar`);
       }
     } else {

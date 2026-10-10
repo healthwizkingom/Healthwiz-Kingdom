@@ -90,7 +90,7 @@ test('Stairs page → Running section: explain, start, live metrics, noise filte
   assert.equal(await page.locator('#map [data-a="runmap"]').count(), 1, 'no map download until Running is wanted');
   await page.click('[data-a="stjump"][data-t="st-run"]');
   assert.equal(await page.evaluate(() => S.v), 'stair');
-  assert.match(await txt(page, '#main'), /BACK TO HEALTH[\s\S]*RUNNING ROAD[\s\S]*DISTANCE[\s\S]*TIME[\s\S]*AVG PACE/);
+  assert.match(await txt(page, '#main'), /HEALTH[\s\S]*RUNNING ROAD[\s\S]*DISTANCE[\s\S]*TIME[\s\S]*AVG PACE/);
   assert.match(await txt(page, '#nav .on'), /Health/);
   assert.deepEqual(await metrics(page), ['0.00', '0:00', '--:--']);
   assert.deepEqual([await page.isEnabled('[data-a="runstart"]'), await page.isDisabled('[data-a="runpause"]'), await page.isDisabled('[data-a="runfinish"]')], [true, true, true]);
@@ -162,6 +162,7 @@ test('Stairs page → Running section: explain, start, live metrics, noise filte
   await page.click('[data-a="runfinish"]');
   assert.deepEqual(await page.evaluate(() => [window.__gps.watching(), HWRun.state, localStorage.getItem('healthwiz_run_live')]), [0, 'done', null]);
   assert.match(await txt(page, '#v6run'), /RUN SAVED/);
+  await ff(page, 3300); await ff(page, 300);   // toasts come one at a time: let the one before it finish (the clock is paused)
   assert.match(await txt(page, '#toasts'), /Run saved: 0\.13 km in 0:48/);
   const runs = await page.evaluate(() => HWRun.runs());
   assert.equal(runs.length, 1);

@@ -129,8 +129,9 @@ test('battery: looping scenery pauses while scrolled out of view; idle pages run
   await page.waitForSelector('.wl');
   await go(page, 'home');
   await settle(page, 400);
-  const loops = () => page.evaluate(() => { const el = document.querySelector('#kmini'), a = el.getAnimations({ subtree: true }).filter(x => x.effect.getTiming().iterations === Infinity);
-    return { off: el.classList.contains('hw-off'), n: a.length, running: a.filter(x => x.playState === 'running').length }; });
+  await page.evaluate(() => { document.querySelector('#hmd-kmini').open = true; });   // Home folds the map into a row
+  const loops = () => page.evaluate(() => { const el = document.querySelector('#kmini'), top = el.closest('#main .pg > *'), a = el.getAnimations({ subtree: true }).filter(x => x.effect.getTiming().iterations === Infinity);
+    return { off: top.classList.contains('hw-off'), n: a.length, running: a.filter(x => x.playState === 'running').length }; });
   let r = await loops();
   assert.ok(r.n > 10, 'the kingdom map has looping scenery: ' + r.n);
   assert.deepEqual([r.off, r.running], [true, 0], 'below the fold: paused');
@@ -139,7 +140,9 @@ test('battery: looping scenery pauses while scrolled out of view; idle pages run
   r = await loops();
   assert.deepEqual([r.off, r.running], [false, r.n], 'scrolled into view: running again');
   await go(page, 'water');
+  await page.evaluate(() => document.querySelector('#wq').scrollIntoView());   // the add-water form is now first, so the well scene is below the fold until scrolled to
   await settle(page, 400);
+  await page.waitForFunction(() => !document.querySelector('#wq').classList.contains('hw-off'), null, { timeout: 4000 }).catch(() => {});   // the observer reports a moment after the scroll
   assert.equal(await page.evaluate(() => document.querySelector('#wq').classList.contains('hw-off')), false, 'a scene in view keeps moving');
   for (const v of ['home', 'welcome']) {
     await go(page, v);

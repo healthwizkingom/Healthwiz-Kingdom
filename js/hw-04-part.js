@@ -57,7 +57,7 @@ const tech=t=>st.e.filter(e=>e.c==='stress'&&e.m.tech).reduce((a,e)=>a+e.m.tech.
 const camp=()=>{const L7=LC('sleep').filter(e=>rng(7).indexOf(e.d)>=0),bm=L7.map(e=>tmin(e.m.bed)).filter(x=>x!=null).map(nrm);return L7.length>=5&&bstd(bm)<=30?5:Math.min(4,L7.length)};
 BG.push(['🌬️','Breath Weaver','Finish a breathing practice in the Stress Quest',()=>[tech('breathe'),1]],['🖐️','Grounded Wanderer','Finish a 5-4-3-2-1 grounding practice',()=>[tech('ground'),1]],['📝','Scroll Keeper','Write it down during a Stress Quest',()=>[tech('write'),1]],['🌫️','Mist Walker','Visit the Wizard\'s Counsel 3 times',()=>[st.qc||0,3]],['⛺','Night Camp','Keep a steady bedtime for a week (5+ nights)',()=>[camp(),5]],['🕯️','Bedtime Ritual','Tick all 5 before-bed habits in one day',()=>[Math.max(0,...Object.values(st.ck||{}).map(a=>a.reduce((s,x)=>s+x,0))),5]],['⭐','Stargazer','Count sheep in the Dream Quest',()=>[st.dqn||0,1]],['😴','Restful Mornings','Wake up feeling rested on 3 mornings',()=>[LC('sleep').filter(e=>(e.m.rest||0)>=4).length,3]],['🔔','Well Watcher','Set a water reminder',()=>[st.s.wrem?1:0,1]],['⚒️','Forge Apprentice','Forge your goals in the Registry or Energy Forge',()=>[st.s.set?1:0,1]],['🏰','Kingdom Restored','Restore all 8 regions in one week',()=>[KR.filter(r=>klv(r[3])>0).length,8]],['🧙','Apprentice of Medius','Finish the wizard\'s tutorial',()=>[st.tutd?1:0,1]]);
 const BQ=[];let BQo=0;
-function bpop(b){BQ.push(b);if(!BQo)bnx()}
+function bpop(b){const go=()=>{BQ.push(b);if(!BQo)bnx()};if(typeof HWPop!=='undefined')return HWPop.badge(go);go()} // v6: one popup at a time (js/v6-ui.js)
 function bnx(){const b=BQ.shift();if(!b){BQo=0;return}BQo=1;const o=document.createElement('div');o.className='bpop';o.setAttribute('role','alert');let sp='';for(let i=0;i<14;i++){const a=i/14*6.283;sp+='<u style="--x:'+Math.round(Math.cos(a)*130)+'px;--y:'+Math.round(Math.sin(a)*130)+'px;background:'+['#f2c14e','#fff','#5cc05a','#2f8fd0'][i%4]+';animation-delay:'+(.15+i%3*.08)+'s"></u>'}o.innerHTML='<div class="bpr"></div><div class="bpc">'+sp+'<span class="bph">BADGE UNLOCKED!</span><span class="bpi">'+b[0]+'</span><b>'+esc(b[1])+'</b><p>'+esc(b[2])+'</p><em>+30 XP</em><small class="mut">tap to continue</small></div>';let dn=0;const cl=()=>{if(dn)return;dn=1;o.classList.add('out');setTimeout(()=>{o.remove();bnx()},260)};o.onclick=cl;setTimeout(cl,4200);document.body.appendChild(o);[523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>sfx(f,.12),i*110))}
 function chkB(){const nw=[];BG.forEach(b=>{if(st.b[b[1]])return;const[c,g]=b[3]();if(c>=g){st.b[b[1]]=today();nw.push(b)}});if(!nw.length)return;save();nw.slice(0,3).forEach(bpop);if(nw.length>3)toast('🏅 +'+(nw.length-3)+' more badges unlocked! Visit the Badge Hall.');gain(30*nw.length,nw.length>1?nw.length+' badges':'Badge')}
 pages.badges=()=>{const S3=BG.map(b=>{const[c,g]=b[3]();return{b,c,g,ok:c>=g||!!st.b[b[1]]}}),u=S3.filter(x=>x.ok).length,nx=S3.filter(x=>!x.ok).sort((a,b)=>b.c/b.g-a.c/a.g).slice(0,3);return '<h2>🏅 BADGES ('+u+'/'+BG.length+')</h2>'+bar(u/BG.length*100,'var(--gold)')+(nx.length?'<div class="card" id="bdnext" style="margin-top:12px"><h3>⏳ ALMOST THERE</h3>'+nx.map(x=>'<div class="aq"><span class="ae">'+x.b[0]+'</span><div class="an"><b>'+x.b[1]+'</b><small>'+x.b[2]+'</small>'+bar(x.c/x.g*100,'var(--grn)')+'</div><span class="ax">'+Math.min(Math.round(x.c),x.g)+'/'+x.g+'</span></div>').join('')+'</div>':'')+'<div class="grid" style="margin-top:12px">'+S3.map(x=>{const b=x.b,nw=x.ok&&st.b[b[1]]===today();return '<div class="t bd '+(x.ok?'ok':'lock')+(nw?' nw':'')+'"><span class="bi">'+(x.ok?b[0]:'🔒')+'</span><b>'+b[1]+'</b><small>'+b[2]+'</small>'+(x.ok?'<small>'+(nw?'✨ NEW · ':'')+'Unlocked '+(st.b[b[1]]||'')+'</small>':bar(x.c/x.g*100,'var(--grn)')+'<small>'+Math.min(Math.round(x.c),x.g)+' / '+x.g+'</small>')+'</div>'}).join('')+'</div>'};
@@ -65,8 +65,9 @@ function fitCover(){const s=document.querySelector('.zsv');if(s)s.setAttribute('
 addEventListener('resize',()=>{if(S.v==='welcome')fitCover()});
 function render(){if(S.v==='welcome'){document.body.classList.add('wel');$('#main').innerHTML=pages.welcome();fitCover();return}document.body.classList.remove('wel');if(S.v==='onb'){document.body.classList.add('onbm');$('#nav').innerHTML='';$('#main').innerHTML='<div class="pg">'+pages.onb()+'</div>';obType();musSync();return}document.body.classList.remove('onbm');const d=today();st.qx=st.qx||{};QD(d).forEach((q,i)=>{const k=d+':'+i;if(q.p>=1&&!st.qx[k]){st.qx[k]=1;gain(q.x,q.n+' complete!')}});if(quests(d).every(q=>q[1])&&!st.claimed[d]){st.claimed[d]=1;gain(100,'All daily quests complete!')}
 const par=PAR[S.v]||S.v;$('#nav').innerHTML=NAV.map(n=>'<button class="'+(par===n[0]?'on':'')+'" data-a="go" data-v="'+n[0]+'"><span class="ni">'+n[1]+'</span>'+n[2]+'</button>').join('');
-let top;if(S.v==='home'){document.body.style.setProperty('--tint',BN.home[3]);top=''}else top=hdr()+ban();
-const bk=PAR[S.v]?'<button class="g sm back" data-a="go" data-v="'+PAR[S.v]+'">◀ BACK TO '+NAV.find(n=>n[0]===PAR[S.v])[2].toUpperCase()+'</button>':'';
+const cp=typeof HWHall!=='undefined'&&HWHall.compact(S.v); // v6: trackers carry their own one-line row (banner + BACK + help) in js/v6-hall.js
+let top;if(S.v==='home'){document.body.style.setProperty('--tint',BN.home[3]);top=''}else top=hdr()+(cp?(ban(),''):ban());
+const bk=PAR[S.v]&&!cp?'<button class="g sm back" data-a="go" data-v="'+PAR[S.v]+'">◀ BACK TO '+NAV.find(n=>n[0]===PAR[S.v])[2].toUpperCase()+'</button>':'';
 $('#main').innerHTML='<div class="pg tr-'+S.v+'">'+top+bk+pages[S.v]()+'<p class="dis">'+(DIS[S.v]||DIS.home)+'<br>Turn Your Health Into an Adventure.</p></div>';if(S.v==='pulse')ecg();if(S.v==='sleep')slInit();if(S.v==='bmi')INP.bmi();if(S.v==='calc')calcOut();if(S.v==='body')INP.be();chkB();musSync()}
 
 function go(v){if(v==='tut'){TUT.start();return}if(v==='home'&&S.v==='welcome'&&needOnb())v='onb';if(v==='onb'&&S.v!=='onb')S.ob=null;if(S.shp&&!S.shp.done){shStop();S.shp=null}const f=S.v==='welcome'&&v==='home'&&!TUT.seen();clearInterval(S.tm);S.pb.on=0;S.v=v;render();window.scrollTo(0,0);if(f)setTimeout(TUT.start,400)}
@@ -76,14 +77,14 @@ const WIZ='assets/img/wiz.webp';
 const TS=[
 ['home',0,"Hail, {name}! I am Medius, Wizard King. A quick tour: tap to go on, or SKIP whenever thou wilt."],
 ['home','#tstat',"Today's numbers at a glance. Tap a tile to open its tracker."],
-['home','#advq',"Five daily quests: Water, Nutrition, Activity, Mind and Recovery. Each one earneth XP."],
-['home','#pcard',"Thy Hero Card: level and XP. A game costume and game stats, never a judgement."],
-['health','#hub',"The Health Hall holdeth every tracker: Food & Water, Sleep, Stairs & Running, Stress, BMI and more."],
+['home','#hmq',"Five daily quests: Water, Nutrition, Activity, Mind and Recovery. Each one earneth XP."],
+['home','#hmd-pcard',"Thy Hero Card (tap to open): level and XP. A game costume and game stats, never a judgement."],
+['health','#hub',"Every tracker lives here: Food & Water, Sleep, Stairs, Stress, and Body & Energy (BMI and calorie goals)."],
 ['food','~PICK A FOOD',"Tap several foods, then LOG SELECTED once. Not on the list? ADD MORE FOOD."],
 ['water','#wq',"The Water Quest: each sip thou loggest filleth the Well of Life."],
 ['sleep','#dbatc',"Log thy sleep and the Dream Battle beginneth: the better thy rest, the stronger thy knight."],
 ['stair','#st-casual',"Stair Mountain: climbs, workouts, and the Running Road below."],
-['stress','main .card',"The Mind Forest: rate thy stress and calm the Storm Within."],
+['stress','main .card:not([hidden])',"The Mind Forest: pick the face that fits thy mood and calm the Storm Within."],
 ['set','#tutbtn',"Forget my words? Press TUTORIAL here and I return. Go forth, {name}!"]];
 const TUT=(()=>{let i=0,ty=0,full='',root,sp,tx,pg,cn;
 const seen=()=>{try{return localStorage.getItem('hwtut')}catch(e){return 1}},mark=()=>{try{localStorage.setItem('hwtut','1')}catch(e){}};

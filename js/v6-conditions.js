@@ -106,7 +106,7 @@ function screen(){const o=S.ob,c=CC(),nn=(o.d.name||'').trim()||'traveller',say=
 {const p=pages.onb;pages.onb=function(){const o=S.ob;if(o&&o.i===CS)return screen();let h=p.apply(this,arguments);
   if(o&&o.i===6){const c=conds(),txt=Array.isArray(st.p.conds)?(c.length?c.map(x=>RULES[x]?RULES[x].label:esc(x)).join(', '):'None of these'):(o.cc?CCtext():'Not answered');
     const k='<div class="row" style="margin-top:12px"><button class="g" data-a="obb">';const i=h.indexOf(k);
-    if(i>=0)h=h.slice(0,i)+'<div class="er"><span>Activity</span><span><b>'+txt+'</b></span><button class="sm g" data-a="obe" data-i="c" aria-label="Edit conditions">✏️</button></div>'+h.slice(i)}
+    if(i>=0)h=h.slice(0,i)+'<div class="er"><span>Conditions</span><span><b>'+txt+'</b></span><button class="sm g" data-a="obe" data-i="c" aria-label="Edit conditions">✏️</button></div>'+h.slice(i)}
   return h}}
 function CCtext(){const c=CC();return c.ids.length||c.cu.length?c.ids.map(x=>RULES[x].label).concat(c.cu.map(esc)).join(', '):'None of these'}
 function commit(){const c=CC();st.p.conds=c.ids.concat(c.cu);save()}

@@ -33,11 +33,11 @@ test('gain(0) is silent: no toast, no event', async () => {
   await ctx.close();
 });
 
-test('exploring a region gives a one-time +5 XP', async () => {
+test('exploring a region is noted once and pays no XP (no popup for just looking)', async () => {
   const { page, ctx, errors } = await openApp();
   await go(page, 'water'); await go(page, 'home'); await go(page, 'water');
   await page.waitForTimeout(50);
-  assert.equal(await xpFrom(page, '^Explored Water Valley$'), 5);
+  assert.equal(await xpFrom(page, '^Explored Water Valley$'), 0);
   assert.ok((await state(page)).ex.r.water);
   assert.deepEqual(errors, []);
   await ctx.close();

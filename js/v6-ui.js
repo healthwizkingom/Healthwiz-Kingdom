@@ -19,7 +19,7 @@ css('ui',`
 `);
 // Short, tappable completion banner (§33/§85). Queued so several never stack.
 const Q=[];let busy=0;
-function celebrate(o){Q.push(o);if(!busy)next()}
+function celebrate(o){const go=()=>{Q.push(o);if(!busy)next()};if(typeof HWPop!=='undefined')return HWPop.banner(go);go()}
 function next(){const o=Q.shift();if(!o){busy=0;return}busy=1;const el=document.createElement('div');el.className='v6cel';el.setAttribute('role','status');
 el.innerHTML='<div class="ic">'+(o.icon||'⭐')+'</div><div><b>'+esc(o.title||'QUEST COMPLETE!')+'</b><span>'+esc(o.sub||'')+'</span>'+(o.xp?'<em>+'+o.xp+' XP</em>':'')+'</div>'+(reduced()?'':Array.from({length:typeof HWMotion!=='undefined'?HWMotion.count(10):10},(_,i)=>{const a=i/10*6.283;return '<u style="--x:'+Math.round(Math.cos(a)*60)+'px;--y:'+Math.round(Math.sin(a)*40)+'px;animation-delay:'+(i%3*.06)+'s"></u>'}).join(''));
 let gone=0;const close=()=>{if(gone)return;gone=1;el.classList.add('out');setTimeout(()=>{el.remove();next()},300)};el.onclick=close;setTimeout(close,o.ms||2600);document.body.appendChild(el);
@@ -49,3 +49,38 @@ if(mo)document.addEventListener('keydown',e=>{if(mo.hidden)return;
 {const t=st.s&&st.s.theme;if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;
 const o=acts.theme;if(o)acts.theme=function(){const r=o.apply(this,arguments);st.s.theme=document.documentElement.dataset.theme;save();return r}}
 return{css,celebrate,reduced}})();
+
+/* v6 (usability, item 3): one popup at a time. XP toasts, other toasts, completion banners and badge cards used to stack on top
+   of each other (three on a first visit) and could land on a form or the sign-in dialog. Now they share one line:
+   · one popup shows; the rest wait their turn (a short pause between two)
+   · XP toasts, completion banners and badge cards never show while a field has focus, a dialog is open (the shared #mo dialog,
+     the sign-in dialog) or the Registry / title screen is open: they wait until the way is clear. Feedback for what you just did
+     ("Check height and weight", "Saved") is not held back by that, only kept in line.
+   · XP toasts waiting together are merged into one (+10 XP Water, Meal); an XP toast that waited 20 s is dropped as stale.
+   Nothing here is saved. */
+const HWPop=(()=>{
+const Q=[];let cur=null,tm=0;
+const XP=/^\+(\d+) XP\s*(.*)$/;
+function busy(){const a=document.activeElement,mo=document.getElementById('mo'),sv=typeof S!=='undefined'?S.v:'';
+  return !!(a&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName))||!!(mo&&!mo.hidden)||!!document.querySelector('.v6ac,[role="dialog"]:not([hidden])')||sv==='onb'||sv==='welcome'}
+const pri=x=>x.crit?0:x.xp?2:1;   // feedback first, then badge cards and banners, then the XP line
+function pump(){clearTimeout(tm);tm=0;if(cur||!Q.length)return;const now=Date.now();
+  for(let i=Q.length-1;i>=0;i--)if(Q[i].xp&&now-Q[i].at>20000)Q.splice(i,1);
+  // feedback for what you just did goes first; rewards wait until nothing is in the way
+  let i=-1;const b=busy();Q.forEach((x,k)=>{if(b&&!x.crit)return;if(i<0||pri(x)<pri(Q[i]))i=k});
+  if(i<0){if(Q.length)tm=setTimeout(pump,500);return}
+  const it=Q.splice(i,1)[0];let fin=0;const end=()=>{if(fin)return;fin=1;if(cur===it)cur=null;if(it.gap===0)pump();else tm=setTimeout(pump,100)};cur=it;it.end=end;it.show(end)}
+function add(it){it.at=Date.now();Q.push(it);
+  if(cur&&cur.cut&&(it.crit&&cur.xp||it.urgent))cur.cut();   // a reward on screen gives way to feedback for what you just did; a warning gives way to nothing
+  pump()}
+// wait until a popup the old code made is gone (it removes itself), then free the line
+function watch(sel,end,n){n=n||0;if(!document.querySelector(sel)||n>100)return end();setTimeout(()=>watch(sel,end,n+1),50)}
+function toast(m){const x=XP.exec(String(m));
+  if(x){const q=Q.find(y=>y.xp);if(q){q.n+=+x[1];if(x[2])q.why.push(x[2]);return}}
+  const it={xp:!!x,crit:!x,urgent:!x&&/^⚠️/.test(String(m)),n:x?+x[1]:0,why:x&&x[2]?[x[2]]:[],m:m,show(end){const d=document.createElement('div');
+    d.innerHTML=this.xp?'+'+this.n+' XP '+this.why.join(' · '):this.m;const T=document.getElementById('toasts');if(!T){end();return}T.appendChild(d);
+    const t=setTimeout(()=>{d.remove();end()},Q.length?1800:3200);this.cut=()=>{clearTimeout(t);d.remove();this.gap=0;end()}}};
+  add(it)}
+const badge=go=>add({kind:'badge',show(end){go();watch('.bpop',end)}});
+const banner=go=>add({show(end){go();watch('.v6cel',end)}});
+return{toast,badge,banner,get waiting(){return Q.length},idle:()=>!cur&&!Q.length&&!tm,badgePending:()=>Q.some(x=>x.kind==='badge')||!!(cur&&cur.kind==='badge')}})();

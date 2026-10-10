@@ -197,3 +197,98 @@ test('first sign-in KEEP / MERGE dialog: the tutorial waits for it and starts af
   assert.equal(await c.page.locator('#tut').count(), 0); assert.equal(await c.page.evaluate(() => S.v), 'onb');
   await c.ctx.close();
 });
+
+test('trackers: the first input is on screen at 390 × 844, on a first visit and after it', async () => {
+  for (const seen of [false, true]) {
+    const seed = JSON.parse(JSON.stringify(RETURNING)); if (seen) seed.ex.r = { food: '2026-10-01', water: '2026-10-01', sleep: '2026-10-01', stair: '2026-10-01', body: '2026-10-01' };
+    const { page, ctx, errors } = await openApp({ ...M, seed });
+    for (const [v, sel] of [['food', '#fpick .chip'], ['water', '[data-a="wa"]'], ['sleep', '#slb'], ['stair', '#stman .chip'], ['body', '#bh']]) {
+      await go(page, v);
+      const r = await page.evaluate(s => { const e = document.querySelector(s).getBoundingClientRect(); return { bottom: e.bottom, nav: document.querySelector('#nav').getBoundingClientRect().top }; }, sel);
+      assert.ok(r.bottom <= r.nav, `${v} (${seen ? 'later' : 'first'} visit): input bottom ${Math.round(r.bottom)} above the bar at ${Math.round(r.nav)}`);
+      assert.equal(await page.isHidden('#hwh3'), true, v + ': the 3-line header stays behind the ? until tapped');
+      assert.ok(await noScroll(page));
+    }
+    await page.tap('.hwq'); assert.equal(await page.isVisible('#hwh3'), !(await page.isHidden('#hwh3')));
+    assert.deepEqual(errors, []); await ctx.close();
+  }
+});
+
+test('Home for a new user is at most 3 screens; one Today\'s quests card opens the Quest Board', async () => {
+  const { page, ctx, errors } = await openApp(M);
+  await go(page, 'home'); await page.waitForTimeout(500);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollHeight) <= 3 * 844, 'home is at most 3 screens');
+  assert.equal(await page.locator('#advq, #v6q1, #dsum').count(), 0, 'the four quest cards are gone from Home');
+  assert.match(await page.textContent('#hmq'), /TODAY'S QUESTS\s*0\/5/);
+  await page.tap('#hmq [data-a="go"]'); assert.equal(await page.evaluate(() => S.v), 'quests');
+  assert.equal(await page.locator('#advq2').count(), 1);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('one popup at a time: no reward for opening a page; XP toasts merge and wait while a field has focus; badge cards wait for the toast', async () => {
+  const { page, ctx, errors } = await openApp(M);
+  const xp0 = await page.evaluate(() => st.xp);
+  for (const v of ['food', 'water', 'sleep', 'stair', 'stress', 'body']) {
+    await go(page, v);
+    assert.ok(await page.evaluate(() => document.querySelectorAll('#toasts div, .v6cel, .bpop').length) <= 1, v + ': at most one overlay on a first visit');
+  }
+  await page.waitForTimeout(500);
+  assert.equal(await page.evaluate(() => st.xp), xp0, 'opening a page pays nothing');
+  assert.equal(await page.evaluate(() => /Explored/.test(document.getElementById('toasts').textContent)), false);
+  await go(page, 'water');
+  await page.focus('#wc');
+  await page.evaluate(() => { toast('+5 XP Water'); toast('+5 XP Meal'); });
+  await page.waitForTimeout(300);
+  assert.equal(await page.locator('#toasts div').count(), 0, 'XP toasts do not show over a field with focus');
+  await page.evaluate(() => { toast('Check height and weight'); });
+  await page.waitForTimeout(200);
+  assert.equal(await page.locator('#toasts div').count(), 1, 'feedback for what you just did is not held back');
+  await page.evaluate(() => document.activeElement.blur());
+  await page.waitForFunction(() => /\+10 XP/.test(document.getElementById('toasts').textContent), null, { timeout: 8000 });
+  await page.evaluate(() => { bpop(['🥤', 'First Sip', 'Log water once']); toast('Saved'); });
+  await page.waitForTimeout(300);
+  assert.ok(await page.evaluate(() => document.querySelectorAll('#toasts div, .bpop').length) <= 1, 'toast and badge card never show together');
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('Wizard\'s Counsel: signed out, the button says to sign in and that breathing still works, before the breathing step', async () => {
+  const { page, ctx, errors } = await openApp(M);
+  await go(page, 'stress');
+  assert.match(await page.textContent('#counsel [data-a="csgo"]'), /Sign in to talk with Medius \(breathing still works\)$/);
+  assert.equal(await page.locator('#counsel [data-a="cssign"]').count(), 1, 'and a way to sign in right there');
+  await page.tap('#counsel [data-a="csgo"]');
+  assert.equal(await page.locator('[data-a="csskip"]').count(), 1, 'the breathing step still works without an account');
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('tap targets and text size: BACK, ?, edit, delete, crisis numbers are 44 px; labels and captions are at least 12 px', async () => {
+  const { page, ctx, errors } = await openApp({ ...M, seed: { ...RETURNING, e: [entry('water', 500, 0), entry('stress', 3, 0, {})] } });
+  for (const v of ['food', 'water', 'stress', 'stats', 'set']) {
+    await go(page, v);
+    const bad = await page.evaluate(() => [...document.querySelectorAll('#main .back, #main .hwh, #main .hwq, #main [data-a="edit"], #main [data-a="del"], #main .cshelp a')].filter(e => e.offsetParent).filter(e => { const r = e.getBoundingClientRect(); return r.height < 43.5 || r.width < 43.5; }).map(e => e.className + ' ' + e.textContent.slice(0, 12)));
+    assert.deepEqual(bad, [], v + ': small tap targets');
+    const tiny = await page.evaluate(() => { const o = []; const w = document.createTreeWalker(document.querySelector('#main'), NodeFilter.SHOW_TEXT); let n;
+      while (n = w.nextNode()) { const t = n.textContent.trim(), p = n.parentElement; if (!t || !/[A-Za-z0-9%]/.test(t) || !p.offsetParent || p.closest('button,h1,h2,h3,summary,header,nav,svg,canvas,.db6,.cns2,.stpo')) continue;
+        if (parseFloat(getComputedStyle(p).fontSize) < 11.99) o.push(p.tagName + '.' + p.className + ': ' + t.slice(0, 20)); } return o; });
+    assert.deepEqual(tiny, [], v + ': text under 12 px');
+    assert.ok(await noScroll(page), v + ' no horizontal scroll');
+  }
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('small fixes: Registry says Conditions; stress header matches the five feelings; tour names Body & Energy; log rows read in full', async () => {
+  const seed = { ...RETURNING, p: { ...RETURNING.p, conds: [] }, e: [
+    entry('stress', 3, 0, { feel: '🙂 Calm', end: 2 }), entry('stair', 120, 0, { loc: 'Block', climbs: 2, steps: 60 })] };
+  const { page, ctx, errors } = await openApp({ ...M, seed });
+  await go(page, 'stress');
+  assert.match(await page.textContent('#hwh3'), /Pick the face that fits how you feel[\s\S]*very calm 1, calm 3, neutral 5, stressed 7, very stressed 9/);
+  assert.doesNotMatch(await page.textContent('#hwh3'), /from 1 \(calm\) to 10/);
+  await go(page, 'set');
+  const t = await page.textContent('#v6log');
+  assert.match(t, /Stress 3 → 2\/10 \(felt calm\)/);
+  assert.match(t, /Stairs: Block, 2 × 60 steps/);
+  assert.match(await page.evaluate(() => TS.map(s => s[2]).join('|')), /Body & Energy \(BMI and calorie goals\)/);
+  await page.evaluate(() => { obInit(); S.ob.i = 6; S.v = 'onb'; render(); });
+  assert.deepEqual(await page.$$eval('.er > span:first-child', x => x.map(e => e.textContent).slice(-2)), ['Activity', 'Conditions'], 'the conditions row is labelled Conditions, not Activity');
+  assert.deepEqual(errors, []); await ctx.close();
+});

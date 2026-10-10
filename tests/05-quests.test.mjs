@@ -61,7 +61,8 @@ test('completing the focus quest awards XP once, celebrates, emits quest:complet
   const focusXp = (await page.evaluate(() => HWEvents.recent('xp:gained').filter(e => /Focus quest/.test(e.reason)))).length;
   assert.equal(focusXp, 1);
   assert.ok(st.xp >= xp0 + 25);
-  assert.match(await page.textContent('#v6q1'), /✔ \+25 XP/);
+  await go(page, 'quests');   // Home now shows one Today's quests card; the focus and weekly quests live on the Quest Board
+  assert.match(await page.textContent('#v6q2'), /✔ \+25 XP/);
   assert.deepEqual(errors, []);
   await ctx.close();
 });
@@ -80,7 +81,8 @@ test('weekly quests: three, tilted to areas logged least last week; completion o
   await go(page, 'home'); await go(page, 'home');
   const w = await page.evaluate(() => HWEvents.recent('quest:completed').filter(e => e.kind === 'weekly' && e.id === 'w-stair'));
   assert.equal(w.length, 1);
-  assert.match(await page.textContent('#v6q1'), /Mountain paths/);
+  await go(page, 'quests');
+  assert.match(await page.textContent('#v6q2'), /Mountain paths/);
   assert.deepEqual(errors, []);
   await ctx.close();
 });

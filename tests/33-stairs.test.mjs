@@ -14,7 +14,7 @@ const lit = (page, id) => page.evaluate(i => { const c = document.getElementById
 
 test('one page, three sections in order; Pulse and Running are no longer separate; no demo stairway, nothing pre-selected', async () => {
   const { page, ctx, errors } = await boot();
-  const order = await page.evaluate(() => { const h = document.querySelector('#main').innerHTML; return ['id="st-casual"', 'id="v6gps"', 'id="stman"', 'id="st-workout"', 'PACE &amp; BREATHE', 'id="sthrc"', 'id="stseal"', 'id="stlog"', 'id="st-run"', 'id="v6run"'].map(k => h.indexOf(k)); });
+  const order = await page.evaluate(() => { const h = document.querySelector('#main').innerHTML; return ['id="stman"', 'id="st-casual"', 'id="v6gps"', 'id="st-workout"', 'PACE &amp; BREATHE', 'id="sthrc"', 'id="stseal"', 'id="stlog"', 'id="st-run"', 'id="v6run"'].map(k => h.indexOf(k)); });
   assert.ok(order.every((v, i) => v >= 0 && (i === 0 || v > order[i - 1])), 'casual → workout → running: ' + order);
   assert.match(await page.textContent('.bn b'), /^Stairs$/);
   assert.doesNotMatch(await page.textContent('main'), /Stair Mountain|summit path|WANDERER|STAIR QUEST|Casual climbing/);
