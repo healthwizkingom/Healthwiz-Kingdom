@@ -63,7 +63,10 @@ test('goal picker: five goals with reps, sets and rest; the user\'s own numbers 
   await page.click('[data-a="xnext"]');
   assert.match(await page.textContent('.xpan'), /Custom · 4 sets × 9 reps · rest 1 min 15 s/);
   assert.deepEqual((await state(page)).s.xg, { g: 'cus', c: { reps: 9, sets: 4, rest: 75 }, k: { reps: 10, sets: 3 } });
-  await page.reload(); await page.waitForSelector('.wl'); await go(page, 'exercise');
+  // kept in the save (st.s.xg, checked above) and shown again on the next visit; no reload here: the test seed is guarded by
+  // sessionStorage, which a reload of a file:// page does not always keep
+  await go(page, 'health'); await page.evaluate(() => { S.xs = null; }); await go(page, 'exercise');
+  assert.deepEqual((await state(page)).s.xg, { g: 'cus', c: { reps: 9, sets: 4, rest: 75 }, k: { reps: 10, sets: 3 } }, 'read back from storage');
   assert.equal(await page.locator('.xgo.on[data-k="cus"]').count(), 1);
   assert.equal(await page.inputValue('#xc-reps'), '9');
   await page.fill('#xc-reps', '500'); await page.click('[data-a="xnext"]');

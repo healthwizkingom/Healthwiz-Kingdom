@@ -14,7 +14,8 @@ let st=HWSchema.load(DEF); // v6: versioned load with migrations (js/v6-schema.j
 // §88: if the write fails (storage full or blocked), superseded pre-upgrade copies are freed and the write retried;
 // if it still fails, the user is told (again at most every 2 minutes) that the change is not saved on this device.
 let SV=0,SVq=0,SVwarn=0;const save=()=>{SV++;if(!SVq){SVq=1;queueMicrotask(persist)}};
-function persist(){SVq=0;const j=JSON.stringify(st),w=()=>localStorage.setItem('healthwiz',j);try{w();SVwarn=0;return}catch(e){}
+let SVlast=null; // v6: the text last written; a save() that changes nothing (e.g. the Body & Energy preview) skips the write
+function persist(){SVq=0;const j=JSON.stringify(st),w=()=>{localStorage.setItem('healthwiz',j);SVlast=j};try{if(j===SVlast&&localStorage.getItem('healthwiz')===j)return}catch(e){}try{w();SVwarn=0;return}catch(e){}
   try{Object.keys(localStorage).filter(k=>k.startsWith('healthwiz_backup_pre-v')).forEach(k=>localStorage.removeItem(k));w();SVwarn=0;return}catch(e){}
   mem=st;if(Date.now()-SVwarn<120e3)return;SVwarn=Date.now();
   toast('⚠️ Your latest changes could not be saved on this device (storage is full or blocked). They stay in this tab until you close it. Download a backup in Settings → Backup now.');

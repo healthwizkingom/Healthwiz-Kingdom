@@ -216,10 +216,11 @@ function doneScreen(){const x=X(),e=st.e.find(q=>q.id===x.saved),m=e?e.m:null;if
     +'<div class="row xrow">'+btn('xagain','TRAIN AGAIN','g')+btn('go','BACK TO THE HEALTH HALL','xpri',' data-v="health"')+'</div></div>'}
 
 /* ---------- the page ---------- */
+const H2='<h2 class="xh2">'+ico('workout')+' THE WIZARD\'S TRAINING HALL</h2>';
 pages.exercise=()=>{const x=X();
-  if(x.stop)return helpScreen();
+  if(x.stop)return H2+helpScreen();
   if(x.step==='run'&&x.restEnd>Date.now())tick(1);
-  return '<div class="xwrap">'+(x.step==='map'?mapScreen():x.step==='tut'&&x.ex?tutScreen():x.step==='run'&&x.ex?runScreen():x.step==='done'?doneScreen():goalScreen())+'</div>'};
+  return H2+'<div class="xwrap">'+(x.step==='map'?mapScreen():x.step==='tut'&&x.ex?tutScreen():x.step==='run'&&x.ex?runScreen():x.step==='done'?doneScreen():goalScreen())+'</div>'};
 function tick(start){if(start){clearInterval(S.tm);S.tm=setInterval(()=>tick(),1000);return}
   const x=X(),left=Math.ceil((x.restEnd-Date.now())/1000),el=document.getElementById('xrest'),t=document.getElementById('xel');
   if(S.v!=='exercise'||x.step!=='run'){clearInterval(S.tm);return}
@@ -271,6 +272,7 @@ HWUI.css('exercise',`
 :root[data-theme="dark"] .tr-exercise{--xm:#3ee6d0}@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .tr-exercise{--xm:#3ee6d0}}
 .xwrap .pxdk{--xm:#3ee6d0}
 .xwrap{display:flex;flex-direction:column;gap:12px}
+.xh2{display:flex;align-items:center;gap:8px}
 .xpan{padding:12px}.xpan>.pxh{margin:0 0 10px}
 .xrun{display:flex;gap:4px;margin:0;padding:0;list-style:none}.xrun li{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;border:2px solid var(--ln);background:var(--p2);opacity:.6;font:8px/1.4 var(--fh);text-transform:uppercase}
 .xrun li.dn{opacity:.9}.xrun li.on{opacity:1;background:var(--px-hud,#1c2340);color:var(--xm2);box-shadow:inset 0 -3px 0 var(--xm2)}
