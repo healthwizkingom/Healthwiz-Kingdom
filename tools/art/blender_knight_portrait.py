@@ -22,6 +22,7 @@ import bpy
 import math
 import os
 import sys
+import bmesh
 import numpy as np
 from mathutils import Vector, Matrix
 from bl_ext.user_default.mpfb.services.humanservice import HumanService
@@ -29,7 +30,9 @@ from bl_ext.user_default.mpfb.services.locationservice import LocationService
 from bl_ext.user_default.mpfb.services.targetservice import TargetService
 from bl_ext.user_default.mpfb.services.clothesservice import ClothesService
 
-OUT = sys.argv[sys.argv.index('--') + 1]
+ARGS = sys.argv[sys.argv.index('--') + 1:]
+OUT = ARGS[0]
+QUICK = '--quick' in ARGS          # a fast front close-up only, for iterating on the face
 HERE = os.path.dirname(os.path.abspath(__file__))
 os.makedirs(OUT, exist_ok=True)
 sc = bpy.context.scene
@@ -74,10 +77,24 @@ def principled(name, base, rough=.5, metal=0.0, **extra):
     return m
 
 
-# a light anime stylisation of the eye region: slightly larger, more open eyes (MakeHuman targets, CC0); the eyes
-# and lashes are fitted after it and the brows are refitted to it
-TargetService.bulk_load_targets(BODY, [{'target': t, 'value': v} for side in 'lr' for t, v in (
-    (side + '-eye-scale-incr', .3), (side + '-eye-height2-incr', .35), (side + '-eye-height1-incr', .2))])
+# anime-fantasy stylisation in the geometry itself (MakeHuman targets, CC0), on top of the sprite build's face shape:
+# larger, more open eyes set a little wider; a small, narrow nose; a smaller mouth with a slight lift at the corners;
+# a smooth, youthful, narrower jaw. The eyes and lashes are fitted after it and the brows are refitted to it.
+PAIRED = [('eye-scale-incr', .6), ('eye-height2-incr', .5), ('eye-height1-incr', .3), ('eye-trans-out', .3),
+          ('cheek-bones-decr', .35), ('cheek-volume-decr', .15)]
+FACE_SHAPE = [(side + '-' + t, v) for side in 'lr' for t, v in PAIRED] + [
+    ('nose-scale-horiz-decr', .5), ('nose-scale-vert-decr', .35), ('nose-scale-depth-decr', .3),
+    ('nose-volume-decr', .5), ('nose-point-width-decr', .6), ('nose-flaring-decr', .6),
+    ('nose-nostrils-width-decr', .5), ('nose-hump-decr', .5),
+    ('mouth-scale-horiz-decr', .35), ('mouth-upperlip-volume-decr', .3), ('mouth-lowerlip-volume-decr', .2),
+    ('mouth-angles-up', .2), ('mouth-laugh-lines-in', .5),
+    ('chin-width-decr', .25), ('chin-bones-decr', .4), ('chin-height-decr', .15),
+    ('head-age-decr', .5), ('head-fat-decr', .2), ('eyebrows-angle-down', .35)]
+KEYS = BODY.data.shape_keys.key_blocks
+for t, v in FACE_SHAPE:                 # targets the sprite build already loaded: raise them in place
+    if t in KEYS:
+        KEYS[t].value = min(1.0, KEYS[t].value + v)
+TargetService.bulk_load_targets(BODY, [{'target': t, 'value': v} for t, v in FACE_SHAPE if t not in KEYS])
 ASSET_EYES = HumanService.add_mhclo_asset(os.path.join(MH, 'eyes/high-poly/high-poly.mhclo'), BODY,
                                           asset_type='Eyes', subdiv_levels=0)
 LASHES = HumanService.add_mhclo_asset(os.path.join(MH, 'eyelashes/eyelashes01/eyelashes01.mhclo'), BODY,
@@ -166,19 +183,58 @@ for slot in LASHES.material_slots:
 
 # the sprite armour shells are low-poly and cut into the coat (jagged edges in a close render): push them out a
 # little
-for name, push in (('cuirass', .012), ('bracer', .01), ('bracer.001', .01), ('boot_shaft', .008),
-                   ('boot_shaft.001', .008)):                                                         # metres
+for name, push in (('cuirass', .012),):                                    # metres (bracers, boots: see below)
     ob = bpy.data.objects[name]
     d = ob.modifiers.new('push', 'DISPLACE')
     d.strength, d.mid_level = push * K / (sum(ob.matrix_world.to_scale()) / 3), 0.0     # in the object's own units
 
-# smooth subdivision for the render (after the armature and masks)
+
+
+def hide_cloth_under(shells, cloth_name='Human.male_elegantsuit01', margin=.03, end=0.0):
+    """The sleeves and trouser legs are wider than the bracers and boot shafts at their ends, so the cloth shows
+    through in ragged patches. Hide the cloth inside each shell's length (the skin under the cloth is already
+    deleted, and the shell covers the gap). Vertex groups follow the rest mesh, so this holds in every pose."""
+    sc.frame_set(POSE_FRAME)
+    dg = bpy.context.evaluated_depsgraph_get()
+    cloth = bpy.data.objects[cloth_name]
+    ev = cloth.evaluated_get(dg)
+    me = ev.to_mesh()
+    pts = np.array([tuple(ev.matrix_world @ v.co) for v in me.vertices])
+    ev.to_mesh_clear()
+    hide = np.zeros(len(pts), bool)
+    for name in shells:
+        sh = bpy.data.objects[name].evaluated_get(dg)
+        sm = sh.to_mesh()
+        sp = np.array([tuple(sh.matrix_world @ v.co) for v in sm.vertices])
+        sh.to_mesh_clear()
+        c = sp.mean(0)
+        axis = np.linalg.svd(sp - c)[2][0]                      # the shell's long axis
+        t = (sp - c) @ axis
+        radius = np.linalg.norm((sp - c) - np.outer(t, axis), axis=1).max()
+        tc = (pts - c) @ axis
+        rc = np.linalg.norm((pts - c) - np.outer(tc, axis), axis=1)
+        hide |= (tc > t.min() - end * K) & (tc < t.max() + end * K) & (rc < radius + margin * K)
+    group = cloth.vertex_groups.new(name='under_armour')
+    group.add([int(i) for i in np.nonzero(hide)[0]], 1.0, 'REPLACE')
+    mask = cloth.modifiers.new('hide_under_armour', 'MASK')
+    mask.vertex_group, mask.invert_vertex_group = 'under_armour', True
+    print('HIDDEN under armour', int(hide.sum()), flush=True)
+
+
+hide_cloth_under(('bracer', 'bracer.001', 'boot_shaft', 'boot_shaft.001'))
+
+# smooth subdivision for the render (after the armature and masks). The bracers and boot shafts are two-ring tubes:
+# subdividing them shortens them and frills their ends, so they get smooth-shaded sides and flat caps instead.
+TUBES = ('bracer', 'bracer.001', 'boot_shaft', 'boot_shaft.001')
 for ob in bpy.data.objects:
-    if ob.type == 'MESH' and ('keys' in ob or ob in (ASSET_EYES, LASHES)) and not ob.name.split('.')[0].endswith('prop'):
-        if '.prop' in ob.name:
-            continue
-        sub = ob.modifiers.new('smooth', 'SUBSURF')
-        sub.levels, sub.render_levels = 0, 1
+    if ob.type != 'MESH' or '.prop' in ob.name or not ('keys' in ob or ob in (ASSET_EYES, LASHES)):
+        continue
+    if ob.name in TUBES:
+        for poly in ob.data.polygons:
+            poly.use_smooth = len(poly.vertices) == 4
+        continue
+    sub = ob.modifiers.new('smooth', 'SUBSURF')
+    sub.levels, sub.render_levels = 0, 1
 
 
 
@@ -212,6 +268,52 @@ def taper_lock_roots():
                 v.co = c + (v.co - c) * .25
 
 
+# the bangs tips, as azimuths (blender_exercise_render.py: TIPS); the sheet is a 61 x 17 grid, row 0 at the crown,
+# column i at azimuth -78 + 156 i / 60
+BANG_TIPS = [-66, -44, -22, -4, 16, 38, 60]
+BANG_COLS, BANG_ROWS, SPLIT_ROW = 61, 17, 6
+
+
+def layer_bangs():
+    """Turn the one-piece bangs into layered locks: the sheet is cut between the tips below the crown, each lock
+    narrows toward its own tip as it falls, and every other lock sits a little further out, so they overlap."""
+    sc.frame_set(FACE_FRAME)
+    bangs = bpy.data.objects['bangs']
+    me = bangs.data
+    assert len(me.vertices) == BANG_COLS * BANG_ROWS
+    mw = bangs.matrix_world.copy()
+    inv = mw.inverted()
+    world = np.array([tuple(mw @ v.co) for v in me.vertices])
+    # centre of the head the curtain wraps: least-squares sphere through the sheet
+    a_ = np.c_[2 * world, np.ones(len(world))]
+    sol = np.linalg.lstsq(a_, (world ** 2).sum(1), rcond=None)[0]
+    centre = Vector(sol[:3])
+    bounds = [(a + b) / 2 for a, b in zip(BANG_TIPS, BANG_TIPS[1:])]
+
+    def lock(i):
+        az = -78 + 156 * i / (BANG_COLS - 1)
+        return sum(az > b for b in bounds), az
+
+    for idx, v in enumerate(me.vertices):
+        j, i = divmod(idx, BANG_COLS)
+        k, az = lock(i)
+        s = min(max((j / (BANG_ROWS - 1) - .35) / .65, 0), 1)
+        d = math.radians((BANG_TIPS[k] - az) * .3 * s)              # narrow toward the lock's tip
+        w = Vector(world[idx]) - centre
+        w = Vector((w.x * math.cos(d) - w.y * math.sin(d), w.x * math.sin(d) + w.y * math.cos(d), w.z))
+        w *= 1 + .03 * (k % 2) * s                                  # every other lock a layer further out
+        v.co = inv @ (centre + w)
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    cut = [f for f in bm.faces
+           if len({lock(v.index % BANG_COLS)[0] for v in f.verts}) > 1 and min(v.index // BANG_COLS for v in f.verts)
+           >= SPLIT_ROW]
+    bmesh.ops.delete(bm, geom=cut, context='FACES')
+    bm.to_mesh(me)
+    bm.free()
+
+
+layer_bangs()
 lift_bangs()
 taper_lock_roots()
 
@@ -289,6 +391,10 @@ def render(path, w, h):
 sc.frame_set(FACE_FRAME)
 c = head_centre() + Vector((0, 0, -.03 * K))
 look(CAM, c, 0, 1.45 * K, .02 * K)
+if QUICK:
+    sc.cycles.samples = 24
+    render(os.path.join(OUT, 'knight_face_quick.png'), 600, 600)
+    sys.exit(0)
 render(os.path.join(OUT, 'knight_face_front.png'), 1200, 1200)
 look(CAM, c, 38, 1.45 * K, .03 * K)
 render(os.path.join(OUT, 'knight_face_three_quarter.png'), 1200, 1200)

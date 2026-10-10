@@ -73,7 +73,9 @@ State of the art work:
 
 - The committed sprite sheets in `assets/img/exercise/` are the pixel-RPG version from commit `dad4796`; the
   anime-face sprite work after it is in the pipeline scripts but has not been packed into the sheets yet.
-- `knight_hq.blend` fixes the 3D face (the cornea shell hid the iris; there were no lights or materials). Still open:
-  the face is close to a realistic MakeHuman face (a stronger anime look needs sculpting), the bangs are one sheet
-  rather than layered strands, and the bracer ends and boot shafts clip through the coat and trousers.
+- `knight_hq.blend` (studio scene only) has the 3D face fixes: the cornea shell no longer hides the iris, real lights
+  and materials, an anime-fantasy face shape from MakeHuman targets (larger eyes set wider, small nose and mouth,
+  smooth narrow jaw, level brows), bangs cut into layered locks, and the cloth hidden under the bracers and boot
+  shafts so nothing clips. Waiting on the owner's approval of this look before the sprite sheets are rebuilt from
+  it. Still open: the face is shaped with targets, not sculpted, and the lips rest slightly parted.
 - Open question for the owner: the KMKU school gym's equipment list, so the props match what students can use.
