@@ -40,7 +40,7 @@ function macroPct(d){const t=dmac(d),E=4*t.p+4*t.c+9*t.f;return t.n&&E>0?{P:400*
 const MKEY=[['P','Protein'],['C','Carbs'],['F','Fat']];
 const macroOff=x=>{const R=mref();return MKEY.map(([k,n])=>({k,n,v:x[k],lo:R[k][0],hi:R[k][1],off:Math.max(0,R[k][0]-x[k],x[k]-R[k][1])}))};
 const macroSub=x=>clamp(100-macroOff(x).reduce((s,m)=>s+m.off,0)*5,0,100);
-const burnOf=d=>{const s=A('stair',d).reduce((a,e)=>a+(+((e.m||{}).kcal||{}).v||0),0),b=typeof HWRun!=='undefined'?HWRun.burned(d):null;return s+(b?b.v:0)};
+const burnOf=d=>{const s=A('stair',d).reduce((a,e)=>a+(+((e.m||{}).kcal||{}).v||0),0),b=typeof HWRun!=='undefined'?HWRun.burned(d):null,x=A('exercise',d).reduce((a,e)=>a+(+((e.m||{}).kcal||{}).v||0),0);return s+(b?b.v:0)+x}; // stairs + runs + training (Training Hall estimates)
 
 function indicators(){
   const D0=days(),I={};
@@ -56,7 +56,7 @@ function indicators(){
   const mp=D0.map(macroPct).filter(Boolean);
   if(mp.length){const x={P:mean(mp.map(m=>m.P)),C:mean(mp.map(m=>m.C)),F:mean(mp.map(m=>m.F))};I.macro={val:x,txt:'P '+Math.round(x.P)+'% · C '+Math.round(x.C)+'% · F '+Math.round(x.F)+'% of energy',sub:macroSub(x)}}else I.macro=null;
   const bn=D0.map(burnOf);
-  I.burn=bn.some(v=>v>0)?{val:mean(bn),txt:Math.round(mean(bn))+' kcal/day (stairs + runs)',sub:clamp(mean(bn)/BURN_GOAL*100,0,100)}:null;
+  I.burn=bn.some(v=>v>0)?{val:mean(bn),txt:Math.round(mean(bn))+' kcal/day (stairs, runs + training)',sub:clamp(mean(bn)/BURN_GOAL*100,0,100)}:null;
   const sl=D0.map(slH).filter(v=>v>0),SRg=SR(+st.p.age||16);
   I.sleep=sl.length?{val:mean(sl),txt:r1(mean(sl))+' h/night',sub:sleepSub(mean(sl),SRg)}:null;
   const b=LC('bmi').pop();I.bmi=b&&+b.v>0?{val:+b.v,txt:'BMI '+(+b.v).toFixed(1),sub:bmiSub(+b.v)}:null;
@@ -97,7 +97,7 @@ function recs(I,sc){
   else if(lv==='MILD')s.push('Your stair effort is on target. When mild climbs feel easy, try a MODERATE stairway (26°–31.2°) for part of the session.');
   else if(lv==='MODERATE')s.push('Your stair effort is on target at moderate intensity. Keep it up; add a vigorous stairway (above 31.2°) only if you recover comfortably.');
   else s.push('Your stair effort is on target. Mix vigorous days with mild or moderate days so your body can recover.');
-  if(I.burn)s.push('Exercise burned about '+Math.round(I.burn.val)+' kcal a day (estimated, stairs + runs); about '+BURN_GOAL+' a day (1,000 a week) is a good health target.');
+  if(I.burn)s.push('Exercise burned about '+Math.round(I.burn.val)+' kcal a day (estimated, stairs, runs + training); about '+BURN_GOAL+' a day (1,000 a week) is a good health target.');
   s.push('Stop and rest if you feel dizzy, faint or have chest pain.');R.push(['🧗','Stair climbing and exercise level',s]);
   // 3 stress
   const st1=I.stress;let t=[];
@@ -187,4 +187,4 @@ HWUI.css('score',`
 `);
 // read-only access to the goals and helpers the recommendations use, for js/v6-orb.js
 const K={FV_GOAL,STAIR_GOAL,BURN_GOAL,CLASSN,lastWorkout,macroOff,r1,win:()=>W};
-return{compute,fvFoods,fvCard,WT,recs,K}})();
+return{compute,fvFoods,fvCard,WT,recs,K,burnOf}})();

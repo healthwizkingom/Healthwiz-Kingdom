@@ -6,8 +6,8 @@
    Also: a one-time exploration reward for visiting each region, and gain(0) is now a no-op
    (no "+0 XP" toast, no event). State: st.xl = {date: {category: awardedLogs}} (schema v5). */
 const HWXP=(()=>{
-const CAP={water:8,food:6,sleep:2,pulse:3,stair:4,stress:3,bmi:1};
-const REGIONS={food:'Nutrition Village',water:'Water Valley',sleep:'Dream Realm',pulse:'Heartstone Hall',stair:'Stair Mountain',stress:'Mind Forest',bmi:'Balance Tower',calc:'Energy Forge',body:'Body & Energy'};
+const CAP={water:8,food:6,sleep:2,pulse:3,stair:4,stress:3,bmi:1,exercise:2}; // exercise: two rewarded sessions a day
+const REGIONS={food:'Nutrition Village',water:'Water Valley',sleep:'Dream Realm',pulse:'Heartstone Hall',stair:'Stair Mountain',stress:'Mind Forest',bmi:'Balance Tower',calc:'Energy Forge',body:'Body & Energy',exercise:'Training Hall'};
 const xl=()=>(st.xl=st.xl&&typeof st.xl==='object'?st.xl:{},st.xl);
 function prune(){const X=xl(),keep=new Set(rng(14));Object.keys(X).forEach(d=>{if(!keep.has(d))delete X[d]})}
 const used=(c,d)=>((xl()[d||today()]||{})[c]||0);

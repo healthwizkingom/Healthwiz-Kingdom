@@ -782,7 +782,7 @@ const EMOJI={'❤':'heart','💓':'pulse','🫀':'pulse','💧':'water','💦':'
   '📜':'scroll','⚙':'gear','⚔':'quest','🗺':'map','🏋':'workout','💪':'workout','🏅':'badge','🎖':'badge','🏠':'home','⭐':'star','🌟':'star','🎮':'game','⏰':'alarm'};
 // The banner at the top of each page (BN in js/hw-03-part.js), by page, so each region keeps one icon. The Nutrition &
 // Hydration page shows both of its systems on either tab.
-const REGION={food:['food','water'],water:['food','water'],sleep:'sleep',pulse:'heart',stair:'stairs',stress:'stress',bmi:'balance',body:'balance',
+const REGION={exercise:'workout',food:['food','water'],water:['food','water'],sleep:'sleep',pulse:'heart',stair:'stairs',stress:'stress',bmi:'balance',body:'balance',
   calc:'energy',stats:'chart',health:'chart',guide:'scroll',badges:'achievement',set:'gear',run:'running',
   quests:'quest',kingdom:'map',score:'achievement'};
 
