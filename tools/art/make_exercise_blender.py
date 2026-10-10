@@ -12,8 +12,7 @@ Pipeline:
          the creases, a glint on steel and gold; 4 tones per material from the 28-colour PAL, no dithering;
        * a selective outline: ink around the silhouette, the material's own darkest tone on inner edges;
        * a hard oval ground shadow; the camera looks down a little (EL degrees) so the floor reads;
-     then writes moves.webp (768 x 4224) and muscles.webp (256 x 3840) at RES = 2 (the page draws them at the
-     384 x 2112 / 128 x 1920 layout size, so they show twice the detail), lossless, and rewrites MAP-DATA in
+     then writes moves.webp (384 x 2112) and muscles.webp (128 x 1920), lossless, and rewrites MAP-DATA in
      js/v6-exercise.js. The muscle masks come from the stand-in's classify() on the rendered surface points, with the
      rig's own joints.
 
@@ -38,14 +37,16 @@ import make_exercise as ME  # noqa: E402  (palette, outline, to_img, check_palet
 
 # material key -> 5 palette entries, dark to light; the 5th is the glint
 RAMPS = {
-    'skin': ['sk1', 'sk2', 'sk3', 'sk3', 'sk3'],      # anime faces are lit flat: the three light tones only
+    'skin': ['sk1', 'sk2', 'sk3', 'sk3', 'sk3'],      # anime skin is lit flat: the light tones only (face: two)
     'glove': ['ink', 'hr0', 'lt1', 'hr1', 'hr1'],
     'coat': ['ink', 'st0', 'ir1', 'st1', 'st2'],
     'trim': ['gd0', 'gd1', 'gd2', 'gd3', 'wht'],
     'steel': ['st1', 'st2', 'st3', 'st4', 'wht'],
-    'hair': ['cp0', 'cp1', 'cp1', 'cp2', 'cp3'],       # deep crimson, orange-red only where the light is strongest
+    'hair': ['hr0', 'hr1', 'hr1', 'hr2', 'hr3'],       # the knight's brown (assets/img/kn.webp), mostly mid-dark
     'eye': ['ink', 'cp1', 'cp2', 'cp3', 'wht'],
-    'brow': ['ink', 'hr0', 'cp0', 'cp1', 'cp1'],
+    'brow': ['hr0', 'hr0', 'hr1', 'hr1', 'hr1'],
+    'nose': ['sk2', 'sk2', 'sk3', 'sk3', 'sk3'],       # the nose and mouth marks render as skin; the face
+    'mouth': ['sk2', 'sk2', 'sk3', 'sk3', 'sk3'],      # pattern (FRONT_FACE) draws them
     'boots': ['ink', 'hr0', 'lt1', 'hr1', 'hr2'],
     'cape': ['cp0', 'cp1', 'cp2', 'cp3', 'cp3'],
     'gem': ['bl0', 'bl1', 'bl2', 'bl2', 'wht'],
@@ -55,7 +56,7 @@ RAMPS = {
 }
 KEYS = list(RAMPS)
 GLINT = {'steel', 'trim', 'chrome', 'gem'}
-RES = 2                                   # sheet pixels per layout pixel (the page draws the sheets at layout size)
+RES = 1                                   # sheet pixels per layout pixel
 EL = 12                                   # camera elevation for the moves (degrees, looking down)
 TONES = (.42, .62, .80)                   # cut-offs of the light level between the 4 tones
 SHADOW_ALPHA = 96                         # hard ground shadow: ink at a fixed opacity, no blur
@@ -211,49 +212,64 @@ def components(mask):
     return out
 
 
-def draw_eyes(rgb, ids):
-    """Anime eyes, drawn as a pixel artist would at this size (the eye meshes only say where): a thick dark upper lash
-    that flicks up at the outer corner, a red iris dark above and bright below with a white catch-light, and a white
-    corner. Bangs drawn over the eye stay on top."""
+# The face, drawn for the 96 px sprite: at the knight's proportions it is about 7 px wide, too small for rendered
+# features, so it is laid out by hand like pixel art and anchored where the eye meshes land. Columns run from -4 to 3
+# around the nose bridge; '.' leaves the render as it is.
+FRONT_FACE = [  # (row offset from the upper lids, pattern)
+    (-2, '.BB..BB.'),     # brows, a little raised at the outer ends: composed, confident
+    (0, 'LLL..LLL'),      # upper lids
+    (1, 'WIi..iIW'),      # whites at the outer corners, irises toward the nose (a direct, focused gaze)
+    (3, '...n....'),      # the shadow on one side of the nose
+    (5, '...mm...'),      # the mouth: two pixels, not a dark line
+]
+SIDE_EYE = [(0, 'LLLl'), (1, 'IiW.')]  # the eye in profile, inner corner first; the lid runs past the outer corner
+FACE_INK = {'B': 'hr0', 'L': 'hr0', 'l': 'hr0', 'I': 'cp3', 'i': 'cp1', 'W': 'st4', 'n': 'sk1', 'm': 'sk0'}
+
+
+def draw_eyes(rgb, ids, front=None, side=None, ink=None):
+    """Anime eyes (dark-brown upper lids, red irises, a little white) and, from the front, brows, a nose shadow and
+    a mouth. No black rings, so the eyes do not look hollow. Eyes and brows may cover bang tips; the nose and mouth
+    only ever sit on skin."""
+    front, side, ink = front or FRONT_FACE, side or SIDE_EYE, ink or FACE_INK
     E = ids == KEYS.index('eye') + 1
-    eyes = [c for c in components(E) if len(c) >= 1]
-    if not eyes:
+    if not E.any():
         return
-    face = (ids == KEYS.index('skin') + 1) | E
-    hair = ids == KEYS.index('hair') + 1
-    centres = [(np.mean([p[0] for p in c]), np.mean([p[1] for p in c]), c) for c in eyes]
-    mid_x = np.mean([c[1] for c in centres]) if len(centres) > 1 else None
-    ink, dark, bright, white = ME.PAL['ink'], ME.PAL['cp1'], ME.PAL['cp3'], ME.PAL['wht']
+    on = lambda keys: np.isin(ids, [KEYS.index(k) + 1 for k in keys])
+    skin, faceish = on(('skin', 'nose', 'mouth')), on(('skin', 'eye', 'hair', 'brow', 'nose', 'mouth'))
     H, W = ids.shape
 
-    def put(y, x, col):
-        if 0 <= y < H and 0 <= x < W and face[y, x]:
-            rgb[y, x] = col
+    def put(y, x, ch):
+        if ch == '.' or not (0 <= y < H and 0 <= x < W):
+            return
+        if (skin if ch in 'nm' else faceish)[y, x]:
+            rgb[y, x] = ME.PAL[ink[ch]]
 
-    for cy, cx, comp in centres:
-        if mid_x is not None:
-            out_dir = 1 if cx > mid_x else -1
-        else:                                   # one eye in view: the outer corner is toward the hair mass
-            hy, hx = np.where(hair[max(0, int(cy) - 12):int(cy) + 12])
-            out_dir = 1 if len(hx) and hx.mean() > cx else -1
-        xs = [p[1] for p in comp]
-        w = int(np.clip(max(xs) - min(xs) + 1, 3, 5))
-        y0 = min(p[0] for p in comp)
-        x_in = int(round(cx)) - out_dir * (w // 2)
-        cols = [x_in + out_dir * i for i in range(w)]
-        for x in cols:                          # upper lash, and its flick past the outer corner
-            put(y0, x, ink)
-        put(y0, cols[-1] + out_dir, ink)
-        put(y0 - 1, cols[-1] + out_dir, ink)
-        iris = cols[1:-1] if w >= 4 else cols[:-1]
-        for x in iris:
-            put(y0 + 1, x, dark)
-            put(y0 + 2, x, bright)
-        put(y0 + 1, iris[0], white)             # catch-light
-        put(y0 + 1, cols[-1], ink)              # the lash wraps the outer corner
-        if w >= 4:
-            put(y0 + 1, cols[0], white)         # white of the eye at the inner corner
-            put(y0 + 2, cols[-1], white)        # and under the outer corner
+    ys, xs = np.where(E)
+    comps = components(E)
+    if len(comps) > 1 or xs.max() - xs.min() + 1 >= 4:      # both eyes in view: the front face
+        y0, cx = ys.min(), int(round(xs.mean() + .5))
+        for dy, row in front:
+            for i, ch in enumerate(row):
+                put(y0 + dy, cx - 4 + i, ch)
+        return
+    cy, cx = ys.mean(), xs.mean()                           # one eye in view: the outer corner faces the hair
+    hx = np.where(on(('hair',))[max(0, int(cy) - 8):int(cy) + 8])[1]
+    out = 1 if len(hx) and hx.mean() > cx else -1
+    x_in = int(round(cx)) - out
+    for dy, row in side:
+        for i, ch in enumerate(row):
+            put(ys.min() + dy, x_in + out * i, ch)
+
+
+def face_skin(ids, reach=7):
+    """Skin within a few pixels of the eyes: the face (the neck and hands keep their shading)."""
+    skin = np.isin(ids, [KEYS.index(k) + 1 for k in ('skin', 'nose', 'mouth')])
+    ys, xs = np.where(ids == KEYS.index('eye') + 1)
+    if not len(ys):
+        return np.zeros_like(skin)
+    yy, xx = np.mgrid[0:ids.shape[0], 0:ids.shape[1]]
+    near = (np.abs(yy - ys.mean()) <= reach) & (np.abs(xx - xs.mean()) <= reach)
+    return skin & near
 
 
 def shade(out_dir, stem, cam, shadow=True):
@@ -261,6 +277,7 @@ def shade(out_dir, stem, cam, shadow=True):
     f = np.array(cam['f'])
     depth = np.where(fg, (P - (np.array(cam['center']) - f * 200)) @ f, 1e9)
     t = tones(fg, ids, N, ao, cam)
+    t = np.where(face_skin(ids), np.maximum(t, 2), t)        # the face takes the two lightest skin tones
     rgb = LUT[np.clip(ids - 1, 0, len(KEYS) - 1), t]
     draw_eyes(rgb, ids)
     out, a = outline_sel(rgb, fg, depth, ids)

@@ -286,7 +286,7 @@ X, Y, Z = Vector((1, 0, 0)), Vector((0, 1, 0)), Vector((0, 0, 1))  # the rest po
 eyes = ASSET['eye']
 eye_c = sum((eyes.matrix_world @ Vector(c) for c in eyes.bound_box), Vector()) / 8
 skull = Vector((0, eye_c.y + .085 * m, eye_c.z + .025 * m))
-ell(skull + Vector((0, .022, .03)) * m, (.112 * m, .112 * m, .108 * m), 'hair', 'head', 'hair_cap')
+ell(skull + Vector((0, .022, .03)) * m, (.103 * m, .11 * m, .106 * m), 'hair', 'head', 'hair_cap')
 
 
 def ribbon(base, d, bend, length, width, flat=.35, name='hair_lock'):
@@ -321,26 +321,33 @@ def on_skull(az, el, lift=0.0):
 
 
 DOWN, BACK = -Z, Y
-# The hair follows the silhouette of the reference sheets (shape only; the geometry is this file's own): wide and
-# voluminous, layered locks flicking outward at cheek and jaw height, heavy pointed bangs past the eyes with one lock
-# between them, long side locks framing the face, two strands springing up on the crown, and a broad low tail.
-for az in range(0, 360, 40):     # crown: puffed layers, rounded on top
+# The hair follows the silhouette of the reference sheets (shape only; the geometry is this file's own): it hugs the
+# head, layered locks taper to points, a side-swept curtain of bangs falls from high on the crown to the brows with one
+# longer lock between the eyes, side locks in front of the ears curve in toward the jaw, two strands spring up on the
+# crown, and the back falls in a thick mass to a low tail.
+for az in range(0, 360, 40):     # crown: layered, close to the head
     p, o = on_skull(az, 64)
-    ribbon(p, o * .6 + DOWN * .55 + BACK * .15, DOWN + o * .2, .1, .085, .3)
-for az in range(62, 299, 22):    # the mane: wide locks falling past the ears, tips flicking out
-    p, o = on_skull(az, 34, .03)
-    ribbon(p, DOWN + o * .32 + BACK * .12, o * 1.1 + DOWN * .2, .155, .078, .3)
+    ribbon(p, o * .3 + DOWN * .6 + BACK * .2, DOWN + o * .05, .1, .08, .3)
+for az in range(62, 299, 22):    # the mane: sides hug the head, the back flares a little at the tips
+    back = abs(math.cos(math.radians(az))) < .5 and math.cos(math.radians(az)) < 0
+    p, o = on_skull(az, 34, .02)
+    ribbon(p, DOWN + o * (.14 if back else .08) + BACK * .15, o * (.45 if back else .25) + DOWN * .5,
+           .155, .07 if back else .062, .3)
 for az in range(120, 241, 24):   # the back mass to the nape
     p, o = on_skull(az, 8, .03)
-    ribbon(p, DOWN + BACK * .25, o * .5 + DOWN, .14, .075, .3)
-# bangs: thick pointed locks from the hairline falling past the eyes; the middle one between the eyes
-for az, ln, tilt in ((-46, .14, -.3), (-24, .13, -.15), (0, .15, .0), (22, .125, .12), (44, .14, .3)):
-    p, o = on_skull(az, 56, .05)
-    ribbon(p, DOWN - Y * .03 + X * tilt, -Y * .08 + X * tilt * .6, ln, .05 if az else .034, .28, name='bang')
-# side locks framing the face to below the jaw, flicking out at the tips
+    ribbon(p, DOWN + BACK * .25, o * .2 + DOWN, .14, .07, .3)
+# bangs: a long curtain from high on the crown, lying on the forehead and swept toward the knight's right (-x),
+# pointed tips falling past the eyes; one longer lock between the eyes to the nose
+for az, ln, w in ((-52, .17, .05), (-30, .165, .052), (-19, .17, .055), (-8, .175, .05), (4, .168, .055), (16, .16, .05),
+                  (38, .155, .048), (58, .165, .045)):
+    p, o = on_skull(az, 70, .04)
+    ribbon(p, DOWN * .8 - Y * .75 - X * .2, DOWN * 1.2 + Y * .25 - X * .1, ln, w, .25, name='bang')  # over the brow
+p, o = on_skull(-6, 68, .05)
+ribbon(p, DOWN * .8 - Y * .75 - X * .1, DOWN * 1.3 + Y * .3, .21, .04, .25, name='bang_centre')
+# side locks in front of the ears, curving in toward the jaw with pointed tips
 for s in (1, -1):
-    p, o = on_skull(s * 88, 26, .05)
-    ribbon(p, DOWN * 1.5 - Y * .05 + X * s * .08, X * s * 1.2, .19, .045, .28, name='side_lock')
+    p, o = on_skull(s * 80, 34, .04)
+    ribbon(p, DOWN * 1.5 - Y * .12, -X * s * .5 + DOWN, .17, .04, .28, name='side_lock')
 # two strands springing up from the crown
 for dx, lean in ((-.01, -.6), (.012, .5)):
     p, o = on_skull(15, 86, .06)
@@ -361,6 +368,9 @@ for side in (1, -1):
     c = sum(vs, Vector()) / len(vs)
     front = min(v.y for v in vs)
     ell(Vector((c.x * 1.05, front - .011 * m, c.z)), (.016 * m, .005 * m, .011 * m), 'eye', 'head', 'anime_eye')
+face_front = min(v.y for v in (eyes.matrix_world @ w.co for w in eyes.data.vertices))
+ell(Vector((0, face_front - .022 * m, eye_c.z - .038 * m)), (.006 * m, .008 * m, .008 * m), 'nose', 'head', 'nose_mark')
+ell(Vector((0, face_front - .006 * m, eye_c.z - .072 * m)), (.012 * m, .006 * m, .004 * m), 'mouth', 'head', 'mouth_mark')
 
 # torso: cuirass (breast and back plate) with a gold collar and the blue gem; belt with a gold buckle
 chest = bone_world('spine_03')
@@ -488,8 +498,8 @@ def pose(p):
         RIG.pose.bones[n].rotation_quaternion = Quaternion((1, 0, 0), math.radians(25 if n.startswith('thumb') else 55))
     RIG.pose.bones['head'].scale = (HEAD_SCALE,) * 3
     bpy.context.view_layer.update()
-    k = min(max((Ut.z - .35) / .5, 0), 1)
-    CAPE.scale = (CAPE_BASE.x, CAPE_BASE.y, CAPE_BASE.z * (.3 + .7 * k))
+    k = min(max((Ut.z - .6) / .35, 0), 1)  # leaning forward, the cape folds up to a short mantle
+    CAPE.scale = (CAPE_BASE.x, CAPE_BASE.y, CAPE_BASE.z * (.06 + .94 * k))
 
 
 def key_all(frame):
