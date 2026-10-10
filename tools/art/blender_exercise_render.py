@@ -118,10 +118,66 @@ def flat_build(rgb):
     return build
 
 
+def none_build(nt):
+    c = nt.nodes.new('ShaderNodeRGB')
+    c.outputs[0].default_value = (*[v / 255 for v in D['face']['none']], 1)
+    return c.outputs[0]
+
+
 PASS = {'pos': emission_material('pass_pos', encoded('Position', 1 / 256, .5)),
         'nrm': emission_material('pass_nrm', encoded('Normal', .5, .5)),
         'ao': emission_material('pass_ao', ao_build)}
 ID = {k: emission_material('pass_id_' + k, flat_build(((i + 1) / 32, 0, 0))) for i, k in enumerate(KEYS)}
+FACE_NONE = emission_material('pass_face_none', none_build)
+FACE_IMG = bpy.data.images.load(D['face']['tex'])
+FACE_IMG.colorspace_settings.name = 'Non-Color'   # palette bytes pass straight through
+FACE_IMG.pack()
+FACE_MAT = None   # built once the face frame exists
+
+
+def face_material(frame, half, eye_v):
+    """Emission of the face texture, projected along the face frame's z (out of the face); magenta elsewhere."""
+    m_ = bpy.data.materials.new('pass_face')
+    m_.use_nodes = True
+    m_.use_fake_user = True
+    nt = m_.node_tree
+    nt.nodes.clear()
+    tc = nt.nodes.new('ShaderNodeTexCoord')
+    tc.object = frame
+    sep = nt.nodes.new('ShaderNodeSeparateXYZ')
+    nt.links.new(tc.outputs['Object'], sep.inputs[0])
+
+    def lin(src, mul, add):
+        n = nt.nodes.new('ShaderNodeMath')
+        n.operation = 'MULTIPLY_ADD'
+        nt.links.new(src, n.inputs[0])
+        n.inputs[1].default_value, n.inputs[2].default_value = mul, add
+        return n.outputs[0]
+    u = lin(sep.outputs['X'], 1 / (2 * half), .5)
+    v = lin(sep.outputs['Y'], 1 / (2 * half), eye_v)        # y = 0 at the eyes
+    comb = nt.nodes.new('ShaderNodeCombineXYZ')
+    nt.links.new(u, comb.inputs['X'])
+    nt.links.new(v, comb.inputs['Y'])
+    tex = nt.nodes.new('ShaderNodeTexImage')
+    tex.image, tex.interpolation, tex.extension = FACE_IMG, 'Closest', 'CLIP'
+    nt.links.new(comb.outputs[0], tex.inputs['Vector'])
+    front = nt.nodes.new('ShaderNodeMath')                  # only the front of the head (z out of the face)
+    front.operation = 'GREATER_THAN'
+    nt.links.new(sep.outputs['Z'], front.inputs[0])
+    front.inputs[1].default_value = -.07 * K
+    k = nt.nodes.new('ShaderNodeMath')
+    k.operation = 'MULTIPLY'
+    nt.links.new(tex.outputs['Alpha'], k.inputs[0])
+    nt.links.new(front.outputs[0], k.inputs[1])
+    mix = nt.nodes.new('ShaderNodeMixRGB')
+    mix.inputs['Color1'].default_value = (*[c / 255 for c in D['face']['none']], 1)
+    nt.links.new(k.outputs[0], mix.inputs['Fac'])
+    nt.links.new(tex.outputs['Color'], mix.inputs['Color2'])
+    e = nt.nodes.new('ShaderNodeEmission')
+    nt.links.new(mix.outputs[0], e.inputs['Color'])
+    out = nt.nodes.new('ShaderNodeOutputMaterial')
+    nt.links.new(e.outputs[0], out.inputs['Surface'])
+    return m_
 VIEW = {}  # key -> viewport colour material, so the .blend opens readable
 
 
@@ -151,7 +207,10 @@ def set_pass(mode):
         if ob.type != 'MESH' or 'keys' not in ob:
             continue
         for slot, k in zip(ob.material_slots, ob['keys'].split(',')):
-            slot.material = PASS[mode] if mode in PASS else ID[k] if mode == 'id' else key_material(k)
+            if mode == 'face':
+                slot.material = FACE_MAT if (ob == BODY and k == 'skin') else FACE_NONE
+            else:
+                slot.material = PASS[mode] if mode in PASS else ID[k] if mode == 'id' else key_material(k)
 
 
 # ---------- mesh helpers ----------
@@ -378,13 +437,21 @@ for dx in (-.02, -.007, .007, .02):
            name='tail')
 
 
-# anime eyes: MakeHuman's eyeballs sit behind its eyelids, so each eye gets a flat almond on the face surface
-# (the packer draws it as a dark lash line over a red iris)
+# the face: a painted texture (make_exercise_blender.py, palette colours only) projected onto the head from the front.
+# FACE_FRAME sits between the eyes, facing out of the face; the projection is scaled so the texture's eyes land on the
+# head's eyes. MakeHuman's own eyes and brows are left out of the render (the texture draws them).
+eye_cs = []
 for side in (1, -1):
     vs = [eyes.matrix_world @ v.co for v in eyes.data.vertices if v.co.x * side > 0]
-    c = sum(vs, Vector()) / len(vs)
-    front = min(v.y for v in vs)
-    ell(Vector((c.x * 1.05, front - .011 * m, c.z)), (.016 * m, .005 * m, .011 * m), 'eye', 'head', 'anime_eye')
+    eye_cs.append(sum(vs, Vector()) / len(vs))
+FACE_FRAME = bpy.data.objects.new('face_frame', None)
+KN.objects.link(FACE_FRAME)
+FACE_FRAME.matrix_world = trs((eye_cs[0] + eye_cs[1]) / 2 + Vector((0, -.012 * m, 0)), basis(X, Z, -Y))
+PARTS.append((FACE_FRAME, 'head'))
+FACE_HALF = abs(eye_cs[0].x - eye_cs[1].x) / 2 / D['face']['eye_u'] / 2   # half the texture's width, scene units
+for ob in (ASSET['eye'], ASSET['brow']):
+    ob.hide_render = True
+
 
 # torso: cuirass (breast and back plate) with a gold collar and the blue gem; belt with a gold buckle
 chest = bone_world('spine_03')
@@ -464,6 +531,7 @@ for ob, bone in PARTS:
     bpy.context.view_layer.update()
     ob.matrix_world = mw
 
+FACE_MAT = face_material(FACE_FRAME, FACE_HALF, D['face']['eye_v'])
 CAPE_BASE = CAPE.scale.copy()  # parenting to the scaled rig gave the cape a compensating scale; keep it
 
 # ---------- posing ----------
@@ -674,21 +742,48 @@ def point(ci, logical_h):
     CAM.rotation_quaternion = basis(r, u, -f).to_quaternion()
 
 
+def block_majority(rgb8, fs):
+    """Reduce fs x fs blocks to one pixel: 'none' if it covers half the block, else a dark line colour if one
+    covers a quarter (thin lashes and pupils survive), else the most common colour."""
+    none = tuple(D['face']['none'])
+    dark = {tuple(c) for c in D['face']['dark']}
+    H, W = rgb8.shape[0] // fs, rgb8.shape[1] // fs
+    blocks = rgb8[:H * fs, :W * fs].reshape(H, fs, W, fs, 3).transpose(0, 2, 1, 3, 4).reshape(H, W, fs * fs, 3)
+    out = np.empty((H, W, 3), np.uint8)
+    out[:] = none
+    is_none = np.all(blocks == np.array(none, np.uint8), axis=-1)
+    for y, x in zip(*np.where(is_none.sum(axis=-1) * 2 < fs * fs)):
+        cols, counts = np.unique(blocks[y, x][~is_none[y, x]], axis=0, return_counts=True)
+        darks = [(c, tuple(col)) for col, c in zip(cols, counts) if tuple(col) in dark and c * 4 >= fs * fs]
+        out[y, x] = max(darks)[1] if darks else cols[counts.argmax()]
+    return out
+
+
 def render_pass(W, H, mode, out_path):
+    fs = D['face']['ss'] if mode == 'face' else 1
+    W, H = W * fs, H * fs
     sc.render.resolution_x, sc.render.resolution_y, sc.render.resolution_percentage = W, H, 100
     sc.cycles.samples = 64 if mode == 'ao' else 1
     set_pass(mode)
+    hair = [ob for ob in bpy.data.objects if ob.get('keys') == 'hair' and not ob.hide_render]
+    for ob in hair if mode == 'face' else ():     # the face pass sees through the hair (anime eyes show through bangs)
+        ob.hide_render = True
     tmp = os.path.join(OUT, 'tmp.exr')
     sc.render.filepath = tmp
     bpy.ops.render.render(write_still=True)
+    for ob in hair if mode == 'face' else ():
+        ob.hide_render = False
     img = bpy.data.images.load(tmp, check_existing=False)
     arr = np.empty(W * H * 4, np.float32)
     img.pixels.foreach_get(arr)
     bpy.data.images.remove(img)
-    np.save(out_path, arr.reshape(H, W, 4)[::-1])
+    arr = arr.reshape(H, W, 4)[::-1]
+    if mode == 'face':
+        arr = block_majority(np.clip(np.rint(arr[..., :3] * 255), 0, 255).astype(np.uint8), fs)
+    np.save(out_path, arr)
 
 
-PASSES = ('ao', 'nrm', 'pos', 'id')
+PASSES = ('ao', 'nrm', 'pos', 'id', 'face')
 cams = {}
 for k, mv in enumerate(D['moves']):
     if ONLY and mv['name'] not in ONLY:

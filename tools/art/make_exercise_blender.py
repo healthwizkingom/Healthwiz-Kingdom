@@ -109,7 +109,11 @@ def export(path):
         v['name'] = name
         views.append(v)
     preview_rgb = {k: [(c / 255) ** 2.2 for c in ME.PAL[RAMPS[k][2]]] for k in KEYS}
+    tex = os.path.join(os.path.dirname(path), 'face.png')
+    face_texture(tex)
     json.dump({'keys': KEYS, 'res': RES, 'preview_rgb': preview_rgb, 'moves': moves,
+               'face': {'tex': tex, 'ss': FACE_SS, 'eye_u': FACE_EYE_U, 'eye_v': FACE_EYE_V, 'none': NONE,
+                        'dark': [ME.PAL[k] for k in FACE_DARK]},
                'map': {'pose': rig_pose(ME.MAPPOSE), 'views': views}}, open(path, 'w'))
 
 
@@ -169,20 +173,6 @@ def smooth_hair(t, ids):
     return np.where(hair, votes.argmax(axis=0), t)
 
 
-def outline_sel(rgb, fg, depth, ids):
-    """Ink around the silhouette; inner edges (depth breaks) in the darkest tone of the nearer material."""
-    out, a = ME.outline(rgb, fg, np.where(fg, 0.0, 1e9))   # silhouette only
-    H, W = fg.shape
-    dp = np.pad(np.where(fg, depth, 1e9), 1, constant_values=1e9)
-    brk = np.zeros_like(fg)
-    for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1)):
-        brk |= fg & (depth - dp[1 + dy:H + 1 + dy, 1 + dx:W + 1 + dx] > 3.0)
-    brk &= ~face_skin(ids)                                   # no depth lines inside the face: it is drawn by hand
-    dark = LUT[np.clip(ids - 1, 0, len(KEYS) - 1), 0]
-    out[brk] = dark[brk]
-    return out, a
-
-
 def ground_shadow(cam, fg_a, W, H):
     """Hard oval shadow on the floor under the knight and the props, behind everything else."""
     cx, cz, hx, hz = cam['floor']
@@ -195,173 +185,85 @@ def ground_shadow(cam, fg_a, W, H):
     return (np.asarray(m) > 0) & ~fg_a
 
 
-def components(mask):
-    """4-connected pixel groups of a small mask, as lists of (y, x)."""
-    seen, out = np.zeros_like(mask), []
-    for y, x in zip(*np.where(mask)):
-        if seen[y, x]:
-            continue
-        stack, comp = [(y, x)], []
-        seen[y, x] = True
-        while stack:
-            cy, cx = stack.pop()
-            comp.append((cy, cx))
-            for ny, nx in ((cy - 1, cx), (cy + 1, cx), (cy, cx - 1), (cy, cx + 1)):
-                if 0 <= ny < mask.shape[0] and 0 <= nx < mask.shape[1] and mask[ny, nx] and not seen[ny, nx]:
-                    seen[ny, nx] = True
-                    stack.append((ny, nx))
-        out.append(comp)
-    return out
+# ---------- the face ----------
+# The face is a painted texture (palette colours only) that Blender projects onto the head, the way anime games paint
+# faces: clean shapes that follow the head in every pose. Blender renders it at FACE_SS x the sprite resolution and
+# reduces each block to its majority colour (thin dark lines win when they cover a quarter of the block), so shapes
+# turn into clean pixel clusters. Texture space: u across the face (the picture's left to right), v up; the eyes sit
+# at u = .5 -+ FACE_EYE_U, v = FACE_EYE_V, and Blender scales the projection to the head's real eye spacing.
+FACE_TEX, FACE_SS, FACE_EYE_U, FACE_EYE_V = 1024, 4, .2, .6875
+PAINT_EYE_U, PAINT_EYE_SCALE = .238, 1.1   # the painted eyes: a little wider apart and larger than the head's
+NONE = (255, 0, 255)          # 'no face here' in the face pass (not a palette colour)
+FACE_DARK = ('ink', 'hr0', 'cp0')
+EYE_COLOURS = ('ink', 'cp0', 'cp1', 'cp2', 'cp3', 'gd2', 'wht', 'st3', 'st4')  # what the eyes are painted with
 
 
-# The face, drawn like pixel art and anchored where the eye meshes land (the rendered head is too small for rendered
-# features). FRONT[RES] rows: (offset from the upper lids, pattern centred on the nose bridge); SIDE[RES]: the eye in
-# profile, inner corner first. '.' leaves the render as it is.
-FRONT = {
-    1: [(-2, '.BB..BB.'), (0, 'LLL..LLL'), (1, 'WIi..iIW'), (3, '...n....'), (5, '...mm...')],
-    2: [(-4, '.BB..........BB.'),      # brows: inner ends low, outer ends raised (composed, confident)
-        (-3, '...BBB....BBB...'),
-        (-1, 'L..............L'),      # the upper lids flick up at the outer corners
-        (0, '.LLLLL....LLLLL.'),       # heavy upper lids
-        (1, '.WiHi......iHiW.'),       # dark top of the irises, a catch-light, white at the outer corners
-        (2, '..III......III..'),       # bright lower irises
-        (3, '...w........w...'),       # a soft lower lid
-        (5, '........n.......'),       # the nose: a shadow down one side
-        (6, '.......nn.......'),
-        (8, '......MmmM......')],      # the mouth: dark centre, soft corners
-}
+def paint_eye(im, cx, cy, s, k=1.0):
+    """One eye, s = -1 on the left of the picture (outer corner to the left), +1 on the right (mirrored); the
+    catch-lights are not mirrored, they stay on the lit (left) side of the pupil."""
+    C = lambda k: ME.PAL[k] + (255,)
+    P = lambda x, y: (cx - x * k if s > 0 else cx + x * k, cy + y * k)
+    opening = [P(-150, 8), P(-110, -40), P(-60, -64), P(20, -72), P(95, -55), P(150, 4), P(125, 42), P(40, 70),
+               P(-60, 68), P(-125, 42)]
+    layer = Image.new('RGBA', im.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(layer)
+    d.polygon(opening, fill=C('st4'))                                            # the white
+    d.polygon([P(-150, 8), P(-110, -40), P(-60, -64), P(20, -72), P(95, -55), P(150, 4), P(150, -20),
+               P(95, -30), P(20, -46), P(-60, -38), P(-110, -14)], fill=C('st3'))  # the lid's shadow on the white
+    px, py = P(12, 6)
+    iris = Image.new('L', im.size, 0)
+    q = lambda v: v * k
+    ImageDraw.Draw(iris).ellipse((px - q(84), py - q(104), px + q(84), py + q(104)), fill=255)
+    bands = Image.new('RGBA', im.size, (0, 0, 0, 0))
+    db = ImageDraw.Draw(bands)
+    for y0, y1, col in ((-110, -28, 'cp0'), (-28, 8, 'cp1'), (8, 46, 'cp2'), (46, 110, 'cp3')):  # deep red to bright
+        db.rectangle((px - q(90), py + q(y0), px + q(90), py + q(y1)), fill=C(col))
+    db.ellipse((px - q(46), py + q(52), px + q(46), py + q(86)), fill=C('gd2'))  # an amber glow at the bottom
+    db.ellipse((px - q(26), py - q(52), px + q(26), py + q(38)), fill=C('ink'))  # the pupil, upright
+    hx = px - q(40)                                                              # catch-lights on the lit side
+    db.ellipse((hx - q(22), py - q(62), hx + q(22), py - q(18)), fill=C('wht'))
+    db.ellipse((px + q(22), py + q(34), px + q(40), py + q(52)), fill=C('st4'))
+    layer.paste(bands, (0, 0), Image.composite(bands, Image.new('RGBA', im.size), iris).split()[3])
+    mask = Image.new('L', im.size, 0)
+    ImageDraw.Draw(mask).polygon(opening, fill=255)
+    im.paste(layer, (0, 0), Image.composite(layer, Image.new('RGBA', im.size), mask).split()[3])
+    d = ImageDraw.Draw(im)
+    lash = [P(-198, -48), P(-150, -34), P(-110, -86), P(-60, -112), P(20, -120), P(95, -102), P(158, -34),
+            P(165, 2), P(150, 4), P(95, -55), P(20, -72), P(-60, -64), P(-110, -40), P(-150, 8), P(-172, -8)]
+    d.polygon(lash, fill=C('ink'))                                               # upper lash with the outer wing
+    d.polygon([P(95, -102), P(158, -34), P(165, 2), P(150, 4), P(95, -55)], fill=C('hr0'))  # thinner toward the nose
+    d.polygon([P(-142, 30), P(-125, 42), P(-60, 68), P(-20, 72), P(-20, 86), P(-60, 84), P(-128, 58),
+               P(-148, 40)], fill=C('hr1'))                                      # soft lower lash, hugging the eye
+    d.polygon([P(-195, -168), P(-100, -194), P(0, -206), P(100, -204), P(162, -194), P(162, -164), P(100, -170),
+               P(0, -172), P(-100, -166), P(-195, -163)], fill=C('hr0'))         # the brow: a low arch, tapered
+    d.polygon([P(-195, -168), P(-100, -194), P(-100, -166), P(-195, -163)], fill=C('hr1'))  # its lighter tail
 
 
-def front_face(width, left_eye, eye_at, brow, brow_at, centre):
-    """A front face pattern: the left eye and brow as drawn (outer corner first), mirrored for the right, plus the
-    centre rows (nose, mouth). Rows are (offset from the upper lids, pattern) of the given width."""
-    rows = {}
-
-    def place(dy, col, text):
-        row = rows.setdefault(dy, ['.'] * width)
-        for i, ch in enumerate(text):
-            if ch != '.':
-                row[col + i] = ch
-
-    for dy, text in left_eye:
-        place(dy, eye_at, text)
-        place(dy, width - eye_at - len(text), text[::-1])
-    for dy, text in brow:
-        place(dy, brow_at, text)
-        place(dy, width - brow_at - len(text), text[::-1])
-    for dy, text in centre:
-        place(dy, 0, text)
-    return sorted((dy, ''.join(r)) for dy, r in rows.items())
-
-
-def mirror_eye(text):
-    """The right eye: the left one mirrored, but with its catch-light kept on the lit (left) side of the pupil."""
-    t = list(text[::-1])
-    if 'H' in t and 'K' in t:
-        h = t.index('H')
-        k = min(i for i, ch in enumerate(t) if ch == 'K')
-        t[h] = t[h - 1] if h > 0 and t[h - 1] not in 'HK.' else t[h + 1]
-        t[k - 1] = 'H'
-    return ''.join(t)
+def face_texture(path):
+    """Paint the knight's face (palette colours only) and save it as a PNG for Blender."""
+    T = FACE_TEX
+    im = Image.new('RGBA', (T, T), (0, 0, 0, 0))
+    C = lambda k: ME.PAL[k] + (255,)
+    d = ImageDraw.Draw(im)
+    d.ellipse((30, 40, T - 30, T - 10), fill=C('sk3'))                           # skin, shaded later from the light
+    ey = round((1 - FACE_EYE_V) * T)
+    for s in (-1, 1):
+        paint_eye(im, round((.5 + s * PAINT_EYE_U) * T), ey, s, PAINT_EYE_SCALE)
+    d = ImageDraw.Draw(im)
+    # the nose: one connected shape, light from the top left: a soft line down the shaded side into the tip's shadow
+    d.polygon([(522, 440), (552, 440), (574, 598), (586, 618), (562, 642), (500, 644), (470, 630), (482, 612),
+               (540, 604)], fill=C('sk2'))
+    d.ellipse((502, 618, 540, 640), fill=C('sk1'))
+    # the mouth: a short, slightly curved line, darker at the centre, and a soft shadow under the lower lip
+    d.polygon([(424, 774), (512, 760), (600, 774), (600, 796), (512, 788), (424, 796)], fill=C('sk1'))
+    d.polygon([(456, 770), (512, 760), (568, 770), (568, 794), (512, 788), (456, 794)], fill=C('sk0'))
+    d.ellipse((478, 816, 546, 842), fill=C('sk2'))
+    im.save(path)
 
 
-def front_face_4(width=32, eye_at=3):
-    """The 4x front face. Eyes are 10 px wide, outer corner first; the right eye mirrors the left (catch-lights stay
-    on the lit side). Columns are centred on the nose bridge."""
-    eye = [(-2, 'Ll........'),     # the lash's outer wing
-           (-1, '.LKKKKKKl.'),     # upper lash: tapered, an ink core
-           (0, '.KabKKbaW.'),      # deep red under the lid, the pupil, a touch of white at the inner corner
-           (1, '.WbHKKbb..'),      # white at the outer corner, the catch-light beside the pupil
-           (2, '..cccccc..'),      # mid red
-           (3, '..dgddgd..'),      # bright lower iris with amber glints
-           (4, '...dddd...'),      # the iris rounds off at the bottom
-           (5, '.uuu......')]      # a short, soft lower lash at the outer corner
-    brow = [(-6, 'lll.......'),    # thin, sharp brows: a light tail at the outer end ...
-            (-5, '...LLLLLL.')]    # ... and a firm body toward the nose; level, composed
-    rows = {}
-
-    def place(dy, col, text):
-        row = rows.setdefault(dy, ['.'] * width)
-        for i, ch in enumerate(text):
-            if ch != '.':
-                row[col + i] = ch
-
-    for dy, text in eye + brow:
-        place(dy, eye_at, text)
-        place(dy, width - eye_at - len(text), mirror_eye(text))
-    for dy, col, text in ((6, 17, 'v'), (7, 17, 'v'), (8, 17, 'v'),   # the nose: one connected shape, a soft line
-                          (9, 15, 'NNv'),                              # down the shaded side into the tip's shadow
-                          (13, 14, 'MmmmM')):                          # the mouth: a short upper-lip line, soft ends
-        place(dy, col, text)
-    return sorted((dy, ''.join(r)) for dy, r in rows.items())
-
-
-FRONT[4] = front_face_4()
-SIDE = {1: [(0, 'LLLl'), (1, 'IiW.')],
-        2: [(-1, '....L'), (0, 'LLLLL'), (1, 'iHiW.'), (2, 'III..'), (3, '.w...')],
-        4: [(-6, '.LLLlll'),        # the brow, tapering back
-            (-2, '.....Ll'),        # the lash's wing
-            (-1, 'LKKKKl.'),        # upper lash
-            (0, 'aKKaW..'),         # deep red under the lid, the pupil, a touch of white
-            (1, 'bHKb...'),         # catch-light
-            (2, 'cccc...'),
-            (3, 'dgd....'),         # bright lower iris
-            (4, 'dd.....'),
-            (5, '.uu....')]}        # soft lower lash
-FACE_INK = {'B': 'hr0', 'L': 'hr0', 'l': 'hr1', 'K': 'ink', 'I': 'cp3', 'i': 'cp1', 'p': 'cp0', 'a': 'cp0',
-            'b': 'cp1', 'c': 'cp2', 'd': 'cp3', 'g': 'gd2', 'H': 'wht', 'S': 'st3', 'W': 'st4', 'w': 'sk1',
-            'u': 'sk1', 'v': 'sk2', 'n': 'sk1', 'N': 'sk1', 'm': 'sk0', 'M': 'sk1'}
-SKIN_ONLY = 'nNmMwuv'   # these sit on skin only; eyes and brows may cover bang tips
-
-
-def draw_eyes(rgb, ids, front=None, side=None, ink=None):
-    """Anime eyes (dark-brown upper lids, two-tone red irises with a catch-light, a little white) and, from the front,
-    brows, a nose shadow and a mouth. No black rings, so the eyes do not look hollow. Eyes and brows may cover bang
-    tips (the bangs fall past the eyes); the nose, mouth and lower lids only ever sit on skin."""
-    front, side, ink = front or FRONT[RES], side or SIDE[RES], ink or FACE_INK
-    E = ids == KEYS.index('eye') + 1
-    if not E.any():
-        return
-    on = lambda keys: np.isin(ids, [KEYS.index(k) + 1 for k in keys])
-    skin, faceish = on(('skin', 'nose', 'mouth')), on(('skin', 'eye', 'hair', 'brow', 'nose', 'mouth'))
-    H, W = ids.shape
-
-    def put(y, x, ch):
-        if ch == '.' or not (0 <= y < H and 0 <= x < W):
-            return
-        if (skin if ch in SKIN_ONLY else faceish)[y, x]:
-            rgb[y, x] = ME.PAL[ink[ch]]
-
-    ys, xs = np.where(E)
-    half = len(front[0][1]) // 2
-    if len(components(E)) > 1 or xs.max() - xs.min() + 1 >= 3 * RES + 1:   # both eyes in view: the front face
-        y0, cx = ys.min(), int(round(xs.mean() + .5))
-        for dy, row in front:
-            for i, ch in enumerate(row):
-                put(y0 + dy, cx - half + i, ch)
-        return
-    cy, cx = ys.mean(), xs.mean()                           # one eye in view: the outer corner faces the hair
-    hx = np.where(on(('hair',))[max(0, int(cy) - 8 * RES):int(cy) + 8 * RES])[1]
-    out = 1 if len(hx) and hx.mean() > cx else -1
-    x_in = int(round(cx)) - out * RES
-    drawn = np.zeros_like(E)
-    for dy, row in side:
-        for i, ch in enumerate(row):
-            put(ys.min() + dy, x_in + out * i, ch)
-            if ch != '.' and 0 <= ys.min() + dy < H and 0 <= x_in + out * i < W:
-                drawn[ys.min() + dy, x_in + out * i] = True
-    rgb[E & ~drawn] = ME.PAL['sk3']                          # the far eye's edge, seen past the nose, is just skin
-
-
-def face_skin(ids, reach=7 * RES):
-    """Skin within a few pixels of the eyes: the face (the neck and hands keep their shading)."""
-    skin = np.isin(ids, [KEYS.index(k) + 1 for k in ('skin', 'nose', 'mouth')])
-    ys, xs = np.where(ids == KEYS.index('eye') + 1)
-    if not len(ys):
-        return np.zeros_like(skin)
-    yy, xx = np.mgrid[0:ids.shape[0], 0:ids.shape[1]]
-    near = (np.abs(yy - ys.mean()) <= reach) & (np.abs(xx - xs.mean()) <= reach)
-    return skin & near
+def face_pass(out_dir, stem):
+    p = os.path.join(out_dir, stem + '_face.npy')
+    return np.load(p) if os.path.exists(p) else None
 
 
 def majority(t, mask, passes=2):
@@ -379,33 +281,44 @@ def majority(t, mask, passes=2):
     return t
 
 
-def face_tones(t, ids, N, cam):
-    """Skin on the face from the light: highlight (sk3) and midtone (sk2), shadow (sk1) only under the jaw where the
-    face turns away, cleaned into smooth clusters, with the bangs casting a shadow on the forehead. The darkest skin tone is kept for
-    the mouth only, so the face never turns muddy."""
-    face = face_skin(ids)
+def face_tones(t, ids, N, cam, face):
+    """Skin tone on the face (skin ramp: 0 sk1, 1 sk2, 2 sk3): one clean highlight tone, a slim midtone band along
+    the contour on the shaded side and under the bangs, the darkest tone only under the jaw; smoothed into clusters."""
     if not face.any():
         return t
     r, u, f = (np.array(cam[k]) for k in ('r', 'u', 'f'))
     lam = np.stack([N @ r, N @ u, -(N @ f)], -1) @ ME.LIGHT
-    # anime shading: highlight everywhere, a clean midtone band along the face's edge on the shaded side, and the
-    # darkest tone only on the underside of the jaw
-    edge = face.copy()
-    dist = np.zeros(face.shape, int)
-    for d in range(1, 3 * RES):
-        p = np.pad(edge, 1)
-        edge = edge & p[:-2, 1:-1] & p[2:, 1:-1] & p[1:-1, :-2] & p[1:-1, 2:]
-        dist += edge
+    inner, dist = face.copy(), np.zeros(face.shape, int)
+    for _ in range(2 * RES):
+        p = np.pad(inner, 1)
+        inner = inner & p[:-2, 1:-1] & p[2:, 1:-1] & p[1:-1, :-2] & p[1:-1, 2:]
+        dist += inner
     ft = np.full(face.shape, 2)
-    ft = np.where(face & (lam < -.05) & (dist < RES), 1, ft)
-    ft = np.where(face & (lam < -.55) & (dist < RES), 0, ft)
-    ft = majority(ft, face, 2)
+    ft = np.where(face & (lam < -.15) & (dist < RES), 1, ft)
+    ft = np.where(face & (lam < -.6) & (dist < RES // 2 + 1), 0, ft)
     hair = ids == KEYS.index('hair') + 1
     under = np.zeros_like(hair)
-    for dy in range(1, 3):                                   # a thin band just below the bangs
+    for dy in range(1, 3):                                   # a thin shadow just below the bangs
         under[dy:] |= hair[:-dy]
     ft = np.where(under & face, np.minimum(ft, 1), ft)
+    ft = majority(ft, face, 3)
     return np.where(face, ft, t)
+
+
+def outline_sel(rgb, fg, depth, ids, face=None):
+    """Ink around the silhouette; inner edges (depth breaks) in the darkest tone of the nearer material, but none
+    inside the face (it is painted)."""
+    out, a = ME.outline(rgb, fg, np.where(fg, 0.0, 1e9))   # silhouette only
+    H, W = fg.shape
+    dp = np.pad(np.where(fg, depth, 1e9), 1, constant_values=1e9)
+    brk = np.zeros_like(fg)
+    for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+        brk |= fg & (depth - dp[1 + dy:H + 1 + dy, 1 + dx:W + 1 + dx] > 3.0)
+    if face is not None:
+        brk &= ~face
+    dark = LUT[np.clip(ids - 1, 0, len(KEYS) - 1), 0]
+    out[brk] = dark[brk]
+    return out, a
 
 
 def shade(out_dir, stem, cam, shadow=True):
@@ -413,10 +326,21 @@ def shade(out_dir, stem, cam, shadow=True):
     f = np.array(cam['f'])
     depth = np.where(fg, (P - (np.array(cam['center']) - f * 200)) @ f, 1e9)
     t = tones(fg, ids, N, ao, cam)
-    t = face_tones(t, ids, N, cam)
+    fp = face_pass(out_dir, stem)
+    skin = ids == KEYS.index('skin') + 1
+    face = skin & np.any(fp != NONE, axis=-1) if fp is not None else np.zeros_like(skin)
+    t = face_tones(t, ids, N, cam, face)
     rgb = LUT[np.clip(ids - 1, 0, len(KEYS) - 1), t]
-    draw_eyes(rgb, ids)
-    out, a = outline_sel(rgb, fg, depth, ids)
+    if fp is not None:
+        painted = face & np.any(fp != ME.PAL['sk3'], axis=-1)   # features; plain skin keeps its shading
+        rgb[painted] = fp[painted]
+        # anime convention: the eyes show through the bangs (the brows, nose and mouth stay under them)
+        eye_ink = np.zeros(skin.shape, bool)
+        for k in EYE_COLOURS:
+            eye_ink |= np.all(fp == ME.PAL[k], axis=-1)
+        through = eye_ink & (ids == KEYS.index('hair') + 1)
+        rgb[through] = fp[through]
+    out, a = outline_sel(rgb, fg, depth, ids, face)
     im = np.asarray(ME.to_img(out, a)).copy()
     if shadow:
         sh = ground_shadow(cam, a, *fg.shape[::-1])
