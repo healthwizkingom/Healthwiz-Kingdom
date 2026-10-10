@@ -22,7 +22,7 @@ chart=function(v,lb,c,u,tg,tl){const vals=v.map(x=>x==null||isNaN(+x)?null:+x),h
 HWUI.css('charts',`.v6ch{cursor:crosshair;touch-action:pan-y}.v6ch>div.sel i{outline:2px solid var(--ink);outline-offset:1px;filter:brightness(1.15)}
 .v6cr{min-height:1.5em;font-size:13px;font-variant-numeric:tabular-nums;color:var(--ink)}.v6cr b{font-family:var(--fn,inherit)}
 .v6sl{position:relative;height:1.4em}.v6sl span{position:absolute;transform:translateX(-50%);white-space:nowrap}.v6sl span:first-child{transform:none}.v6sl span:last-child{transform:translateX(-100%)}
-#v6cmp .tbl{min-width:0}#v6cmp td small{color:var(--mut);font-size:11px}.v6ce{border:3px dashed var(--p2);padding:14px 10px;text-align:center}.v6ce b{display:block;font:8px/1.7 var(--fh);margin-bottom:4px}.v6ce small{color:var(--mut)}`);
+#v6cmp .tbl{min-width:0;table-layout:fixed}#v6cmp th{white-space:normal;overflow-wrap:anywhere;font:700 12px/1.3 var(--fb);vertical-align:bottom}#v6cmp th:first-child{width:27%}#v6cmp th small{display:block;font-weight:400}#v6cmp td{overflow-wrap:anywhere}#v6cmp td small{color:var(--mut);font-size:11px}.v6ce{border:3px dashed var(--p2);padding:14px 10px;text-align:center}.v6ce b{display:block;font:8px/1.7 var(--fh);margin-bottom:4px}.v6ce small{color:var(--mut)}`);
 
 function bars(ch){return [...ch.children].filter(x=>x.tagName==='DIV')}
 function sel(ch,i){const B=bars(ch);if(!B.length)return;i=Math.max(0,Math.min(B.length-1,i));B.forEach((b,k)=>b.classList.toggle('sel',k===i));ch.dataset.i=i;

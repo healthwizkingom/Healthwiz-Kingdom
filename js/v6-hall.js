@@ -148,7 +148,10 @@ function shortHome(h){const t=document.createElement('template');t.innerHTML=h;c
    on the game scenes (Dream Battle, Storm Within, the Counsel's name plate) stay part of the picture. */
 HWUI.css('hall-size',`
 html #main .back,html #main button.sm,html #main .chip,html #main .hwh,html #main .hwq,html #main button[data-a="edit"],html #main button[data-a="del"]{min-height:44px;min-width:44px}
-html #main .hwh:not(.hwhl){width:44px;height:44px;margin:-9px -9px -9px -1px;font-size:14px}
+html #main .hwh:not(.hwhl){width:44px;height:44px;margin:-9px -9px -9px -1px;font-size:11px;isolation:isolate;background:none;border:0;box-shadow:none}
+html #main .hwh:not(.hwhl):before{content:"";position:absolute;inset:9px;z-index:-1;background:#1f6fb0;border:2px solid var(--ln);box-shadow:inset -2px -2px 0 rgba(0,0,0,.2),2px 2px 0 var(--ln)}
+html #main .hwh[aria-expanded="true"]:not(.hwhl):before{background:var(--gold)}
+:root[data-theme="dark"] #main .hwh:not(.hwhl):before{border-color:#9fc4e8}@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) #main .hwh:not(.hwhl):before{border-color:#9fc4e8}}
 html #main summary{min-height:44px;display:flex;align-items:center}
 html #main .cshelp a,html #main .v6aq a,html #main .v6hzb a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:0 4px}
 html #main .v6shfs{min-width:44px;min-height:44px}

@@ -13,7 +13,7 @@ const HWProvisions=(()=>{
 const NUT=pages.food,HYD=pages.water; // the two sections, as js/hw-02-core.js builds them
 const SYS={food:{n:'Nutrition',icon:'food',title:'NUTRITION & CALORIES',region:'Nutrition Village',
     line:'',help:1},
-  water:{n:'Hydration',icon:'water',title:'WATER QUEST',region:'Water Valley',
+  water:{n:'Hydration',icon:'water',title:'WATER QUEST',region:'Water Valley',notag:1,
     line:'Restore the Well of Life — every sip you log physically fills the village well.'}};
 const other=v=>v==='water'?'food':'water';
 const kstate=c=>{try{return HWKingdom.NAMES[HWKingdom.level(KR.find(r=>r[3]===c))]||''}catch(e){return ''}};
@@ -33,7 +33,7 @@ function page(v,body){const d=today(),o=other(v),s=kstate(v),S0=SYS[v];
   return '<h2>NUTRITION & HYDRATION</h2>'
     +'<div class="nstabs" role="group" aria-label="Nutrition and hydration">'+sys('food',v==='food',d)+sys('water',v==='water',d)+'</div>'
     +'<div class="nshd">'+HWPixel.icon(S0.icon,2)+'<div><b>'+S0.title+(S0.help?HWHelp.btn('nutintro'):'')+'</b><span class="nsrg">'+S0.region
-      +(s?' <span class="pxtag">'+s.toUpperCase()+'</span>':'')+'</span>'+(S0.line?'<small>'+S0.line+'</small>':'')+'</div></div>'
+      +(s&&!S0.notag?' <span class="pxtag">'+s.toUpperCase()+'</span>':'')+'</span>'+(S0.line?'<small>'+S0.line+'</small>':'')+'</div></div>'
     +body()
     +'<button class="g nsgo" data-a="nstab" data-v="'+o+'">'+HWPixel.icon(SYS[o].icon)+' GO TO '+SYS[o].n.toUpperCase()+' ▶</button>'}
 pages.food=()=>page('food',NUT);

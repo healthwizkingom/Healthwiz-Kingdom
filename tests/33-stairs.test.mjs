@@ -315,3 +315,178 @@ test('measured stairways card: the three report stairs, report rank vs app band'
   assert.equal(await page.evaluate(() => document.querySelector('#stman').compareDocumentPosition(document.querySelector('#ststudy')) & Node.DOCUMENT_POSITION_FOLLOWING), 4);
   assert.deepEqual(errors, []); await ctx.close();
 });
+
+// Heart-rate recovery (Group 14 report, 4.9): the pulse one minute after stopping, and a prompt for the resting pulse
+const wkEntry = (n, m, t = '12:00') => entry('stair', 90, n, { sid: 'ST24', loc: 'Tangga dalam Blok A', diff: 'MODERATE', steps: 30, climbs: 3, kind: 'workout', src: 'manual', pace: 'Moderate', dur: 8, ...m }, t);
+const NOTE = /A guide only\. It varies with fitness, caffeine, sleep and how hard you climbed\. If you feel dizzy, have chest pain or feel unwell, stop and see a health professional\./;
+
+test('recovery: optional "1 minute after" field, saved in m.hrR1, validated like the other heart rates', async () => {
+  const { page, ctx, errors } = await boot();
+  assert.match(await page.textContent('#sthrc'), /1 minute after you stop \(BPM\)[\s\S]*Rest quietly, count your pulse again one minute later\. Your heart should slow down after you stop\./);
+  assert.deepEqual(await page.$eval('#wk-r', e => [e.type, e.min, e.max, e.required]), ['number', '30', '220', false]);
+  await page.selectOption('#wk-loc', 'ST24'); await page.click('[data-a="pace"][data-i="2"]');
+  await fillSteps(page, '#wk-s', '30'); await page.fill('#wk-c', '3');
+  await page.fill('#wk-r', '400'); await page.click('[data-a="stwsave"]');
+  assert.equal(stairs(await state(page)).length, 0, '400 BPM rejected');
+  await page.fill('#wk-r', '');
+  await page.click('[data-a="stwsave"]');
+  const e0 = stairs(await state(page))[0];
+  assert.equal('hrR1' in e0.m && e0.m.hrR1 != null, false, 'optional: a workout without it saves as before');
+  await page.selectOption('#wk-loc', 'ST24'); await page.click('[data-a="pace"][data-i="2"]');
+  await fillSteps(page, '#wk-s', '30'); await page.fill('#wk-c', '3');
+  await page.fill('#wk-b', '72'); await page.fill('#wk-a', '130'); await page.fill('#wk-r', '98');
+  await page.waitForTimeout(100);
+  assert.equal(await page.evaluate(() => JSON.parse(sessionStorage.getItem('hw_wk_draft')).hrR1), '98', 'kept with the draft');
+  await page.click('[data-a="stwsave"]');
+  const e = stairs(await state(page))[1];
+  assert.deepEqual([e.m.hrB, e.m.hrA, e.m.hrR1], [72, 130, 98]);
+  assert.equal(await page.inputValue('#wk-r'), '', 'cleared after saving');
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('recovery line: a drop, no drop, and nothing when the minute-after number is missing', async () => {
+  const { page, ctx, errors } = await boot();
+  await page.fill('#wk-a', '130');
+  assert.equal((await page.textContent('#st-rec')).trim(), '', 'no number: no line');
+  await page.fill('#wk-r', '98');
+  const t = await page.textContent('#st-rec');
+  assert.match(t, /Your heart rate fell by 32 BPM in one minute \(from 130 to 98\)\./);
+  assert.match(t, NOTE);
+  assert.doesNotMatch(t, /good|bad|diagnos[ie]s|healthy|unhealthy/i, 'no judgement');
+  await page.fill('#wk-r', '131');
+  assert.match(await page.textContent('#st-rec'), /Your heart rate did not fall in this minute\. Rest a little longer and count again\./);
+  assert.doesNotMatch(await page.textContent('#st-rec'), /fell by/);
+  await page.fill('#wk-r', '130');
+  assert.match(await page.textContent('#st-rec'), /did not fall/, 'a drop of 0 is not a fall');
+  await page.fill('#wk-a', ''); await page.fill('#wk-r', '98');
+  assert.equal((await page.textContent('#st-rec')).trim(), '', 'needs the after number too');
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('recovery: history table column and chart marker only when a listed workout has it; old entries unchanged', async () => {
+  const old = [wkEntry(3, { hrB: 70, hrA: 120 })];
+  const { page, ctx, errors } = await boot({ seed: { ...RETURNING, e: old } });
+  const before = JSON.stringify(old);
+  assert.deepEqual(await page.$$eval('#sthrg th', t => t.map(x => x.textContent)), ['Date', 'Before', 'After']);
+  assert.equal(await page.locator('#sthrg svg .hr1').count(), 0);
+  assert.doesNotMatch(await page.textContent('#sthrg'), /1 min after/);
+  assert.match(await page.textContent('#stlog'), /Before[\s\S]*70[\s\S]*After[\s\S]*120/);
+  assert.equal(JSON.stringify((await state(page)).e), before, 'old entry untouched');
+  await ctx.close();
+  const seed = { ...RETURNING, e: [wkEntry(3, { hrB: 70, hrA: 120 }), wkEntry(1, { hrB: 72, hrA: 130, hrR1: 98 })] };
+  const r = await boot({ seed });
+  assert.deepEqual(await r.page.$$eval('#sthrg th', t => t.map(x => x.textContent)), ['Date', 'Before', 'After', '1 min after']);
+  assert.deepEqual(await r.page.$$eval('#sthrg tr:nth-child(2) td', t => t.map(x => x.textContent)).then(x => x.slice(1)), ['72', '130', '98']);
+  assert.deepEqual(await r.page.$$eval('#sthrg tr:nth-child(3) td', t => t.map(x => x.textContent)).then(x => x.slice(1)), ['70', '120', '–']);
+  assert.equal(await r.page.locator('#sthrg svg .hr1').count(), 1, 'one marker, for the workout that has it');
+  assert.match(await r.page.getAttribute('#sthrg .sthrsvg', 'aria-label'), /one minute after/);
+  assert.match(await r.page.textContent('#sthrg .sthrsvg .pt:last-of-type title'), /after 130 · 1 min after 98 BPM/);
+  assert.match(await r.page.textContent('#sthrg .stleg'), /1 min after/);
+  assert.deepEqual(r.errors, []); await r.ctx.close();
+});
+
+test('recovery: 7-day average tile needs 2 qualifying workouts, shows nothing otherwise, and gives no XP or score weight', async () => {
+  const tile = p => p.locator('#st-recavg').count();
+  let r = await boot({ seed: { ...RETURNING, e: [wkEntry(1, { hrB: 70, hrA: 130, hrR1: 100 })] } });
+  assert.equal(await tile(r.page), 0, 'one workout: no tile');
+  assert.doesNotMatch(await r.page.textContent('.ststats'), /recovery|drop/i);
+  await r.ctx.close();
+  r = await boot({ seed: { ...RETURNING, e: [wkEntry(1, { hrB: 70, hrA: 130, hrR1: 100 }), wkEntry(2, { hrB: 70, hrA: 140 }), wkEntry(12, { hrB: 70, hrA: 150, hrR1: 100 })] } });
+  assert.equal(await tile(r.page), 0, 'a workout without it, and one older than 7 days, do not count');
+  await r.ctx.close();
+  r = await boot({ seed: { ...RETURNING, e: [wkEntry(1, { hrB: 70, hrA: 130, hrR1: 100 }), wkEntry(2, { hrB: 70, hrA: 140, hrR1: 105 })] } });
+  assert.equal(await tile(r.page), 1);
+  assert.match(await r.page.textContent('#st-recavg'), /33[\s\S]*BPM drop[\s\S]*Average recovery, last 7 days/);
+  assert.deepEqual(r.errors, []); await r.ctx.close();
+  // saving a recovery value gives the same XP as saving without it
+  const xp = async v => { const q = await boot(); await q.page.selectOption('#wk-loc', 'ST24'); await q.page.click('[data-a="pace"][data-i="2"]');
+    await fillSteps(q.page, '#wk-s', '30'); await q.page.fill('#wk-c', '3'); await q.page.fill('#wk-a', '130'); await q.page.fill('#wk-r', v);
+    await q.page.click('[data-a="stwsave"]'); const x = (await state(q.page)).xp; await q.ctx.close(); return x; };
+  assert.equal(await xp('98'), await xp(''), 'no XP for the recovery value');
+});
+
+test('resting pulse hint: only with an after number and no before number; the button focuses the field', async () => {
+  const { page, ctx, errors } = await boot();
+  const hint = () => page.locator('#st-rhint').count();
+  assert.equal(await hint(), 0, 'nothing entered');
+  await page.fill('#wk-b', '72');
+  assert.equal(await hint(), 0, 'before only');
+  await page.fill('#wk-a', '130');
+  assert.equal(await hint(), 0, 'both filled: the project panel takes over');
+  assert.equal(await page.locator('.stproj').count(), 1);
+  await page.fill('#wk-b', '');
+  assert.equal(await hint(), 1);
+  assert.equal(await page.locator('.stproj').count(), 0);
+  const t = await page.textContent('#st-rhint');
+  assert.match(t, /Add your resting pulse \(count it before you start\) to see VO₂ and energy by our project's method\./);
+  assert.doesNotMatch(t, /Use today's resting pulse/, 'no resting pulse logged today: no one-tap offer');
+  await page.click('#st-rhint [data-a="stfocusb"]');
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'wk-b');
+  await page.fill('#wk-a', '');
+  assert.equal(await hint(), 0, 'after number removed: hint gone');
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('resting pulse: one tap uses the pulse logged today (same reading as the Health Score), never filled silently', async () => {
+  const seed = { ...RETURNING, e: [wkEntry(0, { hrB: 64, hrA: 110 }, '08:00'), wkEntry(0, { hrB: 68, hrA: 115 }, '09:00')] };
+  const { page, ctx, errors } = await boot({ seed });
+  assert.equal(await page.inputValue('#wk-b'), '', 'not filled on load');
+  await page.fill('#wk-a', '130');
+  assert.equal(await page.inputValue('#wk-b'), '', 'not filled when the after number is typed');
+  const rest = await page.evaluate(() => rest(today()));
+  assert.equal(rest, 66, 'the Health Score reading: the average of today\'s before-workout numbers');
+  assert.match(await page.textContent('#st-rhint'), new RegExp('Use today\'s resting pulse \\(' + rest + ' BPM\\)'));
+  assert.equal(await page.inputValue('#wk-b'), '', 'offering is not filling');
+  await page.click('#st-rhint [data-a="strest"]');
+  assert.equal(await page.inputValue('#wk-b'), String(rest));
+  assert.equal(await page.locator('#st-rhint').count(), 0);
+  assert.match(await page.textContent('.stproj'), /VO₂ ≈ /);
+  assert.match(await page.textContent('#st-hs-b'), /Counted and typed in by you|Not entered/, 'it is the user\'s number now');
+  assert.deepEqual(errors, []); await ctx.close();
+  // yesterday's pulse is not offered
+  const r = await boot({ seed: { ...RETURNING, e: [wkEntry(1, { hrB: 64, hrA: 110 })] } });
+  await r.page.fill('#wk-a', '130');
+  assert.doesNotMatch(await r.page.textContent('#st-rhint'), /Use today's resting pulse/);
+  await r.ctx.close();
+});
+
+test('recovery + hint at 390 px: no sideways scroll, no console errors', async () => {
+  const seed = { ...RETURNING, e: [wkEntry(0, { hrB: 64, hrA: 110, hrR1: 90 }), wkEntry(1, { hrB: 70, hrA: 130, hrR1: 98 })] };
+  const { page, ctx, errors } = await boot({ seed, viewport: { width: 390, height: 800 }, context: { isMobile: true, hasTouch: true } });
+  await page.fill('#wk-a', '135'); await page.fill('#wk-r', '99');
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
+  const fits = await page.evaluate(() => [...document.querySelectorAll('#sthrc,#sthrg,#wk-kcal,#st-rhint,#st-rec,.ststats,#st-recavg,#wk-r')].map(e => e.getBoundingClientRect()).map(r => r.right <= innerWidth + 1 && r.left >= -1));
+  assert.ok(fits.length >= 6 && fits.every(Boolean), String(fits));
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('schema: hrR1 is kept when valid and repaired when it could carry markup', async () => {
+  const { page, ctx } = await boot();
+  const r = await page.evaluate(() => { const ok = { id: 'a1', c: 'stair', v: 1, m: { hrR1: 98 }, d: '2026-09-30', t: '07:00' }, bad = { id: 'a2', c: 'stair', v: 1, m: { hrR1: '<img src=x onerror=alert(1)>' }, d: '2026-09-30', t: '07:00' };
+    return [HWSchema.cleanEntry(ok, 0), ok.m.hrR1, HWSchema.cleanEntry(bad, 1), bad.m.hrR1]; });
+  assert.deepEqual(r, [0, 98, 1, 0]);
+  await ctx.close();
+});
+
+test('before / after / 1-minute BPM tally with Heartstone Hall on the kingdom map, the Health Score reading and the home tile', async () => {
+  const { page, ctx, errors } = await boot();
+  await page.selectOption('#wk-loc', 'ST24'); await page.click('[data-a="pace"][data-i="2"]');
+  await fillSteps(page, '#wk-s', '30'); await page.fill('#wk-c', '3');
+  await page.fill('#wk-b', '72'); await page.fill('#wk-a', '130'); await page.fill('#wk-r', '98');
+  await page.click('[data-a="stwsave"]');
+  assert.equal(await page.evaluate(() => rest(today())), 72, 'the Health Score resting reading is the before number');
+  await go(page, 'home');
+  assert.match(await page.textContent('#tstat'), /Heart rate\s*130[\s\S]*after workout/);
+  await go(page, 'kingdom');
+  await page.click('[data-a="kreg"][aria-label="Details for Heartstone Hall"]');
+  const t = await page.textContent('#mo');
+  assert.match(t, /last workout 72 → 130 BPM[\s\S]*fell 32 BPM after 1 min/);
+  assert.doesNotMatch(t, /Ruined/, 'the hall is restored by the workout heart rates');
+  assert.deepEqual(errors, []); await ctx.close();
+  // a workout saved without the minute-after number reads exactly as before
+  const r = await boot({ seed: { ...RETURNING, e: [wkEntry(0, { hrB: 70, hrA: 120 })] } });
+  await go(r.page, 'kingdom'); await r.page.click('[data-a="kreg"][aria-label="Details for Heartstone Hall"]');
+  const u = await r.page.textContent('#mo');
+  assert.match(u, /last workout 70 → 120 BPM \(\d\d-\d\d\)/); assert.doesNotMatch(u, /fell/);
+  await r.ctx.close();
+});

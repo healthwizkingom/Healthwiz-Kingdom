@@ -1305,3 +1305,44 @@ time from `hrB`, `hrA`, `dur` and `st.p.w`. Health Score weights and sub-scores 
   other; the app's fixed bands call all three moderate.
 - **WHY THESE WEIGHTS** (`js/v6-score.js`): the Activity bullet cites the project's stair-study result, labelled project data.
 - Tests: `tests/33-stairs.test.mjs` (project method, f/T/ω, study table), `tests/43-score.test.mjs` (study line, weights unchanged).
+
+## Heart-rate recovery and resting-pulse prompt (`js/v6-stairs.js`, `js/v6-schema.js`, `tests/33-stairs.test.mjs`)
+
+Delivers the two items promised in the Group 14 report, section 4.9 (Future development). Additive only: `sv` stays 8, entries
+without the new field load and render exactly as before, no new library.
+- **1 minute after you stop (BPM)** (Stair Workout, in the AFTER WORKOUT card). Optional, typed in, 30–220 like `okHR`. Saved as
+  an optional number `m.hrR1` (omitted when empty); read through `session()` (`hrR1`), kept in the workout draft, and listed in
+  `HWSchema` `NUMK` so a value that could carry markup is repaired on load, cloud merge and backup import.
+- **Recovery line** (`recTxt()`, under the before/after line): with `hrA` and `hrR1` it says "fell by N BPM in one minute (from A to
+  R)" or, when N ≤ 0, "did not fall in this minute. Rest a little longer and count again." Plain numbers, no good/bad label,
+  followed by the non-diagnostic "A guide only…" note. Nothing is shown when either number is missing.
+- **History** (`chart()`): a "1 min after" table column, a green triangle marker (dashed link from the after point) and a legend
+  entry, all only when a listed workout has `hrR1`; the SVG `aria-label` and each point's tooltip include the number.
+- **7-day average recovery** (`recAvg()`, stats row): only with at least 2 workouts in the last 7 days that have both `hrA` and
+  `hrR1`; shows the mean drop ("N BPM drop", or "No drop" when the mean is ≤ 0). No tile otherwise, no placeholder.
+- **Not rewarded, not scored:** no XP is attached and `hrR1` is not read by the Health Score (`js/v6-score.js` reads `hrB` only).
+- **Heartstone Hall tally:** before/after BPM already restore the hall on the kingdom map (`REG`, `logd('pulse')`), the region panel,
+  the badges, the quest and the Health Score resting reading. The region panel's heart-rate line (`js/v6-kingdom.js`) now adds
+  "fell N BPM after 1 min" when the last workout has `hrR1`. `hrR1` alone never restores the hall and is not scored.
+- **Resting-pulse prompt** (`restHint()`, in the energy area where the project panel would be): with "Right after you stop" filled
+  and "Before you start" empty, a short hint and an ADD RESTING PULSE button that focuses the field. If a resting pulse was logged
+  today, a second button, "Use today's resting pulse (N BPM)", copies it on tap (`rest(today())` from `js/hw-02-core.js`, the
+  same reading the Health Score uses). Nothing is ever filled without a tap; the filled number counts as typed by the user.
+- Tests: `tests/33-stairs.test.mjs` (field and saved value, line text for a drop / no drop / missing, table and chart only when
+  present, old entries untouched, 7-day tile thresholds and no XP, hint conditions, one-tap button, 390 px, schema repair).
+- Screenshots: `docs/screenshots/4-heart-rate-recovery.png`, `docs/screenshots/5-resting-pulse-hint.png`. The existing
+  `1-stair-workout-project-method.png` shows the Seal the Workout card, whose layout did not change, so it was not retaken.
+
+## Phone-width fit pass (`js/v6-hall.js`, `js/v6-charts.js`, `js/hw-02-core.js`, `js/v6-provisions.js`, `tests/50-mobile-fit.test.mjs`)
+
+Reported on a 411 px phone: oversized "?" buttons, text spilling out of boxes, day labels running together, and a random-looking
+state tag on the Water Quest header. The earlier usability pass forces a 44 px tap box on every help "?" and 12 px minimum text,
+which together caused these at narrow widths. No saved-data change.
+- **Help "?"**: still a 44 px tap box (tests in `49-usability`), but the blue square is now drawn on `::before` at 26 px, so it no
+  longer dwarfs headings or covers wrapped text (wake-up alarm notice). `tests/47-buttons.test.mjs` reads the colours from the
+  `::before`; the contrast requirements are unchanged.
+- **THIS WEEK VS LAST WEEK table**: fixed layout, header cells wrap and use the body font, so "LAST 7 DAYS / today not counted /
+  WEEK BEFORE" stay inside the card.
+- **7-day chart labels**: two letters (Su Mo Tu …) with the full name as the tooltip; three letters at 12 px did not fit a
+  two-column chart card.
+- **Water Quest header**: no Kingdom-state tag (`notag` in `HWProvisions`). Nutrition keeps its tag.
