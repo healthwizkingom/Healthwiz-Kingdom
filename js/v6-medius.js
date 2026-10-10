@@ -53,8 +53,10 @@ function show(it){const M=md(),d=today();M.last[it.type]=Date.now();M.day[d]=(M.
    (greetings, questions and exclamations lift; full stops settle), unhurried pace, a thoughtful pause after each phrase. Real actors' voices cannot be copied; this only shapes the device's own voice. It prefers a male-sounding English voice when the device has one.
    Settings: st.s.medv (1 on, default · 0 off). */
 const vOn=()=>st.s.medv==null||+st.s.medv===1,canSay=()=>typeof speechSynthesis!=='undefined'&&typeof SpeechSynthesisUtterance!=='undefined';
-const HINT=/daniel|alex|fred|david|james|mark|george|ryan|male|google uk english male|microsoft guy|aaron|arthur|oliver/i;
-function voice(){try{const v=speechSynthesis.getVoices().filter(x=>/^en/i.test(x.lang));return v.find(x=>HINT.test(x.name)&&/^en-(gb|us)/i.test(x.lang))||v.find(x=>HINT.test(x.name))||v.find(x=>/^en-gb/i.test(x.lang))||v[0]||null}catch(e){return null}}
+const MALE=/\b(daniel|arthur|oliver|thomas|george|gordon|rishi|aaron|ryan|guy|davis|david|mark|james|alex|fred|ralph|bruce|lee|reed|rocko|eddy|grandpa|male)\b/i,FEMALE=/\b(samantha|victoria|karen|moira|tessa|fiona|kate|serena|susan|zira|hazel|siri|female|aria|jenny|libby|sonia|emma|amy|joanna|salli|kendra|kimberly|ivy|nicole|ava|allison|nora|catherine|martha|shelley|sandy|flo|grandma|google uk english female|google us english)\b/i;
+const enVoices=()=>{try{return speechSynthesis.getVoices().filter(x=>/^en/i.test(x.lang))}catch(e){return[]}};
+const maleVoices=()=>enVoices().filter(x=>MALE.test(x.name)&&!FEMALE.test(x.name)).sort((a,b)=>(/en-gb/i.test(b.lang)-/en-gb/i.test(a.lang))||(/natural|neural|premium|enhanced/i.test(b.name)-/natural|neural|premium|enhanced/i.test(a.name)));
+function voice(){const v=enVoices(),pick=st.s.medvn&&v.find(x=>x.name===st.s.medvn);return pick||maleVoices()[0]||v.find(x=>!FEMALE.test(x.name))||v[0]||null}
 function hush(){vTok++;try{if(canSay())speechSynthesis.cancel()}catch(e){}}
 let vTok=0;
 function speak(text){if(!vOn()||!canSay()||!text)return;hush();const tok=++vTok,v=voice();
@@ -63,9 +65,9 @@ function speak(text){if(!vOn()||!canSay()||!text)return;hush();const tok=++vTok,
     if(v){u.voice=v;u.lang=v.lang}else u.lang='en-GB';
     // a spoken contour instead of one flat tone: bright on greetings, questions and exclamations, a falling close on full
     // stops, a lift on commas, with a small steady wobble so no two phrases sound alike
-    const w=(i%3-1)*.04,end=ph.slice(-1),first=i===0;
-    u.pitch=Math.max(.1,Math.min(2,(end==='!'?.86:end==='?'?.9:end===':'?.7:end===','?.74:end===';'?.72:.64)+(first?.08:0)+w));
-    u.rate=Math.max(.5,Math.min(2,(end==='!'?.94:end==='?'?.9:end==='.'?.84:.88)+(first?.04:0)-w/2));u.volume=1;
+    const w=(i%3-1)*.05,end=ph.slice(-1),first=i===0;
+    u.pitch=Math.max(.1,Math.min(2,(end==='!'?.78:end==='?'?.82:end===':'?.56:end===','?.62:end===';'?.6:.5)+(first?.08:0)+w));
+    u.rate=Math.max(.5,Math.min(2,(end==='!'?.95:end==='?'?.9:end==='.'?.84:.89)+(first?.04:0)-w/2));u.volume=1;
     u.onend=()=>setTimeout(()=>next(i+1),/[.!?]$/.test(ph)?380:/[:;]$/.test(ph)?260:140);   // a thoughtful beat between phrases
     u.onerror=()=>{};try{speechSynthesis.speak(u)}catch(e){}})(0)}
 try{if(canSay())speechSynthesis.onvoiceschanged=()=>{}}catch(e){}
@@ -86,9 +88,10 @@ E('app:ready',()=>{const ds=dys(),last=ds[ds.length-1],gap=last?Math.round((new 
 E('page:viewed',()=>{if(pending)schedule()});
 
 /* settings: frequency control · guide: recent words */
+acts.medvn=d=>{st.s.medvn=d.n;save();render();speak('Hail, traveller! Shall we begin?')};
 acts.medv=d=>{st.s.medv=+d.m;save();render();if(+d.m)speak('Thou canst hear me now.');else hush();toast('Medius voice: '+(+d.m?'on':'off'))};
 acts.medm=d=>{st.s.med=+d.m;save();render();if(+d.m)toast('Medius: '+['','calm — only important moments','chatty — happy to comment'][+d.m])};
-const setCard=()=>'<div class="card" id="v6medset"><h3>🧙 MEDIUS COMPANION</h3><div class="row">'+[[2,'Chatty'],[1,'Calm'],[0,'Off']].map(m=>'<button class="chip'+(mode()===m[0]?' on':'')+'" data-a="medm" data-m="'+m[0]+'" aria-pressed="'+(mode()===m[0])+'">'+m[1]+'</button>').join('')+'</div><div class="row">'+(canSay()?[[1,'Voice on'],[0,'Voice off']].map(m=>'<button class="chip'+(vOn()===!!m[0]?' on':'')+'" data-a="medv" data-m="'+m[0]+'" aria-pressed="'+(vOn()===!!m[0])+'">'+m[1]+'</button>').join(''):'<small class="mut">Voice is not available in this browser.</small>')+'</div><small class="mut">Calm shows only important moments (level-ups, quests, milestones). Medius never scolds.</small></div>';
+const setCard=()=>'<div class="card" id="v6medset"><h3>🧙 MEDIUS COMPANION</h3><div class="row">'+[[2,'Chatty'],[1,'Calm'],[0,'Off']].map(m=>'<button class="chip'+(mode()===m[0]?' on':'')+'" data-a="medm" data-m="'+m[0]+'" aria-pressed="'+(mode()===m[0])+'">'+m[1]+'</button>').join('')+'</div><div class="row">'+(canSay()?[[1,'Voice on'],[0,'Voice off']].map(m=>'<button class="chip'+(vOn()===!!m[0]?' on':'')+'" data-a="medv" data-m="'+m[0]+'" aria-pressed="'+(vOn()===!!m[0])+'">'+m[1]+'</button>').join(''):'<small class="mut">Voice is not available in this browser.</small>')+'</div>'+(canSay()&&maleVoices().length>1?'<div class="row">'+maleVoices().slice(0,6).map(x=>'<button class="chip'+(voice()===x?' on':'')+'" data-a="medvn" data-n="'+esc(x.name)+'" aria-pressed="'+(voice()===x)+'">'+esc(x.name.replace(/^(Microsoft|Google)\s+/,'').replace(/\s*-.*$/,'').replace(/\(.*\)/,'').trim())+'</button>').join('')+'</div><small class="mut">Pick the deepest voice on thy device.</small>':'')+'<small class="mut">Calm shows only important moments (level-ups, quests, milestones). Medius never scolds.</small></div>';
 {const p=pages.set;pages.set=(...a)=>{const h=p(...a),k='<h2>⚙️ SETTINGS</h2>';return h.indexOf(k)>=0?h.replace(k,k+setCard()):h+setCard()}}
 {const p=pages.guide;pages.guide=(...a)=>{const h=p(...a),L=md().log.slice(-5).reverse();return L.length?h+'<div class="card" id="v6medlog"><h3>📜 MEDIUS\'S RECENT WORDS</h3>'+L.map(x=>'<p>“'+esc(x.t)+'” <small class="mut">'+esc(x.at.slice(5,16).replace('T',' '))+'</small></p>').join('')+'</div>':h}}
 return{say,speak,hush,mode,rules:R,history:()=>md().log.slice()}})();
