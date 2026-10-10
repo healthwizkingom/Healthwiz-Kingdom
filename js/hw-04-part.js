@@ -85,6 +85,7 @@ const TS=[
 ['sleep','#dbatc',"Log thy sleep and the Dream Battle beginneth: the better thy rest, the stronger thy knight."],
 ['stair','#st-casual',"Stair Mountain: climbs, workouts, and the Running Road below."],
 ['stress','main .card:not([hidden])',"The Mind Forest: pick the face that fits thy mood and calm the Storm Within."],
+['exercise','.xwrap',"The Training Hall: pick a goal, a muscle and a move, then train. It logs only when thou finishest."],
 ['set','#tutbtn',"Forget my words? Press TUTORIAL here and I return. Go forth, {name}!"]];
 const TUT=(()=>{let i=0,ty=0,full='',root,sp,tx,pg,cn;
 const seen=()=>{try{return localStorage.getItem('hwtut')}catch(e){return 1}},mark=()=>{try{localStorage.setItem('hwtut','1')}catch(e){}};
@@ -92,8 +93,8 @@ const find=t=>!t?null:t[0]==='~'?[...document.querySelectorAll('main .card,main 
 function place(){const el=find(TS[i][1]);let r=null;if(el){el.scrollIntoView({block:'center'});r=el.getBoundingClientRect()}
 if(r&&r.width){sp.style.cssText='display:block;left:'+(r.left-6)+'px;top:'+(r.top-6)+'px;width:'+(r.width+12)+'px;height:'+(r.height+12)+'px'}else sp.style.display='none';
 root.style.background=r&&r.width?'':'rgba(8,12,30,.6)';cn.className='twc '+(r&&r.top>innerHeight-r.bottom?'top':'bot')+(r&&r.left+r.width/2<innerWidth*.3?' rt':'')}
-function show(){const s=TS[i];if(S.v!==s[0])go(s[0]);setTimeout(place,60);clearInterval(ty);full=s[2].replace(/\{name\}/g,(st.p.name||'').trim()||'traveller');if(typeof HWMotion!=='undefined'&&HWMotion.reduced())tx.textContent=full;else{let n=0;tx.textContent='';ty=setInterval(()=>{n+=2;tx.textContent=full.slice(0,n);if(n>=full.length)clearInterval(ty)},16)}pg.textContent=(i+1)+' / '+TS.length+' · tap anywhere ▶'}
-function end(){clearInterval(ty);mark();if(root)root.remove();root=null;removeEventListener('resize',place);removeEventListener('keydown',key)}
+function show(){const s=TS[i];if(S.v!==s[0])go(s[0]);setTimeout(place,60);clearInterval(ty);full=s[2].replace(/\{name\}/g,(st.p.name||'').trim()||'traveller');if(typeof HWMedius!=='undefined')HWMedius.speak(full);if(typeof HWMotion!=='undefined'&&HWMotion.reduced())tx.textContent=full;else{let n=0;tx.textContent='';ty=setInterval(()=>{n+=2;tx.textContent=full.slice(0,n);if(n>=full.length)clearInterval(ty)},16)}pg.textContent=(i+1)+' / '+TS.length+' · tap anywhere ▶'}
+function end(){clearInterval(ty);if(typeof HWMedius!=='undefined')HWMedius.hush();mark();if(root)root.remove();root=null;removeEventListener('resize',place);removeEventListener('keydown',key)}
 function next(){if(tx.textContent.length<full.length){clearInterval(ty);tx.textContent=full;return}if(++i>=TS.length){st.tutd=1;save();end();chkB();return}show()}
 function key(e){if(e.key==='Escape')end();else if(/^(Enter| |ArrowRight)$/.test(e.key)){e.preventDefault();next()}}
 function start(){if(root)return;i=0;root=document.createElement('div');root.id='tut';root.innerHTML='<div class="tsp"></div><button class="tsk" type="button">SKIP TUTORIAL ✕</button><div class="twc bot"><div class="twz"><img src="'+WIZ+'" alt="Wizard King Medius"><i></i></div><div class="tbx"><b>WIZARD KING MEDIUS</b><p></p><small></small></div></div>';document.body.appendChild(root);sp=root.querySelector('.tsp');tx=root.querySelector('p');pg=root.querySelector('small');cn=root.querySelector('.twc');

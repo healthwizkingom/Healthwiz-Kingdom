@@ -45,8 +45,23 @@ HWUI.css('medius',`.v6md{position:fixed;right:10px;bottom:calc(14px + env(safe-a
 function show(it){const M=md(),d=today();M.last[it.type]=Date.now();M.day[d]=(M.day[d]||0)+1;M.seen[it.key]=d;M.log.push({t:it.text,at:new Date().toISOString(),type:it.type});if(M.log.length>20)M.log.shift();
   Object.keys(M.day).forEach(k=>{if(k<rng(7)[0])delete M.day[k]});Object.keys(M.seen).forEach(k=>{if(M.seen[k]<rng(7)[0])delete M.seen[k]});save();
   const el=document.createElement('div');el.className='v6md';el.id='v6md';el.setAttribute('role','status');el.innerHTML='<img src="'+WIZ+'" alt=""><p><b>MEDIUS</b>'+esc(it.text)+'</p>';
-  showing=el;lastShown=Date.now();let gone=0;const close=()=>{if(gone)return;gone=1;el.classList.add('out');setTimeout(()=>{el.remove();if(showing===el)showing=null;if(pending)schedule()},300)};el.onclick=close;setTimeout(close,6500);document.body.appendChild(el);
+  showing=el;lastShown=Date.now();let gone=0;const close=()=>{if(gone)return;gone=1;el.classList.add('out');setTimeout(()=>{el.remove();if(showing===el)showing=null;if(pending)schedule()},300)};el.onclick=()=>{hush();close()};setTimeout(close,6500);document.body.appendChild(el);speak(it.text);
   HWEvents.emit('medius:said',{kind:it.type,text:it.text})}
+
+/* voice: the browser's own speech (no audio files, nothing leaves the device). Tuned as a warm, deep, unhurried voice:
+   pitch a little below normal but inside the natural range (never strained or nasal), slightly slow pace, full volume,
+   a short pause at each phrase for emphasis. It prefers a male-sounding English voice when the device has one.
+   Settings: st.s.medv (1 on, default · 0 off). */
+const vOn=()=>st.s.medv==null||+st.s.medv===1,canSay=()=>typeof speechSynthesis!=='undefined'&&typeof SpeechSynthesisUtterance!=='undefined';
+const HINT=/daniel|alex|fred|david|james|mark|george|ryan|male|google uk english male|microsoft guy|aaron|arthur|oliver/i;
+function voice(){try{const v=speechSynthesis.getVoices().filter(x=>/^en/i.test(x.lang));return v.find(x=>HINT.test(x.name)&&/^en-(gb|us)/i.test(x.lang))||v.find(x=>HINT.test(x.name))||v.find(x=>/^en-gb/i.test(x.lang))||v[0]||null}catch(e){return null}}
+function hush(){try{if(canSay())speechSynthesis.cancel()}catch(e){}}
+function speak(text){if(!vOn()||!canSay()||!text)return;hush();
+  const v=voice();String(text).replace(/\s+/g,' ').split(/(?<=[.!?:;])\s+/).filter(Boolean).forEach((ph,i,a)=>{
+    const u=new SpeechSynthesisUtterance(ph);if(v){u.voice=v;u.lang=v.lang}else u.lang='en-GB';
+    u.pitch=/!$/.test(ph)?.85:.75;u.rate=.88;u.volume=1;   // lower pitch, steady pace; a touch more lift on exclamations
+    try{speechSynthesis.speak(u)}catch(e){}})}
+try{if(canSay())speechSynthesis.onvoiceschanged=()=>{}}catch(e){}
 
 /* event wiring */
 const E=HWEvents.on;
@@ -64,8 +79,9 @@ E('app:ready',()=>{const ds=dys(),last=ds[ds.length-1],gap=last?Math.round((new 
 E('page:viewed',()=>{if(pending)schedule()});
 
 /* settings: frequency control · guide: recent words */
+acts.medv=d=>{st.s.medv=+d.m;save();render();if(+d.m)speak('Thou canst hear me now.');else hush();toast('Medius voice: '+(+d.m?'on':'off'))};
 acts.medm=d=>{st.s.med=+d.m;save();render();if(+d.m)toast('Medius: '+['','calm — only important moments','chatty — happy to comment'][+d.m])};
-const setCard=()=>'<div class="card" id="v6medset"><h3>🧙 MEDIUS COMPANION</h3><div class="row">'+[[2,'Chatty'],[1,'Calm'],[0,'Off']].map(m=>'<button class="chip'+(mode()===m[0]?' on':'')+'" data-a="medm" data-m="'+m[0]+'" aria-pressed="'+(mode()===m[0])+'">'+m[1]+'</button>').join('')+'</div><small class="mut">Calm shows only important moments (level-ups, quests, milestones). Medius never scolds.</small></div>';
+const setCard=()=>'<div class="card" id="v6medset"><h3>🧙 MEDIUS COMPANION</h3><div class="row">'+[[2,'Chatty'],[1,'Calm'],[0,'Off']].map(m=>'<button class="chip'+(mode()===m[0]?' on':'')+'" data-a="medm" data-m="'+m[0]+'" aria-pressed="'+(mode()===m[0])+'">'+m[1]+'</button>').join('')+'</div><div class="row">'+(canSay()?[[1,'Voice on'],[0,'Voice off']].map(m=>'<button class="chip'+(vOn()===!!m[0]?' on':'')+'" data-a="medv" data-m="'+m[0]+'" aria-pressed="'+(vOn()===!!m[0])+'">'+m[1]+'</button>').join(''):'<small class="mut">Voice is not available in this browser.</small>')+'</div><small class="mut">Calm shows only important moments (level-ups, quests, milestones). Medius never scolds.</small></div>';
 {const p=pages.set;pages.set=(...a)=>{const h=p(...a),k='<h2>⚙️ SETTINGS</h2>';return h.indexOf(k)>=0?h.replace(k,k+setCard()):h+setCard()}}
 {const p=pages.guide;pages.guide=(...a)=>{const h=p(...a),L=md().log.slice(-5).reverse();return L.length?h+'<div class="card" id="v6medlog"><h3>📜 MEDIUS\'S RECENT WORDS</h3>'+L.map(x=>'<p>“'+esc(x.t)+'” <small class="mut">'+esc(x.at.slice(5,16).replace('T',' '))+'</small></p>').join('')+'</div>':h}}
-return{say,mode,rules:R,history:()=>md().log.slice()}})();
+return{say,speak,hush,mode,rules:R,history:()=>md().log.slice()}})();
