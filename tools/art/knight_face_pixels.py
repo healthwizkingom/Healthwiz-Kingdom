@@ -1,17 +1,20 @@
-"""The knight's face and bangs as hand-placed pixel art (front view, preview stage).
+"""The knight's face as hand-placed pixel art: the approved front preview, and the stamps the sprite sheets use.
 
 Every pixel is placed at the sheet's native resolution (make_exercise_blender.py, RES = 4): the jaw is one explicit span
 per row, the eyes, brows, nose and mouth are literal pixel maps, and each bang is a tapered lock rasterised row by row.
 Nothing is drawn large and reduced. Palette colours only (make_exercise.PAL); light from the top left.
 
-Style: a mature, sharp, serious anime-fantasy hero (narrow angular eyes, determined brows, small nose and mouth, a
-defined jaw to a narrow chin), an original HealthWiz character. Hair in two candidate ramps: the current auburn and
-crimson.
+Style: a mature, sharp, serious anime-fantasy hero (large banded crimson eyes with a winged lash, determined brows,
+small nose and mouth, a defined jaw to a narrow chin), an original HealthWiz character, with crimson hair (approved).
 
-Run:  python3 tools/art/knight_face_pixels.py HEAD_CROP.png OUT_DIR
+The sheets (make_exercise_blender.py) stamp the same eye, brow, nose and mouth maps on every frame: STAMPS holds them
+per view (front, three-quarter, profile), drawn for a face turned to the picture's right and mirrored for the left;
+LANDMARKS_PX holds where the approved preview puts each feature in the front map frame, from which the packer works
+out the feature positions on the 3D head.
+
+Run (preview):  python3 tools/art/knight_face_pixels.py HEAD_CROP.png OUT_DIR
       HEAD_CROP.png: the front map pose's head, cropped at (101, 76, 155, 147) from the shaded 256 x 384 frame, on the
-      preview background (30, 34, 58). Writes before / auburn / crimson at 1x and 4x (nearest neighbour).
-Not yet wired into the sheets: that waits on the owner's approval of the preview."""
+      preview background (30, 34, 58). Writes before / auburn / crimson at 1x and 4x (nearest neighbour)."""
 import sys
 import numpy as np
 from PIL import Image
@@ -59,6 +62,79 @@ BROW = ["1112......",         # determined: the outer tail high, the inner end l
         ".......111"]
 
 
+def mirrored(rows):
+    return [row[::-1] for row in rows]
+
+
+def eye_right():
+    """The eye with its outer corner on the right: the outline mirrored, the iris as drawn (catch-lights on the lit
+    side)."""
+    right = mirrored(EYE)
+    rows, cols = IRIS
+    for r in range(rows.start, rows.stop):
+        right[r] = right[r][:cols.start] + EYE[r][cols] + right[r][cols.stop:]
+    return right
+
+
+def drop_cols(rows, cols):
+    return [''.join(ch for i, ch in enumerate(row) if i not in cols) for row in rows]
+
+
+# the nose and mouth of the front view, as they sit in the preview: eye-socket shading at the inner corners, the
+# bridge on the shaded side, the tip and its shadow; the mouth line and the shadow under the lower lip
+NOSE = ["c....c",
+        "c....c",
+        "......",
+        "......",
+        "....c.",
+        "....c.",
+        "....c.",
+        "....c.",
+        "....c.",
+        "....c.",
+        "...cc.",
+        ".cbb.."]
+MOUTH = [".bbaabb",
+         "...cc..",
+         "..cc..."]
+# three-quarter and profile parts, for a face turned to the picture's right (nose pointing right)
+EYE_FAR = drop_cols(EYE, {1, 2, 8})                        # the far eye, foreshortened: its outer white and one iris column
+BROW_FAR = drop_cols(BROW, {1, 2})
+EYE_SIDE = ["KKK.....",                                    # profile: the lash sweeps back to the wing, the iris shows
+            ".KKKKKK.",                                    # as a tall half-oval at the front
+            "..SERRK.",
+            "..TWKRK.",
+            "..TrKr..",
+            "...OGO..",
+            "...hh..."]
+BROW_SIDE = ["112...",
+             ".21111"]
+NOSE_34 = [".c",
+           ".c",
+           ".c",
+           "cc",
+           "bb"]
+MOUTH_34 = [".bbaa",
+            "..cc."]
+MOUTH_SIDE = ["ba"]
+
+# (map, anchor col, anchor row): the anchor is the pixel placed on the landmark
+STAMPS = {
+    'front': {'eye_l': (EYE, 5, 4), 'eye_r': (eye_right(), 6, 4), 'brow_l': (BROW, 5, 2),
+              'brow_r': (mirrored(BROW), 4, 2), 'nose': (NOSE, 3, 11), 'mouth': (MOUTH, 3, 0)},
+    'three_quarter': {'eye_near': (EYE, 5, 4), 'eye_far': (EYE_FAR, 4, 4), 'brow_near': (BROW, 5, 2),
+                      'brow_far': (BROW_FAR, 3, 2), 'nose': (NOSE_34, 1, 4), 'mouth': (MOUTH_34, 3, 0)},
+    'profile': {'eye_near': (EYE_SIDE, 4, 3), 'brow_near': (BROW_SIDE, 3, 1), 'mouth': (MOUTH_SIDE, 1, 0)},
+}
+# where the preview puts each anchor, in the shaded front map frame (256 x 384): grid (col, row) -> frame (105 + col,
+# 82 + row); the face rows start OFF rows down the grid
+LANDMARKS_PX = {'eye_l': (118, 111), 'eye_r': (137, 111), 'brow_l': (119, 105), 'brow_r': (136, 105),
+                'nose': (128, 120), 'mouth': (127, 124)}
+# depth of each landmark out of the face (the face frame's z, scene units at rest; the frame sits on the corneas)
+LANDMARKS_Z = {'eye_l': -.25, 'eye_r': -.25, 'brow_l': -.2, 'brow_r': -.2, 'nose': .55, 'mouth': -.05}
+CRIMSON = dict(FIXED, **HAIR['crimson'])
+
+
 def put(g, r0, c0, rows, mirror=False):
     r0 += OFF
     for dr, row in enumerate(rows):
@@ -85,17 +161,8 @@ def face_grid():
     # cheek planes: a short cluster under each cheekbone
     for r, c in ((25, 10), (26, 10), (26, 11), (24, 33), (24, 34), (25, 32), (25, 33)):
         g[r + OFF][c] = 'c'
-    # eye sockets: a band of midtone under the brows, the inner corners shaded
-    for r in (16, 17):                    # the eye sockets: the inner corners shaded
-        g[r + OFF][20] = 'c'
-        g[r + OFF][25] = 'c'
-    # the nose: a bridge on the shaded side, a small tip and its shadow
-    for r in range(20, 26):
-        g[r + OFF][24] = 'c'
-    put(g, 26, 21, ["..cc", "cbb."])
-    # the mouth: a short, straight line, darker at the centre; a shadow under the lower lip
-    put(g, 31, 19, [".bbaabb", "...cc.."])
-    put(g, 33, 21, ["cc"])
+    put(g, 16, 20, NOSE)              # eye-socket corners, the nose bridge and tip
+    put(g, 31, 19, MOUTH)
     # the eyes and brows
     put(g, 10, 9, BROW)
     put(g, 10, 27, BROW, mirror=True)
@@ -103,14 +170,10 @@ def face_grid():
 
 
 def put_eyes(g):
-    """Both eyes; the right one mirrors the outline but keeps the iris as drawn, so the catch-lights stay on the
-    lit side. Also called after the hair: anime convention, the eyes show through the bangs."""
+    """Both eyes (the right one from eye_right()). Also called after the hair: anime convention, the eyes show
+    through the bangs."""
     put(g, 14, 8, EYE)
-    right = [row[::-1] for row in EYE]
-    rows, cols = IRIS
-    for r in range(rows.start, rows.stop):
-        right[r] = right[r][:cols.start] + EYE[r][cols] + right[r][cols.stop:]
-    put(g, 14, 26, right)
+    put(g, 14, 26, eye_right())
     return g
 
 
