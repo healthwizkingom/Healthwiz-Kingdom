@@ -84,7 +84,7 @@ const TS=[
 ['water','#wq',"The Water Quest: each sip thou loggest filleth the Well of Life."],
 ['sleep','#dbatc',"Log thy sleep and the Dream Battle beginneth: the better thy rest, the stronger thy knight."],
 ['stair','#st-casual',"Stair Mountain: climbs, workouts, and the Running Road below."],
-['stress','main .card',"The Mind Forest: pick the face that fits thy mood and calm the Storm Within."],
+['stress','main .card:not([hidden])',"The Mind Forest: pick the face that fits thy mood and calm the Storm Within."],
 ['set','#tutbtn',"Forget my words? Press TUTORIAL here and I return. Go forth, {name}!"]];
 const TUT=(()=>{let i=0,ty=0,full='',root,sp,tx,pg,cn;
 const seen=()=>{try{return localStorage.getItem('hwtut')}catch(e){return 1}},mark=()=>{try{localStorage.setItem('hwtut','1')}catch(e){}};

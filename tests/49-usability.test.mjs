@@ -206,7 +206,7 @@ test('trackers: the first input is on screen at 390 × 844, on a first visit and
       await go(page, v);
       const r = await page.evaluate(s => { const e = document.querySelector(s).getBoundingClientRect(); return { bottom: e.bottom, nav: document.querySelector('#nav').getBoundingClientRect().top }; }, sel);
       assert.ok(r.bottom <= r.nav, `${v} (${seen ? 'later' : 'first'} visit): input bottom ${Math.round(r.bottom)} above the bar at ${Math.round(r.nav)}`);
-      assert.equal(await page.isHidden('#hwh3'), seen, v + ': the 3-line header is open on the first visit only, behind ? after');
+      assert.equal(await page.isHidden('#hwh3'), true, v + ': the 3-line header stays behind the ? until tapped');
       assert.ok(await noScroll(page));
     }
     await page.tap('.hwq'); assert.equal(await page.isVisible('#hwh3'), !(await page.isHidden('#hwh3')));

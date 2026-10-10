@@ -44,12 +44,11 @@ const HEAD={
 };
 const KIND={you:'ENTERED BY YOU',est:'ESTIMATE FROM YOUR ENTRIES'};
 /* One compact row replaces the region banner, the BACK button and the header's title line: BACK · what this page is + where its numbers
-   come from · "?". The 3-line header (what / enter / why) is the panel behind "?". It starts open on the first visit to a page
-   (st.ex.r[view] is not set yet: js/v6-xp.js marks it after the page is shown) and closed afterwards. S.hq[k] keeps the choice for
+   come from · "?". The 3-line header (what / enter / why) is the panel behind "?" and is always closed until tapped. S.hq[k] keeps the choice for
    this tab, so a re-render after logging does not flip it. Nothing new is saved. */
 const CMP=['food','water','sleep','stair','stress','body'];
 const compact=v=>CMP.indexOf(v)>=0;
-const isOpen=k=>{S.hq=S.hq||{};if(S.hq[k]===undefined)S.hq[k]=!((st.ex&&st.ex.r)||{})[k];return S.hq[k]};
+const isOpen=k=>{S.hq=S.hq||{};if(S.hq[k]===undefined)S.hq[k]=false;return S.hq[k]};
 function panel(k){const h=HEAD[k];if(!h)return '';
   const row=(l,t)=>'<div class="hwhr"><b>'+l+'</b><span>'+t+'</span></div>';
   return '<div class="card hwh3" id="hwh3" data-trk="'+k+'"'+(isOpen(k)?'':' hidden')+'>'+row('WHAT THIS IS',h.what)+row('WHAT TO ENTER',h.enter)+row('WHY IT MATTERS',h.why)+'</div>'}
