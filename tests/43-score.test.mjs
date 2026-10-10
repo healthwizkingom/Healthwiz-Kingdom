@@ -94,3 +94,17 @@ test('WHY THESE WEIGHTS links the Activity weight to our stair study, labelled a
   assert.deepEqual(await page.evaluate(() => HWScore.WT), { fv: 10, water: 5, kcal: 5, macro: 5, stairs: 15, burn: 10, hr: 15, sleep: 15, bmi: 10, stress: 10 });
   assert.deepEqual(errors, []); await ctx.close();
 });
+
+test('Training Hall calories count in Calories burned with stairs: 120 + 60 = 180 kcal, 100% of the 150 kcal target', async () => {
+  const seed = { ...RETURNING, e: [
+    entry('stair', 40, 0, { loc: 'ST', diff: 'MILD', angle: 20, steps: 40, climbs: 1, dur: 10, kind: 'workout', kcal: { v: 120, lo: 110, hi: 130, m: 'met' } }),
+    entry('exercise', 20, 0, { name: 'Squat', goal: 'hyp', reps: [8, 8], kcal: { v: 60, lo: 45, hi: 75 } }),
+    entry('exercise', 5, 0, { name: 'Sit-up', goal: 'cal', reps: [10] })] }; // no weight-based estimate saved: adds nothing
+  const { page, ctx, errors } = await boot(seed);
+  const r = await page.evaluate(() => ({ b: HWScore.burnOf(today()), I: HWScore.compute().I.burn }));
+  assert.equal(r.b, 180); assert.equal(r.I.val, 180); assert.equal(r.I.sub, 100, '180 of 150 kcal a day, capped at 100');
+  assert.match(r.I.txt, /stairs, runs \+ training/);
+  await go(page, 'exercise'); await go(page, 'score');
+  assert.match(await page.textContent('#main'), /Calories burned/);
+  assert.deepEqual(errors, []); await ctx.close();
+});

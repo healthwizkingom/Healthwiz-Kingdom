@@ -7,7 +7,7 @@
    Score (0–100) = Σ weight × sub-score ÷ Σ weight of the indicators that have data.
      Nutrition 25 (fruit & veg 10, water 5, calories 5, macronutrients 5) · Activity 25 (stairs 15, kcal burned 10)
      · Heart rate 15 · Sleep 15 · BMI 10 · Stress 10
-   kcal burned = stair-workout estimates (js/v6-stairs.js) + runs (HWRun.burned, js/v6-running.js); target 150 kcal/day
+   kcal burned = stair-workout estimates (js/v6-stairs.js) + runs (HWRun.burned, js/v6-running.js) + Training Hall sessions (m.kcal, js/v6-exercise.js); target 150 kcal/day
    (≈ 1,000 kcal a week, ACSM). Macronutrients: % of energy against the AMDR ranges in mref() (js/hw-06).
    Fruit & veg portions come from the nutrition log: foods whose menu category (fcat() in js/hw-06) is fruit or a vegetable
    dish count as portions of 80 g (the WHO portion behind ≥400 g a day; dried fruit 30 g), from the serving size × servings ×
@@ -163,7 +163,7 @@ function recCard(C){
 function whyCard(){
   return '<div class="card"><h3>🔬 WHY THESE WEIGHTS '+HWHelp.btn('scorewt')+'</h3><p>Nutrition 25 · Activity 25 · Heart rate 15 · Sleep 15 · BMI 10 · Stress 10 (total 100).</p>'
   +'<ul class="v6why"><li><b>Nutrition 25</b>: diet is a major daily lever for health. Fruit &amp; veg 10 (WHO: ≥400 g a day), water 5 (your target ≈ 35 mL per kg), calories 5 (your target from the Calorie Forge, Mifflin-St Jeor) and macronutrients 5 (% of energy within the AMDR ranges, IOM).</li>'
-  +'<li><b>Activity 25</b>: physical activity has the strongest evidence for lowering cardiovascular risk (WHO, 2020). Stairs 15, the activity this project measures directly; calories burned 10, from stair workouts and runs (ACSM: about 1,000 kcal a week).<br><b>Project data, not a clinical result.</b> Our own stair study (Group 14, 6 participants): pulse rate rose 6–37% from the least to the most steep stair for every participant.</li>'
+  +'<li><b>Activity 25</b>: physical activity has the strongest evidence for lowering cardiovascular risk (WHO, 2020). Stairs 15, the activity this project measures directly; calories burned 10, from stair workouts, runs and Training Hall sessions (ACSM: about 1,000 kcal a week).<br><b>Project data, not a clinical result.</b> Our own stair study (Group 14, 6 participants): pulse rate rose 6–37% from the least to the most steep stair for every participant.</li>'
   +'<li><b>Heart rate 15</b>: resting heart rate is a quick, objective fitness marker (typical 60–100 BPM, AHA), but caffeine, sleep and anxiety affect it.</li>'
   +'<li><b>Sleep 15</b>: 8–10 h for teens and 7–9 h for adults (AASM); short sleep is linked to stress, overeating and poorer learning.</li>'
   +'<li><b>BMI 10</b>: a screening tool only (WHO 18.5–24.9); it ignores muscle and body shape.</li>'
