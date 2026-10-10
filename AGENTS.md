@@ -1,8 +1,30 @@
-# HealthWiz Kingdom: notes for coding agents
+# HealthWiz Kingdom — coding instructions
 
-A single-file, gamified wellness tracker (PWA). Plain JavaScript modules in `js/`, no framework, built into one
-standalone HTML file by `tools/build-standalone.mjs`. Read `README.md`, `docs/ARCHITECTURE_AUDIT.md` and
-`docs/PIXEL_STYLE.md` before changing screens.
+## Project
+
+- This is an existing static JavaScript health and wellness dashboard with a fantasy pixel-art RPG layer. Never rebuild it from scratch.
+- Preserve existing health features, responsive layouts, and the pixel-inspired theme. Health tracking and clear data presentation take priority over game decoration.
+- The app is a wellness tracker, not a medical device. Do not add diagnostic claims.
+
+## Before and during changes
+
+- Inspect the relevant files and their callers before editing. Read `README.md` and applicable guidance in `docs/`.
+- Reuse existing modules, shared UI helpers, styles, and dependencies where possible. Avoid unrelated changes.
+- Scripts under `js/` are classic scripts sharing a global scope; preserve their load order in `index.html`. When adding a script, also update the service worker precache in `sw.js`.
+- Preserve saved-data compatibility. For schema changes, follow the migration process in `js/v6-schema.js` and add or update coverage.
+- Follow `docs/PIXEL_STYLE.md` for visual changes and keep layouts usable on phones.
+
+## Health and experiment data
+
+- Never invent health measurements, device readings, user entries, or experimental results.
+- Clearly distinguish measured, calculated, estimated, simulated, and missing data. Label estimates and show the method where appropriate; do not present game values as health measurements.
+- For the F21 staircase experiment, use the latest approved Word report as the source of truth for verified results. Check changes against it; if the approved report is unavailable or a result is unclear, flag the uncertainty rather than guessing.
+
+## Verification and reporting
+
+- Verify affected calculations with worked examples and units. Test relevant interactions and check mobile layout for UI changes.
+- Use the existing tests and `docs/TESTING.md` to choose relevant checks.
+- Make only the requested changes. At completion, list every file created, changed, or deleted and the verification performed, including anything that could not be checked.
 
 ## Commands
 
@@ -13,13 +35,13 @@ standalone HTML file by `tools/build-standalone.mjs`. Read `README.md`, `docs/AR
 The first Playwright run after a fresh install can time out once while the browser starts; run it again before
 treating a failure as real.
 
-## Rules
+## Asset and build rules
 
-* No new runtime or npm dependencies. No emoji in the UI (`tests/30-emoji.test.mjs`).
-* Images: lossless WebP, no image over 100 KB, all of `assets/img/` (subfolders included) at most 540 KB
+- No new runtime or npm dependencies. No emoji in the UI (`tests/30-emoji.test.mjs`).
+- Images: lossless WebP, no image over 100 KB, all of `assets/img/` (subfolders included) at most 540 KB
   (`tests/24-performance.test.mjs`). Keep file names: they are listed in `sw.js` PRECACHE and embedded by the build.
-* Visual style: modern pixel-art RPG, see `docs/PIXEL_STYLE.md`.
-* Never skip or weaken a test to get green.
+- Visual style: modern pixel-art RPG, see `docs/PIXEL_STYLE.md`.
+- Never skip or weaken a test to get green.
 
 ## Training Hall (exercise page) art
 
@@ -49,9 +71,9 @@ bangs and ear-length sides, amber eyes, silver-white armour with gold trim, dark
 
 State of the art work:
 
-* The committed sprite sheets in `assets/img/exercise/` are the pixel-RPG version from commit `dad4796`; the
+- The committed sprite sheets in `assets/img/exercise/` are the pixel-RPG version from commit `dad4796`; the
   anime-face sprite work after it is in the pipeline scripts but has not been packed into the sheets yet.
-* `knight_hq.blend` fixes the 3D face (the cornea shell hid the iris; there were no lights or materials). Still open:
+- `knight_hq.blend` fixes the 3D face (the cornea shell hid the iris; there were no lights or materials). Still open:
   the face is close to a realistic MakeHuman face (a stronger anime look needs sculpting), the bangs are one sheet
   rather than layered strands, and the bracer ends and boot shafts clip through the coat and trousers.
-* Open question for the owner: the KMKU school gym's equipment list, so the props match what students can use.
+- Open question for the owner: the KMKU school gym's equipment list, so the props match what students can use.
