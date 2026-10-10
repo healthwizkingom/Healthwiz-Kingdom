@@ -25,7 +25,7 @@ const MAPS=['b','claimed','en','xd','qx','qd','ck','q6','ex','xl','md','mg','gp'
 // storage could inject markup there. Every entry is checked here on load, cloud merge and backup import: ids, category,
 // date and time must have their usual shape, values and known numeric fields must be numbers, and meal / kind keys
 // plain words. Valid data is never changed; only values that could carry markup are replaced (and reported as repaired). Text fields (food names, notes) are escaped where shown.
-const NUMK=['qty','pm','aw','lat','rest','score','end','hrB','hrA','climbs','steps'],
+const NUMK=['qty','pm','aw','lat','rest','score','end','hrB','hrA','hrR1','climbs','steps'],
   WORDK=['meal','kind'];
 // valid data (numbers, numeric strings, null) is left exactly as it is; only values that could carry markup are replaced
 const numOk=v=>v==null||v===''||(typeof v==='number'&&isFinite(v))||(typeof v==='string'&&/^\s*-?\d+(\.\d+)?\s*$/.test(v));

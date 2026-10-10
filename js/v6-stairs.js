@@ -17,6 +17,7 @@
           pace, dur (min, 0 = not recorded),           workouts: pace chosen, minutes from the timer or typed
           hrB, hrA (BPM | null), hrS: 'manual' | 'device' | 'mixed',  heart rate before / after: typed in, or a steady
                                                        average from a Bluetooth heart-rate device (js/v6-hr.js)
+          hrR1 (BPM, optional),                        heart rate 1 minute after stopping, typed in (heart-rate recovery); absent on older entries
           hrLo, hrAv, hrHi (BPM | null),               optional: lowest / average / highest during the climb (recorded
                                                        from the device while the timer runs, or typed in)
           hrPct (number | null),                       peak (highest of hrHi / hrA) as % of 220 − age at save time (rough)
@@ -45,13 +46,13 @@ function session(e){const m=isO(e&&e.m)?e.m:{},dur=num(m.dur)>0?+m.dur:0,hrB=okH
   const kind=m.kind==='workout'||m.kind==='casual'?m.kind:(hrB||hrA||dur?'workout':'casual');
   return{id:e.id,d:e.d,t:e.t,kind,src:m.src==='gps'||m.chk==='gps'?'gps':'manual',sid:m.sid||null,loc:m.loc||'Stairway',diff:m.diff||null,
     floor:m.floor||'',lat:num(m.lat),lng:num(m.lng),steps:+m.steps||0,climbs:+m.climbs||0,total:+e.v||0,dur,
-    pace:PN().includes(m.pace)?m.pace:null,hrB,hrA,kcal:isO(m.kcal)&&+m.kcal.v>0?m.kcal:null,
+    pace:PN().includes(m.pace)?m.pace:null,hrB,hrA,hrR1:okHR(m.hrR1),kcal:isO(m.kcal)&&+m.kcal.v>0?m.kcal:null,
     hrLo:okHR(m.hrLo),hrAv:okHR(m.hrAv),hrHi:okHR(m.hrHi),hrPct:num(m.hrPct),dev:isO(m.hrDev)?m.hrDev:m.src==='device'?{b:1,a:1}:null}}
 const all=()=>LC('stair').map(session);
 /** The record for a new session: the stairway, the counts, and only the fields that were really given. */
 function record(q,o){return{sid:q.id,loc:q.name,diff:q.cat,floor:q.floor,angle:q.angle,lat:q.lat,lng:q.lng,steps:o.steps,climbs:o.climbs,
   kind:o.kind,src:o.src,chk:o.src==='gps'?'gps':undefined,pace:o.pace||null,dur:o.dur||0,hrB:o.hrB||null,hrA:o.hrA||null,
-  hrS:o.hrS||(o.hrB||o.hrA?'manual':undefined),kcal:o.kcal||null,
+  hrS:o.hrS||(o.hrB||o.hrA?'manual':undefined),hrR1:o.hrR1||undefined,kcal:o.kcal||null,
   hrLo:o.hrLo||undefined,hrAv:o.hrAv||undefined,hrHi:o.hrHi||undefined,hrPct:o.hrPct||undefined,hrDev:o.hrDev||undefined}}
 
 /* ---------- profile + calorie estimate ---------- */
@@ -89,7 +90,7 @@ const STUDY=[{k:'A',n:'Generator stairs',id:'ST20',rise:.169,run:.311,hyp:.354,t
 let pick=null; // id of the stairway the user chose (or checked in at); nothing is pre-selected
 const C={steps:'',climbs:'',d:'',t:'',r:null};
 // hrBd/hrAd: that number came from the device; cLo/cAv/cHi: climb heart rate (cSet: typed in, cDev: recorded, cl: running tally)
-const W0=()=>({hrB:'',hrA:'',steps:'',climbs:'',r:null,dur:'',durSet:0,ms:0,since:null,hrBd:0,hrAd:0,cLo:'',cAv:'',cHi:'',cSet:0,cDev:0,cl:null});
+const W0=()=>({hrB:'',hrA:'',hrR1:'',steps:'',climbs:'',r:null,dur:'',durSet:0,ms:0,since:null,hrBd:0,hrAd:0,cLo:'',cAv:'',cHi:'',cSet:0,cDev:0,cl:null});
 let W=(()=>{try{const o=JSON.parse(sessionStorage.getItem(DK)||'null');return isO(o)?Object.assign(W0(),o,{since:null}):W0()}catch(e){return W0()}})();
 const keepW=()=>{try{sessionStorage.setItem(DK,JSON.stringify(W))}catch(e){}};
 const stair=()=>STAIRS.find(s=>s.id===pick)||null;
@@ -111,9 +112,12 @@ function hud(){const d=today(),R=rng(7),L=all(),wk=L.filter(s=>R.includes(s.d)),
   const t=(ic,v,u,l)=>'<div class="ststat"><span class="stsv">'+ico(ic)+'<b>'+v+'</b> <small>'+u+'</small></span><span class="stsl">'+l+'</span></div>';
   return '<div class="ststats" role="group" aria-label="Stair activity summary">'
     +t('stairs',n,'steps','Today')+t('quest',wk.length,'sessions','Last 7 days')+t('energy',wk.filter(s=>s.kind==='workout').length,'workouts','Last 7 days')
-    +t('heart',last?(last.hrB||'–')+' → '+(last.hrA||'–'):'–','BPM','Last workout: before → after')+'</div>'
+    +t('heart',last?(last.hrB||'–')+' → '+(last.hrA||'–'):'–','BPM','Last workout: before → after')+recAvg(wk)+'</div>'
     +'<div class="stgoal"><small>Personal goal: '+Math.min(n,GOAL)+' of '+GOAL+' steps today. Source: default set by this app. It is not a health measurement or a recommendation.</small>'+bar(n/GOAL*100,'var(--grn)')+'</div>'
     +'<div class="stjump" role="navigation" aria-label="Sections of this page">'+[['st-workout','energy','Workout and heart rate'],['st-run','running','Run tracker']].map(x=>btn('stjump',ico(x[1])+' '+x[2],'g sm',' data-t="'+x[0]+'"')).join('')+'</div>'}
+/** Average heart-rate recovery (after − 1 minute after) of the given sessions; needs at least 2 with both numbers, else null. Not scored, no XP. */
+function recAvg(L){const D=L.filter(s=>s.kind==='workout'&&s.hrA&&s.hrR1).map(s=>s.hrA-s.hrR1);if(D.length<2)return'';const n=Math.round(D.reduce((a,b)=>a+b,0)/D.length);
+  return'<div class="ststat" id="st-recavg"><span class="stsv">'+ico('heart')+(n>0?'<b>'+n+'</b> <small>BPM drop</small>':'<b>No drop</b>')+'</span><span class="stsl">Average recovery, last 7 days</span></div>'}
 const head=(id,icon,name,plain,line)=>'<div class="sthd" id="'+id+'">'+ico(icon,2)+'<div><b>'+name+'</b><span class="pxtag">'+plain+'</span><small>'+line+'</small></div></div>';
 
 function picker(){const q=stair();
@@ -166,7 +170,7 @@ function trace(k,v){const B=k==='b',L=B?'BEFORE WORKOUT':'AFTER WORKOUT';
     +'<canvas class="sttr" id="st-tr-'+k+'" data-bpm="'+(v||'')+'" data-k="'+k+'" role="img" aria-label="'+L+' heart rate: '+(v?v+' BPM, typed in by you':'not entered')+'"></canvas>'
     +'<div class="stpm"><small id="st-pm-'+k+'">'+pmTxt(v)+'</small>'+pmHelp()+'</div>'
     +'<label>'+(B?'Before you start':'Right after you stop')+' (BPM)<input id="wk-'+k+'" data-in="stw" type="number" min="30" max="220" inputmode="numeric" value="'+esc(B?W.hrB:W.hrA)+'"></label>'
-    +'<small class="mut" id="st-hs-'+k+'">'+hsTxt(k,v)+'</small>'+(B?'<small class="strest" id="st-rest" role="status">'+restTxt(v)+'</small>':'')+'</div>'}
+    +'<small class="mut" id="st-hs-'+k+'">'+hsTxt(k,v)+'</small>'+(B?'<small class="strest" id="st-rest" role="status">'+restTxt(v)+'</small>':'<label>1 minute after you stop (BPM) <small class="mut">(optional)</small><input id="wk-r" data-in="stw" type="number" min="30" max="220" inputmode="numeric" value="'+esc(W.hrR1)+'"></label><small class="mut">Rest quietly, count your pulse again one minute later. Your heart should slow down after you stop.</small>')+'</div>'}
 const pmTxt=v=>{const m=pulseSHM(v);return m?esc(shmTxt(m)):'<span class="mut">Enter a heart rate to see f, T and ω.</span>'};
 const pmHelp=()=>{HWHelp.reg('pulseshm','Pulse as a periodic motion','<p>We treat the pulse as an approximately periodic motion, like simple harmonic motion. Each beat repeats after one period.</p><p><b>f</b> (Hz) = BPM ÷ 60 · <b>T</b> (s) = 1 ÷ f · <b>ω</b> (rad/s) = 2πf.</p><p>A faster pulse means a higher frequency and a shorter period. The trace spaces its beats by RR = 60 ÷ BPM, which is the same as T, so the drawing matches the number.</p><p class="mut">A real pulse is not perfectly regular, so these are approximate values for learning, not a medical measurement.</p>');return HWHelp.btn('pulseshm')};
 const devK=k=>!!(k==='b'?W.hrBd:W.hrAd);
@@ -186,6 +190,10 @@ function climbHR(){const f=(id,l,v)=>'<label>'+l+'<input id="'+id+'" data-in="st
     +'<small class="mut" id="st-cn">'+cNote()+'</small><p id="st-peak">'+peakTxt()+'</p></div>'}
 function delta(){const b=okHR(W.hrB),a=okHR(W.hrA);return b&&a?'Your heart rate went from <b>'+b+'</b> to <b>'+a+'</b> BPM ('+(a-b>=0?'+':'')+(a-b)+').':'Enter both numbers to compare before and after.'}
 
+/** Heart-rate recovery: pulse right after stopping minus the pulse one minute later. Plain numbers, no good/bad label, not a diagnosis. */
+function recTxt(){const a=okHR(W.hrA),r=okHR(W.hrR1);if(!a||!r)return'';const n=a-r;
+  return(n>0?'Your heart rate fell by <b>'+n+'</b> BPM in one minute (from '+a+' to '+r+').':'Your heart rate did not fall in this minute. Rest a little longer and count again.')
+    +'<br><small class="mut">A guide only. It varies with fitness, caffeine, sleep and how hard you climbed. If you feel dizzy, have chest pain or feel unwell, stop and see a health professional.</small>'}
 function kcalBox(){const P=profile(),e=estimate({pace:PACES[S.pb.pace][1],dur:durW(),hrA:W.hrA},P);
   if(e.need==='profile')return '<div class="stkc need"><b>'+ico('warning')+' CALORIE ESTIMATE NEEDS YOUR PROFILE</b><p class="mut">Age, sex, height and weight are needed. HealthWiz never guesses them.</p>'
     +'<div class="row"><label>Age<input id="pf-a" type="number" min="10" max="100" inputmode="numeric" value="'+(st.p.cfm||st.s.onb?esc(st.p.age):'')+'"></label><label>Sex<select id="pf-s"><option value="">choose</option><option value="m"'+((st.p.cfm||st.s.onb)&&st.p.sex==='m'?' selected':'')+'>Male</option><option value="f"'+((st.p.cfm||st.s.onb)&&st.p.sex==='f'?' selected':'')+'>Female</option></select></label></div>'
@@ -202,7 +210,11 @@ function projBox(){const v=projectVO2({hrB:W.hrB,hrA:W.hrA,dur:durW()});if(!v)re
     +'<p><b>'+vo2Txt(v)+'</b></p>'+(v.kj==null?'':'<p>Energy released ≈ <b>'+kjTxt(v)+'</b></p>')
     +'<small class="mut">VO₂ = 15.3 × after ÷ before · energy = VO₂ × time × 20.1 kJ/L</small><br>'
     +'<small class="mut">Classroom estimate from our STEM project (Uth et al., 2004). The after-exercise pulse is not a true maximum, so this is rough.</small></div>'}
-const kcalAll=()=>kcalBox()+projBox();
+// the project panel needs the pulse before the workout: with only the after number typed, ask for it (never filled silently)
+function restHint(){if(!okHR(W.hrA)||okHR(W.hrB))return'';const r=rest(today());
+  return '<div class="stkc" id="st-rhint" role="status"><b>'+ico('heart')+' RESTING PULSE NEEDED</b><p>Add your resting pulse (count it before you start) to see VO₂ and energy by our project\'s method.</p>'
+    +'<div class="row">'+btn('stfocusb','ADD RESTING PULSE','g sm')+(r?btn('strest','Use today\'s resting pulse ('+r+' BPM)','sm',' data-v="'+r+'"'):'')+'</div></div>'}
+const kcalAll=()=>kcalBox()+projBox()+restHint();
 
 function workout(){const P=PACES[S.pb.pace],q=stair(),run=!!S.pb.on,ds=durW();
   let cl=climber().replace(/<small>[\s\S]*<\/small>$/,'');
@@ -216,7 +228,7 @@ function workout(){const P=PACES[S.pb.pace],q=stair(),run=!!S.pb.on,ds=durW();
     +'<div class="warn">Stop right away if you feel dizzy, faint, have chest pain or severe breathlessness, and seek medical attention. You never have to keep this pace.</div></div>'
     +'<div class="card stcard" id="sthrc"><h3>'+ico('heart')+' HEART RATE · THIS WORKOUT '+HWHelp.btn('hrpic')+'</h3><p class="mut">Count your pulse before you start and again right after you stop, or read it from a heart-rate device. Only numbers you type in or choose to use are saved.</p>'
     +(hasHR?HWHR.panel():'')
-    +'<div class="sthrs">'+trace('b',okHR(W.hrB))+trace('a',okHR(W.hrA))+'</div><p id="st-delta">'+delta()+'</p>'+climbHR()+'</div>'
+    +'<div class="sthrs">'+trace('b',okHR(W.hrB))+trace('a',okHR(W.hrA))+'</div><p id="st-delta">'+delta()+'</p><p id="st-rec" role="status">'+recTxt()+'</p>'+climbHR()+'</div>'
     +'<div class="card stcard" id="stseal"><h3>'+ico('achievement')+' SEAL THE WORKOUT</h3>'+HWWhen.html({id:'wk',cats:['stair'],hint:'Heart rates read from a device are saved at the time they were taken, so a workout using them is saved for today.'})
     +counter('w')
     +'<label>Workout time (min)<input id="wk-d" data-in="stw" type="number" min="0.5" max="300" step="0.5" inputmode="decimal" placeholder="minutes" value="'+(ds!=null?ds:'')+'"></label><small class="mut" id="wk-dn">'+(W.durSet?'Typed in by you.':ds!=null?'From the Pace & Breathe timer.':'')+'</small>'
@@ -225,18 +237,19 @@ function workout(){const P=PACES[S.pb.pace],q=stair(),run=!!S.pb.on,ds=durW();
 // heart rate of recent workouts: one column per workout, before (circle) and after (square) joined by a line
 function chart(){const L=all().filter(s=>s.kind==='workout'&&(s.hrB||s.hrA)).slice(-10);
   if(!L.length)return '<div class="card" id="sthrg"><h3>'+ico('chart')+' HEART RATE · RECENT WORKOUTS</h3><p class="mut">No workout heart rates yet. Enter them above when you save a workout.</p></div>';
-  const V=L.flatMap(s=>[s.hrB,s.hrA]).filter(Boolean),lo=Math.max(30,Math.floor((Math.min(...V)-10)/10)*10),hi=Math.min(220,Math.ceil((Math.max(...V)+10)/10)*10),
+  const R1=L.some(s=>s.hrR1),V=L.flatMap(s=>[s.hrB,s.hrA,s.hrR1]).filter(Boolean),lo=Math.max(30,Math.floor((Math.min(...V)-10)/10)*10),hi=Math.min(220,Math.ceil((Math.max(...V)+10)/10)*10),
     Wd=320,H=150,l=34,r=8,t=10,b=22,x=i=>l+(i+.5)*(Wd-l-r)/L.length,y=v=>t+(hi-v)/(hi-lo)*(H-t-b),ticks=[lo,Math.round((lo+hi)/20)*10,hi];
-  let g='<svg viewBox="0 0 '+Wd+' '+H+'" class="sthrsvg" role="img" aria-label="Heart rate before and after your last '+L.length+' workouts">'
+  let g='<svg viewBox="0 0 '+Wd+' '+H+'" class="sthrsvg" role="img" aria-label="Heart rate before and after'+(R1?' and one minute after stopping':'')+' your last '+L.length+' workouts">'
     +ticks.map(v=>'<line x1="'+l+'" x2="'+(Wd-r)+'" y1="'+y(v)+'" y2="'+y(v)+'" class="gl"/><text x="'+(l-4)+'" y="'+(y(v)+3)+'" text-anchor="end">'+v+'</text>').join('');
-  L.forEach((s,i)=>{const X=x(i),tip=s.d+' '+s.t+' · before '+(s.hrB||'–')+' · after '+(s.hrA||'–')+' BPM';
+  L.forEach((s,i)=>{const X=x(i),tip=s.d+' '+s.t+' · before '+(s.hrB||'–')+' · after '+(s.hrA||'–')+(s.hrR1?' · 1 min after '+s.hrR1:'')+' BPM';
     g+='<g class="pt" tabindex="0"><title>'+esc(tip)+'</title><rect x="'+(X-12)+'" y="'+t+'" width="24" height="'+(H-t-b)+'" fill="transparent"/>'
       +(s.hrB&&s.hrA?'<line x1="'+X+'" x2="'+X+'" y1="'+y(s.hrB)+'" y2="'+y(s.hrA)+'" class="jn"/>':'')
-      +(s.hrB?'<circle cx="'+X+'" cy="'+y(s.hrB)+'" r="4.5" class="hb"/>':'')+(s.hrA?'<rect x="'+(X-4.5)+'" y="'+(y(s.hrA)-4.5)+'" width="9" height="9" class="ha"/>':'')
+      +(s.hrB?'<circle cx="'+X+'" cy="'+y(s.hrB)+'" r="4.5" class="hb"/>':'')+(s.hrR1?(s.hrA?'<line x1="'+X+'" x2="'+X+'" y1="'+y(s.hrA)+'" y2="'+y(s.hrR1)+'" class="jn dsh"/>':'')+'<polygon points="'+X+','+(y(s.hrR1)-5.5)+' '+(X+5.5)+','+(y(s.hrR1)+4.5)+' '+(X-5.5)+','+(y(s.hrR1)+4.5)+'" class="hr1"/>':'')
+      +(s.hrA?'<rect x="'+(X-4.5)+'" y="'+(y(s.hrA)-4.5)+'" width="9" height="9" class="ha"/>':'')
       +'<text x="'+X+'" y="'+(H-6)+'" text-anchor="middle">'+esc(String(s.d).slice(8))+'</text></g>'});
   g+='</svg>';
-  return '<div class="card" id="sthrg"><h3>'+ico('chart')+' HEART RATE · RECENT WORKOUTS</h3><div class="stleg"><span><i class="hb"></i>Before</span><span><i class="ha"></i>After</span><small class="mut">BPM · day of month below</small></div>'+g
-    +'<details><summary>Show as a table</summary><table class="sttab"><tr><th>Date</th><th>Before</th><th>After</th></tr>'+L.slice().reverse().map(s=>'<tr><td>'+esc(s.d+' '+s.t)+'</td><td>'+(s.hrB||'–')+'</td><td>'+(s.hrA||'–')+'</td></tr>').join('')+'</table></details></div>'}
+  return '<div class="card" id="sthrg"><h3>'+ico('chart')+' HEART RATE · RECENT WORKOUTS</h3><div class="stleg"><span><i class="hb"></i>Before</span><span><i class="ha"></i>After</span>'+(R1?'<span><i class="hr1"></i>1 min after</span>':'')+'<small class="mut">BPM · day of month below</small></div>'+g
+    +'<details><summary>Show as a table</summary><table class="sttab"><tr><th>Date</th><th>Before</th><th>After</th>'+(R1?'<th>1 min after</th>':'')+'</tr>'+L.slice().reverse().map(s=>'<tr><td>'+esc(s.d+' '+s.t)+'</td><td>'+(s.hrB||'–')+'</td><td>'+(s.hrA||'–')+'</td>'+(R1?'<td>'+(s.hrR1||'–')+'</td>':'')+'</tr>').join('')+'</table></details></div>'}
 
 function sessCard(s){const w=s.kind==='workout',mx=Math.max(s.hrB||0,s.hrA||0,1);
   return '<div class="stses '+(w?'w':'c')+'"><div class="stsi">'+ico(w?'energy':'stairs',2)+'</div><div class="stsb"><b>'+esc(s.loc)+'</b>'
@@ -285,7 +298,7 @@ function watch(){if(hasIO){if(IOc)IOc.disconnect();IOc=new IntersectionObserver(
 const $id=i=>document.getElementById(i);
 function liveKcal(){const k=$id('wk-kcal');if(k&&!k.contains(document.activeElement))k.innerHTML=kcalAll()}
 INP.stc=()=>{C.steps=$id('ss').value;C.climbs=$id('sc').value;syncCnt('c')};
-INP.stw=el=>{const v=k=>{const e=$id(k);return e?e.value:''},id=el&&el.id;W.hrB=v('wk-b');W.hrA=v('wk-a');W.steps=v('wk-s');W.climbs=v('wk-c');
+INP.stw=el=>{const v=k=>{const e=$id(k);return e?e.value:''},id=el&&el.id;W.hrB=v('wk-b');W.hrA=v('wk-a');W.hrR1=v('wk-r');W.steps=v('wk-s');W.climbs=v('wk-c');
   if(id==='wk-b')W.hrBd=0;if(id==='wk-a')W.hrAd=0; // typed over a device reading: it is the user's number now
   if($id('wk-lo')){W.cLo=v('wk-lo');W.cAv=v('wk-av');W.cHi=v('wk-hi')}
   if(id==='wk-lo'||id==='wk-av'||id==='wk-hi'){W.cSet=W.cLo+W.cAv+W.cHi!==''?1:0;W.cDev=0;const n=$id('st-cn');if(n)n.innerHTML=cNote()}
@@ -293,7 +306,10 @@ INP.stw=el=>{const v=k=>{const e=$id(k);return e?e.value:''},id=el&&el.id;W.hrB=
   syncCnt('w');keepW();['b','a'].forEach(k=>{const c=$id('st-tr-'+k),h=okHR(k==='b'?W.hrB:W.hrA),s=$id('st-hs-'+k);if(c){c.dataset.bpm=h||'';c.setAttribute('aria-label',(k==='b'?'BEFORE':'AFTER')+' WORKOUT heart rate: '+(h?h+' BPM, typed in by you':'not entered'))}
     if(s)s.innerHTML=hsTxt(k,h);const pm=$id('st-pm-'+k);if(pm)pm.innerHTML=pmTxt(h)});
   const r=$id('st-rest');if(r)r.innerHTML=restTxt(okHR(W.hrB));const pk=$id('st-peak');if(pk)pk.innerHTML=peakTxt();
-  const d=$id('st-delta');if(d)d.innerHTML=delta();liveKcal();draw()};
+  const d=$id('st-delta');if(d)d.innerHTML=delta();const rc=$id('st-rec');if(rc)rc.innerHTML=recTxt();liveKcal();draw()};
+// resting-pulse prompt: the buttons only focus the field or copy a number the user already logged today, when tapped
+acts.stfocusb=()=>{const e=$id('wk-b');if(e){e.scrollIntoView({block:'center',behavior:HWUI.reduced()?'auto':'smooth'});e.focus({preventScroll:true})}};
+acts.strest=d=>{const v=okHR(d.v),e=$id('wk-b');if(!v||!e)return;e.value=v;INP.stw(e);const k=$id('wk-kcal');if(k)k.innerHTML=kcalAll();e.focus({preventScroll:true});toast('Resting pulse used: '+v+' BPM before the workout')};
 /* ---------- heart-rate device (js/v6-hr.js): use a steady reading; record the climb while the timer runs ---------- */
 acts.hruse=d=>{if(!hasHR)return;const s=HWHR.stable(),k=d.k==='a'?'a':'b';
   if(!s.ok||s.v>220){toast('Wait for a steady reading (10–15 s, holding still)');return}
@@ -325,9 +341,9 @@ acts.savestair=()=>{INP.stc();const s=+C.steps,c=+C.climbs;
   const q=need('#stman .sqlist');if(!q)return;const w=HWWhen.stamp({sig:'k'+q.id+s+'x'+c});if(!w)return;
   add('stair',s*c,record(q,{kind:'casual',src:'manual',steps:s,climbs:c}),'',w.d,w.t,25,'Stair session');HWWhen.saved(w,'Climb');
   C.steps=C.climbs=C.d=C.t='';C.r=null;render()};
-acts.stwsave=()=>{INP.stw();pause();const s=+W.steps,c=+W.climbs,b=W.hrB===''?null:okHR(W.hrB),a=W.hrA===''?null:okHR(W.hrA),dur=durW();
+acts.stwsave=()=>{INP.stw();pause();const s=+W.steps,c=+W.climbs,b=W.hrB===''?null:okHR(W.hrB),a=W.hrA===''?null:okHR(W.hrA),r1=W.hrR1===''?null:okHR(W.hrR1),dur=durW();
   if(!counts(s,c)){toast('Enter steps per climb (1–1000) and number of climbs (1–500)');return}
-  if((W.hrB!==''&&!b)||(W.hrA!==''&&!a)){toast('Heart rates should be 30 to 220 BPM');return}
+  if((W.hrB!==''&&!b)||(W.hrA!==''&&!a)||(W.hrR1!==''&&!r1)){toast('Heart rates should be 30 to 220 BPM');return}
   if(dur!=null&&!(dur>0&&dur<=300)){toast('Workout time should be 0.5 to 300 minutes');return}
   const cv=x=>x===''?null:okHR(x),lo=cv(W.cLo),av=cv(W.cAv),hi=cv(W.cHi);
   if((W.cLo!==''&&!lo)||(W.cAv!==''&&!av)||(W.cHi!==''&&!hi)){toast('Climb heart rates should be 30 to 220 BPM');return}
@@ -336,7 +352,7 @@ acts.stwsave=()=>{INP.stw();pause();const s=+W.steps,c=+W.climbs,b=W.hrB===''?nu
   const dv={};if(W.hrBd&&b)dv.b=1;if(W.hrAd&&a)dv.a=1;if(W.cDev&&(lo||av||hi))dv.c=1;const nd=Object.keys(dv).length,ng=(b?1:0)+(a?1:0)+(lo||av||hi?1:0),pk=peak(hi,a);
   if(nd&&HWWhen.custom()){toast('📅 This workout uses heart rates read from your device just now, so it can only be saved for now. Choose USE NOW, or clear the device readings.');return}
   const w=HWWhen.stamp({sig:'w'+q.id+s+'x'+c+'/'+dur});if(!w)return;
-  add('stair',s*c,record(q,{kind:'workout',src:nd?'device':'manual',steps:s,climbs:c,pace,dur:dur||0,hrB:b,hrA:a,kcal:e.v?{v:e.v,lo:e.lo,hi:e.hi,m:e.m}:null,
+  add('stair',s*c,record(q,{kind:'workout',src:nd?'device':'manual',steps:s,climbs:c,pace,dur:dur||0,hrB:b,hrA:a,hrR1:r1,kcal:e.v?{v:e.v,lo:e.lo,hi:e.hi,m:e.m}:null,
     hrS:nd?(nd===ng?'device':'mixed'):undefined,hrLo:lo,hrAv:av,hrHi:hi,hrPct:pk&&pk.pct||null,hrDev:nd?dv:null}),'',w.d,w.t,25,'Workout saved');HWWhen.saved(w,'Workout');
   clearInterval(S.tm);S.pb.on=0;W=W0();try{sessionStorage.removeItem(DK)}catch(x){}render()};
 acts.stwreset=()=>{pause();clearInterval(S.tm);S.pb.on=0;W=W0();try{sessionStorage.removeItem(DK)}catch(e){}render();toast('Workout cleared. Nothing was saved.')};
@@ -388,9 +404,11 @@ HWUI.css('stairs',`
 .sthrsvg{width:100%;max-width:560px;height:auto;display:block;shape-rendering:crispEdges}.sthrsvg text{font:9px var(--fb);fill:var(--mut)}
 .sthrsvg .gl{stroke:var(--mut);stroke-opacity:.35;stroke-width:1}.sthrsvg .jn{stroke:var(--ink);stroke-opacity:.5;stroke-width:2}
 .sthrsvg .hb{fill:var(--blue);stroke:var(--pn);stroke-width:2;shape-rendering:auto}.sthrsvg .ha{fill:var(--red);stroke:var(--pn);stroke-width:2}
+.sthrsvg .hr1{fill:var(--grn);stroke:var(--pn);stroke-width:2}.sthrsvg .dsh{stroke-dasharray:3 2}
 .sthrsvg .pt:hover .jn,.sthrsvg .pt:focus .jn{stroke-opacity:1}.sthrsvg .pt:focus{outline:none}.sthrsvg .pt:focus rect[fill=transparent]{stroke:var(--gold);stroke-width:2}
 .stleg{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:6px;font-size:13px}.stleg span{display:flex;align-items:center;gap:6px}
-.stleg i{display:inline-block;width:10px;height:10px;border:2px solid var(--ln)}.stleg i.hb{background:var(--blue);border-radius:50%}.stleg i.ha{background:var(--red)}
+.stleg i{display:inline-block;width:10px;height:10px;border:2px solid var(--ln)}.stleg i.hb{background:var(--blue);border-radius:50%}.stleg i.ha{background:var(--red)}.stleg i.hr1{background:var(--grn);clip-path:polygon(50% 0,100% 100%,0 100%)}
+#st-rec:empty{display:none}#st-recavg{border-color:var(--grn)}
 .sttab{width:100%;border-collapse:collapse;font-size:13px}.sttab th,.sttab td{text-align:left;padding:3px 6px;border-bottom:1px dashed var(--mut)}
 .stses{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:2px dashed var(--p2);animation:pgin .3s steps(4)}.stses:first-of-type{border-top:0}
 .stsi{flex:0 0 auto;padding:4px;background:var(--p2);border:var(--px-bw-s) solid var(--ln)}.stses.w .stsi{background:var(--pn);box-shadow:0 0 0 2px var(--red)}

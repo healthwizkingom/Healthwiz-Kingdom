@@ -13,7 +13,8 @@ const audit = page => page.evaluate(() => {
   const parse = s => { const m = s.match(/rgba?\(([^)]+)\)/); if (!m) return null; const p = m[1].split(',').map(Number); return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1] };
   const bgOf = el => { let e = el; while (e) { const c = parse(getComputedStyle(e).backgroundColor); if (c && c[3] > .5) return c; e = e.parentElement } return [255, 255, 255, 1] };
   return [...document.querySelectorAll('button')].filter(b => b.offsetParent && b.getBoundingClientRect().width > 0 && !b.disabled && !b.closest('.kn') && !b.classList.contains('v6shfs') && !b.classList.contains('nst'))
-    .map(b => { const cs = getComputedStyle(b); return { k: (b.className || b.dataset.a || 'button') + ' "' + b.textContent.trim().slice(0, 18) + '"', bd: parse(cs.borderTopColor), fill: bgOf(b), par: bgOf(b.parentElement), fg: parse(cs.color) } });
+    .map(b => { const cs = getComputedStyle(b), pv = b.matches('.hwh:not(.hwhl)') ? getComputedStyle(b, '::before') : null; // the help "?" keeps a 44 px tap box; its blue square is drawn on ::before
+      return { k: (b.className || b.dataset.a || 'button') + ' "' + b.textContent.trim().slice(0, 18) + '"', bd: parse((pv || cs).borderTopColor), fill: pv ? parse(pv.backgroundColor) : bgOf(b), par: bgOf(b.parentElement), fg: parse(cs.color) } });
 });
 
 for (const [theme, scheme] of [['', 'light'], ['', 'dark'], ['forest', 'dark'], ['crystal', 'dark'], ['ember', 'dark'], ['frost', 'light'], ['desert', 'light']]) {
@@ -39,8 +40,8 @@ test('disabled buttons are flat with a dashed edge; the help button is blue with
   await page.waitForSelector('.wl'); await go(page, 'bmi');
   const r = await page.evaluate(() => {
     const d = document.createElement('button'); d.textContent = 'X'; d.disabled = true; d.className = 'g'; document.querySelector('#main .card').appendChild(d);
-    const cs = getComputedStyle(d), h = getComputedStyle(document.querySelector('.hwh'));
-    const out = { dis: [cs.borderTopStyle, cs.boxShadow], help: [h.backgroundColor, h.color] };
+    const cs = getComputedStyle(d), hb = document.querySelector('.hwh'), h = getComputedStyle(hb), hv = getComputedStyle(hb, '::before'); // blue square is drawn on ::before
+    const out = { dis: [cs.borderTopStyle, cs.boxShadow], help: [hv.backgroundColor, h.color] };
     d.remove(); return out;
   });
   assert.equal(r.dis[0], 'dashed'); assert.equal(r.dis[1], 'none');
