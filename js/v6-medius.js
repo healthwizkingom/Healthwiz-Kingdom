@@ -57,9 +57,19 @@ const MALE=/\b(daniel|arthur|oliver|thomas|george|gordon|rishi|aaron|ryan|guy|da
 const enVoices=()=>{try{return speechSynthesis.getVoices().filter(x=>/^en/i.test(x.lang))}catch(e){return[]}};
 const maleVoices=()=>enVoices().filter(x=>MALE.test(x.name)&&!FEMALE.test(x.name)).sort((a,b)=>(/en-gb/i.test(b.lang)-/en-gb/i.test(a.lang))||(/natural|neural|premium|enhanced/i.test(b.name)-/natural|neural|premium|enhanced/i.test(a.name)));
 function voice(){const v=enVoices(),pick=st.s.medvn&&v.find(x=>x.name===st.s.medvn);return pick||maleVoices()[0]||v.find(x=>!FEMALE.test(x.name))||v[0]||null}
-function hush(){vTok++;try{if(canSay())speechSynthesis.cancel()}catch(e){}}
+let rec=null;
+function hush(){vTok++;if(rec){try{rec.onended=rec.onerror=null;rec.pause()}catch(e){}rec=null}try{if(canSay())speechSynthesis.cancel()}catch(e){}}
 let vTok=0;
-function speak(text){if(!vOn()||!canSay()||!text)return;hush();const tok=++vTok,v=voice();
+// name of a line's recording: a hash of its text, the same as tools/audio/make_tutorial_voice.py, so an edited line never plays a stale file
+const hashOf=t=>{let x=5381;for(const c of t)x=((x<<5)+x+c.charCodeAt(0))>>>0;return x.toString(36)};
+/** Speaks a line. With `tmpl` (the tutorial's text before {name} is filled in) it plays the recorded line when one exists
+    (assets/audio/tut-<hash>.mp3) and falls back to the browser voice when it does not or cannot play. */
+function speak(text,tmpl){if(!vOn()||!text)return;hush();
+  if(tmpl&&typeof Audio!=='undefined'){const tok=vTok,a=new Audio('assets/audio/tut-'+hashOf(tmpl)+'.mp3');rec=a;
+    const back=()=>{if(rec!==a)return;rec=null;a.onerror=a.onended=null;if(tok===vTok)synth(text)};
+    a.onerror=back;try{const p=a.play();if(p&&p.catch)p.catch(back)}catch(e){back()}return}
+  synth(text)}
+function synth(text){if(!canSay())return;hush();const tok=++vTok,v=voice();
   const P=String(text).replace(/\s+/g,' ').split(/(?<=[.!?:;,])\s+/).filter(Boolean);
   (function next(i){if(tok!==vTok||i>=P.length)return;const ph=P[i],u=new SpeechSynthesisUtterance(ph);
     if(v){u.voice=v;u.lang=v.lang}else u.lang='en-GB';

@@ -16,7 +16,7 @@ const PRECACHE = [
   'js/hw-01-menu-data.js', 'js/v6-schema.js', 'js/hw-02-core.js', 'js/hw-03-part.js', 'js/hw-04-part.js',
   'js/hw-05-v5-4-module.js', 'js/hw-06-v5-3-health-module.js', 'js/v6-events.js', 'js/v6-ui.js', 'js/v6-pixel.js',
   'js/v6-emoji.js', 'js/v6-provisions.js', 'js/v6-hr.js', 'js/v6-hrlog.js', 'js/v6-stairs.js', 'js/v6-conditions.js', 'js/v6-motion.js', 'js/v6-particles.js', 'js/v6-insights.js', 'js/v6-quests.js',
-  'js/v6-streaks.js', 'js/v6-xp.js', 'js/v6-kingdom.js', 'js/v6-medius.js', 'js/v6-charts.js', 'js/v6-world.js',
+  'js/v6-streaks.js', 'js/v6-xp.js', 'js/v6-kingdom.js', 'js/v6-medius.js', 'js/v6-music.js', 'js/v6-charts.js', 'js/v6-world.js',
   'js/v6-title.js', 'js/v6-games.js', 'js/v6-water.js', 'js/v6-rig.js', 'js/v6-waterquest.js', 'js/v6-dream.js', 'js/v6-storm.js', 'js/v6-ambient.js', 'js/v6-grove.js', 'js/v6-relief.js', 
   'js/v6-gps.js', 'js/v6-pwa.js',
   'js/v6-cloud.js', 'js/v6-account.js', 'js/v6-counsel.js', 'js/v6-board.js', 'js/v6-running.js', 'js/v6-runboard.js', 'js/v6-badges.js', 'js/v6-looks.js', 'js/v6-live.js', 'js/v6-alarm.js', 'js/v6-sheep.js', 'js/v6-map.js', 'js/v6-score.js', 'js/v6-orb.js', 'js/v6-foodsel.js', 'js/v6-expbar.js', 'js/v6-help.js', 'js/v6-when.js', 'js/v6-buttons.js', 'js/v6-body.js', 'js/v6-exercise.js', 'js/v6-log.js', 'js/v6-hall.js', 'js/v6-safety.js', 'js/hw-07-boot.js',
@@ -25,6 +25,7 @@ const PRECACHE = [
   'assets/img/kn.webp', 'assets/img/knight-kbd.webp', 'assets/img/knight-kcp.webp', 'assets/img/knight-khr.webp',
   'assets/img/orb-scene.webp', 'assets/img/orc.webp', 'assets/img/study.jpg', 'assets/img/wiz.webp', 'assets/img/medius-reactions.webp',
   'assets/img/exercise/moves.webp', 'assets/img/exercise/muscles.webp',
+  'assets/audio/home-theme.mp3',
   'assets/icons/icon-32.png', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png',
   'assets/icons/icon-maskable-512.png', 'assets/icons/apple-touch-icon.png',
 ];
