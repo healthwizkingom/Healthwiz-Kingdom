@@ -32,7 +32,8 @@ const pngSize = f => { const b = fs.readFileSync(path.join(root, f)); assert.equ
 test('the service worker pre-caches every app file, and every listed file exists', () => {
   const list = precache();
   const scripts = [...read('index.html').matchAll(/<script src="(js\/[\w.-]+\.js)"><\/script>/g)].map(m => m[1]);
-  const assets = ['img', 'icons'].flatMap(d => fs.readdirSync(path.join(root, 'assets', d)).map(f => 'assets/' + d + '/' + f));
+  const walk = d => fs.readdirSync(path.join(root, d), { withFileTypes: true }).flatMap(f => f.isDirectory() ? walk(d + '/' + f.name) : [d + '/' + f.name]); // includes assets/img/exercise/
+  const assets = ['img', 'icons'].flatMap(d => walk('assets/' + d));
   for (const f of [...scripts, ...assets, 'index.html', 'manifest.webmanifest', './']) assert.ok(list.includes(f), 'sw.js PRECACHE is missing ' + f);
   for (const f of list) if (f !== './') assert.ok(fs.existsSync(path.join(root, f)), 'PRECACHE lists a missing file: ' + f);
   assert.equal(new Set(list).size, list.length, 'no duplicates');

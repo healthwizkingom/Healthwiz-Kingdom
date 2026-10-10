@@ -92,6 +92,7 @@ const TILE={
   // one tile for both (Provisions Hall): two values, and the one input for each
   food:{val:d=>'Food '+fmt(kc(d))+' / '+fmt(st.s.kcal)+' kcal<br>Water '+fmt(wt(d))+' / '+fmt(st.s.water)+' mL',act:d=>'Tap to pick a food or add '+(wt(d)>=st.s.water?'a drink':'250 mL')},
   sleep:{val:d=>{const s=A('sleep',d).pop();return s?s.v+' h slept':'not logged today'},act:d=>done('sleep',d)?'Logged · tap to review':'Tap to enter bedtime + wake-up'},
+  exercise:{keep:1,act:()=>'Tap to train · logs only when you finish'},
   stair:{keep:1,act:d=>done('stair',d)?'Tap to add a climb: steps × climbs':'Tap to enter steps × climbs'},
   stress:{val:d=>str(d)==null?'no check-in yet':str(d)+'/10 today',act:d=>done('stress',d)?'Tap for another check-in':'Tap to pick how you feel'},
   body:{val:()=>(st.s.onb||st.p.cfm?'BMI '+bmi():'BMI not set')+(st.s.set?' · '+fmt(st.s.kcal)+' kcal goal':''),act:()=>'Tap to enter height + weight'},

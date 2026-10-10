@@ -89,6 +89,13 @@ compatibility tests.
 `31-dream-battle` (five sleep levels, gradual strength, battle outcomes, replay, reduced motion, phone layouts) and
 `32-water-quest` (scene layers and lighting, the knight's sequence, persistence, six screen sizes, reduced motion).
 
+### Wizard's Training Hall (Exercise page)
+
+`51-exercise` (the EXERCISE tile beside Stairs; goal picker and kept numbers in `st.s.xg`; muscle map taps, partner muscles,
+brachialis + brachioradialis lit together; tutorial sprite and its still frame with reduced motion; sets, rest countdown, finish
+card with the kcal / VO₂ / kJ estimates; XP cap of two rewarded sessions a day; "I feel dizzy" / "Chest pain" stop and log nothing;
+doctor-note gate on sets to failure; 360 px fit). The sprite sheets are made by `tools/art/make_exercise.py`.
+
 ### §92 Performance
 
 `24-performance`: page budgets with a year of logs, one storage write per action, storage-full handling, looping scenery

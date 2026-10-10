@@ -16,7 +16,7 @@ const out = html.replace(/<script src="(js\/[\w.-]+\.js)"><\/script>/g, (_, src)
 });
 const MIME = { webp: 'image/webp', png: 'image/png', jpg: 'image/jpeg' };
 let imgs = 0;
-const outAll = out.replace(/assets\/img\/([\w-]+)\.(webp|png|jpg)/g, (_, n, e) => {
+const outAll = out.replace(/assets\/img\/([\w/-]+)\.(webp|png|jpg)/g, (_, n, e) => {
   imgs++;
   return `data:${MIME[e]};base64,` + fs.readFileSync(path.join(root, 'assets', 'img', `${n}.${e}`)).toString('base64');
 });

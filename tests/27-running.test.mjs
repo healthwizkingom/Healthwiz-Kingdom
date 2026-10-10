@@ -85,7 +85,7 @@ test('Stairs page → Running section: explain, start, live metrics, noise filte
   const { page, ctx, errors } = await boot();
   await go(page, 'health');
   const tiles = await page.$$eval('#hub .hb', b => b.map(x => x.dataset.v));
-  assert.deepEqual(tiles, ['food', 'sleep', 'stair', 'stress', 'body', 'stats', 'score'], 'no Pulse or Running tile: both live on the Stairs page');
+  assert.deepEqual(tiles, ['food', 'sleep', 'stair', 'exercise', 'stress', 'body', 'stats', 'score'], 'no Pulse or Running tile: both live on the Stairs page');
   await page.click('#hub [data-v="stair"]');
   assert.equal(await page.locator('#map [data-a="runmap"]').count(), 1, 'no map download until Running is wanted');
   await page.click('[data-a="stjump"][data-t="st-run"]');
