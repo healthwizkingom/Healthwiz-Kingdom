@@ -9,7 +9,8 @@ The exercise sprites (make_exercise_blender.py) only use Blender for data passes
     so the catch-lights are real reflections; MakeHuman's eyelashes (CC0) and the eyebrow mesh;
   * materials: skin with subsurface scattering, auburn hair with a soft sheen, white-silver steel and gold trim,
     the dark coat, leather, the red cape and the blue gem;
-  * smooth subdivision (render level 1) on the body, clothes and hair;
+  * smooth subdivision (render level 1) on the body, clothes and hair; the bang tips lifted to the upper lid, the
+    lock roots tapered into the cap, and the armour shells pushed clear of the coat (this file only);
   * neutral studio lighting (key, fill and rim, soft grey world), AgX colour, a portrait lens, denoised Cycles.
 
 Renders: a front facial close-up, a three-quarter facial close-up and a full-body view. Saves the set-up as
@@ -25,6 +26,8 @@ import numpy as np
 from mathutils import Vector, Matrix
 from bl_ext.user_default.mpfb.services.humanservice import HumanService
 from bl_ext.user_default.mpfb.services.locationservice import LocationService
+from bl_ext.user_default.mpfb.services.targetservice import TargetService
+from bl_ext.user_default.mpfb.services.clothesservice import ClothesService
 
 OUT = sys.argv[sys.argv.index('--') + 1]
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -71,6 +74,10 @@ def principled(name, base, rough=.5, metal=0.0, **extra):
     return m
 
 
+# a light anime stylisation of the eye region: slightly larger, more open eyes (MakeHuman targets, CC0); the eyes
+# and lashes are fitted after it and the brows are refitted to it
+TargetService.bulk_load_targets(BODY, [{'target': t, 'value': v} for side in 'lr' for t, v in (
+    (side + '-eye-scale-incr', .3), (side + '-eye-height2-incr', .35), (side + '-eye-height1-incr', .2))])
 ASSET_EYES = HumanService.add_mhclo_asset(os.path.join(MH, 'eyes/high-poly/high-poly.mhclo'), BODY,
                                           asset_type='Eyes', subdiv_levels=0)
 LASHES = HumanService.add_mhclo_asset(os.path.join(MH, 'eyelashes/eyelashes01/eyelashes01.mhclo'), BODY,
@@ -78,6 +85,7 @@ LASHES = HumanService.add_mhclo_asset(os.path.join(MH, 'eyelashes/eyelashes01/ey
 bpy.data.objects['Human.low-poly'].hide_render = True
 BROWS = bpy.data.objects['Human.eyebrow001']
 BROWS.hide_render = False
+ClothesService.fit_clothes_to_human(BROWS, BODY, set_parent=False)
 
 eye_mat = principled('knight_eye_hq', (1, 1, 1), .25, **{'Coat Weight': 1.0, 'Coat Roughness': .03})
 tex = eye_mat.node_tree.nodes.new('ShaderNodeTexImage')
@@ -104,13 +112,13 @@ def original(ob):
 
 # ---------- materials ----------
 MAT = {
-    'skin': principled('knight_skin_hq', (.80, .60, .50), .45, **{'Subsurface Weight': .25,
+    'skin': principled('knight_skin_hq', (.78, .50, .38), .45, **{'Subsurface Weight': .3,
                                                                    'Subsurface Scale': .004 * K}),
     'glove': principled('knight_glove_hq', (.06, .04, .035), .5),
     'coat': principled('knight_coat_hq', (.05, .055, .07), .65, **{'Sheen Weight': .3}),
     'trim': principled('knight_gold_hq', (1.0, .74, .32), .28, 1.0),
-    'steel': principled('knight_steel_hq', (.86, .87, .9), .22, .9),
-    'hair': principled('knight_hair_hq', (.36, .14, .06), .38, **{'Coat Weight': .25, 'Coat Roughness': .2,
+    'steel': principled('knight_steel_hq', (.93, .94, .96), .26, .65),
+    'hair': principled('knight_hair_hq', (.17, .045, .025), .36, **{'Coat Weight': .25, 'Coat Roughness': .2,
                                                                    'Sheen Weight': .4}),
     'eye': eye_mat,
     'brow': alpha_material('knight_brow_hq', (.12, .05, .03), original(BROWS)),
@@ -121,17 +129,48 @@ MAT = {
     'pad': principled('knight_pad_hq', (.1, .06, .06), .5),
     'chrome': principled('knight_chrome_hq', (.9, .9, .92), .1, 1.0),
 }
+
+def strands(m):
+    """Fine strand relief on the hair: stretched noise bands as a bump, so the locks read as layered hair."""
+    nt = m.node_tree
+    tc, wave, bump = (nt.nodes.new(t) for t in ('ShaderNodeTexCoord', 'ShaderNodeTexWave', 'ShaderNodeBump'))
+    wave.wave_type, wave.bands_direction = 'BANDS', 'X'
+    wave.inputs['Scale'].default_value = 4.0
+    wave.inputs['Distortion'].default_value = 6.0
+    wave.inputs['Detail'].default_value = 4.0
+    bump.inputs['Strength'].default_value = .06
+    nt.links.new(tc.outputs['Object'], wave.inputs['Vector'])
+    nt.links.new(wave.outputs['Fac'], bump.inputs['Height'])
+    nt.links.new(bump.outputs['Normal'], nt.nodes['Principled BSDF'].inputs['Normal'])
+
+
+strands(MAT['hair'])
 for ob in bpy.data.objects:
     if ob.type != 'MESH' or 'keys' not in ob:
         continue
     for slot, k in zip(ob.material_slots, ob['keys'].split(',')):
         slot.link = 'OBJECT'
         slot.material = MAT.get(k, MAT['iron'])
-for ob in (ASSET_EYES,):
-    for slot in ob.material_slots:
-        slot.material = eye_mat
+# each MakeHuman eye is an eyeball (the iris is on it) inside a cornea shell, whose UVs sit in the texture's corner:
+# the shell gets a clear glossy material, so the iris shows and the catch-lights are real reflections
+cornea = principled('knight_cornea_hq', (1, 1, 1), 0.0, **{'Transmission Weight': 1.0, 'IOR': 1.376})
+ASSET_EYES.data.materials.clear()
+ASSET_EYES.data.materials.append(eye_mat)
+ASSET_EYES.data.materials.append(cornea)
+uv = ASSET_EYES.data.uv_layers.active.data
+for poly in ASSET_EYES.data.polygons:
+    u, v = uv[poly.loop_start].uv
+    poly.material_index = 1 if u > .85 and v < .15 else 0
 for slot in LASHES.material_slots:
     slot.material = alpha_material('knight_lash_hq', (.04, .025, .025), original(LASHES))
+
+# the sprite armour shells are low-poly and cut into the coat (jagged edges in a close render): push them out a
+# little
+for name, push in (('cuirass', .012), ('bracer', .01), ('bracer.001', .01), ('boot_shaft', .008),
+                   ('boot_shaft.001', .008)):                                                         # metres
+    ob = bpy.data.objects[name]
+    d = ob.modifiers.new('push', 'DISPLACE')
+    d.strength, d.mid_level = push * K / (sum(ob.matrix_world.to_scale()) / 3), 0.0     # in the object's own units
 
 # smooth subdivision for the render (after the armature and masks)
 for ob in bpy.data.objects:
@@ -140,6 +179,41 @@ for ob in bpy.data.objects:
             continue
         sub = ob.modifiers.new('smooth', 'SUBSURF')
         sub.levels, sub.render_levels = 0, 1
+
+
+
+def lift_bangs():
+    """The sprite bangs reach the eyes (at 96 px they had to read as a fringe); for the close-up the tips are drawn up
+    to the upper lid so the eyes show between them. The bangs follow the head bone, so the edit holds in every pose."""
+    sc.frame_set(FACE_FRAME)
+    bangs = bpy.data.objects['bangs']
+    dg = bpy.context.evaluated_depsgraph_get()
+    ev = ASSET_EYES.evaluated_get(dg)
+    eye_z = sum((ev.matrix_world @ v.co).z for v in ev.to_mesh().vertices) / len(ev.data.vertices)
+    ev.to_mesh_clear()
+    top = eye_z + .022 * K                      # just above the upper lid
+    mw = bangs.matrix_world.copy()
+    inv = mw.inverted()
+    for v in bangs.data.vertices:
+        w = mw @ v.co
+        if w.z < top:
+            w.z = top - (top - w.z) * .3
+            v.co = inv @ w
+
+
+def taper_lock_roots():
+    """The locks (ribbon() in blender_exercise_render.py: 10 rings of 10 vertices, root first) start at full width on
+    the cap, which leaves blunt nubs around the crown in a close render. Taper each root ring into the cap."""
+    for ob in bpy.data.objects:
+        if ob.name.startswith('hair_lock') and len(ob.data.vertices) == 100:
+            root = [ob.data.vertices[i] for i in range(10)]
+            c = sum((v.co for v in root), Vector()) / 10
+            for v in root:
+                v.co = c + (v.co - c) * .25
+
+
+lift_bangs()
+taper_lock_roots()
 
 # ---------- studio ----------
 for lc in bpy.context.view_layer.layer_collection.children:     # the knight alone: no exercise props
@@ -152,6 +226,7 @@ sc.cycles.filter_width = 1.5
 sc.cycles.max_bounces = 6
 sc.render.film_transparent = False
 sc.view_settings.view_transform = 'AgX'
+sc.view_settings.look = 'AgX - Punchy'          # keeps the skin's warmth and the auburn's saturation
 sc.render.image_settings.file_format = 'PNG'
 sc.render.image_settings.color_mode = 'RGB'
 sc.render.image_settings.color_depth = '8'
@@ -159,7 +234,7 @@ w = sc.world
 w.use_nodes = True
 bgn = w.node_tree.nodes.get('Background') or w.node_tree.nodes.new('ShaderNodeBackground')
 bgn.inputs['Color'].default_value = (.32, .33, .36, 1)
-bgn.inputs['Strength'].default_value = .35
+bgn.inputs['Strength'].default_value = .5
 if not any(l.is_linked for l in bgn.outputs):
     out = w.node_tree.nodes.get('World Output') or w.node_tree.nodes.new('ShaderNodeOutputWorld')
     w.node_tree.links.new(bgn.outputs[0], out.inputs['Surface'])
@@ -175,7 +250,7 @@ def sun(name, energy, rot, angle=12):
     return ob
 
 
-sun('studio_key', 3.2, (55, 0, -35))      # front-left, above
+sun('studio_key', 2.6, (55, 0, -35))      # front-left, above
 sun('studio_fill', 1.0, (75, 0, 40))      # front-right, softer
 sun('studio_rim', 2.4, (60, 0, 160))      # behind, edging hair and shoulders
 
@@ -221,7 +296,7 @@ render(os.path.join(OUT, 'knight_face_three_quarter.png'), 1200, 1200)
 sc.frame_set(POSE_FRAME)
 cam_data.lens = 50
 c = head_centre()
-look(CAM, Vector((c.x, c.y, c.z * .52)), 28, 5.4 * K, .25 * K)
+look(CAM, Vector((c.x, c.y, c.z * .54)), 28, 3.5 * K, .25 * K)
 render(os.path.join(OUT, 'knight_full_body.png'), 1000, 1500)
 
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(HERE, 'knight_hq.blend'))
