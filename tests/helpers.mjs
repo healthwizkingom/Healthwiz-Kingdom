@@ -33,13 +33,14 @@ export const RETURNING = { sv: 8, gp: { ok: 0, v: {} }, xl: {}, md: { last: {}, 
  *  - default: a returning user (onboarding done, tutorial seen, sound off)
  *  - { fresh: true }: brand-new user with empty storage (onboarding + tutorial flow)
  *  - { seed }: custom saved state (tutorial marked seen)
+ *  - { url }: open this address instead of the file (for features that need http, such as fetching audio)
  *  - { context }: extra browser-context options (hasTouch, isMobile, colorScheme, reducedMotion…)
  */
-export async function openApp({ seed, fresh = false, viewport, before, context } = {}) {
+export async function openApp({ seed, fresh = false, viewport, before, context, url } = {}) {
   const b = await getBrowser();
   const ctx = await b.newContext({ viewport: viewport || { width: 1100, height: 900 }, acceptDownloads: true, ...context });
   // Tests run offline: stub external requests (Google Fonts stylesheet, AI endpoint).
-  await ctx.route(/^https?:/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+  await ctx.route(/^https?:\/\/(?!127\.0\.0\.1)/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
   const page = await ctx.newPage();
   const errors = [];
   // Keep at most 50 messages so a runaway page can't exhaust the test runner's memory; flag floods.
@@ -50,7 +51,7 @@ export async function openApp({ seed, fresh = false, viewport, before, context }
   const init = fresh ? null : JSON.stringify(seed || RETURNING);
   if (init) await page.addInitScript(s => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('healthwiz', s); localStorage.setItem('hwtut', '1'); sessionStorage.setItem('seeded', '1'); } }, init);
   if (before) await before(page);
-  await page.goto(APP_URL);
+  await page.goto(url || APP_URL);
   return { page, ctx, errors };
 }
 
