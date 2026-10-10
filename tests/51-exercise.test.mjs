@@ -101,8 +101,8 @@ test('muscle map: every muscle has pixels, a mask and exercises; a tap lights it
   assert.equal(await page.evaluate(() => S.xs.ex), 'skull');
   // the art the page uses
   for (const f of ['moves.webp', 'muscles.webp']) { const b = fs.readFileSync(path.join(root, 'assets/img/exercise', f)); assert.equal(b.toString('ascii', 8, 16), 'WEBPVP8L', f); }
-  assert.equal(await page.evaluate(() => new Promise(r => { const i = new Image(); i.onload = () => r(i.width + 'x' + i.height); i.onerror = () => r('missing'); i.src = 'assets/img/exercise/muscles.webp'; })), '128x1920');
-  assert.equal(await page.evaluate(() => new Promise(r => { const i = new Image(); i.onload = () => r(i.width + 'x' + i.height); i.onerror = () => r('missing'); i.src = 'assets/img/exercise/moves.webp'; })), '384x2112');
+  assert.equal(await page.evaluate(() => new Promise(r => { const i = new Image(); i.onload = () => r(i.width + 'x' + i.height); i.onerror = () => r('missing'); i.src = 'assets/img/exercise/muscles.webp'; })), '512x7680');  // 4x detail, drawn at 128 x 1920
+  assert.equal(await page.evaluate(() => new Promise(r => { const i = new Image(); i.onload = () => r(i.width + 'x' + i.height); i.onerror = () => r('missing'); i.src = 'assets/img/exercise/moves.webp'; })), '1536x8448');  // 4x detail, drawn at 384 x 2112
   assert.equal(await page.$eval('.xmm.base', e => getComputedStyle(e).imageRendering), 'pixelated');
   assert.deepEqual(errors, []);
   await ctx.close();

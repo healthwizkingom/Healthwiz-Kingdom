@@ -38,16 +38,16 @@ treating a failure as real.
 ## Asset and build rules
 
 - No new runtime or npm dependencies. No emoji in the UI (`tests/30-emoji.test.mjs`).
-- Images: lossless WebP, no image over 100 KB, all of `assets/img/` (subfolders included) at most 540 KB
-  (`tests/24-performance.test.mjs`). Keep file names: they are listed in `sw.js` PRECACHE and embedded by the build.
+- Images: lossless WebP, no image over 100 KB (the Training Hall's `moves.webp`: 180 KB), all of `assets/img/`
+  (subfolders included) at most 680 KB (`tests/24-performance.test.mjs`). Keep file names: they are listed in `sw.js` PRECACHE and embedded by the build.
 - Visual style: modern pixel-art RPG, see `docs/PIXEL_STYLE.md`.
 - Never skip or weaken a test to get green.
 
 ## Training Hall (exercise page) art
 
 The page is `js/v6-exercise.js`. Its art is two sprite sheets plus a tap map; layout and limits are in
-`docs/EXERCISE_BLENDER_HANDOFF.md` (`moves.webp` 384 x 2112, `muscles.webp` 128 x 1920, 22 moves, 19 muscle masks,
-28-colour palette). Only the `MAP-DATA` block of `js/v6-exercise.js` may be rewritten by the art tools.
+`docs/EXERCISE_BLENDER_HANDOFF.md` (`moves.webp` 1536 x 8448 and `muscles.webp` 512 x 7680 at 4x detail, drawn at
+384 x 2112 and 128 x 1920; 22 moves, 19 muscle masks, 28-colour palette). Only the `MAP-DATA` block of `js/v6-exercise.js` may be rewritten by the art tools.
 
 The knight is a real 3D model, built headless in Blender 4.2 LTS with the MPFB 2 add-on (MakeHuman CC0 assets):
 
@@ -58,6 +58,7 @@ The knight is a real 3D model, built headless in Blender 4.2 LTS with the MPFB 2
 | `tools/art/exercise_knight.blend` | saved sprite scene (one collection per move, map pose at frame 900) |
 | `tools/art/blender_knight_portrait.py` | studio render of the same model: real eyes, materials, lights, Cycles |
 | `tools/art/knight_hq.blend` | saved studio scene |
+| `tools/art/knight_face_pixels.py` | the hand-placed pixel face: approved front preview and the stamps the sheets use |
 | `tools/art/make_exercise.py` | the original stand-in ray-marcher; `PAL`, `outline()`, `rle()`, `write_js()` |
 
 Run (Blender with MPFB installed as the `user_default` extension):
@@ -66,14 +67,16 @@ Run (Blender with MPFB installed as the `user_default` extension):
     blender -b --addons bl_ext.user_default.mpfb tools/art/exercise_knight.blend \
         -P tools/art/blender_knight_portrait.py -- OUT_DIR                        # studio renders
 
-Character identity: original HealthWiz knight (not a copy of any game character). Auburn hair with long forehead
-bangs and ear-length sides, amber eyes, silver-white armour with gold trim, dark coat, red cape, blue gem.
+Character identity: original HealthWiz knight (not a copy of any game character), Diluc-inspired in mood only:
+crimson hair in layered locks with forehead bangs and ear-length sides, crimson eyes with an amber glow, a mature
+face with a defined jaw, silver-white armour with gold trim, dark coat, red cape, blue gem.
 
 State of the art work:
 
-- The committed sprite sheets in `assets/img/exercise/` are the pixel-RPG version from commit `dad4796`; the
-  anime-face sprite work after it is in the pipeline scripts but has not been packed into the sheets yet.
-- `knight_hq.blend` fixes the 3D face (the cornea shell hid the iris; there were no lights or materials). Still open:
-  the face is close to a realistic MakeHuman face (a stronger anime look needs sculpting), the bangs are one sheet
-  rather than layered strands, and the bracer ends and boot shafts clip through the coat and trousers.
+- The committed sprite sheets carry the approved pixel face (stamped on all 66 move frames and the front map) and
+  crimson hair. The face is never drawn large and reduced: keep it that way (`knight_face_pixels.py`).
+- `knight_hq.blend` (studio scene only) has the 3D face fixes: the cornea shell no longer hides the iris, real lights
+  and materials, an anime-fantasy face shape from MakeHuman targets (larger eyes set wider, small nose and mouth,
+  smooth narrow jaw, level brows), bangs cut into layered locks, and the cloth hidden under the bracers and boot
+  shafts so nothing clips. Its hair is still auburn; the sprites are crimson.
 - Open question for the owner: the KMKU school gym's equipment list, so the props match what students can use.

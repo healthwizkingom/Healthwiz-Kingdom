@@ -15,6 +15,15 @@ Blender ran from the terminal instead (no viewport screenshots). To rebuild:
 * `tools/art/blender_exercise_render.py` is the Blender side; `tools/art/exercise_knight.blend` is the saved scene
   (one collection per move, keyframed at frames 1-3, plus the muscle map).
 * The muscle masks use `classify()` from the stand-in on the surface points Blender rendered.
+* **4x detail.** The sheets are packed at `RES = 4` sheet pixels per layout pixel: `moves.webp` is 1536 x 8448 and
+  `muscles.webp` 512 x 7680. The page still draws them at the layout sizes below (its CSS sets `background-size`), so
+  on phone screens the extra pixels show as detail. The tap map stays 64 x 96 per view. The image budget in
+  `tests/24-performance.test.mjs` was raised for this (the moves sheet may reach 180 KB, all images 680 KB).
+* **The face** is hand-placed pixel art, not a render: `tools/art/knight_face_pixels.py` holds the approved front face
+  and the pixel maps (eyes, brows, nose, mouth; front, three-quarter and profile). Blender's face pass marks the face
+  surface and writes the head's face frame per frame (`face_frames.json`); the packer stamps the maps at landmarks
+  fixed in that frame, picks the view from how far the face is turned from the camera, and turns the maps with the
+  head's roll (snapped to right angles when close). The hair is crimson (the cape's reds), the bangs layered locks.
 
 The rest of this note is the original handoff, kept for the layout the page expects.
 
@@ -41,7 +50,7 @@ code reads them by position, so it needs no edits as long as the layout below is
 
 ## What the page expects
 
-### `assets/img/exercise/moves.webp`: 384 × 2112, lossless WebP, transparent background
+### `assets/img/exercise/moves.webp`: 384 × 2112 layout (1536 × 8448 at 4x detail), lossless WebP, transparent background
 
 One row per move, 96 px tall, in this order (row index = `MOVES[id][1]` in `js/v6-exercise.js`). Each row has 4 frames of
 96 × 96: **start, middle, end, middle**. The page plays them with CSS `steps(4)` at 1.6 s per loop, and shows frame 1 still
@@ -72,7 +81,7 @@ with reduced motion. Keep the knight in the same place across a row's frames.
 | 20 | leg_curl | lying leg curl | side |
 | 21 | calf | calf raise on a step | side |
 
-### `assets/img/exercise/muscles.webp`: 128 × 1920, lossless WebP
+### `assets/img/exercise/muscles.webp`: 128 × 1920 layout (512 × 7680 at 4x detail), lossless WebP
 
 Two columns of 64 × 96: column 0 **front** view, column 1 **back** view, the knight in a relaxed A-pose, **no cape and
 no shield** (so the back muscles show). Row 0 is the knight; row 1 + i is the mask of muscle i, in this order:
@@ -98,9 +107,9 @@ leather `#3a2418`. Add a 1-pixel ink outline around the silhouette (`outline()`)
 
 ## Limits the tests check
 
-* `tests/24-performance.test.mjs`: lossless WebP (VP8L), no image over 100 KB, all of `assets/img/` (subfolders included)
-  ≤ 540 KB. The stand-in sheets are about 23 KB together; there is about 10 KB of room, so keep the sheets near that size.
-* `tests/51-exercise.test.mjs`: the sheet sizes above (384 × 2112 and 128 × 1920), every muscle has map pixels, one
+* `tests/24-performance.test.mjs`: lossless WebP (VP8L), no image over 100 KB except `moves.webp` (180 KB), all of
+  `assets/img/` (subfolders included) ≤ 680 KB. The 4x sheets are about 169 KB together, leaving about 17 KB of room.
+* `tests/51-exercise.test.mjs`: the sheet sizes at 4x detail (1536 × 8448 and 512 × 7680), every muscle has map pixels, one
   sprite row per move.
 * Keep the file names: they are listed in `sw.js` PRECACHE and embedded by `tools/build-standalone.mjs`.
 

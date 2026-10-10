@@ -3,7 +3,7 @@
 Runs headless in Blender 4.2 LTS with the MPFB add-on (MakeHuman for Blender) and the MakeHuman system asset pack (CC0):
   1. The knight: an athletic adult male MakeHuman body (anatomically modelled, rigged with MPFB's game-engine rig),
      in the HealthWiz knight's colours with anime styling in the spirit of a modern fantasy RPG (an original design):
-     layered spiky red hair, red eyes, a dark fitted jacket and trousers with long gold-trimmed coat tails, a steel
+     layered crimson hair, crimson eyes, a dark fitted jacket and trousers with long gold-trimmed coat tails, a steel
      cuirass with a blue gem, steel pauldrons with gold rims, steel bracers, dark gloves, tall strapped boots and the
      red cape. The head is posed 30% larger than life (the anime and pixel-art ratio) so the face reads at 96 x 96.
   2. Poses: each stand-in pose (tools/art/make_exercise.py) is retargeted to the rig: the hips go where the stand-in's
@@ -13,8 +13,10 @@ Runs headless in Blender 4.2 LTS with the MPFB add-on (MakeHuman for Blender) an
      hands; the other props (benches, cable, bars, machines, step) are keyframed objects, one collection per move.
   3. Framing is measured on the posed meshes: one centre and scale per move, so the knight is as large as it can be
      and does not jump between frames. Written to <OUT>/cams.json.
-  4. Each frame is rendered four ways with Cycles (CPU, orthographic, no anti-aliasing): ao, nrm (smooth normal),
-     pos (world position) and id (material key), to <OUT>/<move>_<frame>_<pass>.npy (float32, row 0 = top). The
+  4. Each frame is rendered five ways with Cycles (CPU, orthographic, no anti-aliasing): ao, nrm (smooth normal),
+     pos (world position), id (material key) and face (the face surface, seen through the hair), to
+     <OUT>/<move>_<frame>_<pass>.npy (row 0 = top), and the head's face frame is written to <OUT>/face_frames.json
+     (the packer stamps the hand-placed pixel face there). The
      muscle map is the rest pose without cape and coat tails, front and back: <OUT>/map_<view>_<pass>.npy, plus the
      posed joints in <OUT>/map_skeleton.json for the muscle classifier.
   5. Saves the .blend.
@@ -401,9 +403,11 @@ for az in range(62, 299, 22):    # the mane: hugs the head and ends just below t
 for az in range(120, 241, 24):   # the back mass: full at the nape, just below the ears where it shows beside the face
     p, o = on_skull(az, 8, .03)
     ribbon(p, DOWN + BACK * .25, o * .2 + DOWN, .12 if 150 <= az <= 210 else .06, .07, .3)
-# bangs: like the reference, one continuous curtain over the whole forehead from the crown to the brows, its lower
-# edge cut into pointed, side-swept tips that fall to the eyes (none down the middle of the face)
-TIPS = [(-66, -8), (-44, -22), (-22, -18), (-4, -22), (16, -20), (38, -24), (60, -10)]  # (azimuth, elevation of the point)
+# bangs: a curtain over the forehead from the crown, cut into layered, tapered locks whose points reach the brows,
+# with one longer lock between the eyes (the approved pixel face, tools/art/knight_face_pixels.py). The eye line is at
+# elevation -14.5 (the skull centre is .025 m above the eyes), the brows at about -2.
+TIPS = [(-66, -6), (-44, 0), (-22, 2), (-4, -16), (16, 1), (38, -2), (60, -6)]  # (azimuth, elevation of the point)
+NOTCH = 22                                   # where the cuts between the locks start
 
 
 def bang_end(az):
@@ -412,7 +416,7 @@ def bang_end(az):
     (a0, e0), (a1, e1) = sorted(near)
     f = 0 if a1 == a0 else min(max((az - a0) / (a1 - a0), 0), 1)
     tip = e0 if f < .5 else e1
-    return tip + (4 - tip) * (1 - abs(f - .5) * 2) ** 1.4  # notch halfway between two tips, at the brows
+    return tip + (NOTCH - tip) * (1 - abs(f - .5) * 2) ** 1.4  # notch halfway between two tips
 
 
 def curtain(u, v):
@@ -424,7 +428,38 @@ def curtain(u, v):
     return skull + Vector((o.x * .1, o.y * .104, o.z * .1)) * m * rs
 
 
-bangs = part(sheet('bangs', 60, 16, curtain), 'hair', Matrix.Identity(4), 'head', 'bangs')
+BANG_COLS, BANG_ROWS = 61, 17
+
+
+def layer_bangs(me):
+    """Cut the curtain into locks between the tips (below the crown), narrow each lock toward its own tip as it
+    falls, and set every other lock a little further out, so they overlap in layers."""
+    bounds = [(a[0] + b[0]) / 2 for a, b in zip(TIPS, TIPS[1:])]
+
+    def lock(i):
+        az = -78 + 156 * i / (BANG_COLS - 1)
+        return sum(az > b for b in bounds), az
+
+    for idx, v in enumerate(me.vertices):
+        j, i = divmod(idx, BANG_COLS)
+        k, az = lock(i)
+        s = min(max((j / (BANG_ROWS - 1) - .35) / .65, 0), 1)
+        d = math.radians((TIPS[k][0] - az) * .3 * s)
+        w = v.co - skull
+        w = Vector((w.x * math.cos(d) - w.y * math.sin(d), w.x * math.sin(d) + w.y * math.cos(d), w.z))
+        v.co = skull + w * (1 + .03 * (k % 2) * s)
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    cut = [f for f in bm.faces if len({lock(v.index % BANG_COLS)[0] for v in f.verts}) > 1
+           and min(v.index // BANG_COLS for v in f.verts) >= 6]
+    bmesh.ops.delete(bm, geom=cut, context='FACES')
+    bm.to_mesh(me)
+    bm.free()
+
+
+bang_mesh = sheet('bangs', BANG_COLS - 1, BANG_ROWS - 1, curtain)
+layer_bangs(bang_mesh)
+bangs = part(bang_mesh, 'hair', Matrix.Identity(4), 'head', 'bangs')
 bangs.modifiers.new('thickness', 'SOLIDIFY').thickness = .007 * m
 # short side locks in front of the ears, curving in toward the cheeks with pointed tips
 for s in (1, -1):
@@ -443,9 +478,10 @@ for dx in (-.02, -.007, .007, .02):
            name='tail')
 
 
-# the face: a painted texture (make_exercise_blender.py, palette colours only) projected onto the head from the front.
-# FACE_FRAME sits between the eyes, facing out of the face; the projection is scaled so the texture's eyes land on the
-# head's eyes. MakeHuman's own eyes and brows are left out of the render (the texture draws them).
+# the face: FACE_FRAME sits between the eyes, facing out of the face (x right, y up, z out). The face pass marks the
+# face surface (the texture is plain skin); the packer stamps the hand-placed pixel features (knight_face_pixels.py)
+# at landmarks fixed in this frame, so they follow the head in every pose. Its matrix is written per rendered frame
+# to <OUT>/face_frames.json. MakeHuman's own eyes and brows are left out of the render (the stamps draw them).
 eye_cs = []
 for side in (1, -1):
     vs = [eyes.matrix_world @ v.co for v in eyes.data.vertices if v.co.x * side > 0]
@@ -789,7 +825,15 @@ def render_pass(W, H, mode, out_path):
     np.save(out_path, arr)
 
 
+def face_frame_now():
+    """FACE_FRAME at the current frame in stand-in coordinates: origin and the x, y, z axes (scaled with the head)."""
+    M = FACE_FRAME.matrix_world
+    st = lambda v: [v[0], v[2], -v[1]]
+    return {'o': st(M.translation), 'x': st(M.col[0].xyz), 'y': st(M.col[1].xyz), 'z': st(M.col[2].xyz)}
+
+
 PASSES = ('ao', 'nrm', 'pos', 'id', 'face')
+FRAMES = {}
 cams = {}
 for k, mv in enumerate(D['moves']):
     if ONLY and mv['name'] not in ONLY:
@@ -802,6 +846,7 @@ for k, mv in enumerate(D['moves']):
         sc.frame_set(10 * (k + 1) + fr)
         for mode in PASSES:
             render_pass(96 * RES, 96 * RES, mode, os.path.join(OUT, '%s_%d_%s.npy' % (mv['name'], fr, mode)))
+        FRAMES['%s_%d' % (mv['name'], fr)] = face_frame_now()
     print('RENDERED', mv['name'], 'scale %.2f' % ci['scale'], flush=True)
 
 if not ONLY or 'map' in ONLY:
@@ -812,10 +857,16 @@ if not ONLY or 'map' in ONLY:
         for mode in PASSES:
             render_pass(64 * RES, 96 * RES, mode, os.path.join(OUT, 'map_%s_%s.npy' % (v['name'], mode)))
         cams['map_' + v['name']] = v
+        FRAMES['map_' + v['name']] = face_frame_now()
         print('RENDERED map', v['name'], flush=True)
     for ob in BACKSIDE:
         ob.hide_render = False
-json.dump(cams, open(os.path.join(OUT, 'cams.json'), 'w'))
+old_cams = os.path.join(OUT, 'cams.json')
+cams = dict(json.load(open(old_cams)), **cams) if ONLY and os.path.exists(old_cams) else cams   # previews keep the rest
+json.dump(cams, open(old_cams, 'w'))
+old = os.path.join(OUT, 'face_frames.json')
+FRAMES = dict(json.load(open(old)), **FRAMES) if ONLY and os.path.exists(old) else FRAMES
+json.dump(FRAMES, open(old, 'w'))
 
 # the posed joints at the map frame, in stand-in coordinates, for the muscle classifier
 sc.frame_set(MAP_FRAME)

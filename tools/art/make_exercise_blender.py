@@ -24,6 +24,7 @@ Run:  BLENDER=/path/to/blender python3 tools/art/make_exercise_blender.py [--onl
 Intermediate files go to SCRATCH (not the repo).
 """
 import json
+import math
 import os
 import subprocess
 import sys
@@ -35,6 +36,7 @@ from PIL import Image, ImageDraw
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import make_exercise as ME  # noqa: E402  (palette, outline, to_img, check_palette, rle, write_js, save, poses)
+import knight_face_pixels as KF  # noqa: E402  (the hand-placed pixel face: stamps and their landmarks)
 
 # material key -> 5 palette entries, dark to light; the 5th is the glint
 RAMPS = {
@@ -43,7 +45,7 @@ RAMPS = {
     'coat': ['ink', 'st0', 'ir1', 'st1', 'st2'],
     'trim': ['gd0', 'gd1', 'gd2', 'gd3', 'wht'],
     'steel': ['st1', 'st2', 'st3', 'st4', 'wht'],
-    'hair': ['hr0', 'hr1', 'hr1', 'hr2', 'hr3'],       # the knight's brown (assets/img/kn.webp), mostly mid-dark
+    'hair': ['hr0', 'cp0', 'cp1', 'cp2', 'cp3'],       # crimson (approved with the pixel face)
     'eye': ['ink', 'cp1', 'cp2', 'cp3', 'wht'],
     'brow': ['hr0', 'hr0', 'hr1', 'hr1', 'hr1'],
     'nose': ['sk2', 'sk2', 'sk3', 'sk3', 'sk3'],       # the nose and mouth marks render as skin; the face
@@ -186,79 +188,139 @@ def ground_shadow(cam, fg_a, W, H):
 
 
 # ---------- the face ----------
-# The face is a painted texture (palette colours only) that Blender projects onto the head, the way anime games paint
-# faces: clean shapes that follow the head in every pose. Blender renders it at FACE_SS x the sprite resolution and
-# reduces each block to its majority colour (thin dark lines win when they cover a quarter of the block), so shapes
-# turn into clean pixel clusters. Texture space: u across the face (the picture's left to right), v up; the eyes sit
-# at u = .5 -+ FACE_EYE_U, v = FACE_EYE_V, and Blender scales the projection to the head's real eye spacing.
-FACE_TEX, FACE_SS, FACE_EYE_U, FACE_EYE_V = 1024, 4, .2, .6875
-PAINT_EYE_U, PAINT_EYE_SCALE = .238, 1.1   # the painted eyes: a little wider apart and larger than the head's
+# The face is hand-placed pixel art (knight_face_pixels.py, approved as a front preview). Blender's face pass only marks
+# the face surface (the texture is plain skin; the pass hides the hair, so it marks the face under the bangs too); the
+# features are stamped afterwards, pixel for pixel, at landmarks fixed in the head's face frame: each frame's frame
+# (Blender: face_frames.json) places them, the head's turn picks the front, three-quarter or profile stamps, and its
+# roll turns them. Nothing is drawn large and reduced.
+FACE_TEX, FACE_SS, FACE_EYE_U, FACE_EYE_V = 64, 1, .2, .6875
 NONE = (255, 0, 255)          # 'no face here' in the face pass (not a palette colour)
 FACE_DARK = ('ink', 'hr0', 'cp0')
-EYE_COLOURS = ('ink', 'cp0', 'cp1', 'cp2', 'cp3', 'gd2', 'wht', 'st3', 'st4')  # what the eyes are painted with
-
-
-def paint_eye(im, cx, cy, s, k=1.0):
-    """One eye, s = -1 on the left of the picture (outer corner to the left), +1 on the right (mirrored); the
-    catch-lights are not mirrored, they stay on the lit (left) side of the pupil."""
-    C = lambda k: ME.PAL[k] + (255,)
-    P = lambda x, y: (cx - x * k if s > 0 else cx + x * k, cy + y * k)
-    opening = [P(-150, 8), P(-110, -40), P(-60, -64), P(20, -72), P(95, -55), P(150, 4), P(125, 42), P(40, 70),
-               P(-60, 68), P(-125, 42)]
-    layer = Image.new('RGBA', im.size, (0, 0, 0, 0))
-    d = ImageDraw.Draw(layer)
-    d.polygon(opening, fill=C('st4'))                                            # the white
-    d.polygon([P(-150, 8), P(-110, -40), P(-60, -64), P(20, -72), P(95, -55), P(150, 4), P(150, -20),
-               P(95, -30), P(20, -46), P(-60, -38), P(-110, -14)], fill=C('st3'))  # the lid's shadow on the white
-    px, py = P(12, 6)
-    iris = Image.new('L', im.size, 0)
-    q = lambda v: v * k
-    ImageDraw.Draw(iris).ellipse((px - q(84), py - q(104), px + q(84), py + q(104)), fill=255)
-    bands = Image.new('RGBA', im.size, (0, 0, 0, 0))
-    db = ImageDraw.Draw(bands)
-    for y0, y1, col in ((-110, -28, 'cp0'), (-28, 8, 'cp1'), (8, 46, 'cp2'), (46, 110, 'cp3')):  # deep red to bright
-        db.rectangle((px - q(90), py + q(y0), px + q(90), py + q(y1)), fill=C(col))
-    db.ellipse((px - q(46), py + q(52), px + q(46), py + q(86)), fill=C('gd2'))  # an amber glow at the bottom
-    db.ellipse((px - q(26), py - q(52), px + q(26), py + q(38)), fill=C('ink'))  # the pupil, upright
-    hx = px - q(40)                                                              # catch-lights on the lit side
-    db.ellipse((hx - q(22), py - q(62), hx + q(22), py - q(18)), fill=C('wht'))
-    db.ellipse((px + q(22), py + q(34), px + q(40), py + q(52)), fill=C('st4'))
-    layer.paste(bands, (0, 0), Image.composite(bands, Image.new('RGBA', im.size), iris).split()[3])
-    mask = Image.new('L', im.size, 0)
-    ImageDraw.Draw(mask).polygon(opening, fill=255)
-    im.paste(layer, (0, 0), Image.composite(layer, Image.new('RGBA', im.size), mask).split()[3])
-    d = ImageDraw.Draw(im)
-    lash = [P(-198, -48), P(-150, -34), P(-110, -86), P(-60, -112), P(20, -120), P(95, -102), P(158, -34),
-            P(165, 2), P(150, 4), P(95, -55), P(20, -72), P(-60, -64), P(-110, -40), P(-150, 8), P(-172, -8)]
-    d.polygon(lash, fill=C('ink'))                                               # upper lash with the outer wing
-    d.polygon([P(95, -102), P(158, -34), P(165, 2), P(150, 4), P(95, -55)], fill=C('hr0'))  # thinner toward the nose
-    d.polygon([P(-142, 30), P(-125, 42), P(-60, 68), P(-20, 72), P(-20, 86), P(-60, 84), P(-128, 58),
-               P(-148, 40)], fill=C('hr1'))                                      # soft lower lash, hugging the eye
-    d.polygon([P(-195, -168), P(-100, -194), P(0, -206), P(100, -204), P(162, -194), P(162, -164), P(100, -170),
-               P(0, -172), P(-100, -166), P(-195, -163)], fill=C('hr0'))         # the brow: a low arch, tapered
-    d.polygon([P(-195, -168), P(-100, -194), P(-100, -166), P(-195, -163)], fill=C('hr1'))  # its lighter tail
+YAW_FRONT, YAW_THREE_QUARTER, YAW_PROFILE = 20, 58, 105   # degrees: the face's turn away from the camera
+SNAP_ROLL = 25                                           # degrees: a roll this close to a right angle snaps to it
 
 
 def face_texture(path):
-    """Paint the knight's face (palette colours only) and save it as a PNG for Blender."""
-    T = FACE_TEX
-    im = Image.new('RGBA', (T, T), (0, 0, 0, 0))
-    C = lambda k: ME.PAL[k] + (255,)
-    d = ImageDraw.Draw(im)
-    d.rectangle((0, 0, T - 1, T - 1), fill=C('sk3'))     # skin over the whole front and sides, shaded from the light
-    ey = round((1 - FACE_EYE_V) * T)
-    for s in (-1, 1):
-        paint_eye(im, round((.5 + s * PAINT_EYE_U) * T), ey, s, PAINT_EYE_SCALE)
-    d = ImageDraw.Draw(im)
-    # the nose: one connected shape, light from the top left: a soft line down the shaded side into the tip's shadow
-    d.polygon([(522, 440), (552, 440), (574, 598), (586, 618), (562, 642), (500, 644), (470, 630), (482, 612),
-               (540, 604)], fill=C('sk2'))
-    d.ellipse((502, 618, 540, 640), fill=C('sk1'))
-    # the mouth: a short, slightly curved line, darker at the centre, and a soft shadow under the lower lip
-    d.polygon([(424, 774), (512, 760), (600, 774), (600, 796), (512, 788), (424, 796)], fill=C('sk1'))
-    d.polygon([(456, 770), (512, 760), (568, 770), (568, 794), (512, 788), (456, 794)], fill=C('sk0'))
-    d.ellipse((478, 816, 546, 842), fill=C('sk2'))
-    im.save(path)
+    """The face pass texture: plain skin (the features are stamped later)."""
+    Image.new('RGBA', (FACE_TEX, FACE_TEX), ME.PAL['sk3'] + (255,)).save(path)
+
+
+_FRAMES = {}
+
+
+def face_frames(out_dir):
+    if out_dir not in _FRAMES:
+        p = os.path.join(out_dir, 'face_frames.json')
+        _FRAMES[out_dir] = {k: {a: np.array(v) for a, v in fr.items()} for k, fr in json.load(open(p)).items()}
+    return _FRAMES[out_dir]
+
+
+def project(cam, p, W, H):
+    """Scene point (stand-in coordinates) -> sheet pixel coordinates (x right, y down), as Blender renders it."""
+    r, u, c = (np.array(cam[k]) for k in ('r', 'u', 'center'))
+    s = RES * cam['scale']
+    return np.array([W / 2 + (p - c) @ r * s, H / 2 - (p - c) @ u * s])
+
+
+_LOCAL = {}
+
+
+def landmarks_local(out_dir, cams):
+    """The preview's feature anchors (front map frame pixels) as points in the face frame (x, y solved from the
+    projection, z from KF.LANDMARKS_Z), so they can be placed on the head in any pose."""
+    if out_dir not in _LOCAL:
+        fr, cam = face_frames(out_dir)['map_front'], cams['map_front']
+        r, u, c = (np.array(cam[k]) for k in ('r', 'u', 'center'))
+        s, W, H = RES * cam['scale'], 64 * RES, 96 * RES
+        A = np.array([[fr['x'] @ r, fr['y'] @ r], [fr['x'] @ u, fr['y'] @ u]])
+        out = {}
+        for k, (px, py) in KF.LANDMARKS_PX.items():
+            lz = KF.LANDMARKS_Z[k]
+            base = fr['o'] + fr['z'] * lz - c
+            rhs = np.array([(px + .5 - W / 2) / s - base @ r, (H / 2 - py - .5) / s - base @ u])
+            lx, ly = np.linalg.solve(A, rhs)
+            out[k] = np.array([lx, ly, lz])
+        _LOCAL[out_dir] = out
+    return _LOCAL[out_dir]
+
+
+def stamp(rgb, rows, ax, ay, pos, theta, ok):
+    """Paint a pixel map with its anchor (ax, ay) on pos, turned by theta (screen, clockwise), nearest neighbour by
+    inverse mapping (no holes); only where ok(y, x)."""
+    H, W = rgb.shape[:2]
+    h, w = len(rows), len(rows[0])
+    c, s_ = math.cos(theta), math.sin(theta)
+    reach = int(math.ceil(math.hypot(max(ax, w - ax), max(ay, h - ay)))) + 1
+    for ty in range(pos[1] - reach, pos[1] + reach + 1):
+        for tx in range(pos[0] - reach, pos[0] + reach + 1):
+            if not (0 <= ty < H and 0 <= tx < W) or not ok(ty, tx):
+                continue
+            dx, dy = tx - pos[0], ty - pos[1]
+            sx, sy = int(round(dx * c + dy * s_)) + ax, int(round(-dx * s_ + dy * c)) + ay
+            if 0 <= sy < h and 0 <= sx < w and rows[sy][sx] != '.':
+                rgb[ty, tx] = ME.PAL[KF.CRIMSON[rows[sy][sx]]]
+
+
+def stamp_face(rgb, out_dir, stem, cam, cams, surface, skin_face):
+    """The pixel face on one frame. surface: the face surface (under the hair too); skin_face: where it shows."""
+    frames = face_frames(out_dir)
+    if stem not in frames:
+        return
+    fr, H, W = frames[stem], rgb.shape[0], rgb.shape[1]
+    r, u, f = (np.array(cam[k]) for k in ('r', 'u', 'f'))
+    # how far the face is turned from the camera (any direction: a face on its back turned to the ceiling is seen in
+    # profile from the side, though it barely turns left or right)
+    turn = math.degrees(math.acos(np.clip(-(fr['z'] @ f) / np.linalg.norm(fr['z']), -1, 1)))
+    view = ('front' if turn < YAW_FRONT else 'three_quarter' if turn < YAW_THREE_QUARTER else
+            'profile' if turn < YAW_PROFILE else None)
+    if view is None:
+        return
+    theta = math.atan2(fr['y'] @ r, fr['y'] @ u)            # the head's roll on screen (clockwise)
+    k90 = round(theta / (math.pi / 2)) * (math.pi / 2)
+    if abs(theta - k90) < math.radians(SNAP_ROLL):
+        theta = k90
+    c_, s_ = math.cos(theta), math.sin(theta)
+
+    def upright(v):                                          # a screen offset, with the roll taken out
+        return np.array([v[0] * c_ + v[1] * s_, -v[0] * s_ + v[1] * c_])
+    loc = landmarks_local(out_dir, cams)
+    world = {k: fr['o'] + fr['x'] * l[0] + fr['y'] * l[1] + fr['z'] * l[2] for k, l in loc.items()}
+    pix = {k: project(cam, p, W, H) for k, p in world.items()}
+    origin = project(cam, fr['o'], W, H)
+    zs = upright(project(cam, fr['o'] + fr['z'], W, H) - origin)
+    right = zs[0] > 0                                        # the nose points to the picture's right
+    depth = {k: (p - np.array(cam['center'])) @ f for k, p in world.items()}
+    at = {k: (int(math.floor(v[0])), int(math.floor(v[1]))) for k, v in pix.items()}
+    eye_ok = lambda y, x: surface[y, x]
+    skin_ok = lambda y, x: skin_face[y, x]
+    S = KF.STAMPS[view]
+    jobs = []
+    if view == 'front':
+        for part in ('eye', 'brow'):
+            a, b = part + '_l', part + '_r'
+            left, right_ = (a, b) if upright(pix[a] - origin)[0] < upright(pix[b] - origin)[0] else (b, a)
+            jobs += [(S[part + '_l'], at[left], part), (S[part + '_r'], at[right_], part)]
+        jobs += [(S['nose'], at['nose'], 'nose'), (S['mouth'], at['mouth'], 'mouth')]
+    else:
+        near_eye = min(('eye_l', 'eye_r'), key=lambda k: depth[k])
+        far_eye = 'eye_r' if near_eye == 'eye_l' else 'eye_l'
+        near_brow, far_brow = near_eye.replace('eye', 'brow'), far_eye.replace('eye', 'brow')
+        jobs += [(S['eye_near'], at[near_eye], 'eye'), (S['brow_near'], at[near_brow], 'brow')]
+        if view == 'three_quarter':
+            jobs += [(S['eye_far'], at[far_eye], 'eye'), (S['brow_far'], at[far_brow], 'brow'),
+                     (S['nose'], at['nose'], 'nose')]
+        jobs += [(S['mouth'], at['mouth'], 'mouth')]
+    for (rows, ax, ay), pos, part in jobs:
+        if view != 'front' and not right:                    # three-quarter and profile stamps face right
+            rows, ax = KF.mirrored(rows), len(rows[0]) - 1 - ax
+        if not (0 <= pos[1] < H and 0 <= pos[0] < W):
+            continue
+        if part == 'eye':
+            if not surface[pos[1], pos[0]]:                  # the eye is hidden (a hand, a dumbbell, the far cheek)
+                continue
+            stamp(rgb, rows, ax, ay, pos, theta, eye_ok)     # eyes show through the bangs
+        else:
+            stamp(rgb, rows, ax, ay, pos, theta, skin_ok)
 
 
 def face_pass(out_dir, stem):
@@ -321,26 +383,20 @@ def outline_sel(rgb, fg, depth, ids, face=None):
     return out, a
 
 
-def shade(out_dir, stem, cam, shadow=True):
+def shade(out_dir, stem, cam, shadow=True, cams=None):
     fg, ids, N, P, ao = passes(out_dir, stem)
     f = np.array(cam['f'])
     depth = np.where(fg, (P - (np.array(cam['center']) - f * 200)) @ f, 1e9)
     t = tones(fg, ids, N, ao, cam)
     fp = face_pass(out_dir, stem)
     skin = ids == KEYS.index('skin') + 1
-    face = skin & np.any(fp != NONE, axis=-1) if fp is not None else np.zeros_like(skin)
+    surface = fg & np.any(fp != NONE, axis=-1) if fp is not None else np.zeros_like(skin)
+    face = skin & surface
     t = face_tones(t, ids, N, cam, face)
     rgb = LUT[np.clip(ids - 1, 0, len(KEYS) - 1), t]
-    if fp is not None:
-        painted = face & np.any(fp != ME.PAL['sk3'], axis=-1)   # features; plain skin keeps its shading
-        rgb[painted] = fp[painted]
-        # anime convention: the eyes show through the bangs (the brows, nose and mouth stay under them)
-        eye_ink = np.zeros(skin.shape, bool)
-        for k in EYE_COLOURS:
-            eye_ink |= np.all(fp == ME.PAL[k], axis=-1)
-        through = eye_ink & (ids == KEYS.index('hair') + 1)
-        rgb[through] = fp[through]
     out, a = outline_sel(rgb, fg, depth, ids, face)
+    if fp is not None and cams is not None:
+        stamp_face(out, out_dir, stem, cam, cams, surface, face)
     im = np.asarray(ME.to_img(out, a)).copy()
     if shadow:
         sh = ground_shadow(cam, a, *fg.shape[::-1])
@@ -353,7 +409,7 @@ def moves_sheet(out_dir, cams, names):
     S = 96 * RES
     sheet = Image.new('RGBA', (S * 4, S * len(names)), (0, 0, 0, 0))
     for row, name in enumerate(names):
-        frames = [shade(out_dir, '%s_%d' % (name, f), cams[name])[0] for f in (1, 2, 3)]
+        frames = [shade(out_dir, '%s_%d' % (name, f), cams[name], cams=cams)[0] for f in (1, 2, 3)]
         for i, fi in enumerate([0, 1, 2, 1]):
             sheet.paste(frames[fi], (i * S, row * S))
     return sheet
@@ -375,7 +431,7 @@ def muscles_sheet(out_dir, cams):
     sk = map_skeleton(out_dir)
     maps = {}
     for col, name in enumerate(('front', 'back')):
-        im, fg, t, P = shade(out_dir, 'map_' + name, cams['map_' + name], shadow=False)
+        im, fg, t, P = shade(out_dir, 'map_' + name, cams['map_' + name], shadow=False, cams=cams)
         sheet.paste(im, (col * W, 0))
         ids = np.full((H, W), -1)
         for yy, xx in zip(*np.where(fg)):
