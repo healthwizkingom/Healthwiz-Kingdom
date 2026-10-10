@@ -1,23 +1,27 @@
 """Blender side of the Training Hall art (run by make_exercise_blender.py; do not run on its own).
 
 Runs headless in Blender 4.2 LTS:
-  1. Turns every primitive of the stand-in knight (tools/art/make_exercise.py) into a Blender object: spheres,
-     capsules (a cylinder and two end caps), boxes, ellipsoids and cylinders. Props (dumbbells, benches, cable,
-     dip bars, machines, step) are the same kind of primitives, so they come along.
+  1. Turns every primitive of the knight (the stand-in's knight from tools/art/make_exercise.py plus the armour
+     detail added by make_exercise_blender.py) into a Blender object: spheres, capsules (a cylinder and two end
+     caps), bevelled boxes, ellipsoids and cylinders, smooth shaded with sharp edges kept. Props (dumbbells,
+     benches, cable, dip bars, machines, step) are the same kind of primitives, so they come along.
   2. Keyframes each object at start (frame 1), middle (frame 2) and end (frame 3) of each move, with the poses
      from the stand-in, so a move is a real Blender animation.
-  3. Renders each frame three ways with Cycles on the CPU, orthographic camera, no anti-aliasing:
-       shade: white diffuse lit by one sun and a dim world; gives the light level per pixel
-       pos:   emission of the world position, so each pixel knows its surface point
-       id:    flat emission of the material id (1..10), so each pixel knows its material
+  3. Renders each frame four ways with Cycles on the CPU, orthographic camera, no anti-aliasing:
+       ao:   ambient occlusion (darkens creases and contact points)
+       nrm:  emission of the smooth world normal, for the cel shading done in make_exercise_blender.py
+       pos:  emission of the world position, so each pixel knows its surface point (depth, muscle map)
+       id:   flat emission of the material id (1..10), so each pixel knows its material
      Results go to <OUT>/<name>_<frame>_<pass>.npy as float32 H x W x 4 arrays (row 0 = top).
-  4. Renders the muscle map (knight without cape and shield, front and back views) with shade and pos passes.
+  4. Renders the muscle map (knight without cape and shield, front and back views) with the same passes.
   5. Saves the .blend so the rig can be reopened and edited.
 
 Argument order after "--": POSE_JSON OUT_DIR BLEND_OUT
 """
 import bpy
+import bmesh
 import json
+import math
 import os
 import sys
 import numpy as np
@@ -96,6 +100,30 @@ def emit_colour(r, g, b):
     return build
 
 
+def emit_normal(nt):
+    g = nt.nodes.new('ShaderNodeNewGeometry')
+    mul = nt.nodes.new('ShaderNodeVectorMath')
+    mul.operation = 'MULTIPLY'
+    mul.inputs[1].default_value = (0.5, 0.5, 0.5)
+    add = nt.nodes.new('ShaderNodeVectorMath')
+    add.operation = 'ADD'
+    add.inputs[1].default_value = (0.5, 0.5, 0.5)
+    e = nt.nodes.new('ShaderNodeEmission')
+    nt.links.new(g.outputs['Normal'], mul.inputs[0])
+    nt.links.new(mul.outputs[0], add.inputs[0])
+    nt.links.new(add.outputs[0], e.inputs['Color'])
+    return e.outputs['Emission']
+
+
+def emit_ao(nt):
+    ao = nt.nodes.new('ShaderNodeAmbientOcclusion')
+    ao.samples = 16
+    ao.inputs['Distance'].default_value = 5.0
+    e = nt.nodes.new('ShaderNodeEmission')
+    nt.links.new(ao.outputs['AO'], e.inputs['Color'])
+    return e.outputs['Emission']
+
+
 def emit_position(nt):
     g = nt.nodes.new('ShaderNodeNewGeometry')
     mul = nt.nodes.new('ShaderNodeVectorMath')
@@ -114,6 +142,8 @@ def emit_position(nt):
 
 WHITE = make_material('pass_shade', diffuse_white)
 POS = make_material('pass_pos', emit_position)
+NRM = make_material('pass_nrm', emit_normal)
+AO = make_material('pass_ao', emit_ao)
 ID_MAT = [make_material('pass_id_%d' % (i + 1), emit_colour((i + 1) / 32, 0, 0)) for i in range(len(MATS))]
 
 MESH = {}
@@ -124,11 +154,21 @@ def shape_mesh(kind):
         if kind == 'cube':
             bpy.ops.mesh.primitive_cube_add(size=2)
         elif kind == 'sphere':
-            bpy.ops.mesh.primitive_uv_sphere_add(radius=1, segments=20, ring_count=10)
+            bpy.ops.mesh.primitive_uv_sphere_add(radius=1, segments=32, ring_count=16)
         else:
-            bpy.ops.mesh.primitive_cylinder_add(radius=1, depth=2, vertices=14)
+            bpy.ops.mesh.primitive_cylinder_add(radius=1, depth=2, vertices=24)
         o = bpy.context.object
         me = o.data
+        if kind == 'cube':  # rounded armour plates instead of hard boxes
+            bm = bmesh.new()
+            bm.from_mesh(me)
+            bmesh.ops.bevel(bm, geom=bm.edges[:], offset=0.3, segments=3, profile=0.5, affect='EDGES')
+            bm.to_mesh(me)
+            bm.free()
+        for poly in me.polygons:
+            poly.use_smooth = True
+        if kind != 'sphere':
+            me.set_sharp_from_angle(angle=math.radians(35))
         me.name = 'shape_' + kind
         me.use_fake_user = True
         me.materials.append(WHITE)
@@ -224,7 +264,7 @@ def point_camera(ci, H):
     CAM.location = B(ci['center']) - f * 160
     CAM.rotation_mode = 'QUATERNION'
     back = -f                                      # camera +Z points away from the scene
-    right = Vector((0, 0, 1)).cross(back)          # camera +X; world up stays up on screen
+    right = Vector((0, 0, 1)).cross(back).normalized()  # camera +X; world up stays up on screen
     cam_up = back.cross(right)                     # camera +Y
     CAM.rotation_quaternion = Matrix((right, cam_up, back)).transposed().to_quaternion()
     sc.camera = CAM
@@ -242,6 +282,10 @@ def set_pass(mode):
             slot.material = WHITE
         elif mode == 'pos':
             slot.material = POS
+        elif mode == 'nrm':
+            slot.material = NRM
+        elif mode == 'ao':
+            slot.material = AO
         else:
             slot.material = ID_MAT[ob['mat_id'] - 1]
 
@@ -249,7 +293,7 @@ def set_pass(mode):
 def render_pass(W, H, mode, out_path):
     sc.render.resolution_x, sc.render.resolution_y = W, H
     sc.render.resolution_percentage = 100
-    sc.cycles.samples = SHADE_SAMPLES if mode == 'shade' else 1
+    sc.cycles.samples = SHADE_SAMPLES if mode in ('shade', 'ao') else 1
     set_pass(mode)
     tmp = os.path.join(OUT, 'tmp.exr')
     sc.render.filepath = tmp
@@ -265,6 +309,8 @@ def set_visible(coll_name):
     for lc in bpy.context.view_layer.layer_collection.children:
         lc.exclude = lc.name != coll_name
 
+
+PASSES = ('ao', 'nrm', 'pos', 'id')
 
 # ---------- build every move ----------
 MOVE_COLL = {}
@@ -286,7 +332,7 @@ for mv in D['moves']:
     point_camera(ci, 96)
     for f in (1, 2, 3):
         sc.frame_set(f)
-        for mode in ('shade', 'pos', 'id'):
+        for mode in PASSES:
             render_pass(96, 96, mode, os.path.join(OUT, '%s_%d_%s.npy' % (mv['name'], f, mode)))
     report.append(mv['name'])
     print('RENDERED', mv['name'], flush=True)
@@ -295,9 +341,8 @@ set_visible('muscle_map')
 sc.frame_set(1)
 for view in D['map']['views']:
     point_camera(view, 96)
-    render_pass(64, 96, 'shade', os.path.join(OUT, 'map_%s_shade.npy' % view['name']))
-    render_pass(64, 96, 'pos', os.path.join(OUT, 'map_%s_pos.npy' % view['name']))
-    render_pass(64, 96, 'id', os.path.join(OUT, 'map_%s_id.npy' % view['name']))
+    for mode in PASSES:
+        render_pass(64, 96, mode, os.path.join(OUT, 'map_%s_%s.npy' % (view['name'], mode)))
     print('RENDERED map', view['name'], flush=True)
 
 bpy.ops.wm.save_as_mainfile(filepath=BLEND_OUT)
