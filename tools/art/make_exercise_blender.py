@@ -12,8 +12,8 @@ Pipeline:
          the creases, a glint on steel and gold; 4 tones per material from the 28-colour PAL, no dithering;
        * a selective outline: ink around the silhouette, the material's own darkest tone on inner edges;
        * a hard oval ground shadow; the camera looks down a little (EL degrees) so the floor reads;
-     then writes moves.webp (768 x 4224) and muscles.webp (256 x 3840) at RES = 2 (the page draws them at the
-     384 x 2112 / 128 x 1920 layout size, so the face and hair get twice the detail), lossless, and rewrites MAP-DATA in
+     then writes moves.webp (1536 x 8448) and muscles.webp (512 x 7680) at RES = 4 (the page draws them at the
+     384 x 2112 / 128 x 1920 layout size, so the face and hair get four times the detail), lossless, and rewrites MAP-DATA in
      js/v6-exercise.js. The muscle masks come from the stand-in's classify() on the rendered surface points, with the
      rig's own joints.
 
@@ -57,7 +57,7 @@ RAMPS = {
 }
 KEYS = list(RAMPS)
 GLINT = {'steel', 'trim', 'chrome', 'gem'}
-RES = 2                                   # sheet pixels per layout pixel (the page draws the sheets at layout size)
+RES = 4                                   # sheet pixels per layout pixel (the page draws the sheets at layout size)
 EL = 12                                   # camera elevation for the moves (degrees, looking down)
 TONES = (.42, .62, .80)                   # cut-offs of the light level between the 4 tones
 SHADOW_ALPHA = 96                         # hard ground shadow: ink at a fixed opacity, no blur
@@ -229,10 +229,55 @@ FRONT = {
         (6, '.......nn.......'),
         (8, '......MmmM......')],      # the mouth: dark centre, soft corners
 }
+
+
+def front_face(width, left_eye, eye_at, brow, brow_at, centre):
+    """A front face pattern: the left eye and brow as drawn (outer corner first), mirrored for the right, plus the
+    centre rows (nose, mouth). Rows are (offset from the upper lids, pattern) of the given width."""
+    rows = {}
+
+    def place(dy, col, text):
+        row = rows.setdefault(dy, ['.'] * width)
+        for i, ch in enumerate(text):
+            if ch != '.':
+                row[col + i] = ch
+
+    for dy, text in left_eye:
+        place(dy, eye_at, text)
+        place(dy, width - eye_at - len(text), text[::-1])
+    for dy, text in brow:
+        place(dy, brow_at, text)
+        place(dy, width - brow_at - len(text), text[::-1])
+    for dy, text in centre:
+        place(dy, 0, text)
+    return sorted((dy, ''.join(r)) for dy, r in rows.items())
+
+
+FRONT[4] = front_face(
+    32,
+    [(-1, 'L.........'),        # the lid flicks up at the outer corner
+     (0, 'LLLLLLLLLl'),         # heavy upper lid, thinner toward the nose
+     (1, 'LWiippiiW.'),         # dark top of the iris, the pupil
+     (2, 'WWiHppiIW.'),         # catch-light beside the pupil
+     (3, '.WIIiiIIW.'),         # bright lower iris
+     (4, '..WIIIIW..'),
+     (5, '...wwww...')],        # soft lower lid
+    3,
+    [(-8, 'BB....'), (-7, '.BBBBB'), (-6, '....BBBBB')],   # brows: raised outer ends, lower toward the nose
+    1,
+    [(9, '.................n..............'),            # the nose: a shadow down one side and under the tip
+     (10, '.................n..............'),
+     (11, '...............nn...............'),
+     (15, '.............MmmmmM.............'),           # the mouth
+     (16, '...............ww...............')])          # lower-lip shadow
+# both catch-lights sit toward the light (top left), so the right eye's is not mirrored
+FRONT[4] = [(dy, row[:20] + 'WIiHppiWW' + row[29:]) if dy == 2 else (dy, row) for dy, row in FRONT[4]]
 SIDE = {1: [(0, 'LLLl'), (1, 'IiW.')],
-        2: [(-1, '....L'), (0, 'LLLLL'), (1, 'iHiW.'), (2, 'III..'), (3, '.w...')]}
-FACE_INK = {'B': 'hr0', 'L': 'hr0', 'l': 'hr0', 'I': 'cp3', 'i': 'cp1', 'H': 'wht', 'W': 'st4', 'w': 'sk1',
-            'n': 'sk1', 'm': 'sk0', 'M': 'sk1'}
+        2: [(-1, '....L'), (0, 'LLLLL'), (1, 'iHiW.'), (2, 'III..'), (3, '.w...')],
+        4: [(-1, '......L'), (0, 'LLLLLLL'), (1, 'iippiW.'), (2, 'IHpiWW.'), (3, 'IIiIW..'), (4, '.IIW...'),
+            (5, '.www...')]}
+FACE_INK = {'B': 'hr0', 'L': 'hr0', 'l': 'hr1', 'I': 'cp3', 'i': 'cp1', 'p': 'cp0', 'H': 'wht', 'W': 'st4',
+            'w': 'sk1', 'n': 'sk1', 'm': 'sk0', 'M': 'sk1'}
 
 
 def draw_eyes(rgb, ids, front=None, side=None, ink=None):

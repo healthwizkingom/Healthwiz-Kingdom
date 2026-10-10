@@ -517,6 +517,7 @@ def pose(p):
     bpy.context.view_layer.update()
     k = min(max((Ut.z - .6) / .35, 0), 1)  # leaning forward, the cape folds up to a short mantle
     CAPE.scale = (CAPE_BASE.x, CAPE_BASE.y, CAPE_BASE.z * (.06 + .94 * k))
+    CAPE.hide_render = k < .35  # bent far forward, a folded cape would poke up behind the head: leave it out
 
 
 def key_all(frame):
@@ -524,6 +525,7 @@ def key_all(frame):
         for path in ('location', 'rotation_quaternion', 'scale'):
             pb.keyframe_insert(path, frame=frame)
     CAPE.keyframe_insert('scale', frame=frame)
+    CAPE.keyframe_insert('hide_render', frame=frame)
 
 
 def grip(sd):
@@ -612,6 +614,8 @@ for k, mv in enumerate(D['moves']):
 MAP_FRAME = 900
 pose(D['map']['pose'])
 key_all(MAP_FRAME)
+CAPE.hide_render = True  # the muscle map has no cape (the handoff spec); keyed, so a render cannot bring it back
+CAPE.keyframe_insert('hide_render', frame=MAP_FRAME)
 sc.frame_start, sc.frame_end = 1, MAP_FRAME
 
 # ---------- camera, framing, passes ----------
@@ -703,8 +707,8 @@ for k, mv in enumerate(D['moves']):
     print('RENDERED', mv['name'], 'scale %.2f' % ci['scale'], flush=True)
 
 if not ONLY or 'map' in ONLY:
-    show('', map_view=True)
     sc.frame_set(MAP_FRAME)
+    show('', map_view=True)
     for v in D['map']['views']:
         point(v, 96)
         for mode in PASSES:
