@@ -48,19 +48,26 @@ function show(it){const M=md(),d=today();M.last[it.type]=Date.now();M.day[d]=(M.
   showing=el;lastShown=Date.now();let gone=0;const close=()=>{if(gone)return;gone=1;el.classList.add('out');setTimeout(()=>{el.remove();if(showing===el)showing=null;if(pending)schedule()},300)};el.onclick=()=>{hush();close()};setTimeout(close,6500);document.body.appendChild(el);speak(it.text);
   HWEvents.emit('medius:said',{kind:it.type,text:it.text})}
 
-/* voice: the browser's own speech (no audio files, nothing leaves the device). Tuned as a warm, deep, unhurried voice:
-   pitch a little below normal but inside the natural range (never strained or nasal), slightly slow pace, full volume,
-   a short pause at each phrase for emphasis. It prefers a male-sounding English voice when the device has one.
+/* voice: the browser's own speech (no audio files, nothing leaves the device). Tuned as an old, wise narrator (deep and
+   gravelly like a documentary storyteller, calm and kindly like an old headmaster): warm low pitch but with a rise and fall
+   (greetings, questions and exclamations lift; full stops settle), unhurried pace, a thoughtful pause after each phrase. Real actors' voices cannot be copied; this only shapes the device's own voice. It prefers a male-sounding English voice when the device has one.
    Settings: st.s.medv (1 on, default · 0 off). */
 const vOn=()=>st.s.medv==null||+st.s.medv===1,canSay=()=>typeof speechSynthesis!=='undefined'&&typeof SpeechSynthesisUtterance!=='undefined';
 const HINT=/daniel|alex|fred|david|james|mark|george|ryan|male|google uk english male|microsoft guy|aaron|arthur|oliver/i;
 function voice(){try{const v=speechSynthesis.getVoices().filter(x=>/^en/i.test(x.lang));return v.find(x=>HINT.test(x.name)&&/^en-(gb|us)/i.test(x.lang))||v.find(x=>HINT.test(x.name))||v.find(x=>/^en-gb/i.test(x.lang))||v[0]||null}catch(e){return null}}
-function hush(){try{if(canSay())speechSynthesis.cancel()}catch(e){}}
-function speak(text){if(!vOn()||!canSay()||!text)return;hush();
-  const v=voice();String(text).replace(/\s+/g,' ').split(/(?<=[.!?:;])\s+/).filter(Boolean).forEach((ph,i,a)=>{
-    const u=new SpeechSynthesisUtterance(ph);if(v){u.voice=v;u.lang=v.lang}else u.lang='en-GB';
-    u.pitch=/!$/.test(ph)?.85:.75;u.rate=.88;u.volume=1;   // lower pitch, steady pace; a touch more lift on exclamations
-    try{speechSynthesis.speak(u)}catch(e){}})}
+function hush(){vTok++;try{if(canSay())speechSynthesis.cancel()}catch(e){}}
+let vTok=0;
+function speak(text){if(!vOn()||!canSay()||!text)return;hush();const tok=++vTok,v=voice();
+  const P=String(text).replace(/\s+/g,' ').split(/(?<=[.!?:;,])\s+/).filter(Boolean);
+  (function next(i){if(tok!==vTok||i>=P.length)return;const ph=P[i],u=new SpeechSynthesisUtterance(ph);
+    if(v){u.voice=v;u.lang=v.lang}else u.lang='en-GB';
+    // a spoken contour instead of one flat tone: bright on greetings, questions and exclamations, a falling close on full
+    // stops, a lift on commas, with a small steady wobble so no two phrases sound alike
+    const w=(i%3-1)*.04,end=ph.slice(-1),first=i===0;
+    u.pitch=Math.max(.1,Math.min(2,(end==='!'?.86:end==='?'?.9:end===':'?.7:end===','?.74:end===';'?.72:.64)+(first?.08:0)+w));
+    u.rate=Math.max(.5,Math.min(2,(end==='!'?.94:end==='?'?.9:end==='.'?.84:.88)+(first?.04:0)-w/2));u.volume=1;
+    u.onend=()=>setTimeout(()=>next(i+1),/[.!?]$/.test(ph)?380:/[:;]$/.test(ph)?260:140);   // a thoughtful beat between phrases
+    u.onerror=()=>{};try{speechSynthesis.speak(u)}catch(e){}})(0)}
 try{if(canSay())speechSynthesis.onvoiceschanged=()=>{}}catch(e){}
 
 /* event wiring */
