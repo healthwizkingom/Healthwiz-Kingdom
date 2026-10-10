@@ -27,7 +27,7 @@ OFF = 11                 # face rows start this far down the grid
 
 HAIR = {'auburn': {'1': 'hr0', '2': 'hr1', '3': 'hr2', '4': 'hr3', '5': 'hr3'},
         'crimson': {'1': 'hr0', '2': 'cp0', '3': 'cp1', '4': 'cp2', '5': 'cp3'}}
-FIXED = {'K': 'ink', 'a': 'sk0', 'b': 'sk1', 'c': 'sk2', 'd': 'sk3', 'E': 'cp0', 'R': 'cp1', 'r': 'cp2', 'G': 'gd2',
+FIXED = {'h': 'hr1', 'O': 'cp3', '1': 'hr0', 'K': 'ink', 'a': 'sk0', 'b': 'sk1', 'c': 'sk2', 'd': 'sk3', 'E': 'cp0', 'R': 'cp1', 'r': 'cp2', 'G': 'gd2',
          'W': 'wht', 'T': 'st4', 'S': 'st3'}
 
 # ---- the face: one span per row (outline included), a sharp jaw to a narrow chin ----
@@ -39,13 +39,20 @@ SPAN0.update({17: (7, 38), 18: (7, 38), 19: (7, 38), 20: (7, 38), 21: (7, 38), 2
 SPAN = {r + OFF: v for r, v in SPAN0.items()}
 
 # ---- features, as pixel maps (row offset, col offset, rows) ----
-EYE = ["K.........",          # the outer flick of the lash
-       "KKKKKKKKK.",          # a heavy, straight upper lid
-       ".KSEEEESSK",          # the lid's shadow over the iris and the white
-       ".KTRWRRTTb",          # catch-light on the lit side
-       "..TrKKrTb.",          # the pupil
-       "..brGGrb..",          # a small amber glow at the bottom of the iris
-       "...bbbb..."]          # the soft lower lid
+# The eye: the owner's chosen design (the earlier painted eye), re-drawn as pixels a little smaller: a heavy arched
+# upper lash with a winged outer corner and a dark-red inner end; a tall iris in bands, deep red at the top to bright
+# at the bottom with an amber glow; an upright pupil; a big catch-light upper left and a small one lower right; the
+# lid's shadow on the white; a soft lower lash under the outer half. Outer corner on the left (the picture's left eye).
+EYE = ["...KKKKKK...",
+       "..KKKKKKKKK.",
+       "KKSERRRRESK1",
+       "KSSWWKKRRSS1",
+       ".hTWRKKRRT..",
+       ".hTrrKKTrT..",
+       "..hOOOOOO...",
+       "...hOGGO....",
+       "....hh......"]
+IRIS = (slice(2, 7), slice(3, 9))      # rows, columns of the iris block: copied unmirrored to the right eye
 BROW = ["1112......",         # determined: the outer tail high, the inner end low and heavy
         "..21111...",
         ".....21111",
@@ -79,11 +86,9 @@ def face_grid():
     for r, c in ((25, 10), (26, 10), (26, 11), (24, 33), (24, 34), (25, 32), (25, 33)):
         g[r + OFF][c] = 'c'
     # eye sockets: a band of midtone under the brows, the inner corners shaded
-    for c in list(range(9, 19)) + list(range(27, 37)):
-        g[15 + OFF][c] = 'c'
-    for r in (17, 18):
-        g[r + OFF][19] = 'c'
-        g[r + OFF][26] = 'c'
+    for r in (16, 17):                    # the eye sockets: the inner corners shaded
+        g[r + OFF][20] = 'c'
+        g[r + OFF][25] = 'c'
     # the nose: a bridge on the shaded side, a small tip and its shadow
     for r in range(20, 26):
         g[r + OFF][24] = 'c'
@@ -92,12 +97,20 @@ def face_grid():
     put(g, 31, 19, [".bbaabb", "...cc.."])
     put(g, 33, 21, ["cc"])
     # the eyes and brows
-    put(g, 15, 9, EYE)
-    eye_r = [row[::-1] for row in EYE]
-    eye_r[3] = eye_r[3][:4] + 'W' + 'R' + eye_r[3][6:]           # catch-light stays on the lit (left) side
-    put(g, 15, 27, eye_r)
-    put(g, 12, 9, BROW)
-    put(g, 12, 27, BROW, mirror=True)
+    put(g, 10, 9, BROW)
+    put(g, 10, 27, BROW, mirror=True)
+    return put_eyes(g)
+
+
+def put_eyes(g):
+    """Both eyes; the right one mirrors the outline but keeps the iris as drawn, so the catch-lights stay on the
+    lit side. Also called after the hair: anime convention, the eyes show through the bangs."""
+    put(g, 14, 8, EYE)
+    right = [row[::-1] for row in EYE]
+    rows, cols = IRIS
+    for r in range(rows.start, rows.stop):
+        right[r] = right[r][:cols.start] + EYE[r][cols] + right[r][cols.stop:]
+    put(g, 14, 26, right)
     return g
 
 
@@ -196,7 +209,7 @@ def main():
     # inside the grid, the render's old hair and face become hair behind the face (redrawn below)
     hairish = {ME.PAL[k] for k in ('hr0', 'hr1', 'hr2', 'hr3', 'sk0', 'sk1', 'sk2', 'sk3', 'cp0', 'cp1', 'cp2', 'cp3',
                                    'wht', 'st4', 'st3', 'gd2')}
-    g = draw_hair(face_grid())
+    g = put_eyes(draw_hair(face_grid()))
     outs = []
     for ramp in ('auburn', 'crimson'):
         a = recolour_crown(a0, ramp).copy()
