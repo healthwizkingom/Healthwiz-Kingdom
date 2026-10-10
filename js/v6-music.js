@@ -8,7 +8,7 @@
    cached once) the original home tune plays instead. Nothing here changes saved data. */
 const HWMusic=(()=>{
 const SRC='assets/audio/home-theme.mp3',FADE=.8;
-let buf=null,bad=0,loading=0,src=null,gain=null,want=0;
+let buf=null,bad=0,loading=0,src=null,gain=null,wd=0;
 const desired=()=>!!MT&&MK==='home'&&!bad;
 function load(){if(buf||bad||loading)return;loading=1;
   fetch(SRC).then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).then(a=>new Promise((ok,no)=>{ac=ac||new(window.AudioContext||window.webkitAudioContext)();ac.decodeAudioData(a,ok,no)}))
@@ -18,9 +18,11 @@ function start(){if(src||!buf)return;try{ac=ac||new(window.AudioContext||window.
   gain.gain.linearRampToValueAtTime(vol(),ac.currentTime+FADE)}catch(e){src=gain=null}}
 function stop(){if(!src)return;const s=src,g=gain;src=gain=null;try{g.gain.cancelScheduledValues(ac.currentTime);g.gain.setValueAtTime(g.gain.value,ac.currentTime);g.gain.linearRampToValueAtTime(0,ac.currentTime+.3);s.stop(ac.currentTime+.35)}catch(e){try{s.stop()}catch(e2){}}}
 const vol=()=>Math.min(1,MV()/3*.9);
-function sync(){want=desired();if(want){if(!buf)load();else if(!src)start();else try{gain.gain.setTargetAtTime(vol(),ac.currentTime,.1)}catch(e){}}else stop()}
-setInterval(sync,400);
+// a 400 ms check (volume slider, music button, page changes) runs only while the recording is wanted or still fading out,
+// so an idle page keeps no timer alive (tests/24-performance)
+function sync(){if(desired()){if(!buf)load();else if(!src)start();else try{gain.gain.setTargetAtTime(vol(),ac.currentTime,.1)}catch(e){}}else stop();
+  if(desired()||src){if(!wd)wd=setInterval(sync,400)}else if(wd){clearInterval(wd);wd=0}}
 // the 'home' track's own tick: only the fallback tune, and only when the recording cannot be used
 TRK.home[1]=()=>{if(bad){musTick();return}try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume()}catch(e){}   // made inside the button tap, so phones allow it
-  if(!buf)load()};
+  if(!buf)load();sync()};
 return{state:()=>({playing:!!src,loaded:!!buf,failed:!!bad}),src:SRC}})();
