@@ -138,7 +138,7 @@ test('every mini-game on a phone: opens by tap and keyboard, fits, leaves by ✕
   await go(page, 'home');
   await page.waitForTimeout(2500);                          // past the start-up frame probe
   const games = await page.evaluate(() => HWGames.games.map(g => ({ id: g.id, page: g.page })));
-  assert.deepEqual(games.map(g => g.id).sort(), ['food', 'grove', 'night', 'trail', 'water']);
+  assert.deepEqual(games.map(g => g.id).sort(), ['grove']);
   for (const g of games) {
     await go(page, g.page);
     const btn = (await page.$(`#v6gl-${g.id} [data-a="game"]`)) ? `#v6gl-${g.id} [data-a="game"]` : null;

@@ -1,4 +1,4 @@
-// Smartwatch heart rate (js/v6-hr.js + the Workout on the Stairs page) and the running leaderboard (js/v6-runboard.js).
+// Smartwatch heart rate (js/v6-hr.js + the Workout on the Stairs page; the Runners' Board is on the Training Hall) and the running leaderboard (js/v6-runboard.js).
 // Bluetooth is a fake device (navigator.bluetooth stub); Supabase is a fake REST endpoint (page.route).
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -149,7 +149,7 @@ function fakeSupabase(log) {
 test('runners board: opt-in explains what is shared, nickname filter, submit this week, medals for top 3, you highlighted, leave deletes', async () => {
   const log = [];
   const { page, ctx, errors } = await openApp({ before: fakeSupabase(log), viewport: { width: 390, height: 844 } });
-  await go(page, 'stair'); // not 'run': that route also loads the route map
+  await go(page, 'exercise'); // not 'run': that route also loads the route map
   await page.locator('#v6rb').scrollIntoViewIfNeeded();
   await page.waitForSelector('#v6rb .rbl li');
   assert.equal(log.filter(x => x.fn === 'submit_run_score').length, 0, 'nothing is sent before joining');
@@ -201,7 +201,7 @@ test('runners board: opt-in explains what is shared, nickname filter, submit thi
 test('runners board offline: clear offline state, cached board kept, the app and old data unaffected', async () => {
   const log = [];
   const { page, ctx, errors } = await openApp({ before: fakeSupabase(log) });
-  await go(page, 'stair'); // not 'run': that route also loads the route map
+  await go(page, 'exercise'); // not 'run': that route also loads the route map
   await page.locator('#v6rb').scrollIntoViewIfNeeded();
   await page.waitForSelector('#v6rb .rbl li');
   await ctx.setOffline(true);

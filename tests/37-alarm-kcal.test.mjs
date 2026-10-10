@@ -24,7 +24,7 @@ test('MET by speed (Compendium points, interpolated; walking under 6 km/h) and k
 
 test('old runs get calories from their own distance and time; stored values win; totals, goal % and Nutrition line', async () => {
   const { page, ctx, errors } = await withRuns([run(3, 3000, 1200), run(0, 5000, 1800), run(0, 2000, 900, { kcal: { v: 111, met: 8, w: 60 } })]);
-  await go(page, 'stair');
+  await go(page, 'exercise');
   const list = await page.textContent('#v6runs');
   assert.match(list, /≈300 kcal/, 'old run without a stored value: 10 km/h → 10 MET × 60 kg × 0.5 h');
   assert.match(list, /≈111 kcal/, 'a stored value is used as is');
@@ -46,19 +46,20 @@ test('old runs get calories from their own distance and time; stored values win;
 test('without a confirmed weight: no guess, a prompt to complete the profile', async () => {
   const seed = JSON.parse(JSON.stringify(RETURNING)); seed.s.onb = 0; seed.s.set = 1;
   const { page, ctx, errors } = await withRuns([run(0, 5000, 1800)], seed);
-  await go(page, 'stair');
+  await go(page, 'exercise');
   assert.match(await page.textContent('#v6run'), /needs your weight[\s\S]*never guesses/);
   assert.doesNotMatch(await page.textContent('#v6runs'), /kcal/);
-  await page.click('#v6run [data-a="stjump"][data-t="wk-kcal"]');
-  assert.equal(await page.locator('#pf-w').count(), 1, 'the profile form is right there');
+  await page.click('#v6run [data-a="go"][data-v="body"]');
+  assert.equal(await page.evaluate(() => S.v), 'body', 'the button opens the Body & Energy page');
+  assert.equal(await page.locator('#bw').count(), 1, 'its weight field is right there');
   assert.deepEqual(errors, []);
   await ctx.close();
 });
 
 test('haze banner and heat tip sit just above the Running controls', async () => {
   const { page, ctx, errors } = await openApp();
-  await go(page, 'stair');
-  const order = await page.evaluate(() => { const b = document.querySelector('.v6hzb'), r = document.getElementById('v6run'), h = document.getElementById('st-run');
+  await go(page, 'exercise');
+  const order = await page.evaluate(() => { const b = document.querySelector('.v6hzb'), r = document.getElementById('v6run'), h = document.getElementById('xrun-h');
     return b && r && h ? [!!(h.compareDocumentPosition(b) & 4), !!(b.compareDocumentPosition(r) & 4)] : null; });
   assert.deepEqual(order, [true, true]);
   assert.equal(await page.locator('.v6hzb').count(), 1);

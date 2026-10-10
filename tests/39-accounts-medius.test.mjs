@@ -193,7 +193,7 @@ test('Runners\' Board: on sign-in this device\'s entry moves to the account, the
   assert.ok(sub, 'signed in: totals go to the account');
   assert.equal(sub.body.p_device_id, '11111111-1111-4111-8111-111111111111'); assert.equal(sub.body.p_nickname, undefined, 'the account keeps its nickname on the server');
   // LEAVE as the account; then sign out: this device starts fresh and the account entry is not touched again
-  await go(page, 'stair');
+  await go(page, 'exercise');
   await page.locator('#v6rb').scrollIntoViewIfNeeded();
   await page.locator('#v6rb details summary').click();
   await page.click('[data-a="rbleave"]'); await page.click('[data-a="rbleave"]');

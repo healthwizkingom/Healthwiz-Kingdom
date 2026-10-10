@@ -90,18 +90,19 @@ function authWhy(e){const m=String(e&&e.message||'');
   return e.code==='net'?'Could not reach the sign-in service. Check your connection and try again.'
     :/not authori[sz]ed/i.test(m)?'This copy of HealthWiz cannot send sign-in emails yet (its email sender is not set up). Try Google, or ask whoever runs the app to set up email sending.'
     :e.code==='rate'||/security purposes|rate limit|too many/i.test(m)?'Too many sign-in emails were asked for. Please wait a minute and try again.'
-    :/expired|invalid|otp/i.test(m)?'That code did not work (it may have expired). Check the newest email, or send a new one.'
+    :/expired|invalid|otp|token/i.test(m)?'That code did not work. It may have expired, or been used already (opening the email link uses it up). Use the newest email, or tap SEND AGAIN for a new one.'
     :/provider is not enabled|unsupported provider/i.test(m)?'Google sign-in is not switched on for this copy of HealthWiz yet. Use your email instead.'
     :m||'Sign-in failed. Please try again.'}
 /** Email: one message with a magic link and a 6-digit code. */
-async function sendLink(email){email=String(email||'').trim();
+async function sendLink(email){email=String(email||'').trim().toLowerCase();
   if(!EMAIL.test(email))throw fail('input','Enter a valid email address.');
   if(!online())throw fail('net','You are offline.');
   const b=here();
   await http('/auth/v1/otp'+(b?'?redirect_to='+encodeURIComponent(b):''),{method:'POST',body:{email,create_user:true},auth:false});
   C.em={email,at:Date.now()};keep();return'sent'}
-async function verifyCode(email,code){email=String(email||'').trim();code=String(code||'').replace(/\s+/g,'');
-  if(!/^\d{6,10}$/.test(code))throw fail('input','Type the code from the email (6 digits).');
+async function verifyCode(email,code){email=String(email||'').trim().toLowerCase();code=String(code||'').replace(/[\s\-–.]+/g,'');
+  if(!/^\d{6,10}$/.test(code))throw fail('input','Type the code from the email. It is a number of 6 to 10 digits, with no letters.');
+  if(!EMAIL.test(email))throw fail('input','Enter your email address again, then ask for a new code.');
   const j=await http('/auth/v1/verify',{method:'POST',body:{type:'email',email,token:code},auth:false});
   return begin(j,'email')}
 /** Google: PKCE when the browser can hash (https or localhost), otherwise the older implicit flow. */

@@ -30,7 +30,7 @@ const HEAD={
     enter:'The time you went to bed and the time you woke up.',
     why:'Shows whether your sleep fits the range suggested for your age. The dream battle is only a game.'},
   stair:{icon:'stairs',title:'STAIRS & WORKOUT',kind:'you',
-    what:'Stair climbs, stair workouts and runs.',
+    what:'Stair climbs, stair workouts and your heart rate.',
     enter:'Steps per climb and how many climbs. For a workout, also your pulse in BPM before and after.',
     why:'Turns movement into a daily step count and shows how your pulse changes with effort.'},
   stress:{icon:'mind',title:'STRESS CHECK-IN',kind:'you',
@@ -64,7 +64,7 @@ function place(h,k){return head(k)+h}
    only the order changes; the "jump to the form" buttons that used to scroll there are no longer needed. */
 function lift(h,form,before){const t=document.createElement('template');t.innerHTML=h;const f=t.content.querySelector(form),c=f&&(f.closest('.card')||f),b=t.content.querySelector(before);
   if(!c||!b||!b.parentNode||c===b)return h;b.parentNode.insertBefore(c,b);t.content.querySelectorAll('.hwjump').forEach(x=>x.remove());return t.innerHTML}
-const FIRST={food:h=>lift(h,'#fpick','.nsg'),water:h=>lift(h,'#wc','.nshd+*'),sleep:h=>lift(h,'#slb','#dbatc'),stair:h=>lift(h,'#stman','.stgoal')};
+const FIRST={food:h=>lift(h,'#fpick','.nsg'),water:h=>lift(h,'#wc','.nshd+*'),sleep:h=>lift(h,'#slb','#dbatc')}; // Stairs: GPS check-in comes first, so its hand-log card is not lifted above it (js/v6-stairs.js)
 
 /* ---------- 4. example lines under empty inputs (replace placeholders) ---------- */
 const EG={

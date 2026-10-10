@@ -35,10 +35,10 @@ test('hub lists the registered games; stats card has a useful empty state', asyn
   const { page, ctx, errors } = await openApp();
   await page.waitForSelector('.wl');
   await go(page, 'kingdom');
-  assert.match(await page.textContent('#v6ghub'), /Well Garden/);
+  assert.match(await page.textContent('#v6ghub'), /Calming Grove/);
   await go(page, 'stats');
   assert.match(await page.textContent('#v6gstat'), /No games played yet/);
-  assert.equal(await page.locator('#v6gstat [data-a="game"][data-g="water"]').count(), 1);
+  assert.equal(await page.locator('#v6gstat [data-a="game"][data-g="grove"]').count(), 1);
   assert.deepEqual(errors, []);
   await ctx.close();
 });

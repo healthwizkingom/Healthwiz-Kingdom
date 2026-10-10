@@ -87,8 +87,8 @@ test('nutrition logging on the merged page: search, pick, servings, add; meters,
   assert.match(await txt(page, '#nst-food'), /560 \/ 2200 kcal\s*1 meal logged today/);
   assert.match(await txt(page, '#fcal'), /Calories consumed\s*560/);
   assert.match(await txt(page, '#flog'), /Roti Canai/);
-  const order = await page.evaluate(() => { const h = document.querySelector('#main').innerHTML; return [h.indexOf('id="flog"'), h.indexOf('v6gl-food'), h.indexOf('id="fwk"')]; });
-  assert.ok(order[0] < order[1] && order[1] < order[2], 'Market Kitchen card between the food log and the 7-day log');
+  const order = await page.evaluate(() => { const h = document.querySelector('#main').innerHTML; return [h.indexOf('id="flog"'), h.indexOf('id="fwk"'), h.indexOf('v6gl-food')]; });
+  assert.ok(order[0] < order[1] && order[2] < 0, 'the food log comes before the 7-day log; the Market Kitchen card is gone');
   assert.equal(await page.evaluate(() => S.v), 'food');
   assert.deepEqual(errors, []);
   await ctx.close();
@@ -110,8 +110,7 @@ test('water logging on the merged page: the Well of Life plays, both meters upda
   await page.click('[data-a="wrems"]');
   assert.equal((await state(page)).s.wrem, 60);
   assert.equal(await page.inputValue('#wre'), '60');
-  const order = await page.evaluate(() => { const h = document.querySelector('#main').innerHTML; return h.indexOf('v6gl-water') >= 0 && h.indexOf('v6gl-water') < h.indexOf('id="wworld"'); });
-  assert.ok(order, 'Well Garden card before WORLD PROGRESSION');
+  assert.equal(await page.locator('#v6gl-water').count(), 0, 'the Well Garden card is gone');
   assert.equal(await page.locator('#wq .v6wqr').count(), 1, 'living well scenery still drawn');
   assert.deepEqual(errors, []);
   await ctx.close();

@@ -19,8 +19,8 @@ const find = page => page.click('#v6gps [data-a="gpsfind"]');
 test('GPS check-in: explanation first, one reading, nearby list, confirm logs a stair session, discovery once, position never saved', async () => {
   const { page, ctx, errors } = await boot({ pos: AT_ST20 });
   assert.match(await page.textContent('#v6gps'), /GPS CHECK-IN[\s\S]*at Kolej MARA Kulim\?[\s\S]*28 of 32 stairways are on the map; the other 4 can be logged by hand[\s\S]*discovered by GPS check-in: 0 of 28 on the map \(32 stairways in total\)/);
-  const order = await page.evaluate(() => { const h = document.querySelector('#main').innerHTML; return h.indexOf('id="stman"') < h.indexOf('v6gps'); });
-  assert.ok(order, 'the manual form comes first (input above the fold); the GPS card follows it');
+  const order = await page.evaluate(() => { const h = document.querySelector('#main').innerHTML; return h.indexOf('v6gps') < h.indexOf('id="stman"'); });
+  assert.ok(order, 'the GPS check-in comes first; the hand-log card follows it');
   await find(page);
   assert.match(await page.textContent('#v6gps'), /WHY LOCATION\?[\s\S]*read once[\s\S]*never saved, shared or shown/);
   assert.equal((await state(page)).gp.ok, 0, 'nothing is allowed before the user agrees');

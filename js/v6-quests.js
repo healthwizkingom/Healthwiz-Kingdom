@@ -28,7 +28,7 @@ const FOCUS={
 'breathe':{area:'stress',icon:'🌬️',xp:20,go:'stress',name:'Calm breath',text:()=>'Finish a calming practice in the Stress Quest or visit the Wizard\'s Counsel.',prog:d=>breathed(d)?1:0},
 'two-climbs':{area:'stair',icon:'🧗',xp:25,go:'stair',name:'Two easy climbs',text:()=>'Climb a stairway twice today at a comfortable pace.',prog:d=>cl(d)/2},
 'energy':{area:'energy',icon:'⚡',xp:15,go:'home',name:'Energy check',text:()=>'Rate your energy on the Home page.',prog:d=>enr(d)?1:0},
-'pulse':{area:'pulse',icon:'❤️',xp:15,go:'pulse',name:'Heart check',text:()=>'Log your heart rate before and after a stair workout.',prog:d=>A('stair',d).some(e=>e.m&&+e.m.hrB&&+e.m.hrA)?1:0}}; // 'pulse' opens the Workout (js/v6-stairs.js)
+'pulse':{area:'pulse',icon:'❤️',xp:15,go:'pulse',name:'Heart check',text:()=>'Log your heart rate before and after a workout.',prog:d=>hrv(d,'hrB').length&&hrv(d,'hrA').length?1:0}}; // 'pulse' opens the Workout (js/v6-stairs.js)
 // insight area/id → focus quest
 const FROM={'water-down':'water-goal','water-target':'water-goal','water-today':'water-goal','food-partial':'meals-3','food-fiber':'fiber','sleep-short':'wind-down','sleep-irregular':'wind-down','stress-high':'breathe','stress-up':'breathe','stair-down':'two-climbs','stair-none':'two-climbs'};
 const WHY={'water-goal':'your water has been below your usual or your target','meals-3':'some meals may be missing from your log','fiber':'estimated fiber has been on the low side','wind-down':'your nights have been short or irregular','breathe':'your stress check-ins have been higher','two-climbs':'Stair Mountain has been quiet'};

@@ -69,7 +69,7 @@ test('"What happens when you sign in": every point in plain language, the parent
   assert.match(await page.textContent('#mo .warn'), /valid email address/);
   await page.fill('#acem', 'hero@example.com'); await page.click('[data-a="acmail"]');
   await page.waitForSelector('#accode');
-  assert.match(await page.textContent('#mo'), /CHECK YOUR EMAIL[\s\S]*hero@example\.com[\s\S]*6-digit code/);
+  assert.match(await page.textContent('#mo'), /CHECK YOUR EMAIL[\s\S]*hero@example\.com[\s\S]*code from the email/);
   assert.equal(S.mail.length, 1); assert.equal(S.mail[0].create, true, 'new students are signed up by the same email');
   await page.fill('#accode', '000000'); await page.click('[data-a="accode"]'); // (the browser logs this refused request)
   await page.waitForSelector('#mo .warn');

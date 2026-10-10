@@ -22,7 +22,7 @@ compatibility tests.
 | Item | Tests |
 |---|---|
 | navigation | `34-final-polish` (every action and route on every page, four sizes, tutorial targets), `01-original-app`, `25-matrix-input` (tabs by tap and keyboard), `26-journey`, `28-foundation` (every tab and Health Hall tile, and back), `29-provisions` (old Nutrition/Water links, halves, tutorial), `33-stairs` (old Pulse and Running routes open their Stairs sections) |
-| data logging | `01-original-app`, `26-journey` (every log type through the UI), `29-provisions` (food and water on the merged page), `33-stairs` (casual climbs by hand and GPS, workouts with heart rate, one session model, calorie estimate) |
+| data logging | `01-original-app`, `26-journey` (every log type through the UI), `29-provisions` (food and water on the merged page), `33-stairs` (casual climbs by hand and GPS, workouts with heart rate, LOG BPM before/after counted and linked to a sealed workout, one session model, calorie estimate behind ?) |
 | editing, deleting | `01-original-app`, `03-events`, `25-matrix-input` (by touch and keyboard), `26-journey` |
 | calculations | `01-original-app` (sleep duration, BMI, pulse range), `04-insights` (baselines), `24-performance` (the entry index against full scans) |
 | quests | `05-quests`, `03-events`, `34-final-polish` (weekly activity quest counts runs; badge audit and new badges) |
@@ -71,16 +71,16 @@ compatibility tests.
 | window resizing, multiple navigation layouts | `25-matrix-input`, `25-matrix` |
 | large displays | `25-matrix` (1920×1080: centred column) |
 
-### §96 Mini-games (all five: Well Garden, Market Kitchen, Adventure Trail, Calming Grove, Night Watch)
+### §96 Mini-games (one is left: Calming Grove; Well Garden, Market Kitchen, Adventure Trail and Night Watch were removed)
 
 | Item | Tests |
 |---|---|
-| start, controls, completion | `14`–`18` (a full game each, by keyboard), `13-games` |
+| start, controls, completion | `17-grove` (a full game, by keyboard), `13-games` |
 | cancellation, restart | `13-games`, `26-journey` (✕ and Escape, three times per game) |
-| reward, XP | `13-games` and `14`–`18` (XP once a day, discoveries, nothing logged) |
+| reward, XP | `13-games` and `17-grove` (XP once a day, discoveries, nothing logged) |
 | statistics integration | `13-games` (stats card) |
-| mobile usability | `14`–`18` (360 px), `26-journey` (opened by tap, fits, 40 px ✕) |
-| reduced-motion mode | `14`–`18`, `26-journey` |
+| mobile usability | `17-grove` (360 px), `26-journey` (opened by tap, fits, 40 px ✕) |
+| reduced-motion mode | `17-grove`, `26-journey` |
 | performance | `13-games` (timers stop), `26-journey` (no timer or frame loop left after leaving) |
 | Counting Sheep dream | `41-sheep-dream` (canvas scene, counting and Medius reaction, daily reward, pauses off screen, reduced motion, full screen, layout) |
 
@@ -92,7 +92,8 @@ compatibility tests.
 ### Wizard's Training Hall (Exercise page)
 
 `51-exercise` (the EXERCISE tile beside Stairs; goal picker and kept numbers in `st.s.xg`; muscle map taps, partner muscles,
-brachialis + brachioradialis lit together; tutorial sprite and its still frame with reduced motion; sets, rest countdown, finish
+brachialis + brachioradialis lit together; the merged Muscle & move screen with the tutorial under it, sprite and its still frame with reduced motion;
+Calisthenics offers bodyweight moves only, the seven moves added without a sprite row and Abdominals without a map mask; Running Road on this page; sets, rest countdown, finish
 card with the kcal / VO₂ / kJ estimates; XP cap of two rewarded sessions a day; "I feel dizzy" / "Chest pain" stop and log nothing;
 doctor-note gate on sets to failure; 360 px fit). The sprite sheets are made by `tools/art/make_exercise.py`.
 

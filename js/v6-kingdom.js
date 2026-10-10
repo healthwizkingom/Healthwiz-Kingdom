@@ -20,7 +20,7 @@ const all=()=>KR.map((r,i)=>info(i));
 
 /* stats + quests related to a region */
 const STAT={water:d=>wt(d)+' mL today · '+Math.round(avg(rng(7).map(wt).filter(Boolean))||0)+' mL avg on logged days',food:d=>kc(d)+' kcal today · '+new Set(A('food',d).map(x=>x.m.meal)).size+' meals',sleep:()=>{const s=LC('sleep').pop();return s?s.v+' h last logged ('+s.d.slice(5)+')':'no sleep logged yet'},
-  pulse:()=>{const p=LC('stair').filter(e=>e.m&&(+e.m.hrB||+e.m.hrA)).pop();return p?'last workout '+(+p.m.hrB||'–')+' → '+(+p.m.hrA||'–')+' BPM ('+p.d.slice(5)+')'+(+p.m.hrA>0&&+p.m.hrR1>0&&p.m.hrA>p.m.hrR1?' · fell '+(p.m.hrA-p.m.hrR1)+' BPM after 1 min':''):'no workout heart rate logged yet'}, /* workouts only (js/v6-stairs.js) */stair:d=>sp(d)+' steps today · '+rng(7).reduce((s,x)=>s+A('stair',x).length,0)+' sessions this week',
+  pulse:()=>{const p=hrLast();return p?(p.s==='log'?'last logged ':'last workout ')+(p.b||'–')+' → '+(p.a||'–')+' BPM ('+p.d.slice(5)+')'+(p.a>0&&p.r1>0&&p.a>p.r1?' · fell '+(p.a-p.r1)+' BPM after 1 min':''):'no workout heart rate logged yet'}, /* workouts only (js/v6-stairs.js) */stair:d=>sp(d)+' steps today · '+rng(7).reduce((s,x)=>s+A('stair',x).length,0)+' sessions this week',
   stress:d=>str(d)==null?'no check-in today':str(d)+'/10 today (self-rated)',bmi:()=>LC('bmi').length?'last saved '+LC('bmi').pop().d.slice(5):'not saved yet',forge:()=>st.s.kcal+' kcal daily plan'};
 const QAREA={water:'water',food:'food',sleep:'sleep',stair:'stair',stress:'stress',pulse:'pulse'};
 function quests(x){const d=today(),o=[];try{QD(d).forEach(q=>{if(q.v===x.page)o.push((q.p>=1?'✔ ':'• ')+q.n+': '+q.t)})}catch(e){}

@@ -75,7 +75,7 @@ test('reduced motion: no lightning flash is drawn', async () => {
   await ctx.close();
 });
 
-test('haze: five PM2.5 levels with advice; card on Home, banner on Stairs, hazy kingdom sky from level 3', async () => {
+test('haze: five PM2.5 levels with advice; card on Home, banner above Running (Training Hall), hazy kingdom sky from level 3', async () => {
   const { page, ctx, errors } = await open({ aq: aqBody(72) });
   const bands = await page.evaluate(() => [5, 15, 15.1, 35, 40, 55, 100, 150, 151].map(v => HWLive.band(v).n));
   assert.deepEqual(bands, [1, 1, 2, 2, 3, 3, 4, 4, 5]);
@@ -86,7 +86,7 @@ test('haze: five PM2.5 levels with advice; card on Home, banner on Stairs, hazy 
   assert.match(card, /Open-Meteo Air Quality \(estimate\)/); await page.click('#v6wxh > summary'); await page.click('#v6haze .hwh'); assert.match(await page.textContent('#hwh-pop'), /modelled estimate, not an official reading/); assert.match(card, /at 14:00/); assert.match(card, /Open-Meteo/);
   assert.equal(await page.getAttribute('#v6haze a', 'href'), 'https://apims.doe.gov.my');
   assert.ok(await page.evaluate(() => document.body.classList.contains('hw-haze')), 'hazy kingdom sky');
-  await go(page, 'stair');
+  await go(page, 'exercise');
   assert.equal(await page.locator('.v6hzb').count(), 1);
   assert.match(await page.textContent('.v6hzb'), /UNHEALTHY · PM2\.5 72/);
   await go(page, 'run');
@@ -113,7 +113,7 @@ test('offline / failing API: default scene, "Weather unavailable", nothing break
   await go(page, 'home');
   assert.equal(await page.locator('#v6wxh').count(), 1, 'a placeholder, so a late reading can appear');
   assert.equal(await page.isHidden('#v6wxh'), true, 'Home shows no weather or haze line when there is no reading');
-  await go(page, 'stair');
+  await go(page, 'exercise');
   assert.match(await page.textContent('.v6hzb'), /unavailable/);
   assert.deepEqual((await state(page)).s, RETURNING.s, 'no new field is written just by visiting');
   assert.deepEqual(errors, []);
@@ -150,7 +150,7 @@ test('Settings → LIVE DATA: toggle off hides everything and sends nothing; REF
   assert.match(await page.textContent('#v6live'), /LIVE DATA: OFF/);
   await go(page, 'home');
   assert.equal(await page.locator('#v6wxh, #v6haze').count(), 0);
-  await go(page, 'stair');
+  await go(page, 'exercise');
   assert.equal(await page.locator('.v6hzb').count(), 0);
   const n = calls.wx + calls.aq;
   // (no page reload here: the test browser can lose file:// storage on a quick reload)

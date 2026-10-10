@@ -1,5 +1,5 @@
-// The Wizard's Training Hall (js/v6-exercise.js): the EXERCISE tile, goal picker, muscle map, tutorial, session with rest timer
-// and safety stop, finish card with estimates, XP cap, Health Score burn, doctor-note gate, reduced motion and phone fit.
+// The Wizard's Training Hall (js/v6-exercise.js): the EXERCISE tile, goal picker, the merged muscle-and-move screen (muscle map with
+// the move's tutorial under it), Running Road, session with rest timer and safety stop, finish card with estimates, XP cap, Health Score burn, doctor-note gate, reduced motion and phone fit.
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -23,7 +23,7 @@ async function tapMuscle(page, id) {
 }
 async function toSession(page, goal = 'hyp', muscle = 'biceps') {
   await page.click(`[data-a="xgoal"][data-k="${goal}"]`); await page.click('[data-a="xnext"]');
-  await page.locator('.xlist summary').click(); await page.click(`.xchips [data-a="xmus"][data-m="${muscle}"]`); await page.click('[data-a="xtut"]'); await page.click('[data-a="xstart"]');
+  await page.locator('.xlist summary').click(); await page.click(`.xchips [data-a="xmus"][data-m="${muscle}"]`); await page.click('[data-a="xstart"]');
 }
 
 test('EXERCISE tile sits beside Stairs, shows today\'s minutes and kcal, and opens the page without logging', async () => {
@@ -79,12 +79,15 @@ test('muscle map: every muscle has pixels, a mask and exercises; a tap lights it
   const { page, ctx, errors } = await boot();
   const info = await page.evaluate(() => HWEx.MUS.map((m, i) => ({ id: m[0], px: ['front', 'back'].reduce((a, v) => a + HWEx.grid(v).filter(x => x === i).length, 0),
     moves: m[3].map(id => !!HWEx.MOVES[id]) })));
-  assert.equal(info.length, 19);
-  for (const m of info) { assert.ok(m.px >= 4, m.id + ' has map pixels'); assert.ok(m.moves.length && m.moves.every(Boolean), m.id + ' exercises'); }
-  const rows = await page.evaluate(() => Object.values(HWEx.MOVES).map(m => m[1]).sort((a, b) => a - b));
-  assert.deepEqual(rows, Array.from({ length: 22 }, (_, i) => i), 'one sprite row per move');
+  assert.equal(info.length, 20, '19 muscles with a mask on the map, plus Abdominals (list only, no mask yet)');
+  for (const m of info) { if (m.id === 'abs') assert.equal(m.px, 0, 'abs has no map pixels yet'); else assert.ok(m.px >= 4, m.id + ' has map pixels'); assert.ok(m.moves.length && m.moves.every(Boolean), m.id + ' exercises'); }
+  const rows = await page.evaluate(() => Object.values(HWEx.MOVES).map(m => m[1]).filter(r => r != null).sort((a, b) => a - b));
+  assert.deepEqual(rows, Array.from({ length: 22 }, (_, i) => i), 'one sprite row per drawn move (22)');
+  const undrawn = await page.evaluate(() => Object.keys(HWEx.MOVES).filter(k => HWEx.MOVES[k][1] == null).sort());
+  assert.deepEqual(undrawn, ['chin', 'decline', 'inclinepu', 'pike', 'pullup', 'pushup', 'situp'], 'the moves added after the art was drawn have no sprite row, and say so');
   await page.click('[data-a="xgoal"][data-k="hyp"]'); await page.click('[data-a="xnext"]');
-  assert.equal(await page.locator('[data-a="xtut"][disabled]').count(), 1);
+  assert.equal(await page.locator('[data-a="xstart"][disabled]').count(), 1, 'no move chosen yet');
+  assert.equal(await page.locator('#xlearn').count(), 0, 'no tutorial until a move is chosen');
   await tapMuscle(page, 'lats');
   assert.equal(await page.evaluate(() => S.xs.mus), 'lats');
   assert.deepEqual(await lit(page), [3, 3], 'lats lit (one mask per view)');
@@ -96,7 +99,7 @@ test('muscle map: every muscle has pixels, a mask and exercises; a tap lights it
   assert.deepEqual(await lit(page), [9, 9, 10, 10]);
   assert.match(await page.textContent('.xsel'), /Hammer curl/);
   await page.click('.xchips [data-a="xmus"][data-m="triceps"]');
-  assert.deepEqual(await page.$$eval('.xex', b => b.map(x => x.textContent.trim())), ['Triceps pushdown', 'Overhead dumbbell extension', 'Skullcrusher']);
+  assert.deepEqual(await page.$$eval('.xex', b => b.map(x => x.textContent.trim())), ['Triceps pushdown', 'Overhead dumbbell extension', 'Skullcrusher', 'Dips', 'Push-up']);
   await page.click('[data-a="xex"][data-e="skull"]');
   assert.equal(await page.evaluate(() => S.xs.ex), 'skull');
   // the art the page uses
@@ -112,9 +115,9 @@ test('tutorial: looping sprite, three cues, reps for the goal, stop rule; still 
   for (const reducedMotion of ['no-preference', 'reduce']) {
     const { page, ctx, errors } = await boot({ context: { reducedMotion } });
     await page.click('[data-a="xgoal"][data-k="str"]'); await page.click('[data-a="xnext"]');
-    await page.locator('.xlist summary').click(); await page.click('.xchips [data-a="xmus"][data-m="quads"]'); await page.click('[data-a="xtut"]');
-    assert.equal(await page.locator('.xcue li').count(), 3);
-    assert.match(await page.textContent('.xpan'), /TUTORIAL · SQUAT[\s\S]*2–4 reps × 2 sets to failure[\s\S]*Rest 3 min/);
+    await page.locator('.xlist summary').click(); await page.click('.xchips [data-a="xmus"][data-m="quads"]');
+    assert.equal(await page.locator('.xcue li').count(), 3, 'the tutorial is on the same screen as the muscle');
+    assert.match(await page.textContent('#xlearn'), /SQUAT[\s\S]*2–4 reps × 2 sets to failure[\s\S]*Rest 3 min/);
     assert.match(await page.textContent('.xstop'), /Stop rule: Sets to failure/);
     assert.match(await page.textContent('.xmed'), /MEDIUS/);
     const a = await page.$eval('.xspr', e => ({ n: getComputedStyle(e).animationName, t: getComputedStyle(e).animationTimingFunction, w: e.offsetWidth, h: e.offsetHeight }));
@@ -159,7 +162,7 @@ test('session: sets, rest countdown, finish card with estimates, XP reward and i
   // the Health Score counts training kcal
   assert.equal(await page.evaluate(() => HWScore.burnOf(today())), 120);
   // XP cap: two rewarded sessions a day
-  for (let i = 0; i < 2; i++) { await page.click('[data-a="xagain"]'); await page.click('[data-a="xtut"]'); await page.click('[data-a="xstart"]'); await page.click('[data-a="xset"]'); await page.click('[data-a="xfin"]'); }
+  for (let i = 0; i < 2; i++) { await page.click('[data-a="xagain"]'); await page.click('[data-a="xstart"]'); await page.click('[data-a="xset"]'); await page.click('[data-a="xfin"]'); }
   const s2 = await state(page);
   assert.equal(ex(s2).length, 3, 'every session is saved');
   assert.equal(s2.xp - xp0, 50, 'XP stops after two sessions');
@@ -198,7 +201,7 @@ test('estimates: weight from the confirmed profile only; doctor-note gate replac
   assert.equal(r.zero.need, 'duration');
   assert.match(await page.textContent('.xgo[data-k="hyp"]'), /2–3 SHORT OF FAILURE/);
   await page.click('[data-a="xgoal"][data-k="hyp"]'); await page.click('[data-a="xnext"]');
-  await page.locator('.xlist summary').click(); await page.click('.xchips [data-a="xmus"][data-m="calves"]'); await page.click('[data-a="xtut"]');
+  await page.locator('.xlist summary').click(); await page.click('.xchips [data-a="xmus"][data-m="calves"]');
   assert.match(await page.textContent('.xstop'), /2–3 reps before failure[\s\S]*doctor/);
   assert.doesNotMatch(await page.textContent('.xreps'), /to failure/);
   const plans = await page.evaluate(() => ['cal', 'end', 'cus'].map(k => HWEx.plan(k)).map(p => [p.met, p.code]));
@@ -219,10 +222,110 @@ test('phone width: every step fits 360 px, 44 px tap targets, no emoji drawn as 
   await page.tap('[data-a="xgoal"][data-k="end"]'); await page.tap('[data-a="xnext"]'); await check('map');
   await tapMuscle(page, 'quads');
   assert.equal(await page.evaluate(() => S.xs.mus), 'quads');
-  await page.tap('[data-a="xtut"]'); await check('tutorial');
+  await check('muscle and move');
   await page.tap('[data-a="xstart"]'); await check('session');
   await page.tap('[data-a="xset"]'); await check('rest');
   await page.tap('[data-a="xfin"]'); await check('finish');
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+// ---- bodyweight Calisthenics, the added moves, the merged Muscle & move screen, Running Road ----
+const chosen = page => page.evaluate(() => ({ mus: S.xs.mus, ex: S.xs.ex }));
+
+test('Calisthenics offers bodyweight moves only: pull-up, chin-up, push-ups, pike push-up, squat, dips, sit-up', async () => {
+  const { page, ctx, errors } = await boot();
+  const bw = await page.evaluate(() => Object.keys(HWEx.MOVES).filter(k => HWEx.MOVES[k][3] === 1).sort());
+  assert.deepEqual(bw, ['back_raise', 'calf', 'chin', 'decline', 'dips', 'inclinepu', 'pike', 'pullup', 'pushup', 'situp', 'squat']);
+  // the moves each muscle shows under Calisthenics (names), and the ones that need weights are never offered
+  await page.click('[data-a="xgoal"][data-k="cal"]'); await page.click('[data-a="xnext"]');
+  await page.locator('.xlist summary').click(); // the muscle list stays open across screens
+  const names = async m => { await page.click(`.xchips [data-a="xmus"][data-m="${m}"]`); return page.$$eval('.xex', b => b.map(x => x.textContent.trim())); };
+  assert.deepEqual(await names('lats'), ['Pull-up', 'Chin-up']);
+  assert.deepEqual(await names('biceps'), ['Chin-up'], 'curls need dumbbells: only the chin-up is offered');
+  assert.deepEqual(await names('frontdelt'), ['Pike push-up'], 'the shoulder press needs dumbbells');
+  assert.deepEqual(await names('midchest'), ['Push-up']);
+  assert.deepEqual(await names('upperchest'), ['Decline push-up']);
+  assert.deepEqual(await names('lowerchest'), ['Dips', 'Incline push-up']);
+  assert.deepEqual(await names('triceps'), ['Dips', 'Push-up']);
+  assert.deepEqual(await names('quads'), ['Squat']);
+  assert.deepEqual(await names('abs'), ['Sit-up']);
+  assert.deepEqual(await names('traps'), [], 'a shrug needs weights: nothing offered');
+  assert.match(await page.textContent('.xsel'), /No bodyweight move for Traps/);
+  assert.equal(await page.locator('[data-a="xstart"][disabled]').count(), 1, 'nothing to start without a move');
+  assert.equal(await page.evaluate(() => (S.xs.ex)), null);
+  // choosing a weighted move by force does nothing; a goal change drops a move that needs weights
+  await page.evaluate(() => acts.xex({ e: 'curl' }));
+  assert.equal(await page.evaluate(() => S.xs.ex), null, 'a weighted move cannot be chosen under Calisthenics');
+  await page.click('[data-a="xback"][data-to="goal"]'); await page.click('[data-a="xgoal"][data-k="hyp"]'); await page.click('[data-a="xnext"]');
+  await page.click('.xchips [data-a="xmus"][data-m="biceps"]');
+  assert.deepEqual(await page.$$eval('.xex', b => b.map(x => x.textContent.trim())), ['Bicep curl', 'Chin-up'], 'other goals still offer the weighted moves');
+  await page.click('[data-a="xex"][data-e="curl"]');
+  await page.click('[data-a="xback"][data-to="goal"]'); await page.click('[data-a="xgoal"][data-k="cal"]'); await page.click('[data-a="xnext"]');
+  assert.equal(await page.evaluate(() => S.xs.ex), 'chin', 'the curl was dropped for the chin-up');
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test('added moves: cues, no invented animation, a bodyweight session logs with the Calisthenics MET (3.8)', async () => {
+  const { page, ctx, errors } = await boot();
+  await page.click('[data-a="xgoal"][data-k="cal"]'); await page.click('[data-a="xnext"]');
+  await page.locator('.xlist summary').click(); await page.click('.xchips [data-a="xmus"][data-m="frontdelt"]');
+  assert.deepEqual(await chosen(page), { mus: 'frontdelt', ex: 'pike' });
+  assert.match(await page.textContent('#xlearn'), /PIKE PUSH-UP[\s\S]*upside-down V[\s\S]*top of your head[\s\S]*Stop rule/);
+  assert.equal(await page.locator('#xlearn .xcue li').count(), 3);
+  assert.equal(await page.locator('#xlearn .xspr.xnone').count(), 1, 'no sprite row yet: an icon and a plain note');
+  assert.match(await page.textContent('#xlearn .xspr'), /Animation not drawn yet/);
+  assert.equal(await page.$eval('#xlearn .xspr', e => getComputedStyle(e).animationName), 'none');
+  assert.equal(await page.locator('.xmed').count(), 1);
+  // a drawn move still shows its looping sprite
+  await page.click('.xchips [data-a="xmus"][data-m="quads"]');
+  assert.equal(await page.locator('#xlearn .xspr:not(.xnone)').count(), 1);
+  await page.click('.xchips [data-a="xmus"][data-m="abs"]');
+  assert.match(await page.textContent('.xsel'), /Abdominals are not drawn on the knight yet/);
+  assert.deepEqual(await lit(page), [], 'no mask: nothing lights on the map');
+  assert.match(await page.textContent('#xlearn'), /SIT-UP[\s\S]*knees bent/);
+  // a session with it
+  await page.click('[data-a="xstart"]');
+  for (let i = 0; i < 3; i++) { await page.click('[data-a="xset"]'); if (await page.locator('[data-a="xskip"]').count()) await page.click('[data-a="xskip"]'); } // 3 sets, rest skipped
+  await page.evaluate(() => { S.xs.t0 -= 10 * 60000; });
+  await page.locator('[data-a="xfin"]').first().click();
+  const e = ex(await state(page)).pop();
+  assert.deepEqual([e.m.ex, e.m.name, e.m.goal, e.m.met, e.m.code], ['situp', 'Sit-up', 'cal', 3.8, '02022']);
+  assert.equal(e.m.kcal.v, Math.round(3.8 * 60 * e.v / 60), 'kcal = 3.8 MET × 60 kg × hours');
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test('Muscle and Learn are one screen: four steps, the tutorial under the move list, the start button below it', async () => {
+  const { page, ctx, errors } = await boot();
+  assert.deepEqual(await page.$$eval('.xrun li span', s => s.map(x => x.textContent)), ['Goal', 'Muscle & move', 'Train', 'Reward']);
+  await page.click('[data-a="xgoal"][data-k="str"]'); await page.click('[data-a="xnext"]');
+  assert.equal(await page.getAttribute('.xrun', 'aria-label'), 'Step 2 of 4');
+  assert.equal(await page.locator('[data-a="xtut"]').count(), 0, 'no separate Learn step');
+  await page.locator('.xlist summary').click(); await page.click('.xchips [data-a="xmus"][data-m="quads"]');
+  const y = await page.evaluate(() => ['.xmap', '.xsel', '#xlearn', '[data-a="xstart"]'].map(q => document.querySelector(q).getBoundingClientRect().top));
+  assert.ok(y[0] <= y[1] + 1 && y[1] < y[2] && y[2] < y[3], 'map and move list, then the tutorial, then START: ' + y);
+  assert.equal(await page.locator('[data-a="xstart"][disabled]').count(), 0);
+  await page.click('[data-a="xstart"]');
+  assert.equal(await page.evaluate(() => S.xs.step), 'run');
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test('Running Road is on the Training Hall: the goal and muscle screens, not during a session; Running no longer on Stairs', async () => {
+  const { page, ctx, errors } = await boot();
+  assert.equal(await page.locator('#xrun-h').count(), 1);
+  assert.match(await page.textContent('#xrun-s'), /RUNNING ROAD[\s\S]*DISTANCE[\s\S]*TIME[\s\S]*AVG PACE/);
+  assert.equal(await page.locator('#v6run [data-a="runstart"]').count(), 1);
+  assert.equal(await page.locator('#xrun-s').evaluate(e => !!e.closest('.xwrap')), false, 'outside the training steps');
+  assert.match(await page.textContent('.dis'), /Running: General exercise tracker/);
+  await page.click('[data-a="xgoal"][data-k="hyp"]'); await page.click('[data-a="xnext"]');
+  assert.equal(await page.locator('#xrun-h').count(), 1, 'also under the muscle and move screen');
+  await page.locator('.xlist summary').click(); await page.click('.xchips [data-a="xmus"][data-m="biceps"]'); await page.click('[data-a="xstart"]');
+  assert.equal(await page.locator('#xrun-h').count(), 0, 'not while training');
+  await go(page, 'stair');
+  assert.equal(await page.locator('#v6run, #st-run, #v6rb').count(), 0);
   assert.deepEqual(errors, []);
   await ctx.close();
 });

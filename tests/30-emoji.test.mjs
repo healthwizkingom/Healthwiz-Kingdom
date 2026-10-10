@@ -87,7 +87,7 @@ test('emoji added later are converted as they appear: toasts, dialogs, updated t
   await page.click('[data-a="kreg"]');
   assert.deepEqual(await visible(page), [], 'region dialog');
   await page.keyboard.press('Escape');
-  for (const g of ['water', 'food', 'trail', 'grove', 'night']) {
+  for (const g of ['grove']) {
     await page.evaluate(g => go(HWGames.games.find(x => x.id === g).page), g);
     await page.click(`[data-a="game"][data-g="${g}"]`);
     await page.waitForSelector('.v6g[role="dialog"]');

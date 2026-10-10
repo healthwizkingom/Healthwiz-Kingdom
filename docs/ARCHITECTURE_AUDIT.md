@@ -1346,3 +1346,25 @@ which together caused these at narrow widths. No saved-data change.
 - **7-day chart labels**: two letters (Su Mo Tu …) with the full name as the tooltip; three letters at 12 px did not fit a
   two-column chart card.
 - **Water Quest header**: no Kingdom-state tag (`notag` in `HWProvisions`). Nutrition keeps its tag.
+
+## Stairs, heart rate, Training Hall and games (October 2026 change)
+
+- **Heartstone Hall keeps its route** (`pulse` opens the heart-rate card on the Stairs page) and gains **LOG BEFORE / LOG AFTER**.
+  A log is a `pulse` entry `{v: BPM, m: {when: 'before'|'after', st, src}}`. `hrv` / `hrS` / `hrL` (`js/hw-02-core.js`) count logs
+  and workouts together; sealing a workout sets `m.sess` on the logs it used, so a reading is never counted twice. `hrLast()`
+  (`js/v6-hrlog.js`) feeds the hub tile and the kingdom panel. Old `pulse` entries (no `when`) stay in the save, unread and unlisted.
+  `hw-02-core.js` is at its 64 KB cap (`tests/00-fidelity.test.mjs`), which is why `hrLast` lives in its own file.
+- **Stairs page**: two halves side by side (casual stairs, workout & heart rate) switched like Nutrition and Water. GPS check-in
+  comes first in the casual half and the Health Hall no longer lifts the hand-log card above it. `go('stair')` opens the casual half.
+- **Energy estimates** (the MET + heart-rate estimate and our project's VO₂ / kJ method) show only inside the "?" panel, on the
+  workout page and on each session card. They are still estimates, never saved as measurements and never scored.
+- **Running** moved from the Stairs page to the Training Hall (`HWRun.section()` and the Runners' Board under the goal and
+  muscle screens). The `run` route opens it; its Health Hall tile text is on the Exercise tile.
+- **Training Hall**: Muscle and Learn are one screen; Calisthenics offers bodyweight moves only; seven moves and Abdominals were
+  added without art (see `docs/EXERCISE_BLENDER_HANDOFF.md`).
+- **Removed mini-games**: Market Kitchen, Well Garden, Night Watch, Adventure Trail (scripts, launch cards, tests, precache). Saved
+  game data (`st.mg`) is untouched; earlier Well Garden discoveries still decorate the well scene. Calming Grove remains.
+- **Sign-in by code**: the address is lower-cased when the code is requested and checked, codes tolerate spaces and dashes, and the
+  messages say that opening the email link uses the code up. The email template must contain `{{ .Token }}` (README, "Sign-in:
+  dashboard steps").
+
