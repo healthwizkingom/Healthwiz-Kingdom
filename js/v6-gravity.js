@@ -173,7 +173,7 @@ function saved(){const s=G.saved;
   return '<p role="status"><b>Saved.</b> '+esc(s.loc)+' · '+s.n+' steps · '+s.min+' min added to your stair log'+(s.W!=null?' · W ≈ '+f1(s.W/1000,2)+' kJ':'')+'.</p><button type="button" class="g" data-a="gvnew">NEW CLIMB</button>'}
 function body(){return G.ph==='idle'?idle():G.ph==='running'||G.ph==='paused'?running():G.ph==='review'?review():saved()}
 function card(){
-  return '<div class="card stcard gv" id="gvtrial"><h3>'+ico('wizard')+' STAIR SENSE · THE GRAVITY TRIAL '+help()+'</h3><div class="gvrune">'+runes()+'<span class="gvtag">A WIZARD’S FIELD INSTRUMENT · ESTIMATES ONLY</span></div>'+'<div id="gv-body">'+body()+'</div></div>'}
+  return '<div class="card stcard gv" id="gvtrial"><h3>'+ico('wizard')+' STAIR SENSE · THE GRAVITY TRIAL '+help()+'</h3><div class="gvrune">'+runes()+'<span class="gvtag">A WIZARD’S FIELD INSTRUMENT · ESTIMATES ONLY</span></div>'+'<div id="gv-body">'+body()+'</div>'+(typeof HWAlchemy!=='undefined'?'<button type="button" class="g sm gvalc" data-a="alopen">COMPARE WITH FOOD ENERGY (OPTIONAL)</button>':'')+'</div>'}
 function repaint(focus){const b=$i('gv-body');if(!b)return;b.innerHTML=body();live();if(focus){const e=$i(focus);if(e)e.focus({preventScroll:true})}}
 
 /* ---------- actions ---------- */
@@ -248,7 +248,7 @@ HWUI.css('gravity',`
 .gvm{margin:6px 0 10px;padding:6px 8px;border:3px solid var(--vio);background:var(--pn)}.gvml{font:8px var(--fh);color:var(--vio);display:block;margin-bottom:4px}
 .gvm .bar i{transition:width .3s steps(4)}
 .gvbtns{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.gvbtns button{flex:1 1 130px;min-height:48px}
-.gvx{width:100%;min-height:44px}.gvpaused{margin:4px 0;padding:6px;border:3px solid var(--blue);background:var(--p2);font-size:13px}
+.gvx,.gvalc{width:100%;min-height:44px}.gvalc{margin-top:10px}.gvpaused{margin:4px 0;padding:6px;border:3px solid var(--blue);background:var(--p2);font-size:13px}
 .gv h4{margin:12px 0 4px;font:10px/1.6 var(--fh)}
 .gvres{margin-top:12px;padding:8px;border:3px solid var(--vio);background:var(--pn)}.gvres h4{margin-top:0;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .gvt{min-width:0;width:100%}.gvt th{font:700 16px var(--fb);text-align:center;width:2ch}.gvt td{overflow-wrap:anywhere}.gvt td:nth-child(3){white-space:nowrap}
