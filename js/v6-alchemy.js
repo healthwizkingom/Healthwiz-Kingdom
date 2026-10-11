@@ -129,7 +129,7 @@ function lesson(){
 function help(){return HWHelp.btn('alhelp','About the Energy Workshop','<p><b>EXPLORING ONLY.</b> Nothing you choose here is saved, logged or changed. Your food and exercise records stay as they are.</p><p>This is a lesson about energy, not a plan. Food is not something to earn or make up for, and there is no number of stairs that “cancels” a meal. It is optional: you can ignore it.</p><p>Every value is an estimate: menu energy is an estimate per standard serving, the step height comes from a measurement of that staircase (or yours), and the body-energy range rests on an assumed muscle efficiency.</p><p>It is not medical or dietary advice. If food, eating or exercise worry you, talk to a parent, teacher, doctor or dietitian.</p>',{label:'About the Energy Workshop'})}
 function page(){
   return '<h2>'+ico('scroll')+' THE ALCHEMIST’S ENERGY WORKSHOP</h2>'
-    +'<div class="card alhd"><div class="alsimr"><p class="alsim" role="note">EXPLORING ONLY — NOTHING HERE IS SAVED OR CHANGES YOUR LOGS.</p>'+help()+'</div><p>A calm look at three kinds of energy: the energy in a food, the work of lifting your body up some stairs, and the energy your body uses to do it. Pick a food and a climb to compare their sizes. This is a lesson in physics and units. It is optional, and it is not a goal or a plan.</p></div>'
+    +'<div class="card alhd"><div class="alsimr"><p class="alsim pxtag" role="note">EXPLORING ONLY — NOTHING HERE IS SAVED OR CHANGES YOUR LOGS.</p>'+help()+'</div><p>A calm look at three kinds of energy: the energy in a food, the work of lifting your body up some stairs, and the energy your body uses to do it. Pick a food and a climb to compare their sizes. This is a lesson in physics and units. It is optional, and it is not a goal or a plan.</p></div>'
     +'<div class="alg2">'+foodCard()+climbCard()+'</div>'
     +'<div class="card" id="al-out"><h3>'+ico('energy')+' THE THREE ENERGIES</h3><div id="al-cr">'+crystals()+'</div><div id="al-sc">'+scale()+'</div>'
     +'<small class="mut">Food energy, work against gravity and the body’s energy use are different things. The body-energy figures are estimates and say nothing certain about you.</small></div>'
@@ -167,21 +167,22 @@ const door=()=>'<div class="card aldoor" id="al-door"><h3>'+ico('scroll')+' THE 
 {const p=pages.food;pages.food=function(){return p.apply(this,arguments)+door()}}
 
 HWUI.css('alchemy',`
-.tr-alchemy>h2{font-size:13px;line-height:1.7}.alg2>*{min-width:0}.alc select,.alc input{max-width:100%}.alhd{background:linear-gradient(var(--pn),var(--p2))}.alsimr{display:flex;align-items:flex-start;gap:8px;margin:0 0 8px}.alsimr .hwh{flex:0 0 auto;margin:0}.alsim{flex:1 1 auto;min-width:0;margin:0;padding:6px 8px;border:3px solid var(--vio);background:var(--pn);font:9px/1.7 var(--fh);overflow-wrap:anywhere}
+.alsimr{display:flex;align-items:flex-start;gap:8px;margin:0 0 8px}.alsimr .hwh{flex:0 0 auto;margin:0}.alsim{flex:1 1 auto;min-width:0;margin:0;line-height:1.7;white-space:normal;overflow-wrap:anywhere}
+.alhd p.mut,.alhd p:not(.alsim){font-size:13px}
+.tr-alchemy>h2{font-size:13px;line-height:1.7}.alg2>*{min-width:0}.alc select,.alc input{max-width:100%}
 .alg2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}@media(max-width:700px){.alg2{grid-template-columns:minmax(0,1fr)}}
 .alc{margin-bottom:0}.alc label{display:block;margin:10px 0 2px;font-size:14px}.alc select,.alc input:not([type=checkbox]){width:100%;min-height:44px;box-sizing:border-box}
 .alseg{gap:6px;margin:8px 0}.alseg .chip,.alc .pm .chip{min-height:44px}
 .alres{margin:10px 0 0;padding:8px;border:3px solid var(--ln);background:var(--p2)}.alres p{margin:4px 0}.alnum{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.alnum b{font:700 16px var(--fb)}
-.alsaved{margin:8px 0 0;padding:6px 8px;border:2px dashed var(--vio);font-size:13px}
+.alsaved{margin:8px 0 0;padding:6px 8px;border:2px dashed var(--ln);font-size:13px}
 .alcrs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:8px 0}@media(max-width:700px){.alcrs{grid-template-columns:minmax(0,1fr)}}
-.alcr{display:flex;gap:10px;padding:10px;border:3px solid var(--ln);background:var(--p2);min-width:0}.alcr>div{min-width:0}.alcr>div>b{display:block;font:9px/1.6 var(--fh)}.alwhat{display:block;font-size:12px;color:var(--mut);margin:2px 0 6px}
-.alg{flex:0 0 26px;height:34px;margin-top:2px;background:var(--c);clip-path:polygon(50% 0,100% 28%,100% 72%,50% 100%,0 72%,0 28%);box-shadow:inset -5px -5px 0 rgba(0,0,0,.2),inset 5px 5px 0 rgba(255,255,255,.25);filter:drop-shadow(0 0 4px var(--c))}
+.alcr{display:flex;gap:10px;padding:10px;border:3px solid var(--ln);background:var(--p2);min-width:0}.alcr>div{min-width:0}.alcr>div>b{display:block;font:8px/1.6 var(--fh)}.alwhat{display:block;font-size:12px;color:var(--mut);margin:2px 0 6px}
+.alg{flex:0 0 22px;height:28px;margin-top:2px;background:var(--c);clip-path:polygon(50% 0,100% 28%,100% 72%,50% 100%,0 72%,0 28%);box-shadow:inset -4px -4px 0 rgba(0,0,0,.25),inset 4px 4px 0 rgba(255,255,255,.3)}
 .alcr.f{--c:var(--gold)}.alcr.w{--c:var(--blue)}.alcr.m{--c:var(--vio)}.alas{display:block;font-size:12px;margin-top:4px}
-.alscale{margin-top:8px;padding:8px;border:3px solid var(--vio);background:var(--pn);box-shadow:0 0 6px rgba(135,103,200,.45)}
+.alscale{margin-top:8px;padding:8px;border:3px solid var(--ln);background:var(--pn)}
 .alsr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;margin:8px 0}.alsl{font-size:13px;grid-column:1/-1}.alsb{height:16px;border:3px solid var(--ln);background:var(--p2);display:block;min-width:0}.alsb i{display:block;height:100%;background:var(--c)}
 .alsr.f{--c:var(--gold)}.alsr.w{--c:var(--blue)}.alsr.m{--c:var(--vio)}.alsv{font:700 13px var(--fb);white-space:nowrap}
 .alshow{width:100%;min-height:44px}.alscale .sm{display:block;min-height:44px;margin-top:6px}
 .alli{margin:6px 0 8px 18px}.alli li{margin:6px 0;font-size:14px}.aldoor{border-style:dashed}.aldoor button{width:100%;min-height:44px}
-html.hw-rm .alg{filter:none}@media(prefers-reduced-motion:reduce){.alg{filter:none}}
 `);
 return{KJ,food,climb,Z:()=>Z}})();

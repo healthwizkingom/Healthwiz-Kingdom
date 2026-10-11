@@ -90,8 +90,6 @@ function detach(){if(listening){removeEventListener('devicemotion',onMotion);lis
 function ticker(on){clearInterval(tick);tick=0;if(on)tick=setInterval(live,500)}
 
 /* ---------- pieces ---------- */
-const RUNES=['M1 0V8M1 2L5 4L1 6','M1 0V8M1 4H5M5 0V8','M0 8L3 0L6 8M1 5H5','M0 0L6 4L0 8M6 0V8'];
-const runes=()=>'<span class="gvrs" aria-hidden="true">'+RUNES.map(d=>'<svg viewBox="-1 -1 8 10" width="12" height="15" shape-rendering="crispEdges" focusable="false"><path d="'+d+'" fill="none" stroke="currentColor" stroke-width="1"/></svg>').join('')+'</span>';
 function help(){return HWHelp.btn('gvhelp','Stair Sense: how it works and what it cannot tell you',
   '<p><b>These are estimates.</b> Your phone’s motion sensor feels the phone shake as you walk. A program counts the peaks and guesses steps and cadence. A phone does not measure work or power.</p>'
   +'<p>Work and power come from a formula, not from the sensor: <b>W = m × g × h</b> and <b>P = W ÷ t</b>, using your body mass, the height of the steps and the time. If the step height or your mass is missing, the result is marked unavailable instead of guessed.</p>'
@@ -121,11 +119,11 @@ function live(){
 const stat=(id,v,u,l)=>'<div class="ststat gvst"><span class="stsv"><b id="'+id+'">'+v+'</b> <small>'+u+'</small></span><span class="stsl">'+l+'</span></div>';
 function idle(){
   const ci=checkin(),q=stairOf(G.sid);
-  return '<p>Carry your phone while you climb. Stair Sense times the climb, estimates the steps, and at the end works out the height, the work against gravity and the average power. You check every number before anything is saved.</p>'
+  return '<p class="mut">Carry your phone while you climb. Stair Sense times the climb, estimates the steps, and at the end works out the height, the work against gravity and the average power. You check every number before anything is saved.</p>'
     +stairSelect()+(ci&&ci.id!==G.sid?'<button type="button" class="g sm gvci" data-a="gvci" data-id="'+ci.id+'">USE TODAY’S CHECK-IN: '+esc(ci.name)+'</button>':'')
     +(q?'<p class="mut gvq">'+esc(q.name)+' · '+esc(q.floor)+' · step height '+(verifiedRise(q.id)?'<b>'+f1(verifiedRise(q.id)*100,1)+' cm</b>, measured (Group 14 study)':'<b>not measured</b>: you can type it at the end')+'</p>':'')
     +(gated()?'<label class="gvack"><input type="checkbox" id="gv-ack" data-in="gv" data-f="ack"'+(G.ack?' checked':'')+'> I have checked with my doctor that I can use stairs.</label><small class="mut">You told HealthWiz about something that needs a doctor’s OK first.</small>':'')
-    +'<div class="gvph"><b>Phone placement:</b> in a hand or a trouser pocket, screen toward you. Do not swing it or type on it.</div>'
+    +'<small class="mut gvph"><b>Phone placement:</b> in a hand or a trouser pocket, screen toward you. Do not swing it or type on it.</small>'
     +'<button type="button" class="gvgo" data-a="gvstart"'+(locked()||G.busy?' disabled':'')+'>START CLIMB</button>'
     +'<p class="warn gvsafe" role="note">Use the handrail and climb at a comfortable pace. Stop if you feel dizzy, faint or have chest pain. This is not a race.</p>'}
 function running(){
@@ -173,7 +171,7 @@ function saved(){const s=G.saved;
   return '<p role="status"><b>Saved.</b> '+esc(s.loc)+' · '+s.n+' steps · '+s.min+' min added to your stair log'+(s.W!=null?' · W ≈ '+f1(s.W/1000,2)+' kJ':'')+'.</p><button type="button" class="g" data-a="gvnew">NEW CLIMB</button>'}
 function body(){return G.ph==='idle'?idle():G.ph==='running'||G.ph==='paused'?running():G.ph==='review'?review():saved()}
 function card(){
-  return '<div class="card stcard gv" id="gvtrial"><h3>'+ico('wizard')+' STAIR SENSE · THE GRAVITY TRIAL '+help()+'</h3><div class="gvrune">'+runes()+'<span class="gvtag">A WIZARD’S FIELD INSTRUMENT · ESTIMATES ONLY</span></div>'+'<div id="gv-body">'+body()+'</div>'+(typeof HWAlchemy!=='undefined'?'<button type="button" class="g sm gvalc" data-a="alopen">COMPARE WITH FOOD ENERGY (OPTIONAL)</button>':'')+'</div>'}
+  return '<div class="card stcard gv" id="gvtrial"><h3>'+ico('wizard')+' STAIR SENSE · THE GRAVITY TRIAL '+help()+'</h3><span class="pxtag gvtag">ESTIMATES ONLY</span>'+'<div id="gv-body">'+body()+'</div>'+(typeof HWAlchemy!=='undefined'?'<button type="button" class="g sm gvalc" data-a="alopen">COMPARE WITH FOOD ENERGY (OPTIONAL)</button>':'')+'</div>'}
 function repaint(focus){const b=$i('gv-body');if(!b)return;b.innerHTML=body();live();if(focus){const e=$i(focus);if(e)e.focus({preventScroll:true})}}
 
 /* ---------- actions ---------- */
@@ -235,24 +233,22 @@ HWEvents.on('data:reset',()=>{stop();G=fresh()});HWEvents.on('data:imported',()=
   const c=card();return j<0?h+c:h.slice(0,j)+c+h.slice(j)}} // below the page's own trackers, above the Session Chronicle
 
 HWUI.css('gravity',`
-.gv{position:relative;background:linear-gradient(var(--pn) 70%,var(--p2))}.gv h3{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px}
-.gvrune{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 8px;color:var(--vio)}.gvrs{display:inline-flex;gap:6px;opacity:.8}
-.gvtag{font:8px/1.6 var(--fh);color:var(--mut);overflow-wrap:anywhere}
+.gv h3{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px;margin-bottom:4px}.gvtag{display:inline-block;margin:0 0 6px}
 .gv label{display:block;margin:10px 0 2px;font-size:14px}.gv select,.gv input[type=number]{width:100%;min-height:44px;box-sizing:border-box}
-.gvq{margin:6px 0}.gvph{margin:10px 0;padding:6px 8px;border:2px dashed var(--vio);font-size:13px}
+.gvq{margin:6px 0}.gvph{display:block;margin:10px 0}
 .gvack{display:flex!important;gap:8px;align-items:flex-start;min-height:44px}.gvack input{width:24px;height:24px;flex:0 0 auto}
-.gvgo,.gvfin{width:100%;min-height:52px;font-size:12px;background:var(--gold);color:#2b2418;letter-spacing:.06em}.gvgo:disabled{opacity:.5}
+.gvgo,.gvfin{width:100%;min-height:52px}.gvgo:disabled{opacity:.5}
 .gvsafe{margin:10px 0 0;font-size:13px}
-.gvhud{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:8px 0}.gvst{min-width:0;text-align:center;padding:8px 4px;border:3px solid var(--ln);background:var(--p2)}.gvst b{font:var(--px-f2,16px)/1.3 var(--fh)}.gvst small{display:block;font-size:11px}
-.gvm{margin:6px 0 10px;padding:6px 8px;border:3px solid var(--vio);background:var(--pn)}.gvml{font:8px var(--fh);color:var(--vio);display:block;margin-bottom:4px}
+.gvhud{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:8px 0}.gvst{min-width:0;text-align:center;padding:8px 4px}.gvst b{font:var(--px-f2,16px)/1.3 var(--fh)}.gvst small{display:block;font-size:11px}
+.gvm{margin:6px 0 10px}.gvml{font:8px var(--fh);color:var(--mut);display:block;margin-bottom:4px}
 .gvm .bar i{transition:width .3s steps(4)}
 .gvbtns{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.gvbtns button{flex:1 1 130px;min-height:48px}
 .gvx,.gvalc{width:100%;min-height:44px}.gvalc{margin-top:10px}.gvpaused{margin:4px 0;padding:6px;border:3px solid var(--blue);background:var(--p2);font-size:13px}
-.gv h4{margin:12px 0 4px;font:10px/1.6 var(--fh)}
-.gvres{margin-top:12px;padding:8px;border:3px solid var(--vio);background:var(--pn)}.gvres h4{margin-top:0;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.gv h4{margin:12px 0 4px;font:9px/1.6 var(--fh)}
+.gvres{margin-top:12px;padding:8px;border:3px solid var(--ln);background:var(--p2)}.gvres h4{margin-top:0;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .gvt{min-width:0;width:100%}.gvt th{font:700 16px var(--fb);text-align:center;width:2ch}.gvt td{overflow-wrap:anywhere}.gvt td:nth-child(3){white-space:nowrap}
 .gvna{color:var(--mut);font-weight:400;font-style:italic}
-.gvvar summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-size:13px;color:var(--vio)}.gvvar dl{margin:4px 0;display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:13px}.gvvar dt{font-weight:700}.gvvar dd{margin:0}
+.gvvar summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-size:13px}.gvvar dl{margin:4px 0;display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:13px}.gvvar dt{font-weight:700}.gvvar dd{margin:0}
 @media(max-width:380px){.gvhud{gap:4px}.gvst b{font-size:14px}.gvt td:nth-child(2){font-size:12px}.gvt td:nth-child(4){font-size:11px}}
 `);
 return{counter,physics,verifiedRise,massInfo,G0,get state(){return G.ph},get sensor(){return G.sensor},get listening(){return listening},get gid(){return G.gid}}})();

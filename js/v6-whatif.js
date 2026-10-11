@@ -45,10 +45,6 @@ const pts=(S,k)=>S.I[k]&&S.w?SC.WT[k]*S.I[k].sub/100/S.w*100:null;
 function init(C){real=C;sim={};for(const k in SC.WT){if(k!=='macro'&&C.I[k])sim[k]=C.I[k].val}base=JSON.stringify(realVals(C))}
 
 /* ---------- pieces ---------- */
-// small original rune marks, drawn on a 7 x 9 grid with crisp edges (decoration only)
-const RUNES=['M1 0V8M1 2L5 4L1 6','M1 0V8M1 4H5M5 0V8','M0 8L3 0L6 8M1 5H5','M1 0V8M1 1L5 3L1 5M1 4L5 8','M0 0L6 4L0 8M6 0V8'];
-const rune=i=>'<svg class="wifr" viewBox="-1 -1 8 10" width="14" height="18" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><path d="'+RUNES[i%RUNES.length]+'" fill="none" stroke="currentColor" stroke-width="1"/></svg>';
-const runes=()=>'<span class="wifrs" aria-hidden="true">'+[0,1,2,3,4].map(rune).join('')+'</span>';
 const LABEL='SIMULATION — YOUR REAL HEALTH LOG IS UNCHANGED.';
 function help(){return HWHelp.btn('whatif','What-if simulator','<p><b>'+LABEL+'</b></p><p>The sliders only change numbers inside this panel. Nothing is saved, no log entry is added, and no achievement, XP or leaderboard changes.</p><p>The simulated score uses the same formula and the same weights as your real Health Score. A simulated score only shows how the arithmetic would change. It does not predict that your real health, or your real score, would change by that amount.</p><p>The Health Score is a habit summary, not a medical diagnosis or a validated clinical risk score.</p>',{label:'About the what-if simulator'})}
 function slider(k,C){
@@ -85,10 +81,10 @@ function out(C,S){
     +'<p class="wifnote" id="wif-note">If these numbers changed, the arithmetic of the score would change like this. It does not predict that your real health would change.</p>'}
 function inner(C){
   const S=simulate(C),win=SC.K.win()==='week'?'your 7-day averages':'today’s values';
-  const head='<div class="wifhd">'+runes()+'<h3>'+ico('wizard')+' ARCANE SCORE SIMULATOR '+help()+'</h3>'+runes()+'</div>';
-  if(!open)return head+'<p>Slide the indicators and see how the weighted Health Score would move. Nothing you do here is saved.</p>'
-    +'<button type="button" class="wifopen" data-a="wifopen" aria-expanded="false" aria-controls="wif-body">WHAT IF?</button><p class="wifsimtag" role="note">'+LABEL+'</p>';
-  return head+'<p class="wifsimtag" role="note">'+LABEL+'</p>'
+  const head='<div class="wifhd"><h3>'+ico('wizard')+' ARCANE SCORE SIMULATOR '+help()+'</h3></div>';
+  if(!open)return head+'<p class="mut">Slide the indicators and see how the weighted Health Score would move. Nothing you do here is saved.</p>'
+    +'<button type="button" class="wifopen" data-a="wifopen" aria-expanded="false" aria-controls="wif-body">WHAT IF?</button><p class="wifsimtag pxtag" role="note">'+LABEL+'</p>';
+  return head+'<p class="wifsimtag pxtag" role="note">'+LABEL+'</p>'
     +'<div id="wif-body"><p class="mut">Starting from '+win+'. Move a slider to try a different value.</p>'
     +'<div id="wif-out" aria-live="polite">'+out(C,S)+'</div>'
     +'<div class="wifbtns"><button type="button" class="wifreset" data-a="wifreset">RESET TO MY REAL VALUES</button><button type="button" class="g" data-a="wifclose">CLOSE</button></div>'
@@ -128,33 +124,31 @@ function section(C){
 HWEvents.on('page:viewed',e=>{if(e.view!=='score'&&open){open=false;sim={}}});
 
 HWUI.css('whatif',`
-.wif{background:linear-gradient(var(--pn),var(--pn)),var(--pn);position:relative}
-.wif.open{outline:2px solid var(--vio);outline-offset:-8px}
-.wifhd{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.wifhd h3{margin:0;flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px}
-.wifrs{display:inline-flex;gap:6px;color:var(--vio);opacity:.75}.wifr{display:block}
-.wifopen{width:100%;min-height:48px;margin:6px 0;background:var(--gold);color:#2b2418;font-size:12px;letter-spacing:.06em}
-.wifsimtag{margin:8px 0;padding:6px 8px;border:3px solid var(--vio);background:var(--p2);font:9px/1.7 var(--fh);overflow-wrap:anywhere}
-.wifscore{display:grid;grid-template-columns:1fr auto 1fr;gap:6px 10px;align-items:center;margin:8px 0;padding:10px;border:3px solid var(--ln);background:var(--p2)}
-.wifscore b{display:block;font:var(--px-f3,24px)/1.2 var(--fh)}.wifscore small{display:block;font-size:11px}.wifsim small{color:var(--vio);font-weight:700}
-.wifb{color:var(--ink)}.wifb.pulse{animation:wifp .45s steps(4)}@keyframes wifp{40%{text-shadow:0 0 8px var(--vio),0 0 2px var(--gold);transform:translateY(-2px)}}
+.wifhd h3{margin:0 0 6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px}
+.wifopen{width:100%;min-height:48px;margin:6px 0}
+.wifsimtag{display:block;margin:6px 0 8px;padding:4px 6px;line-height:1.7;overflow-wrap:anywhere;white-space:normal}
+.wifscore{display:grid;grid-template-columns:1fr auto 1fr;gap:6px 10px;align-items:center;margin:8px 0}
+.wifscore>div:not(.wifdiff):not(.wifarrow){background:var(--p2);border:3px solid var(--ln);padding:8px 10px}
+.wifscore b{display:block;font:var(--px-f3,24px)/1.2 var(--fh)}.wifscore small{display:block;font-size:11px}
+.wifb.pulse{animation:wifp .45s steps(4)}@keyframes wifp{40%{transform:translateY(-2px);color:var(--gold)}}
 .wifarrow{font:var(--px-f2,16px) var(--fh);color:var(--mut)}
-.wifdiff{grid-column:1/-1;text-align:center;font:10px/1.7 var(--fh);padding:6px;border:3px solid var(--ln);background:var(--pn)}.wifdiff.up{border-color:var(--gold)}.wifdiff.dn{border-color:var(--blue)}
+.wifdiff{grid-column:1/-1;text-align:center;font:9px/1.7 var(--fh);padding:6px;border:3px solid var(--ln);background:var(--pn)}.wifdiff.up{border-color:var(--grn)}.wifdiff.dn{border-color:var(--blue)}
 .wifnote{font-size:12px;color:var(--mut);margin:4px 0 8px}
-.wifbtns{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px}.wifbtns button{flex:1 1 150px;min-height:44px}.wifreset{background:var(--gold);color:#2b2418}
-.wifg{border:3px solid var(--ln);margin:0 0 12px;padding:8px 10px 10px;min-width:0;background:var(--pn)}.wifg legend{font:9px/1.6 var(--fh);padding:0 6px;color:var(--vio)}.wifw{font:11px var(--fb);color:var(--mut)}
+.wifbtns{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px}.wifbtns button{flex:1 1 150px;min-height:44px}
+.wifg{border:3px solid var(--ln);margin:0 0 12px;padding:8px 10px 10px;min-width:0;background:var(--pn)}.wifg legend{font:8px/1.6 var(--fh);padding:0 6px}.wifw{font:11px var(--fb);color:var(--mut)}
 .wifrow{margin:10px 0;border-top:2px dashed var(--p2);padding-top:8px}.wifrow:first-of-type{border-top:0;padding-top:0}
 .wifh{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:14px}.wifreal{color:var(--mut);font-size:13px;overflow-wrap:anywhere}
 .wifs{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.wifs input[type=range]{flex:1 1 140px;min-width:0;height:44px;margin:0;background:transparent;accent-color:var(--vio);touch-action:pan-y}
+.wifs input[type=range]{flex:1 1 140px;min-width:0;height:44px;margin:0;background:transparent;accent-color:var(--gold);touch-action:pan-y}
 .wifs input[type=range]::-webkit-slider-runnable-track{height:10px;background:var(--p2);border:3px solid var(--ln)}
-.wifs input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:30px;margin-top:-13px;background:var(--vio);border:3px solid var(--ln);box-shadow:2px 2px 0 var(--ln)}
+.wifs input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:30px;margin-top:-13px;background:var(--gold);border:3px solid var(--ln);box-shadow:2px 2px 0 var(--ln)}
 .wifs input[type=range]::-moz-range-track{height:10px;background:var(--p2);border:3px solid var(--ln)}
-.wifs input[type=range]::-moz-range-thumb{width:18px;height:26px;border-radius:0;background:var(--vio);border:3px solid var(--ln)}
-.wifs input[type=range]:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.wifs input[type=range]::-moz-range-thumb{width:18px;height:26px;border-radius:0;background:var(--gold);border:3px solid var(--ln)}
+.wifs input[type=range]:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
 .wifv{flex:0 1 auto;font:700 14px var(--fb);font-variant-numeric:tabular-nums;min-width:8ch;overflow-wrap:anywhere}
 .wifadd{min-height:44px}.wifx{font:9px var(--fh);min-height:32px;padding:2px 8px;margin-left:6px}
-.wifwhy summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-size:13px;color:var(--vio)}.wifwhy p{margin:4px 0;font-size:13px;overflow-wrap:anywhere}
-.wifsec{margin:12px 0}.wifsec h4{margin:0 0 6px;display:flex;align-items:center;gap:6px;font:10px/1.6 var(--fh)}
+.wifwhy summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-size:13px}.wifwhy p{margin:4px 0;font-size:13px;overflow-wrap:anywhere}
+.wifsec{margin:12px 0}.wifsec h4{margin:0 0 6px;display:flex;align-items:center;gap:6px;font:9px/1.6 var(--fh)}
 .wiftbl{min-width:460px}.wiftbl th{white-space:normal}.wiftbl td{overflow-wrap:normal}.wiftbl td:nth-child(2),.wiftbl td:nth-child(3){min-width:92px}
 @media(max-width:420px){.wifscore{grid-template-columns:1fr 1fr}.wifarrow{display:none}}
 @media(prefers-reduced-motion:reduce){.wifb.pulse{animation:none}}
