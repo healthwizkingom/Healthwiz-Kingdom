@@ -43,7 +43,7 @@ const OBQ=[['name',"Hail, traveller! I am Medius, Wizard King of the HealthWiz K
 const needOnb=()=>!st.s.onb&&!st.e.length&&!(st.xp>0);
 function obInit(){const p=st.p,k=!!p.name;S.ob={i:0,d:{name:p.name||'',age:k?p.age:'',sex:k?p.sex:'',h:k?p.h:'',w:k?p.w:'',act:k?p.act:''},err:''}}
 pages.onb=()=>{if(!S.ob)obInit();const o=S.ob,d=o.d,i=o.i,nn=(d.name||'').trim()||'traveller';
-const say=i<6?OBQ[i][1].replace(/\{name\}/g,nn):i===6?nn+', read back thy registry. Is all as it should be?':nn+', thy Personal Quest Plan is forged! Every hall of health now holdeth goals made for thee.';
+const tp=i<6?OBQ[i][1]:i===6?'{name}, read back thy registry. Is all as it should be?':'{name}, thy Personal Quest Plan is forged! Every hall of health now holdeth goals made for thee.',say=tp.replace(/\{name\}/g,nn); // tp: the line before {name} is filled in; its recording is assets/audio/ob-<hash of tp>.mp3
 let body='';
 if(i===0)body='<label>Your name<input id="obi" maxlength="20" autocomplete="given-name" value="'+esc(d.name)+'" placeholder="e.g. Aina"></label>';
 else if(i===1)body='<label>Age (years)<input id="obi" type="number" inputmode="numeric" min="10" max="100" value="'+esc(d.age)+'" placeholder="e.g. 19"></label>';
@@ -55,8 +55,8 @@ else if(i===6){const an=(ACT.find(x=>x[1]===+d.act)||[''])[0];body=[['Name',esc(
 else body=planCard();
 const prog=i<6?'<div class="obpr"><small>STEP '+(i+1)+' OF 6</small>'+bar((i+1)/6*100,'var(--gold)')+'</div>':'';
 const nav=i<6?'<div class="row" style="margin-top:12px">'+(i>0?'<button class="g" data-a="obb">◀ BACK</button>':(st.s.onb?'<button class="g" data-a="obx">CANCEL</button>':''))+(i===2||i===5?'':'<button data-a="obn">NEXT ▶</button>')+'</div>':i===6?'<div class="row" style="margin-top:12px"><button class="g" data-a="obb">◀ BACK</button><button data-a="obf">✨ FORGE MY QUEST PLAN</button></div>':'<button data-a="obgo" style="width:100%;margin-top:4px">ENTER THE KINGDOM ▶</button>';
-return '<div class="obw"><h2>📜 TRAVELLER\'S REGISTRY</h2>'+prog+'<div class="obsay"><img src="'+WIZ+'" alt="Wizard King Medius" class="obz"><div class="tbx"><b>WIZARD KING MEDIUS</b><p id="obt" data-t="'+esc(say)+'"></p></div></div>'+(i<7?'<div class="card">'+body+(o.err?'<p class="warn" role="alert">'+esc(o.err)+'</p>':'')+nav+'</div>':body+nav)+'</div>'};
-function obType(){const p=$('#obt');if(!p)return;const t=p.dataset.t;clearInterval(S.obT);let n=0;p.textContent='';S.obT=setInterval(()=>{n+=2;p.textContent=t.slice(0,n);if(n>=t.length)clearInterval(S.obT)},20);const f=$('#obi');if(f)setTimeout(()=>{try{f.focus({preventScroll:true})}catch(e){}},80)}
+return '<div class="obw"><h2>📜 TRAVELLER\'S REGISTRY</h2>'+prog+'<div class="obsay"><img src="'+WIZ+'" alt="Wizard King Medius" class="obz"><div class="tbx"><b>WIZARD KING MEDIUS</b><p id="obt" data-t="'+esc(say)+'" data-v="'+esc(tp)+'"></p></div></div>'+(i<7?'<div class="card">'+body+(o.err?'<p class="warn" role="alert">'+esc(o.err)+'</p>':'')+nav+'</div>':body+nav)+'</div>'};
+function obType(){const p=$('#obt');if(!p)return;const t=p.dataset.t;clearInterval(S.obT);let n=0;p.textContent='';S.obT=setInterval(()=>{n+=2;p.textContent=t.slice(0,n);if(n>=t.length)clearInterval(S.obT)},20);const f=$('#obi');if(f)setTimeout(()=>{try{f.focus({preventScroll:true})}catch(e){}},80);if(typeof HWMedius!=='undefined')HWMedius.speakRegistry()}
 acts.obn=()=>{const o=S.ob,k=OBQ[o.i][0],el=$('#obi'),v=el?el.value.trim():'';o.err='';
 const chk={name:()=>v.length>=1&&v.length<=20?(o.d.name=v,''):'Please tell Medius your name (1–20 characters).',age:()=>+v>=10&&+v<=100?(o.d.age=Math.round(+v),''):'Enter an age between 10 and 100.',h:()=>+v>=100&&+v<=230?(o.d.h=+(+v).toFixed(1),''):'Enter a height between 100 and 230 cm.',w:()=>+v>=20&&+v<=300?(o.d.w=+(+v).toFixed(1),''):'Enter a weight between 20 and 300 kg.'}[k];
 if(chk){o.err=chk();if(o.err){render();return}}o.i=o.ret?6:o.i+1;o.ret=0;sfx(520,.06);render()};

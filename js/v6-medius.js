@@ -45,42 +45,25 @@ HWUI.css('medius',`.v6md{position:fixed;right:10px;bottom:calc(14px + env(safe-a
 function show(it){const M=md(),d=today();M.last[it.type]=Date.now();M.day[d]=(M.day[d]||0)+1;M.seen[it.key]=d;M.log.push({t:it.text,at:new Date().toISOString(),type:it.type});if(M.log.length>20)M.log.shift();
   Object.keys(M.day).forEach(k=>{if(k<rng(7)[0])delete M.day[k]});Object.keys(M.seen).forEach(k=>{if(M.seen[k]<rng(7)[0])delete M.seen[k]});save();
   const el=document.createElement('div');el.className='v6md';el.id='v6md';el.setAttribute('role','status');el.innerHTML='<img src="'+WIZ+'" alt=""><p><b>MEDIUS</b>'+esc(it.text)+'</p>';
-  showing=el;lastShown=Date.now();let gone=0;const close=()=>{if(gone)return;gone=1;el.classList.add('out');setTimeout(()=>{el.remove();if(showing===el)showing=null;if(pending)schedule()},300)};el.onclick=()=>{hush();close()};setTimeout(close,6500);document.body.appendChild(el);speak(it.text);
+  showing=el;lastShown=Date.now();let gone=0;const close=()=>{if(gone)return;gone=1;el.classList.add('out');setTimeout(()=>{el.remove();if(showing===el)showing=null;if(pending)schedule()},300)};el.onclick=()=>{hush();close()};setTimeout(close,6500);document.body.appendChild(el);
   HWEvents.emit('medius:said',{kind:it.type,text:it.text})}
 
-/* voice: the browser's own speech (no audio files, nothing leaves the device). Tuned as an old, wise narrator (deep and
-   gravelly like a documentary storyteller, calm and kindly like an old headmaster): warm low pitch but with a rise and fall
-   (greetings, questions and exclamations lift; full stops settle), unhurried pace, a thoughtful pause after each phrase. Real actors' voices cannot be copied; this only shapes the device's own voice. It prefers a male-sounding English voice when the device has one.
-   Settings: st.s.medv (1 on, default · 0 off). */
-const vOn=()=>st.s.medv==null||+st.s.medv===1,canSay=()=>typeof speechSynthesis!=='undefined'&&typeof SpeechSynthesisUtterance!=='undefined';
-const MALE=/\b(daniel|arthur|oliver|thomas|george|gordon|rishi|aaron|ryan|guy|davis|david|mark|james|alex|fred|ralph|bruce|lee|reed|rocko|eddy|grandpa|male)\b/i,FEMALE=/\b(samantha|victoria|karen|moira|tessa|fiona|kate|serena|susan|zira|hazel|siri|female|aria|jenny|libby|sonia|emma|amy|joanna|salli|kendra|kimberly|ivy|nicole|ava|allison|nora|catherine|martha|shelley|sandy|flo|grandma|google uk english female|google us english)\b/i;
-const enVoices=()=>{try{return speechSynthesis.getVoices().filter(x=>/^en/i.test(x.lang))}catch(e){return[]}};
-const maleVoices=()=>enVoices().filter(x=>MALE.test(x.name)&&!FEMALE.test(x.name)).sort((a,b)=>(/en-gb/i.test(b.lang)-/en-gb/i.test(a.lang))||(/natural|neural|premium|enhanced/i.test(b.name)-/natural|neural|premium|enhanced/i.test(a.name)));
-function voice(){const v=enVoices(),pick=st.s.medvn&&v.find(x=>x.name===st.s.medvn);return pick||maleVoices()[0]||v.find(x=>!FEMALE.test(x.name))||v[0]||null}
-let rec=null;
-function hush(){vTok++;if(rec){try{rec.onended=rec.onerror=null;rec.pause()}catch(e){}rec=null}try{if(canSay())speechSynthesis.cancel()}catch(e){}}
-let vTok=0;
-// name of a line's recording: a hash of its text, the same as tools/audio/make_tutorial_voice.py, so an edited line never plays a stale file
+/* voice: the recorded lines only (assets/audio/tut-<hash>.mp3 for the tutorial, ob-<hash>.mp3 for the Traveller's Registry,
+   cut by tools/audio/cut_medius_voice.py). There is no browser or synthetic speech: the speech bubbles above stay silent, and a
+   line without a recording is simply not spoken. Settings: st.s.medv (1 on, default · 0 off). */
+const vOn=()=>st.s.medv==null||+st.s.medv===1,canPlay=()=>typeof Audio!=='undefined';
+let rec=null,vTok=0,recKind='',obLast=null;
+function hush(){vTok++;recKind='';if(rec){try{rec.onended=rec.onerror=null;rec.pause()}catch(e){}rec=null}}
+// name of a line's recording: a hash of its text, the same as tools/audio/cut_medius_voice.py, so an edited line never plays a stale file
 const hashOf=t=>{let x=5381;for(const c of t)x=((x<<5)+x+c.charCodeAt(0))>>>0;return x.toString(36)};
-/** Speaks a line. With `tmpl` (the tutorial's text before {name} is filled in) it plays the recorded line when one exists
-    (assets/audio/tut-<hash>.mp3) and falls back to the browser voice when it does not or cannot play. */
-function speak(text,tmpl){if(!vOn()||!text)return;hush();
-  if(tmpl&&typeof Audio!=='undefined'){const tok=vTok,a=new Audio('assets/audio/tut-'+hashOf(tmpl)+'.mp3');rec=a;
-    const back=()=>{if(rec!==a)return;rec=null;a.onerror=a.onended=null;if(tok===vTok)synth(text)};
-    a.onerror=back;try{const p=a.play();if(p&&p.catch)p.catch(back)}catch(e){back()}return}
-  synth(text)}
-function synth(text){if(!canSay())return;hush();const tok=++vTok,v=voice();
-  const P=String(text).replace(/\s+/g,' ').split(/(?<=[.!?:;,])\s+/).filter(Boolean);
-  (function next(i){if(tok!==vTok||i>=P.length)return;const ph=P[i],u=new SpeechSynthesisUtterance(ph);
-    if(v){u.voice=v;u.lang=v.lang}else u.lang='en-GB';
-    // a spoken contour instead of one flat tone: bright on greetings, questions and exclamations, a falling close on full
-    // stops, a lift on commas, with a small steady wobble so no two phrases sound alike
-    const w=(i%3-1)*.05,end=ph.slice(-1),first=i===0;
-    u.pitch=Math.max(.1,Math.min(2,(end==='!'?.78:end==='?'?.82:end===':'?.56:end===','?.62:end===';'?.6:.5)+(first?.08:0)+w));
-    u.rate=Math.max(.5,Math.min(2,(end==='!'?.95:end==='?'?.9:end==='.'?.84:.89)+(first?.04:0)-w/2));u.volume=1;
-    u.onend=()=>setTimeout(()=>next(i+1),/[.!?]$/.test(ph)?380:/[:;]$/.test(ph)?260:140);   // a thoughtful beat between phrases
-    u.onerror=()=>{};try{speechSynthesis.speak(u)}catch(e){}})(0)}
-try{if(canSay())speechSynthesis.onvoiceschanged=()=>{}}catch(e){}
+/** Plays the recording of a line. `tmpl` is the line's text before {name} is filled in; `pre` is 'tut' (tutorial, default) or 'ob'
+    (registry). Silent when voice is off, the line has no recording, or the browser blocks playback. */
+function speak(text,tmpl,pre){if(!vOn()||!text||!tmpl||!canPlay())return;hush();
+  const a=new Audio('assets/audio/'+(pre||'tut')+'-'+hashOf(tmpl)+'.mp3');rec=a;recKind=pre||'tut';
+  const gone=()=>{if(rec===a)hush()};a.onerror=gone;try{const p=a.play();if(p&&p.catch)p.catch(gone)}catch(e){gone()}}
+/** The registry's question on screen (#obt carries its text in data-t and its template in data-v). Re-renders of the same
+    question (a chip tap, a validation message) do not restart the recording. */
+function speakRegistry(){const p=document.getElementById('obt');if(!p||!p.dataset.v)return;const k=p.dataset.v;if(obLast&&obLast.o===S.ob&&obLast.k===k)return;obLast={o:S.ob,k};speak(p.dataset.t,p.dataset.v,'ob')}
 
 /* event wiring */
 const E=HWEvents.on;
@@ -95,13 +78,12 @@ E('entry:added',e=>{const c=e.entry.c;if(st.e.filter(x=>x.c===c).length===1)say(
   try{const g=HWStreaks.gentle().days,M=md();[3,7,14,30,60,100].forEach(n=>{if(g===n&&!M.ms[n]){M.ms[n]=today();save();say('milestone',{days:n})}})}catch(err){}});
 E('app:ready',()=>{const ds=dys(),last=ds[ds.length-1],gap=last?Math.round((new Date(today()+'T12:00:00')-new Date(last+'T12:00:00'))/864e5):0,M=md();
   if(gap>=3)say('comeback',{gap});else if(M.last.greet==null||new Date(M.last.greet).toDateString()!==new Date().toDateString())say('greet')});
-E('page:viewed',()=>{if(pending)schedule()});
+E('page:viewed',()=>{if(recKind==='ob'&&S.v!=='onb')hush();if(pending)schedule()});
 
 /* settings: frequency control · guide: recent words */
-acts.medvn=d=>{st.s.medvn=d.n;save();render();speak('Hail, traveller! Shall we begin?')};
-acts.medv=d=>{st.s.medv=+d.m;save();render();if(+d.m)speak('Thou canst hear me now.');else hush();toast('Medius voice: '+(+d.m?'on':'off'))};
+acts.medv=d=>{st.s.medv=+d.m;save();render();if(!+d.m)hush();toast('Medius voice: '+(+d.m?'on':'off'))};
 acts.medm=d=>{st.s.med=+d.m;save();render();if(+d.m)toast('Medius: '+['','calm — only important moments','chatty — happy to comment'][+d.m])};
-const setCard=()=>'<div class="card" id="v6medset"><h3>🧙 MEDIUS COMPANION</h3><div class="row">'+[[2,'Chatty'],[1,'Calm'],[0,'Off']].map(m=>'<button class="chip'+(mode()===m[0]?' on':'')+'" data-a="medm" data-m="'+m[0]+'" aria-pressed="'+(mode()===m[0])+'">'+m[1]+'</button>').join('')+'</div><div class="row">'+(canSay()?[[1,'Voice on'],[0,'Voice off']].map(m=>'<button class="chip'+(vOn()===!!m[0]?' on':'')+'" data-a="medv" data-m="'+m[0]+'" aria-pressed="'+(vOn()===!!m[0])+'">'+m[1]+'</button>').join(''):'<small class="mut">Voice is not available in this browser.</small>')+'</div>'+(canSay()&&maleVoices().length>1?'<div class="row">'+maleVoices().slice(0,6).map(x=>'<button class="chip'+(voice()===x?' on':'')+'" data-a="medvn" data-n="'+esc(x.name)+'" aria-pressed="'+(voice()===x)+'">'+esc(x.name.replace(/^(Microsoft|Google)\s+/,'').replace(/\s*-.*$/,'').replace(/\(.*\)/,'').trim())+'</button>').join('')+'</div><small class="mut">Pick the deepest voice on thy device.</small>':'')+'<small class="mut">Calm shows only important moments (level-ups, quests, milestones). Medius never scolds.</small></div>';
+const setCard=()=>'<div class="card" id="v6medset"><h3>🧙 MEDIUS COMPANION</h3><div class="row">'+[[2,'Chatty'],[1,'Calm'],[0,'Off']].map(m=>'<button class="chip'+(mode()===m[0]?' on':'')+'" data-a="medm" data-m="'+m[0]+'" aria-pressed="'+(mode()===m[0])+'">'+m[1]+'</button>').join('')+'</div><div class="row">'+(canPlay()?[[1,'Voice on'],[0,'Voice off']].map(m=>'<button class="chip'+(vOn()===!!m[0]?' on':'')+'" data-a="medv" data-m="'+m[0]+'" aria-pressed="'+(vOn()===!!m[0])+'">'+m[1]+'</button>').join(''):'<small class="mut">Voice is not available in this browser.</small>')+'</div>'+'<small class="mut">Calm shows only important moments (level-ups, quests, milestones). Medius never scolds.</small></div>';
 {const p=pages.set;pages.set=(...a)=>{const h=p(...a),k='<h2>⚙️ SETTINGS</h2>';return h.indexOf(k)>=0?h.replace(k,k+setCard()):h+setCard()}}
 {const p=pages.guide;pages.guide=(...a)=>{const h=p(...a),L=md().log.slice(-5).reverse();return L.length?h+'<div class="card" id="v6medlog"><h3>📜 MEDIUS\'S RECENT WORDS</h3>'+L.map(x=>'<p>“'+esc(x.t)+'” <small class="mut">'+esc(x.at.slice(5,16).replace('T',' '))+'</small></p>').join('')+'</div>':h}}
-return{say,speak,hush,mode,rules:R,history:()=>md().log.slice()}})();
+return{say,speak,speakRegistry,hush,mode,rules:R,history:()=>md().log.slice()}})();

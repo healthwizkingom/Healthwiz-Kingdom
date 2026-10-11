@@ -136,7 +136,7 @@ HWEvents.on('app:ready',()=>{const a=C.arrived;if(!a)return;
 /* ---------- onboarding: Medius offers a free account once, after the Traveller's Registry ---------- */
 const OFFER="One more thing, {name}. Wouldst thou like a free account? It keepeth thy kingdom safe in the cloud, carrieth it to thine other devices, and lets thee speak with me in my study. It is thy choice: everything works on this device without one.";
 {const p=pages.onb;pages.onb=(...a)=>{const o=S.ob;if(!o||o.i!==8)return p(...a);const nn=(o.d.name||'').trim()||'traveller',say=OFFER.replace('{name}',nn);
-  return '<div class="obw v6aco"><h2>TRAVELLER\'S REGISTRY</h2><div class="obsay"><img src="'+WIZ+'" alt="Wizard King Medius" class="obz"><div class="tbx"><b>WIZARD KING MEDIUS</b><p id="obt" data-t="'+esc(say)+'"></p></div></div>'
+  return '<div class="obw v6aco"><h2>TRAVELLER\'S REGISTRY</h2><div class="obsay"><img src="'+WIZ+'" alt="Wizard King Medius" class="obz"><div class="tbx"><b>WIZARD KING MEDIUS</b><p id="obt" data-t="'+esc(say)+'" data-v="'+esc(OFFER)+'"></p></div></div>'
     +'<div class="card"><h3>'+ico('account')+' CREATE A FREE ACCOUNT?</h3><ul class="v6acl" style="list-style:none;padding:0;margin:8px 0">'+WHY.slice(0,3).map(x=>'<li style="display:flex;gap:8px;align-items:flex-start;margin:6px 0">'+ico(x[0])+'<span>'+x[1]+'</span></li>').join('')+'</ul>'
     +'<div class="row" style="margin-top:12px"><button data-a="aconb">CREATE A FREE ACCOUNT</button><button class="g" data-a="acskip">SKIP</button></div>'
     +'<small class="mut">You can sign in later from Settings → Account.</small></div></div>'}}
