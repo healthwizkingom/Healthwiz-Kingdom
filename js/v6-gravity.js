@@ -231,9 +231,8 @@ HWEvents.on('page:viewed',e=>{if(e.view!=='stair'&&(G.ph==='running'))acts.gvpau
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&G.ph==='running')acts.gvpause()});
 HWEvents.on('data:reset',()=>{stop();G=fresh()});HWEvents.on('data:imported',()=>{stop();G=fresh()});
 
-{const p=pages.stair;pages.stair=function(){const h=p.apply(this,arguments);
-  const i=h.indexOf('<div class="nstabs sttabs"'),k='</small></button></div>',j=i<0?-1:h.indexOf(k,i);
-  const c=card();return j<0?h+c:h.slice(0,j+k.length)+c+h.slice(j+k.length)}}
+{const p=pages.stair;pages.stair=function(){const h=p.apply(this,arguments),j=h.indexOf('<div class="card" id="stlog">');
+  const c=card();return j<0?h+c:h.slice(0,j)+c+h.slice(j)}} // below the page's own trackers, above the Session Chronicle
 
 HWUI.css('gravity',`
 .gv{position:relative;background:linear-gradient(var(--pn) 70%,var(--p2))}.gv h3{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px}
