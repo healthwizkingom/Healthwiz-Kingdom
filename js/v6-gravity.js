@@ -242,7 +242,7 @@ HWUI.css('gravity',`
 .gv label{display:block;margin:10px 0 2px;font-size:14px}.gv select,.gv input[type=number]{width:100%;min-height:44px;box-sizing:border-box}
 .gvq{margin:6px 0}.gvph{margin:10px 0;padding:6px 8px;border:2px dashed var(--vio);font-size:13px}
 .gvack{display:flex!important;gap:8px;align-items:flex-start;min-height:44px}.gvack input{width:24px;height:24px;flex:0 0 auto}
-.gvgo,.gvfin{width:100%;min-height:52px;font-size:12px;background:var(--vio);color:#fff;letter-spacing:.06em}.gvgo:disabled{opacity:.5}
+.gvgo,.gvfin{width:100%;min-height:52px;font-size:12px;background:var(--gold);color:#2b2418;letter-spacing:.06em}.gvgo:disabled{opacity:.5}
 .gvsafe{margin:10px 0 0;font-size:13px}
 .gvhud{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:8px 0}.gvst{min-width:0;text-align:center;padding:8px 4px;border:3px solid var(--ln);background:var(--p2)}.gvst b{font:var(--px-f2,16px)/1.3 var(--fh)}.gvst small{display:block;font-size:11px}
 .gvm{margin:6px 0 10px;padding:6px 8px;border:3px solid var(--vio);background:var(--pn)}.gvml{font:8px var(--fh);color:var(--vio);display:block;margin-bottom:4px}

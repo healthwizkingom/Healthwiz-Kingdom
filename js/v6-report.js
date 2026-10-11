@@ -145,7 +145,7 @@ acts.rptprev=()=>{start=addD(start,-7);paint();const b=document.querySelector('#
 acts.rptnext=()=>{if(start>=monday(today()))return;start=addD(start,7);paint();const b=document.querySelector('#hwrep [data-a="rptnext"]:not([disabled])')||document.querySelector('#hwrep [data-a="rptprev"]');if(b)b.focus({preventScroll:true})};
 acts.rptprint=()=>{window.print()};
 INP.rptdate=el=>{const v=el.value;if(!/^\d{4}-\d{2}-\d{2}$/.test(v)||v>today())return;start=monday(v);paint();const d=$i('rpt-date');if(d)d.focus({preventScroll:true})};
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$i('hwrep')&&!document.getElementById('hwh-pop')?.offsetParent){e.preventDefault();closeReport()}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$i('hwrep')&&!(document.getElementById('hwh-pop')&&document.getElementById('hwh-pop').offsetParent)){e.preventDefault();closeReport()}});
 HWEvents.on('data:reset',()=>closeReport(true));HWEvents.on('data:imported',()=>closeReport(true));
 
 // the entry point: a card at the top of the Statistics page
@@ -156,7 +156,7 @@ HWEvents.on('data:reset',()=>closeReport(true));HWEvents.on('data:imported',()=>
 HWUI.css('report',`
 body.rptopen{overflow:hidden}
 #hwrep{position:fixed;inset:0;z-index:70;overflow:auto;background:var(--bg);color:var(--ink);padding:12px 12px calc(24px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch}
-.rptgen{width:100%;min-height:48px;background:var(--vio);color:#fff;font-size:11px;letter-spacing:.05em}
+.rptgen{width:100%;min-height:48px;background:var(--gold);color:#2b2418;font-size:11px;letter-spacing:.05em}
 .rptbar{max-width:860px;margin:0 auto 12px}.rptbtns{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}.rptbtns button{flex:1 1 140px;min-height:44px}
 .rptdl{display:flex;align-items:center;gap:8px;flex:1 1 220px;font-size:13px}.rptdl input{flex:1 1 auto;min-height:44px;min-width:0;box-sizing:border-box}
 .rptwarn{margin:0;padding:8px;border:3px solid var(--gold);background:var(--pn);font-size:13px}

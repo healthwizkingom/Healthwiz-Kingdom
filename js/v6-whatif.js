@@ -132,7 +132,7 @@ HWUI.css('whatif',`
 .wif.open{outline:2px solid var(--vio);outline-offset:-8px}
 .wifhd{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.wifhd h3{margin:0;flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px}
 .wifrs{display:inline-flex;gap:6px;color:var(--vio);opacity:.75}.wifr{display:block}
-.wifopen{width:100%;min-height:48px;margin:6px 0;background:var(--vio);color:#fff;font-size:12px;letter-spacing:.06em}
+.wifopen{width:100%;min-height:48px;margin:6px 0;background:var(--gold);color:#2b2418;font-size:12px;letter-spacing:.06em}
 .wifsimtag{margin:8px 0;padding:6px 8px;border:3px solid var(--vio);background:var(--p2);font:9px/1.7 var(--fh);overflow-wrap:anywhere}
 .wifscore{display:grid;grid-template-columns:1fr auto 1fr;gap:6px 10px;align-items:center;margin:8px 0;padding:10px;border:3px solid var(--ln);background:var(--p2)}
 .wifscore b{display:block;font:var(--px-f3,24px)/1.2 var(--fh)}.wifscore small{display:block;font-size:11px}.wifsim small{color:var(--vio);font-weight:700}
