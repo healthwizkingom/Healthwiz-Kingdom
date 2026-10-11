@@ -91,10 +91,10 @@ document.addEventListener('toggle',e=>{const t=e.target;if(t&&t.classList&&t.cla
 const CS=6.5; // the question's place in the registry flow: after activity (5), before the read-back (6); numeric so v6-looks' ring (Math.min(6,i)) still works
 const CC=()=>{const o=S.ob;if(!o.cc){const c=conds();o.cc={ids:c.filter(x=>RULES[x]),cu:c.filter(x=>!RULES[x]),none:Array.isArray(st.p.conds)&&!c.length,add:false,err:''}}return o.cc};
 const norm=s=>String(s).trim().replace(/\s+/g,' ').slice(0,40);
-function screen(){const o=S.ob,c=CC(),nn=(o.d.name||'').trim()||'traveller',say='One last question, '+nn+'. Does anything affect what thou canst do? It only helpeth me choose gentler goals. Choose all that apply, or none.',
+function screen(){const o=S.ob,c=CC(),nn=(o.d.name||'').trim()||'traveller',tp='One last question, {name}. Does anything affect what thou canst do? It only helpeth me choose gentler goals. Choose all that apply, or none.',say=tp.replace('{name}',nn),
   chip=(a,t,on,x)=>'<button type="button" class="chip cdc'+(on?' on':'')+'" data-a="'+a+'"'+(x||'')+' aria-pressed="'+(on?'true':'false')+'">'+t+'</button>';
   const eff=c.ids.map(i=>'<li><b>'+RULES[i].label+':</b> '+RULES[i].why+'</li>').join('')+c.cu.map(t=>'<li><b>'+esc(t)+':</b> HealthWiz cannot know what this means for activity, so it changes no goal. Ask a doctor.</li>').join('');
-  return '<div class="obw"><h2>📜 TRAVELLER\'S REGISTRY</h2><div class="obpr"><small>ONE MORE QUESTION</small>'+bar(100,'var(--gold)')+'</div><div class="obsay"><img src="'+WIZ+'" alt="Wizard King Medius" class="obz"><div class="tbx"><b>WIZARD KING MEDIUS</b><p id="obt" data-t="'+esc(say)+'"></p></div></div>'
+  return '<div class="obw"><h2>📜 TRAVELLER\'S REGISTRY</h2><div class="obpr"><small>ONE MORE QUESTION</small>'+bar(100,'var(--gold)')+'</div><div class="obsay"><img src="'+WIZ+'" alt="Wizard King Medius" class="obz"><div class="tbx"><b>WIZARD KING MEDIUS</b><p id="obt" data-t="'+esc(say)+'" data-v="'+esc(tp)+'"></p></div></div>'
     +'<div class="card" id="cdcard"><h3>Anything that affects your activity?</h3><p class="mut">Optional. Pick all that apply.</p>'
     +'<div class="cdgrid" role="group" aria-label="Conditions that affect activity">'+ORDER.map(i=>chip('cdt',RULES[i].label,c.ids.includes(i),' data-i="'+i+'"')).join('')
     +c.cu.map((t,k)=>chip('cdx',esc(t)+' ✕',true,' data-k="'+k+'" aria-label="Remove '+esc(t)+'"')).join('')

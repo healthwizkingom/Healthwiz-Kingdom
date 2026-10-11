@@ -58,7 +58,7 @@ test('every tutorial line has a recording that matches its text, and the tutoria
   const { page, ctx, errors } = await openApp({ seed: RETURNING, url: URL_ });
   const lines = await page.evaluate(() => TS.map(s => s[2]));
   const missing = lines.filter(t => !fs.existsSync(path.join(root, 'assets/audio/tut-' + hashOf(t) + '.mp3')));
-  assert.deepEqual(missing, [], 'run tools/audio/make_tutorial_voice.py after editing a tutorial line');
+  assert.deepEqual(missing, [], 'run tools/audio/cut_medius_voice.py after editing a tutorial line');
   assert.equal(fs.readdirSync(path.join(root, 'assets/audio')).filter(f => /^tut-/.test(f)).length, lines.length, 'no stale recordings');
   const got = [];
   page.on('response', r => { if (/tut-[\w]+\.mp3/.test(r.url())) got.push([r.url(), r.status()]); });
