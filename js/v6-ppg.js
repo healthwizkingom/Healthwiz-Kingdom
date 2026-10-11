@@ -88,6 +88,8 @@ function analyze(S){const o={ok:false,bpm:null,raw:null,beats:0,rr:[],quality:'n
 /* ---------- the measurement ---------- */
 // state: 'idle' | 'ask' (waiting for the camera permission) | 'run' | 'done'
 let phase='idle',R=null,msg='',denied=false,sheet=false,gen=0;
+// target: the workout field a measurement started from a camera button beside it (b, a, r) fills, and logs for b / a, when it finishes
+let pend=null,target=null;const TL={b:'BEFORE',a:'AFTER',r:'1 MIN AFTER'};
 let stream=null,vid=null,cvs=null,cx=null,tick=0,raf=0,vfc=0,torch=false,sam=[],goodMs=0,lastT=0,t0=0,frames=0,seen=0,finger=false,lastCT=-1,live=null,dark=0,live_s=-1;
 const clearRun=()=>{sam=[];goodMs=0;lastT=0;frames=0;seen=0;finger=false;live=null;lastCT=-1;dark=0;live_s=-1};
 function stopCam(){clearInterval(tick);tick=0;if(raf)cancelAnimationFrame(raf);raf=0;
@@ -96,10 +98,10 @@ function stopCam(){clearInterval(tick);tick=0;if(raf)cancelAnimationFrame(raf);r
   if(s)s.getTracks().forEach(t=>{try{if(torch)t.applyConstraints({advanced:[{torch:false}]}).catch(()=>{})}catch(e){}try{t.stop()}catch(e){}});
   if(vid){try{vid.pause()}catch(e){}vid.srcObject=null;if(vid.parentNode)vid.parentNode.removeChild(vid)}
   vid=null;cvs=null;cx=null;torch=false}
-function cancel(m){gen++;const was=phase==='run'||phase==='ask';stopCam();if(was){phase='idle';msg=m||''}paint()}
-function fail(m){gen++;stopCam();phase='idle';msg=m;paint()}
+function cancel(m){gen++;target=null;const was=phase==='run'||phase==='ask';stopCam();if(was){phase='idle';msg=m||''}paint()}
+function fail(m){gen++;target=null;stopCam();phase='idle';msg=m;paint()}
 
-async function start(){if(!supported()||phase==='ask'||phase==='run')return;closeSheet();stopCam();clearRun();R=null;msg='';phase='ask';paint();const g=++gen;let s;
+async function start(){if(!supported()||phase==='ask'||phase==='run')return;closeSheet();stopCam();clearRun();R=null;msg='';target=pend;phase='ask';paint();const g=++gen;let s;
   try{s=await N.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:160},height:{ideal:120},frameRate:{ideal:30}},audio:false})}
   catch(e){if(g!==gen)return;const nm=e&&e.name;
     if(nm==='NotAllowedError'||nm==='SecurityError'||nm==='PermissionDeniedError'){denied=true;fail('Camera permission was not given. You can still count your pulse by hand.')}
@@ -126,7 +128,8 @@ function onFrame(g,next){if(g!==gen||phase!=='run'||!vid||!cx)return;const now=p
 function finish(){gen++;const a=analyze(sam),secs=Math.round(goodMs/1000);stopCam();phase='done';
   if(a.ok&&a.bpm>=30&&a.bpm<=220){const w=a.wave,n=Math.round(6*FS),y=w.y.slice(-n);
     R={bpm:a.bpm,beats:a.beats,secs,f:a.fit.f,A:a.fit.A,tp:a.fit.tp,w:{t0:w.t0+(w.y.length-y.length)/FS,fs:FS,y},peaks:a.peaks.slice(),quality:'good'};msg=''}
-  else{R=null;msg=whyText(a.why,seen<frames*.5)}paint()}
+  else{R=null;msg=whyText(a.why,seen<frames*.5)}
+  const t=R?target:null;if(R)target=null;paint();if(t&&typeof acts.ppgauto==='function')acts.ppgauto({k:t})}
 function whyText(w,nofinger){
   if(nofinger&&dark>frames*.3)return'It was too dark to read your pulse. Cover the camera and flash fully, or find brighter room light.';
   if(nofinger)return'Your finger was not covering the camera for much of the time. Cover the camera and flash with your fingertip.';
@@ -150,19 +153,20 @@ function helpReg(){HWHelp.reg('ppg','Pulse Wave Lab',
 function panel(){helpReg();Promise.resolve().then(draw);
   let h='<div class="ppg" id="hwppg">';
   if(!supported())return h+'<p class="mut">Your browser can\'t use the camera here; count your pulse for 15 s and multiply by 4.</p></div>';
-  if(phase==='ask')h+='<div class="ppgrow"><b>'+ico('camera')+' CAMERA PULSE</b></div><p role="status">Waiting for the camera… If asked, allow it so the app can read the colour of your fingertip.</p><div class="row"><button class="g" data-a="ppgcancel">CANCEL</button></div>';
+  if(phase==='ask')h+='<div class="ppgrow"><b>'+ico('camera')+' CAMERA PULSE</b></div>'+tgtNote()+'<p role="status">Waiting for the camera… If asked, allow it so the app can read the colour of your fingertip.</p><div class="row"><button class="g" data-a="ppgcancel">CANCEL</button></div>';
   else if(phase==='run')h+=runView();
   else if(phase==='done'&&R)h+=resultView();
-  else{h+='<div class="ppgrow">'+(denied?'':'<button class="ppgbtn" data-a="ppgopen">'+ico('camera')+' '+(msg&&phase==='done'?'MEASURE AGAIN':'MEASURE WITH CAMERA')+'</button>')+HWHelp.btn('ppg')+'</div>';
-    if(msg)h+='<p class="ppgmsg" role="status">'+esc(msg)+'</p>'+(denied?'<small class="mut">To try again, allow the camera for this site in your browser settings and reload the page.</small>':'')}
+  else{h+='<div class="ppgrow">'+(denied?'':'<button class="ppgbtn" data-a="ppgopen" data-k="'+(msg&&phase==='done'&&target?target:'')+'">'+ico('camera')+' '+(msg&&phase==='done'?'MEASURE AGAIN':'MEASURE WITH CAMERA')+'</button>')+HWHelp.btn('ppg')+'</div>';
+    if(msg)h+=(target?tgtNote():'')+'<p class="ppgmsg" role="status">'+esc(msg)+'</p>'+(denied?'<small class="mut">To try again, allow the camera for this site in your browser settings and reload the page.</small>':'')}
   return h+'</div>'}
 function runView(){const left=Math.max(0,Math.ceil((GOOD_MS-goodMs)/1000));
   return '<div class="ppgrow"><b>'+ico('camera')+' CAMERA PULSE</b>'+HWHelp.btn('ppg')+'</div>'
-    +'<canvas class="ppgc" id="ppg-live" role="img" aria-label="Your pulse wave, live"></canvas>'
+    +tgtNote()+'<canvas class="ppgc" id="ppg-live" role="img" aria-label="Your pulse wave, live"></canvas>'
     +'<p class="ppgmsg" id="ppg-st" role="status">'+stText()+'</p>'
     +'<div class="ppgline"><b class="num ppgbpm" id="ppg-bpm" aria-live="off">'+liveBpm()+'</b> <span>BPM</span><span class="ppgleft" id="ppg-left">'+left+' s left</span></div>'
     +'<div class="ppgq" aria-hidden="true"><i id="ppg-q" style="width:'+Math.round((live?live.q:0)*100)+'%"></i></div><small class="mut">Signal strength</small>'
     +'<div class="row"><button class="g" data-a="ppgcancel">CANCEL</button></div>'}
+const tgtNote=()=>target?'<p class="ppgtgt" role="status">'+(target==='r'?'When it is ready, it is filled in as <b>1 MIN AFTER</b> (saved with the workout).':'When it is ready, it is filled in and logged as <b>'+TL[target]+'</b>.')+'</p>':'';
 const liveBpm=()=>live&&live.raw&&live.beats>=LIVE_BEATS&&live.per>=NO_REPEAT?String(Math.round(live.raw)):'--';
 const stText=()=>(!frames?'Starting the camera…':!finger?'<b>Cover the camera and flash with your fingertip.</b> The countdown waits for you.'
   :liveBpm()==='--'?'Finding your pulse… hold still.':'Hold still. Reading your pulse…')+(torch?'':' <span class="mut">No flash: use good room light.</span>');
@@ -207,12 +211,14 @@ function openSheet(){const m=$('mo');if(!m)return;
     +'<ul><li>Cover the <b>back camera and the flash</b> lightly with your fingertip. Do not press hard.</li>'
     +'<li>Keep your hand and the phone still. For a resting reading, sit and rest for a few minutes first.</li>'
     +'<li>It takes about 20 seconds. The app draws your pulse wave and works out your BPM.</li></ul>'
+    +(pend?'<p class="ppgtgt">When the reading is good, it is filled in'+(pend==='r'?' as <b>1 MIN AFTER</b>':' and logged as <b>'+TL[pend]+'</b>')+' for you.</p>':'')
     +'<p><b>It is an estimate</b>, not a medical measurement. <b>Video never leaves your phone and nothing is recorded.</b> Nothing is saved unless you press LOG BPM or SEAL THE WORKOUT afterwards.</p>'
     +'<div class="row"><button data-a="ppgstart" id="ppg-go">START</button><button class="g" data-a="mclose">CANCEL</button></div></div>';
   m.hidden=false;sheet=true;const b=$('ppg-go');if(b)b.focus()}
 function closeSheet(){if(!sheet)return;sheet=false;const m=$('mo');if(m&&m.querySelector('.ppgsheet'))m.hidden=true}
 
-acts.ppgopen=()=>{if(phase==='ask'||phase==='run')return;R=null;msg='';openSheet()};
+// from the camera button beside a BPM field (data-k = b | a | r): bring the CAMERA PULSE card into view and open its sheet
+acts.ppgopen=d=>{if(phase==='ask'||phase==='run')return;R=null;msg='';pend=d&&TL[d.k]?d.k:null;if(pend){target=null;const el=$('hwppg');if(el)el.scrollIntoView({block:'start'})}openSheet()};
 acts.ppgstart=()=>start();
 acts.ppgcancel=()=>cancel();
 HWEvents.on('page:viewed',()=>{closeSheet();gen++;stopCam();phase='idle';R=null;msg=''});
@@ -225,7 +231,7 @@ HWUI.css('ppg',`
 .ppgrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}.ppgrow>b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fh)}
 .ppgrow .ppgbtn{flex:1 1 auto}.ppg button{min-height:44px}.ppg .hwh{min-height:0}
 .ppgbtn{display:flex;align-items:center;justify-content:center;gap:8px}
-.ppgmsg{margin:8px 0}.ppgc{width:100%;height:120px;display:block;border:3px solid var(--ln);image-rendering:pixelated;margin:8px 0}.ppgfit{height:110px}
+.ppgmsg{margin:8px 0}.ppgtgt{margin:6px 0;font-size:14px}.ppgc{width:100%;height:120px;display:block;border:3px solid var(--ln);image-rendering:pixelated;margin:8px 0}.ppgfit{height:110px}
 .ppgline{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px;margin:4px 0}.ppgbpm{font:var(--px-f3)/1.2 var(--fh)}.ppgleft{margin-left:auto;font-size:14px}
 .ppgq{height:10px;border:2px solid var(--ln);background:var(--pn);margin:6px 0 2px}.ppgq i{display:block;height:100%;background:var(--grn)}
 .ppgres{display:block}.ppgres p{margin:6px 0;overflow-wrap:anywhere}.ppgbased{font-weight:600}

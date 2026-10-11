@@ -75,7 +75,7 @@ test('fake camera: sheet → START → countdown → 72 BPM CAMERA ESTIMATE with
   assert.match(await page.textContent('#hwppg'), /MEASURE WITH CAMERA/);
   assert.ok(await page.evaluate(() => document.getElementById('hwppg').compareDocumentPosition(document.getElementById('hwhr')) & Node.DOCUMENT_POSITION_FOLLOWING), 'camera panel comes before the Bluetooth panel');
   assert.equal(await page.evaluate(() => window.__asked), 0, 'the camera is not asked for until START');
-  await page.click('[data-a="ppgopen"]');
+  await page.click('#hwppg [data-a="ppgopen"]');
   const sheet = await page.textContent('#mo');
   for (const w of [/back camera and the flash/, /estimate/i, /never leaves your phone/, /nothing is recorded/]) assert.match(sheet, w);
   assert.equal(await page.evaluate(() => window.__asked), 0);
@@ -174,12 +174,12 @@ test('camera numbers mixed with typed or watch numbers seal as mixed; old entrie
 test('cancel, leaving the page and a hidden page stop every track; permission denied and no camera are plain messages', async () => {
   const { page, ctx, errors } = await openApp({ before: fakeCam(1.2), viewport: { width: 390, height: 844 } });
   await go(page, 'pulse');
-  const begin = async () => { await page.click('[data-a="ppgopen"]'); await page.click('[data-a="ppgstart"]'); await page.waitForFunction(() => HWPPG.state === 'run'); await page.waitForTimeout(500); };
+  const begin = async () => { await page.click('#hwppg [data-a="ppgopen"]'); await page.click('[data-a="ppgstart"]'); await page.waitForFunction(() => HWPPG.state === 'run'); await page.waitForTimeout(500); };
   await begin();
   await page.click('[data-a="ppgcancel"]');
   assert.equal(await ended(page), true, 'cancel stops the tracks');
   assert.equal(await page.evaluate(() => HWPPG.state), 'idle');
-  assert.equal(await page.locator('[data-a="ppgopen"]').count(), 1);
+  assert.equal(await page.locator('#hwppg [data-a="ppgopen"]').count(), 1);
   await page.evaluate(() => { window.__streams.length = 0; });
   await begin();
   await go(page, 'home');
@@ -193,10 +193,10 @@ test('cancel, leaving the page and a hidden page stop every track; permission de
   await page.evaluate(() => { delete document.hidden; });
   // denied: one plain message, no repeated prompt
   await page.evaluate(() => { window.__gum = 'deny'; window.__asked = 0; });
-  await page.click('[data-a="ppgopen"]'); await page.click('[data-a="ppgstart"]');
+  await page.click('#hwppg [data-a="ppgopen"]'); await page.click('[data-a="ppgstart"]');
   await page.waitForFunction(() => /Camera permission was not given/.test(document.getElementById('hwppg').textContent));
   assert.match(await page.textContent('#hwppg'), /Camera permission was not given\. You can still count your pulse by hand\./);
-  assert.equal(await page.locator('[data-a="ppgopen"]').count(), 0, 'no repeated prompts');
+  assert.equal(await page.locator('#hwppg [data-a="ppgopen"]').count(), 0, 'no repeated prompts');
   assert.equal(await page.evaluate(() => window.__asked), 1);
   assert.equal(await page.locator('#wk-b').count(), 1, 'manual entry stays');
   assert.deepEqual(errors, []);
@@ -204,7 +204,7 @@ test('cancel, leaving the page and a hidden page stop every track; permission de
   // unsupported: no button, one plain line
   const u = await openApp({ before: p => p.addInitScript(() => { Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: undefined }); }) });
   await go(u.page, 'pulse');
-  assert.equal(await u.page.locator('[data-a="ppgopen"]').count(), 0);
+  assert.equal(await u.page.locator('#hwppg [data-a="ppgopen"]').count(), 0);
   assert.match(await u.page.textContent('#hwppg'), /Your browser can't use the camera here; count your pulse for 15 s and multiply by 4/);
   assert.equal(await u.page.locator('#wk-b').count(), 1);
   assert.deepEqual(u.errors, []);
@@ -220,6 +220,42 @@ test('the Heartstone Hall card at 390 × 844 keeps the BEFORE field close to whe
   await page.click('#hwppg .hwh');
   const t = await page.textContent('#hwh-pop');
   for (const w of [/photoplethysmography/, /blood/i, /0\.7–3\.5 Hz/, /f.*= 1 ÷ T/, /2πf/, /not a medical measurement/, /count for 15 s and multiply by 4/]) assert.match(t, w);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test('a camera button beside every BPM option: it brings CAMERA PULSE into view, and a good reading fills the field and logs BEFORE / AFTER by itself', async () => {
+  const { page, ctx, errors } = await openApp({ before: fakeCam(1.2), viewport: { width: 390, height: 844 } });
+  await go(page, 'pulse');
+  for (const [k, where] of [['b', '.sthr.b'], ['a', '.sthr.a'], ['r', '.sthr.a']])
+    assert.equal(await page.locator(where + ' [data-a="ppgopen"][data-k="' + k + '"]').count(), 1, 'camera button for ' + k);
+  assert.ok(await page.evaluate(() => { const l = document.querySelector('.sthr.b [data-a="hrlog"]').getBoundingClientRect(), c = document.querySelector('.sthr.b [data-a="ppgopen"]').getBoundingClientRect(); return Math.abs(l.top - c.top) < 4 && c.left > l.right - 2; }), 'the camera button sits beside LOG BEFORE BPM');
+  assert.equal(EMOJI.test(await page.textContent('.sthr.b .stlogr')), false);
+  // AFTER: measured from its own button
+  await page.click('.sthr.a [data-a="ppgopen"][data-k="a"]');
+  assert.match(await page.textContent('#mo'), /filled in and logged as AFTER/);
+  await page.waitForFunction(() => { const t = document.getElementById('hwppg').getBoundingClientRect().top; return t >= -2 && t < 300; }, null, { timeout: 5000 }); // the screen is taken to CAMERA PULSE
+  await page.click('[data-a="ppgstart"]');
+  assert.match(await page.textContent('#hwppg'), /filled in and logged as AFTER/);
+  await page.waitForSelector('#ppg-res', { timeout: 40000 });
+  const bpm = +(await page.textContent('#ppg-res'));
+  assert.equal(await page.inputValue('#wk-a'), String(bpm), 'AFTER is filled in');
+  let p = (await state(page)).e.filter(x => x.c === 'pulse');
+  assert.equal(p.length, 1, 'logged without pressing LOG');
+  assert.deepEqual([p[0].v, p[0].m.when, p[0].m.src, p[0].m.ppg.q], [bpm, 'after', 'camera', 'good']);
+  assert.equal(await page.evaluate(() => hrLast().a), bpm);
+  assert.equal(await page.locator('#st-logs svg.pxi-camera').count(), 1);
+  // 1 MIN AFTER: filled in, saved only with the workout
+  await page.click('.sthr.a [data-a="ppgopen"][data-k="r"]');
+  await page.click('[data-a="ppgstart"]');
+  await page.waitForFunction(() => HWPPG.state === 'done' && document.getElementById('wk-r').value !== '', null, { timeout: 40000 });
+  p = (await state(page)).e.filter(x => x.c === 'pulse');
+  assert.equal(p.length, 1, '1 minute after is not a logged BPM');
+  assert.match(await page.innerHTML('#st-hs-r'), /pxi-camera/);
+  assert.equal(await page.evaluate(() => !!HWStairs.draft.hrR1c), true);
+  // the plain button does not log by itself
+  await page.click('#hwppg [data-a="ppgopen"]');
+  assert.doesNotMatch(await page.textContent('#mo'), /logged as/);
   assert.deepEqual(errors, []);
   await ctx.close();
 });

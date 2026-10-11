@@ -177,14 +177,16 @@ function casual(){
     +HWWhen.html({id:'stair',cats:['stair']})
     +btn('savestair','SAVE CLIMB','stsave')+'</div>'}
 
+// the camera button beside a BPM field: opens CAMERA PULSE (js/v6-ppg.js) with this field as the target
+const camBtn=(k,t)=>hasPPG&&HWPPG.supported()?btn('ppgopen',ico('camera')+' '+t,'g stcam',' data-k="'+k+'" aria-label="'+(k==='r'?'Measure 1 minute after with the camera':'Measure '+(k==='b'?'before':'after')+' with the camera and log it')+'"'):'';
 // heart-rate trace for one moment of the workout
 function trace(k,v){const B=k==='b',L=B?'BEFORE WORKOUT':'AFTER WORKOUT';
   return '<div class="sthr '+(B?'b':'a')+'"><div class="sthrh">'+ico('heart')+'<b>'+L+'</b></div>'
     +'<canvas class="sttr" id="st-tr-'+k+'" data-bpm="'+(v||'')+'" data-k="'+k+'" role="img" aria-label="'+L+' heart rate: '+(v?v+' BPM, '+srcAria(k):'not entered')+'"></canvas>'
     +'<div class="stpm"><small id="st-pm-'+k+'">'+pmTxt(v)+'</small>'+pmHelp()+'</div>'
     +'<label>'+(B?'Before you start':'Right after you stop')+' (BPM)<input id="wk-'+k+'" data-in="stw" type="number" min="30" max="220" inputmode="numeric" value="'+esc(B?W.hrB:W.hrA)+'"></label>'
-    +btn('hrlog','LOG '+(B?'BEFORE':'AFTER')+' BPM','stlogb',' data-k="'+k+'"')
-    +'<small class="mut" id="st-hs-'+k+'">'+hsTxt(k,v)+'</small>'+(B?'<small class="strest" id="st-rest" role="status">'+restTxt(v)+'</small>':'<label>1 minute after you stop (BPM) <small class="mut">(optional)</small><input id="wk-r" data-in="stw" type="number" min="30" max="220" inputmode="numeric" value="'+esc(W.hrR1)+'"></label><small class="mut">Rest quietly, count your pulse again one minute later. Your heart should slow down after you stop.</small><small class="mut" id="st-hs-r">'+hsR()+'</small>')+'</div>'}
+    +'<div class="stlogr">'+btn('hrlog','LOG '+(B?'BEFORE':'AFTER')+' BPM','stlogb',' data-k="'+k+'"')+camBtn(k,'CAMERA')+'</div>'
+    +'<small class="mut" id="st-hs-'+k+'">'+hsTxt(k,v)+'</small>'+(B?'<small class="strest" id="st-rest" role="status">'+restTxt(v)+'</small>':'<label>1 minute after you stop (BPM) <small class="mut">(optional)</small><input id="wk-r" data-in="stw" type="number" min="30" max="220" inputmode="numeric" value="'+esc(W.hrR1)+'"></label>'+camBtn('r','MEASURE WITH CAMERA')+'<small class="mut">Rest quietly, count your pulse again one minute later. Your heart should slow down after you stop.</small><small class="mut" id="st-hs-r">'+hsR()+'</small>')+'</div>'}
 const pmTxt=v=>{const m=pulseSHM(v);return m?esc(shmTxt(m)):'<span class="mut">Enter a heart rate to see f, T and ω.</span>'};
 const pmHelp=()=>{HWHelp.reg('pulseshm','Pulse as a periodic motion','<p>We treat the pulse as an approximately periodic motion, like simple harmonic motion. Each beat repeats after one period.</p><p><b>f</b> (Hz) = BPM ÷ 60 · <b>T</b> (s) = 1 ÷ f · <b>ω</b> (rad/s) = 2πf.</p><p>A faster pulse means a higher frequency and a shorter period. The trace spaces its beats by RR = 60 ÷ BPM, which is the same as T, so the drawing matches the number.</p><p class="mut">A real pulse is not perfectly regular, so these are approximate values for learning, not a medical measurement.</p>');return HWHelp.btn('pulseshm')};
 const devK=k=>!!(k==='b'?W.hrBd:W.hrAd),camK=k=>(k==='b'?W.hrBc:k==='a'?W.hrAc:W.hrR1c)||null;
@@ -350,6 +352,8 @@ acts.hruse=d=>{if(!hasHR)return;const s=HWHR.stable(),k=d.k==='a'?'a':'b';
   const e=$id('wk-'+k);if(e)e.value=s.v;if(k==='b'){W.hrB=String(s.v);W.hrBd=1;W.hrBc=0}else{W.hrA=String(s.v);W.hrAd=1;W.hrAc=0}
   INP.stw(null);toast('Watch reading used: '+s.v+' BPM '+(k==='b'?'before':'after')+' the workout')};
 /* ---------- camera estimate (js/v6-ppg.js): USE AS BEFORE / AFTER / 1 MIN AFTER fills the field and marks its source; saving is still LOG BPM or SEAL ---------- */
+// a measurement started from a camera button finished well: fill that field, and log BEFORE / AFTER like LOG BPM does (1 MIN AFTER is saved with the workout)
+acts.ppgauto=d=>{const k=d.k==='a'?'a':d.k==='r'?'r':'b';acts.ppguse({k});if(k!=='r')acts.hrlog({k})};
 acts.ppguse=d=>{if(!hasPPG)return;const r=HWPPG.result(),k=d.k==='a'?'a':d.k==='r'?'r':'b';
   if(!r||!okHR(r.bpm)){toast('Measure with the camera first');return}
   const e=$id('wk-'+(k==='r'?'r':k));if(e)e.value=r.bpm;const c={n:r.beats,s:r.secs},v=String(r.bpm);
@@ -447,7 +451,7 @@ HWUI.css('stairs',`
 .sthd>div{min-width:0;display:flex;flex-direction:column;gap:4px;align-items:flex-start}.sthd b{font:var(--px-f2)/1.3 var(--fh);overflow-wrap:anywhere}.sthd small{font-size:13px}
 .sttabs{margin-bottom:20px}.sttabs .nst .bar{min-height:10px}
 .stkh{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:10px 0}.stkh>b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fh)}.stkh small{flex:1 1 100%}
-.stlogb{width:100%;min-height:44px;margin:8px 0 4px;justify-content:center}
+.stlogr{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px}.stlogb{flex:1 1 140px;min-height:44px;margin:0;justify-content:center}.stcam{flex:0 1 auto;min-height:44px;display:flex;align-items:center;justify-content:center;gap:6px}
 .stcount{margin:10px 0;padding:8px 10px;border:var(--px-bw-c) dashed var(--ln);background:var(--p2)}.stcount b:first-child{font:var(--px-f1)/1.6 var(--fh);margin-right:6px}
 .stlogs{margin:10px 0}.stlg{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:6px 0;border-top:2px dashed var(--p2)}.stlg .stsa2{margin-left:auto;display:flex;gap:6px}
 .stcats button{flex:1 1 90px}.stloc{display:flex;align-items:center;gap:6px;flex-wrap:wrap;overflow-wrap:anywhere}
