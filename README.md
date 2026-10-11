@@ -62,6 +62,7 @@ js/v6-counsel.js           the Wizard's Counsel → medius-chat Edge Function (s
 js/v6-board.js             Hall of Heroes: opt-in leaderboard of game progress only (Quest Board card + Settings privacy card)
 js/v6-live.js              live weather + haze (jerebu) for Kolej MARA Kulim from Open-Meteo: title sky, Home chip + JEREBU CHECK, hazeBanner() + heat tip above Running, Settings → LIVE DATA
 js/v6-alarm.js             wake-up alarm on the Sleep page: in-app alarm (sounds, snooze, bedside clock), Android Clock intent, iPhone steps, .ics reminder
+js/v6-ppg.js               Pulse Wave Lab: camera pulse estimate (photoplethysmography) for the Heartstone Hall card on the Stairs page; live wave, BPM from the median beat interval, f / T / ω, USE AS BEFORE / AFTER / 1 MIN AFTER (saved as m.src 'camera' by LOG BPM or SEAL THE WORKOUT); video never stored
 js/v6-hr.js                smartwatch / chest-strap heart rate over Web Bluetooth (0x180D/0x2A37, battery 0x180F) for the Workout on the Stairs page (and BPM logged in Heartstone Hall); "Will my watch work?" sheet
 js/v6-runboard.js          Runners' Board: opt-in running leaderboard (nickname + weekly totals only) under Running Road on the Training Hall; rows follow the account when signed in
 js/v6-running.js           GPS run tracker (RUNNING ROAD on the Training Hall page): distance, moving time, pace, calories burned estimate
