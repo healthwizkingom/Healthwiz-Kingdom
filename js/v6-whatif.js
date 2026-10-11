@@ -72,12 +72,16 @@ function math(S){
   if(!ks.length)return 'No indicator has data, so there is no score to simulate.';
   const top=ks.map(k=>SC.WT[k]+'×'+Math.round(S.I[k].sub)).join(' + '),sum=ks.reduce((s,k)=>s+SC.WT[k]*S.I[k].sub,0);
   return 'Score = Σ(weight × sub-score) ÷ Σ(weights of the indicators that have data)<br>= ('+top+') ÷ '+S.w+' ≈ '+R1(sum)+' ÷ '+S.w+' = <b>'+fx(sum/S.w,1)+'</b>, rounded to <b>'+S.score+'</b>.<br><small class="mut">Sub-scores (0–100) are shown rounded here; the calculation uses them unrounded.</small>'}
+// the score block is drawn like the head of the Health Score card (big band-coloured number, / 100, band name, areas logged, bar), twice:
+// the real score, and the simulated one with a dashed frame and a SIMULATION tag so the two cannot be confused
+const diffTxt=(a,b)=>{const d=a!=null&&b!=null?b-a:null;return d==null?(b==null?'No score to simulate yet':'Your real score is not available yet, so there is no difference to show'):d===0?'No change (0 points)':sgn(d)+' point'+(Math.abs(d)===1?'':'s')+' in this simulation'};
+const blk=(s,cov)=>{const bd=s==null?null:SC.band(s);
+  return {num:s==null?'\u2013':s,col:bd?bd[1]:'var(--mut)',band:bd?bd[0]:'No data',cov:cov+' of '+SC.GROUP.length+' areas logged',bar:bd?bar(s,bd[1]):''}};
 function out(C,S){
-  const a=C.score,b=S.score,d=a!=null&&b!=null?b-a:null;
-  const dt=d==null?(b==null?'No score to simulate yet':'Your real score is not available yet, so there is no difference to show'):d===0?'No change (0 points)':sgn(d)+' point'+(Math.abs(d)===1?'':'s')+' in this simulation';
-  return '<div class="wifscore"><div><small class="mut">YOUR REAL SCORE</small><b class="wifa">'+(a==null?'–':a)+'</b></div><div class="wifarrow" aria-hidden="true">→</div>'
-    +'<div class="wifsim"><small>SIMULATED SCORE</small><b id="wif-score" class="wifb" data-v="'+(b==null?'':b)+'">'+(b==null?'–':b)+'</b></div>'
-    +'<div class="wifdiff'+(d>0?' up':d<0?' dn':'')+'" id="wif-diff" role="status">'+esc(dt)+'</div></div>'
+  const R=blk(C.score,C.covered),M=blk(S.score,S.covered),d=C.score!=null&&S.score!=null?S.score-C.score:null;
+  const card=(cls,tag,x,ids)=>'<div class="wifc '+cls+'"><span class="pxtag">'+tag+'</span><div class="v6sc"><b class="v6scn '+(ids?'wifb':'wifa')+'"'+(ids?' id="wif-score" data-v="'+(S.score==null?'':S.score)+'"':'')+' style="color:'+x.col+'">'+x.num+'</b><span class="v6scd">/ 100</span><div><b'+(ids?' id="wif-band"':'')+'>'+x.band+'</b><small class="mut"'+(ids?' id="wif-cov"':'')+'>'+x.cov+'</small></div></div><div'+(ids?' id="wif-barw"':'')+'>'+x.bar+'</div></div>';
+  return '<div class="wifscore">'+card('real','YOUR REAL SCORE',R,0)+card('sim','SIMULATION',M,1)
+    +'<div class="wifdiff'+(d>0?' up':d<0?' dn':'')+'" id="wif-diff" role="status">'+esc(diffTxt(C.score,S.score))+'</div></div>'
     +'<p class="wifnote" id="wif-note">If these numbers changed, the arithmetic of the score would change like this. It does not predict that your real health would change.</p>'}
 function inner(C){
   const S=simulate(C),win=SC.K.win()==='week'?'your 7-day averages':'today’s values';
@@ -108,8 +112,11 @@ function repaint(){const root=document.getElementById('wif');if(!root)return;con
 INP.wif=el=>{const k=el.dataset.k,sp=SPEC[k];if(!sp)return;sim[k]=+el.value;
   const C=SC.compute(),S=simulate(C),v=document.getElementById('wif-v-'+k);if(v)v.textContent=sp.f(sim[k]);
   const sc=document.getElementById('wif-score'),df=document.getElementById('wif-diff'),tb=document.getElementById('wif-tbl'),mt=document.getElementById('wif-math');
-  const a=C.score,b=S.score,d=a!=null&&b!=null?b-a:null;
-  tween(sc,b);if(df){df.textContent=d==null?(b==null?'No score to simulate yet':'Your real score is not available yet, so there is no difference to show'):d===0?'No change (0 points)':sgn(d)+' point'+(Math.abs(d)===1?'':'s')+' in this simulation';df.className='wifdiff'+(d>0?' up':d<0?' dn':'')}
+  const M=blk(S.score,S.covered),d=C.score!=null&&S.score!=null?S.score-C.score:null;
+  tween(sc,S.score);if(sc)sc.style.color=M.col;
+  const bn=document.getElementById('wif-band'),cv=document.getElementById('wif-cov'),bw=document.getElementById('wif-barw');
+  if(bn)bn.textContent=M.band;if(cv)cv.textContent=M.cov;if(bw)bw.innerHTML=M.bar;
+  if(df){df.textContent=diffTxt(C.score,S.score);df.className='wifdiff'+(d>0?' up':d<0?' dn':'')}
   if(tb)tb.innerHTML=table(C,S);if(mt)mt.innerHTML=math(S)};
 acts.wifopen=()=>{const C=SC.compute();init(C);open=true;repaint();const b=document.getElementById('wif-body');if(b)b.scrollIntoView({block:'nearest',behavior:HWUI.reduced()?'auto':'smooth'})};
 acts.wifclose=()=>{open=false;sim={};repaint();const b=document.querySelector('#wif .wifopen');if(b)b.focus({preventScroll:true})};
@@ -127,9 +134,9 @@ HWUI.css('whatif',`
 .wifhd h3{margin:0 0 6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px}
 .wifopen{width:100%;min-height:48px;margin:6px 0}
 .wifsimtag{display:block;margin:6px 0 8px;padding:4px 6px;line-height:1.7;overflow-wrap:anywhere;white-space:normal}
-.wifscore{display:grid;grid-template-columns:1fr auto 1fr;gap:6px 10px;align-items:center;margin:8px 0}
-.wifscore>div:not(.wifdiff):not(.wifarrow){background:var(--p2);border:3px solid var(--ln);padding:8px 10px}
-.wifscore b{display:block;font:var(--px-f3,24px)/1.2 var(--fh)}.wifscore small{display:block;font-size:11px}
+.wifscore{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0}
+.wifc{border:3px solid var(--ln);background:var(--pn);padding:8px 10px;min-width:0}.wifc.sim{border-style:dashed;background:var(--p2)}.wifc .v6sc{margin:8px 0 6px}.wifc .v6scn{font-size:38px}
+.wifc .pxtag{display:inline-block}
 .wifb.pulse{animation:wifp .45s steps(4)}@keyframes wifp{40%{transform:translateY(-2px);color:var(--gold)}}
 .wifarrow{font:var(--px-f2,16px) var(--fh);color:var(--mut)}
 .wifdiff{grid-column:1/-1;text-align:center;font:9px/1.7 var(--fh);padding:6px;border:3px solid var(--ln);background:var(--pn)}.wifdiff.up{border-color:var(--grn)}.wifdiff.dn{border-color:var(--blue)}
@@ -150,7 +157,7 @@ HWUI.css('whatif',`
 .wifwhy summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-size:13px}.wifwhy p{margin:4px 0;font-size:13px;overflow-wrap:anywhere}
 .wifsec{margin:12px 0}.wifsec h4{margin:0 0 6px;display:flex;align-items:center;gap:6px;font:9px/1.6 var(--fh)}
 .wiftbl{min-width:460px}.wiftbl th{white-space:normal}.wiftbl td{overflow-wrap:normal}.wiftbl td:nth-child(2),.wiftbl td:nth-child(3){min-width:92px}
-@media(max-width:420px){.wifscore{grid-template-columns:1fr 1fr}.wifarrow{display:none}}
+@media(max-width:420px){.wifc .v6scn{font-size:30px}.wifc .v6sc div{margin-left:0}}
 @media(prefers-reduced-motion:reduce){.wifb.pulse{animation:none}}
 html.hw-rm .wifb.pulse{animation:none}
 `);

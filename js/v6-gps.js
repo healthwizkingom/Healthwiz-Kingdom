@@ -69,7 +69,7 @@ function card(){const K=counts(),n=K.mapped,un=K.unmapped,found=K.found;
     return h+'<div class="row" style="margin-top:8px">'+btn('gpsfind','↻ REFRESH','g')+btn('gpsno','CLOSE','g')+'</div>'+manual}
   if(U.k==='confirm'){const s=STAIRS[U.i],last=LC('stair').filter(e=>e.m&&e.m.sid===s.id).pop();
     return h+'<p>Check in at <b>'+esc(s.name)+'</b> ('+CAT[s.cat]+', '+esc(s.floor)+').</p><p class="mut">Fill this in while standing still, before or after your climb. Please don\'t use your phone on the stairs.</p>'
-      +'<div class="row"><label>Steps per climb<input id="gps-s" type="number" min="1" max="1000" value="'+(last&&+last.m.steps||'')+'"></label><label>Number of climbs<input id="gps-c" type="number" min="1" max="500" value="1"></label></div>'
+      +'<div class="stlabr gpsss"><b>Steps per climb</b>'+(typeof HWGravity==='undefined'?'':'<button type="button" class="g sm gvbtn" data-a="gvgo" data-k="g" aria-label="Stair Sense: count the steps with your phone and fill in Steps per climb">'+HWPixel.icon('wizard')+' STAIR SENSE</button>')+'</div><div class="row"><label>Steps per climb<input id="gps-s" type="number" min="1" max="1000" value="'+(last&&+last.m.steps||'')+'"></label><label>Number of climbs<input id="gps-c" type="number" min="1" max="500" value="1"></label></div>'
       +'<label>Pace<select id="gps-p">'+PACES.map(p=>'<option>'+p[1]+'</option>').join('')+'</select></label>'
       +'<div class="row" style="margin-top:8px">'+btn('gpsconfirm','CONFIRM CHECK-IN')+btn('gpscancel','BACK','g')+'</div>'}
   return h}

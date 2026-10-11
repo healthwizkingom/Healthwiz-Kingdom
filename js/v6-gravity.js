@@ -86,8 +86,9 @@ const stairOf=id=>STAIRS.find(s=>s.id===id)||null;
 const checkin=()=>{const e=LC('stair').filter(x=>x.d===today()&&x.m&&(x.m.src==='gps'||x.m.chk==='gps')&&stairOf(x.m.sid)).pop();return e?stairOf(e.m.sid):null};
 
 /* ---------- session state (memory only until the user saves) ---------- */
-const fresh=()=>({ph:'idle',busy:0,gid:'',sid:'',sensor:'off',est:0,got:0,acc:0,since:0,ctr:null,cadence:null,ack:0,cancel:0,dup:0,
-  inp:{steps:'',rise:'',mass:'',min:''},ed:{rise:0,mass:0},saved:null});
+const TG={c:'LOG A CLIMB BY HAND',w:'SEAL THE WORKOUT',g:'GPS CHECK-IN'};   // where a STAIR SENSE button was pressed
+const fresh=()=>({target:'',ph:'idle',busy:0,gid:'',sid:'',sensor:'off',est:0,got:0,acc:0,since:0,ctr:null,cadence:null,ack:0,cancel:0,dup:0,
+  inp:{steps:'',rise:'',mass:'',min:'',climbs:'1'},ed:{rise:0,mass:0},saved:null});
 let G=fresh(),tick=0,listening=false,chk=0;
 const activeMs=()=>G.acc+(G.ph==='running'?Date.now()-G.since:0);
 const gated=()=>typeof HWCond!=='undefined'&&HWCond.stairsHidden()&&!(st.qa&&st.qa.show),locked=()=>gated()&&!G.ack;
@@ -130,7 +131,7 @@ function live(){
 const stat=(id,v,u,l)=>'<div class="ststat gvst"><span class="stsv"><b id="'+id+'">'+v+'</b> <small>'+u+'</small></span><span class="stsl">'+l+'</span></div>';
 function idle(){
   const ci=checkin(),q=stairOf(G.sid);
-  return '<p class="mut">Carry your phone while you climb. Stair Sense times the climb, estimates the steps, and at the end works out the height, the work against gravity and the average power. You check every number before anything is saved.</p>'
+  return (G.target?'<p class="gvfrom" role="status"><b>Started from '+TG[G.target]+'.</b> When you finish, the steps'+(G.target==='w'?' and the time':'')+' are filled in there for you. <button type="button" class="g sm" data-a="gvuntarget">NOT FOR THAT FORM</button></p>':'')+'<p class="mut">Carry your phone while you climb. Stair Sense times the climb, estimates the steps, and at the end works out the height, the work against gravity and the average power. You check every number before anything is saved.</p>'
     +stairSelect()+(ci&&ci.id!==G.sid?'<button type="button" class="g sm gvci" data-a="gvci" data-id="'+ci.id+'">USE TODAY’S CHECK-IN: '+esc(ci.name)+'</button>':'')
     +(q?'<p class="mut gvq">'+esc(q.name)+' · '+esc(q.floor)+' · step height '+(riseKind(q.id)==='study'?'<b>'+f1(verifiedRise(q.id)*100,1)+' cm</b>, measured (Group 14 study)':riseKind(q.id)==='angle'?'<b>\u2248 '+f1(verifiedRise(q.id)*100,1)+' cm</b>, estimated from its angle ('+f1(q.angle,1)+'\u00b0)':'<b>not available</b> for this very steep stairway: you can type it at the end')+'</p>':'')
     +(gated()?'<label class="gvack"><input type="checkbox" id="gv-ack" data-in="gv" data-f="ack"'+(G.ack?' checked':'')+'> I have checked with my doctor that I can use stairs.</label><small class="mut">You told HealthWiz about something that needs a doctor’s OK first.</small>':'')
@@ -151,6 +152,7 @@ function review(){
     +stairSelect()
     +lbl('gv-n','Steps climbed (up only)','<input id="gv-n" data-in="gv" data-f="steps" type="number" min="1" max="1000" inputmode="numeric" value="'+esc(G.inp.steps)+'">')
     +'<small class="mut" id="gv-nn">'+(G.sensor==='on'&&G.est?'The sensor estimated '+G.est+' steps. Change it if you counted differently.':'Count the steps of one climb and multiply by the number of climbs.')+'</small>'
+    +(G.target?lbl('gv-k','Number of climbs','<input id="gv-k" data-in="gv" data-f="climbs" type="number" min="1" max="500" inputmode="numeric" value="'+esc(G.inp.climbs)+'">')+'<small class="mut" id="gv-kn">'+kNote()+'</small>':'')
     +lbl('gv-m','Time (minutes)','<input id="gv-m" data-in="gv" data-f="min" type="number" min="0.2" max="1440" step="0.05" inputmode="decimal" value="'+esc(G.inp.min)+'">')
     +'<small class="mut">From the timer, '+clk(G.acc/1000)+' (rests while the timer ran are included).</small>'
     +lbl('gv-r','Height of one step (cm)','<input id="gv-r" data-in="gv" data-f="rise" type="number" min="5" max="30" step="0.1" inputmode="decimal" placeholder="e.g. measured with a ruler" value="'+esc(G.inp.rise)+'">')
@@ -159,7 +161,9 @@ function review(){
     +'<small class="mut" id="gv-wn">'+massNote(mi)+'</small>'
     +'<div id="gv-res">'+results()+'</div>'
     +(G.dup?'<p class="warn" role="alert">You already logged a session with the same steps at this stairway today. Saving adds a second record. Press SAVE AGAIN to add it anyway.</p>':'')
-    +'<div class="gvbtns"><button type="button" data-a="gvsave">'+(G.dup?'SAVE AGAIN':'SAVE TO MY STAIR LOG')+'</button><button type="button" class="g" data-a="gvcancel">'+(G.cancel?'TAP AGAIN TO DISCARD':'DISCARD')+'</button></div>'}
+    +(G.target?'<p class="mut gvsend">Nothing is saved here. The numbers go into '+TG[G.target]+', and you save from there, so the climb is logged once.</p><div class="gvbtns"><button type="button" data-a="gvsend">SEND TO '+TG[G.target]+'</button><button type="button" class="g" data-a="gvcancel">'+(G.cancel?'TAP AGAIN TO DISCARD':'DISCARD')+'</button></div>'
+      :'<div class="gvbtns"><button type="button" data-a="gvsave">'+(G.dup?'SAVE AGAIN':'SAVE TO MY STAIR LOG')+'</button><button type="button" class="g" data-a="gvcancel">'+(G.cancel?'TAP AGAIN TO DISCARD':'DISCARD')+'</button></div>')}
+const kNote=()=>{const n=Math.round(+G.inp.steps),k=Math.round(+G.inp.climbs);return n>=1&&k>=1?'Steps per climb = '+n+' \u00f7 '+k+' = '+Math.round(n/k)+(Math.round(n/k)*k!==n?' (rounded, so the form will hold '+Math.round(n/k)*k+' steps in all)':''):'Total steps divided by the number of climbs.'};
 const riseNote=(q,vr)=>!q?'Choose the staircase above.':vr&&!G.ed.rise?(riseKind(q.id)==='study'?'Measured in the Group 14 study ('+f1(vr*100,1)+' cm). You can change it.':'Estimated from the stairway\u2019s angle: '+f1(RUN_EST*100,1)+' cm tread (average of the measured stairways) \u00d7 tan '+f1(q.angle,1)+'\u00b0. An estimate; measure one step with a ruler to replace it.'):G.inp.rise===''?'No step height can be worked out for this stairway. Measure one step with a ruler, or leave it empty and the height, work and power stay unavailable.':'Typed in by you.';
 const massNote=mi=>G.inp.mass===''?'No weight on record. Enter your body mass, or work and power stay unavailable.':mi&&!G.ed.mass?'From '+mi.src+'. You can change it for this session.':'Typed in by you.';
 function calc(){return physics(Math.round(+G.inp.steps),(+G.inp.rise)/100,+G.inp.mass,(+G.inp.min)*60)}
@@ -204,7 +208,7 @@ acts.gvfinish=()=>{
   if(G.ph==='running')G.acc+=Date.now()-G.since;
   stop();G.ph='review';G.cancel=0;
   const mi=massInfo(),q=stairOf(G.sid);
-  G.inp={steps:G.sensor==='on'&&G.est>0?String(G.est):'',rise:q&&verifiedRise(q.id)?String(Math.round(verifiedRise(q.id)*1000)/10):'',mass:mi?String(mi.kg):'',min:String(Math.round(G.acc/600)/100)};
+  G.inp={steps:G.sensor==='on'&&G.est>0?String(G.est):'',rise:q&&verifiedRise(q.id)?String(Math.round(verifiedRise(q.id)*1000)/10):'',mass:mi?String(mi.kg):'',min:String(Math.round(G.acc/600)/100),climbs:'1'};
   G.ed={rise:0,mass:0};repaint()};
 acts.gvcancel=()=>{
   if(!G.cancel){G.cancel=1;repaint();return}
@@ -217,7 +221,29 @@ INP.gv=el=>{const f=el.dataset.f;
     if(G.ph==='review'){const q=stairOf(G.sid),vr=q?verifiedRise(q.id):null;if(!G.ed.rise)G.inp.rise=vr?String(Math.round(vr*1000)/10):'';repaint('gv-sid')}else repaint('gv-sid');return}
   if(!(f in G.inp))return;G.inp[f]=el.value;G.dup=0;G.cancel=0;if(f==='rise')G.ed.rise=1;if(f==='mass')G.ed.mass=1;
   const r=$i('gv-res');if(r)r.innerHTML=results();
-  const rn=$i('gv-rn');if(rn)rn.textContent=riseNote(stairOf(G.sid),stairOf(G.sid)?verifiedRise(G.sid):null);const wn=$i('gv-wn');if(wn)wn.textContent=massNote(massInfo())};
+  const kn=$i('gv-kn');if(kn)kn.textContent=kNote();const rn=$i('gv-rn');if(rn)rn.textContent=riseNote(stairOf(G.sid),stairOf(G.sid)?verifiedRise(G.sid):null);const wn=$i('gv-wn');if(wn)wn.textContent=massNote(massInfo())};
+acts.gvgo=d=>{
+  const k=TG[d.k]?d.k:'';
+  if(G.ph!=='running'&&G.ph!=='paused'&&G.ph!=='idle'){const sid=G.sid;G=fresh();G.sid=sid}
+  G.target=k;
+  if(!G.sid&&typeof HWStairs.pick==='string'&&stairOf(HWStairs.pick))G.sid=HWStairs.pick;
+  repaint();const c=$i('gvtrial');
+  if(c)c.scrollIntoView({block:'start',behavior:HWUI.reduced()?'auto':'smooth'})};
+acts.gvuntarget=()=>{G.target='';repaint()};
+// hand the review's numbers to the form the button was pressed beside; nothing is saved here
+acts.gvsend=()=>{
+  if(G.ph!=='review'||!G.target)return;
+  const n=Math.round(+G.inp.steps),k=Math.round(+G.inp.climbs),min=Math.round(+G.inp.min*100)/100,t=G.target;
+  if(!(Number.isInteger(n)&&n>=1&&n<=1000)){toast('Enter the steps climbed (1\u20131000)');return}
+  if(!(Number.isInteger(k)&&k>=1&&k<=500)){toast('Enter the number of climbs (1\u2013500)');return}
+  const per=Math.round(n/k);if(!(per>=1&&per<=1000)){toast('Steps per climb should be 1\u20131000');return}
+  const sid=G.sid;G=fresh();G.sid=sid;
+  if(t==='g'){
+    const s=$i('gps-s'),c=$i('gps-c');
+    if(!s||!c){repaint();toast('Open the GPS check-in again and press STAIR SENSE there. Steps per climb: '+per+', climbs: '+k+'.');return}
+    s.value=per;c.value=k;repaint();s.scrollIntoView({block:'center',behavior:HWUI.reduced()?'auto':'smooth'});toast('From Stair Sense: '+per+' steps per climb, '+k+' climb'+(k===1?'':'s')+'. Check them, then check in.');return}
+  HWStairs.fill(t,{steps:per,climbs:k,sid,dur:t==='w'&&min>=.2?min:0});
+  toast('From Stair Sense: '+per+' steps per climb, '+k+' climb'+(k===1?'':'s')+(t==='w'&&min>=.2?', '+min+' min':'')+'. Check them, then save.')};
 acts.gvsave=()=>{
   if(G.ph!=='review')return;
   const q=stairOf(G.sid),n=Math.round(+G.inp.steps),min=+G.inp.min;
@@ -254,6 +280,8 @@ HWUI.css('gravity',`
 .gvm{margin:6px 0 10px}.gvml{font:8px var(--fh);color:var(--mut);display:block;margin-bottom:4px}
 .gvm .bar i{transition:width .3s steps(4)}
 .gvbtns{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.gvbtns button{flex:1 1 130px;min-height:48px}
+.gvfrom{margin:0 0 8px;padding:6px 8px;border:3px solid var(--blue);background:var(--p2);font-size:13px}.gvfrom .sm{margin-left:6px;min-height:44px}.gvsend{margin:8px 0 0}
+#gvtrial{scroll-margin-top:72px}
 .gvx,.gvalc{width:100%;min-height:44px}.gvalc{margin-top:10px}.gvpaused{margin:4px 0;padding:6px;border:3px solid var(--blue);background:var(--p2);font-size:13px}
 .gv h4{margin:12px 0 4px;font:9px/1.6 var(--fh)}
 .gvres{margin-top:12px;padding:8px;border:3px solid var(--ln);background:var(--p2)}.gvres h4{margin-top:0;display:flex;gap:8px;align-items:center;flex-wrap:wrap}

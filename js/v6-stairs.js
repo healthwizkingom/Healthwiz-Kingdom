@@ -109,6 +109,8 @@ const two=n=>(n<10?'0':'')+n,clock=s=>{s=Math.floor(s);return Math.floor(s/60)+'
 const durW=()=>W.durSet?num(W.dur):(secsW()>=30?mins(secsW()):null);
 const ico=(n,s)=>HWPixel.icon(n,s||1);
 const btn=(a,t,cls,x)=>'<button class="'+(cls||'')+'" data-a="'+a+'"'+(x||'')+'>'+t+'</button>';
+// the STAIR SENSE button beside a "Steps per climb" field: counts the steps with the phone and fills the field (js/v6-gravity.js)
+const ssBtn=k=>typeof HWGravity==='undefined'?'':'<button type="button" class="g sm gvbtn" data-a="gvgo" data-k="'+k+'" aria-label="Stair Sense: count the steps with your phone and fill in Steps per climb">'+ico('wizard')+' STAIR SENSE</button>';
 const CATN={MILD:'Mild',MODERATE:'Moderate',VIGOROUS:'Vigorous'};
 // intensity band from a stairway's stored angle θ (degrees): mild < 26°, moderate 26–31.2°, vigorous > 31.2°
 const BAND_RANGE={MILD:'< 26°',MODERATE:'26–31.2°',VIGOROUS:'> 31.2°'};
@@ -155,7 +157,7 @@ const showBox=(o)=>o.r==='c'||(o.r==null&&o.steps!=='')||(typeof o.r==='number')
 const totTxt=(s,c)=>s>0&&c>0?s+' steps × '+c+' climbs = <b>'+s*c+' steps</b>':'<span class="mut">Pick steps per climb and number of climbs to see the total.</span>';
 function counter(k){const m=CK[k],o=cobj(k),sv=+o.steps||0,cv=+o.climbs||0,v=o.steps!==''?+o.steps:null,ri=o.r==='c'?-1:v!=null?inRng(v):-1;
   const chip=(a,t,on,x)=>'<button type="button" class="chip stchip'+(on?' on':'')+'" data-a="'+a+'" data-k="'+k+'"'+x+' aria-pressed="'+(on?'true':'false')+'">'+t+'</button>';
-  return '<div class="stcnt" id="stcnt-'+k+'"><b class="stlab" id="stl-'+k+'s">Steps per climb</b><small class="mut">Count the steps from the bottom to the top of one climb. Pick the range that fits.</small>'
+  return '<div class="stcnt" id="stcnt-'+k+'"><div class="stlabr"><b class="stlab" id="stl-'+k+'s">Steps per climb</b>'+ssBtn(k)+'</div><small class="mut">Count the steps from the bottom to the top of one climb. Pick the range that fits.</small>'
     +'<div class="stchips" role="group" aria-labelledby="stl-'+k+'s">'+RNG.map((r,i)=>chip('strng',r[0]+'–'+r[1],i===ri,' data-r="'+i+'"')).join('')+chip('strng','Custom',o.r==='c'||(v!=null&&ri<0),' data-r="c"')+'</div>'
     +'<label class="stbox" id="'+m.s+'-w"'+(showBox(o)?'':' hidden')+'>Steps per climb <small class="mut">(change it if you counted exactly)</small><input id="'+m.s+'" data-in="'+m.i+'" type="number" min="1" max="1000" inputmode="numeric" value="'+esc(o.steps)+'"></label>'
     +'<b class="stlab" id="stl-'+k+'c">Number of climbs</b>'
@@ -402,6 +404,15 @@ acts.stwsave=()=>{INP.stw();pause();const s=+W.steps,c=+W.climbs,b=W.hrB===''?nu
     hrS:nd||nc?(nd===ng?'device':nc===ng?'camera':'mixed'):undefined,hrLo:lo,hrAv:av,hrHi:hi,hrPct:pk&&pk.pct||null,hrDev:nd?dv:null,hrCam:nc?cm:null}),'',w.d,w.t,25,'Workout saved');HWWhen.saved(w,'Workout');
   {const sid=st.e[st.e.length-1].id;[[W.lgB,b],[W.lgA,a]].forEach(([id,v])=>{const e=id&&st.e.find(q=>q.id===id);if(e&&v&&+e.v===v&&e.m&&!e.m.sess)e.m.sess=sid});save()} // the logs this workout used are counted through it, not twice
   clearInterval(S.tm);S.pb.on=0;W=W0();try{sessionStorage.removeItem(DK)}catch(x){}render()};
+/* Stair Sense (js/v6-gravity.js) hands its result to a form here: o = {steps per climb, climbs, sid, dur (min)}.
+   k is 'c' (log a climb by hand) or 'w' (seal the workout). The fields are filled in as if typed; nothing is saved. */
+function fill(k,o){
+  const w=k==='w';half=w?'workout':'casual';
+  if(o.sid&&STAIRS.some(s=>s.id===o.sid))acts.loc({i:String(STAIRS.findIndex(s=>s.id===o.sid))});
+  const ob=cobj(k);ob.steps=String(o.steps);ob.climbs=String(o.climbs||1);ob.r=null;
+  if(w){if(o.dur>0){W.dur=String(o.dur);W.durSet=1}keepW()}
+  render();const e=$id('stcnt-'+k);
+  if(e){e.scrollIntoView({block:'center',behavior:HWUI.reduced()?'auto':'smooth'});e.classList.add('stfill');setTimeout(()=>e.classList.remove('stfill'),2400)}}
 acts.stwreset=()=>{pause();clearInterval(S.tm);S.pb.on=0;W=W0();try{sessionStorage.removeItem(DK)}catch(e){}render();toast('Workout cleared. Nothing was saved.')};
 acts.stprof=()=>{const v=i=>{const e=$id(i);return e?e.value:''},a=+v('pf-a'),sx=v('pf-s'),h=+v('pf-h'),w=+v('pf-w');
   if(!(a>=10&&a<=100&&h>=100&&h<=230&&w>=20&&w<=300&&(sx==='m'||sx==='f'))){toast('Enter age 10–100, sex, height 100–230 cm and weight 20–300 kg');return}
@@ -437,6 +448,8 @@ HWEvents.on('data:reset',()=>{pick=null;W=W0();try{sessionStorage.removeItem(DK)
 DIS.stair=DIS.pulse='General exercise pacing aid, not medical treatment. Heart rates are the numbers you counted and entered, steady readings from your own heart-rate device, or camera estimates, that you chose to use; the trace is a picture, not an ECG, and nothing here is a diagnosis. Calorie numbers are estimates. Stop and get medical help for dizziness, chest pain, faintness or severe breathlessness.';
 
 HWUI.css('stairs',`
+.stlabr{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.stlabr .gvbtn{min-height:44px}
+.stfill{outline:3px solid var(--gold);outline-offset:2px}
 .stcnt{margin:10px 0}.stlab{display:block;margin:10px 0 2px;font:9px/1.6 var(--fh)}
 .stchips{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px;margin:8px 0}
 .stchips .chip{min-height:44px;min-width:44px;padding:6px 4px;font:14px/1.2 var(--fn)}
@@ -485,4 +498,4 @@ HWUI.css('stairs',`
 .stclimb .row label{flex:1 1 90px}.stclimb p{margin:6px 0;font-size:14px}.stclimb small{display:flex;gap:6px;align-items:center}.stsh b{display:inline-flex;align-items:center;gap:2px}
 @media(prefers-reduced-motion:reduce){.stses{animation:none}}html.hw-rm .stses,html.hw-still .stses{animation:none}
 `);
-return{session,all,record,estimate,projectVO2,pulseSHM,shmTxt,STUDY,profile,peak,MET,get pick(){return pick},get draft(){return Object.assign({},W,{secs:secsW()})}}})();
+return{session,all,record,fill,estimate,projectVO2,pulseSHM,shmTxt,STUDY,profile,peak,MET,get pick(){return pick},get draft(){return Object.assign({},W,{secs:secsW()})}}})();
