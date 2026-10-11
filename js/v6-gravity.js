@@ -66,7 +66,18 @@ function physics(n,r,m,t){
   return{h,W,P,kJ:W==null?null:W/1000,okN,okR,okM,okT}}
 
 /* ---------- where the numbers come from ---------- */
-const verifiedRise=id=>{const r=HWStairs.STUDY.find(x=>x.id===id);return r?r.rise:null};          // m, measured in the Group 14 study
+/* Step height (rise) of a stairway, in metres.
+   measured  the three Group 14 stairways have a measured rise (HWStairs.STUDY).
+   angle     every other stairway has only its angle θ (STAIRS), and tan θ = rise ÷ run, so rise = run × tan θ. The run (tread depth) is not
+             stored, so it is taken as the mean of the three measured treads (0.305 m). That is an ESTIMATE, labelled as one; the user can
+             replace it with a measured value. If the result is outside 5–30 cm (the steepest stairways, 59–66°, would give over 50 cm: their
+             treads are evidently not like the study's), no height is guessed and the user is asked.
+   Both the Gravity Trial and the Energy Workshop use this, so one stairway always has the same height. */
+const RUN_EST=HWStairs.STUDY.reduce((a,r)=>a+r.run,0)/HWStairs.STUDY.length;
+const measuredRise=id=>{const r=HWStairs.STUDY.find(x=>x.id===id);return r?r.rise:null};
+const angleRise=id=>{const s=STAIRS.find(x=>x.id===id);if(!s)return null;const r=RUN_EST*Math.tan(s.angle*Math.PI/180);return r>=.05&&r<=.3?r:null};
+const riseKind=id=>measuredRise(id)!=null?'study':angleRise(id)!=null?'angle':null;
+const verifiedRise=id=>riseKind(id)==='study'?measuredRise(id):riseKind(id)==='angle'?angleRise(id):null;
 function massInfo(){
   const b=LC('bmi').filter(e=>e.m&&+e.m.w>=20&&+e.m.w<=300).pop();
   if(b)return{kg:+b.m.w,src:'your weight record of '+b.d};
@@ -100,7 +111,7 @@ function stairSelect(){
   const cur=G.sid||(HWStairs.pick&&stairOf(HWStairs.pick)?HWStairs.pick:'');
   if(!G.sid&&cur)G.sid=cur;
   return '<label for="gv-sid">Staircase</label><select id="gv-sid" data-in="gv" data-f="sid"><option value="">Choose a staircase…</option>'
-    +CATS.map(c=>'<optgroup label="'+c[1]+'">'+stairsOf(c[1]).map(s=>'<option value="'+s.id+'"'+(s.id===G.sid?' selected':'')+'>'+esc(s.name)+(verifiedRise(s.id)?' · step height measured':'')+'</option>').join('')+'</optgroup>').join('')+'</select>'}
+    +CATS.map(c=>'<optgroup label="'+c[1]+'">'+stairsOf(c[1]).map(s=>'<option value="'+s.id+'"'+(s.id===G.sid?' selected':'')+'>'+esc(s.name)+(riseKind(s.id)==='study'?' · step height measured':riseKind(s.id)==='angle'?' · step height from angle':'')+'</option>').join('')+'</optgroup>').join('')+'</select>'}
 function meter(){const k=(G.est%20)/20*100;return '<div class="gvm" id="gv-meter" role="img" aria-label="Ascent meter: decorative, it fills as steps are counted and starts again every 20 steps"><span class="gvml">ASCENT METER</span>'+bar(k,'var(--vio)')+'</div>'}
 function sensTxt(){
   if(G.sensor==='unsupported')return 'This browser has no motion sensor. The timer works; count your steps and type them in at the end.';
@@ -121,7 +132,7 @@ function idle(){
   const ci=checkin(),q=stairOf(G.sid);
   return '<p class="mut">Carry your phone while you climb. Stair Sense times the climb, estimates the steps, and at the end works out the height, the work against gravity and the average power. You check every number before anything is saved.</p>'
     +stairSelect()+(ci&&ci.id!==G.sid?'<button type="button" class="g sm gvci" data-a="gvci" data-id="'+ci.id+'">USE TODAY’S CHECK-IN: '+esc(ci.name)+'</button>':'')
-    +(q?'<p class="mut gvq">'+esc(q.name)+' · '+esc(q.floor)+' · step height '+(verifiedRise(q.id)?'<b>'+f1(verifiedRise(q.id)*100,1)+' cm</b>, measured (Group 14 study)':'<b>not measured</b>: you can type it at the end')+'</p>':'')
+    +(q?'<p class="mut gvq">'+esc(q.name)+' · '+esc(q.floor)+' · step height '+(riseKind(q.id)==='study'?'<b>'+f1(verifiedRise(q.id)*100,1)+' cm</b>, measured (Group 14 study)':riseKind(q.id)==='angle'?'<b>\u2248 '+f1(verifiedRise(q.id)*100,1)+' cm</b>, estimated from its angle ('+f1(q.angle,1)+'\u00b0)':'<b>not available</b> for this very steep stairway: you can type it at the end')+'</p>':'')
     +(gated()?'<label class="gvack"><input type="checkbox" id="gv-ack" data-in="gv" data-f="ack"'+(G.ack?' checked':'')+'> I have checked with my doctor that I can use stairs.</label><small class="mut">You told HealthWiz about something that needs a doctor’s OK first.</small>':'')
     +'<small class="mut gvph"><b>Phone placement:</b> in a hand or a trouser pocket, screen toward you. Do not swing it or type on it.</small>'
     +'<button type="button" class="gvgo" data-a="gvstart"'+(locked()||G.busy?' disabled':'')+'>START CLIMB</button>'
@@ -149,7 +160,7 @@ function review(){
     +'<div id="gv-res">'+results()+'</div>'
     +(G.dup?'<p class="warn" role="alert">You already logged a session with the same steps at this stairway today. Saving adds a second record. Press SAVE AGAIN to add it anyway.</p>':'')
     +'<div class="gvbtns"><button type="button" data-a="gvsave">'+(G.dup?'SAVE AGAIN':'SAVE TO MY STAIR LOG')+'</button><button type="button" class="g" data-a="gvcancel">'+(G.cancel?'TAP AGAIN TO DISCARD':'DISCARD')+'</button></div>'}
-const riseNote=(q,vr)=>!q?'Choose the staircase above.':vr&&!G.ed.rise?'Measured in the Group 14 study ('+f1(vr*100,1)+' cm). You can change it.':G.inp.rise===''?'Not measured for this staircase. Measure one step with a ruler, or leave it empty and the height, work and power stay unavailable.':'Typed in by you.';
+const riseNote=(q,vr)=>!q?'Choose the staircase above.':vr&&!G.ed.rise?(riseKind(q.id)==='study'?'Measured in the Group 14 study ('+f1(vr*100,1)+' cm). You can change it.':'Estimated from the stairway\u2019s angle: '+f1(RUN_EST*100,1)+' cm tread (average of the measured stairways) \u00d7 tan '+f1(q.angle,1)+'\u00b0. An estimate; measure one step with a ruler to replace it.'):G.inp.rise===''?'No step height can be worked out for this stairway. Measure one step with a ruler, or leave it empty and the height, work and power stay unavailable.':'Typed in by you.';
 const massNote=mi=>G.inp.mass===''?'No weight on record. Enter your body mass, or work and power stay unavailable.':mi&&!G.ed.mass?'From '+mi.src+'. You can change it for this session.':'Typed in by you.';
 function calc(){return physics(Math.round(+G.inp.steps),(+G.inp.rise)/100,+G.inp.mass,(+G.inp.min)*60)}
 function results(){
@@ -218,7 +229,7 @@ acts.gvsave=()=>{
   if(twin&&!G.dup){G.dup=1;repaint();return}
   const c=calc(),vr=verifiedRise(q.id),r=(+G.inp.rise)/100,mi=massInfo();
   const gv={gid:G.gid,method:G.sensor==='on'&&G.est>0&&n===G.est?'sensor':G.sensor==='on'&&G.est>0?'sensor+corrected':'manual',sensor:G.sensor==='on'?G.est:null,n,
-    rise:c.okR?r:null,riseSrc:c.okR?(vr&&Math.abs(vr-r)<1e-9?'study':'typed'):null,mass:c.okM?+G.inp.mass:null,massSrc:c.okM?(G.ed.mass?'typed':mi&&mi.kg===+G.inp.mass?'record':'typed'):null,
+    rise:c.okR?r:null,riseSrc:c.okR?(vr&&Math.abs(vr-r)<1e-9?riseKind(q.id):'typed'):null,mass:c.okM?+G.inp.mass:null,massSrc:c.okM?(G.ed.mass?'typed':mi&&mi.kg===+G.inp.mass?'record':'typed'):null,
     secs:Math.round(min*60),h:c.h==null?null:Math.round(c.h*1000)/1000,W:c.W==null?null:Math.round(c.W),P:c.P==null?null:Math.round(c.P*10)/10};
   const rec=HWStairs.record(q,{kind:'workout',src:'manual',steps:n,climbs:1,dur:Math.round(min*100)/100,pace:null,kcal:null});rec.gv=gv;
   add('stair',n,rec,'',today(),nowT(),25,'Stair session');
@@ -251,4 +262,4 @@ HWUI.css('gravity',`
 .gvvar summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-size:13px}.gvvar dl{margin:4px 0;display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:13px}.gvvar dt{font-weight:700}.gvvar dd{margin:0}
 @media(max-width:380px){.gvhud{gap:4px}.gvst b{font-size:14px}.gvt td:nth-child(2){font-size:12px}.gvt td:nth-child(4){font-size:11px}}
 `);
-return{counter,physics,verifiedRise,massInfo,G0,get state(){return G.ph},get sensor(){return G.sensor},get listening(){return listening},get gid(){return G.gid}}})();
+return{counter,physics,verifiedRise,riseKind,RUN_EST,massInfo,G0,get state(){return G.ph},get sensor(){return G.sensor},get listening(){return listening},get gid(){return G.gid}}})();

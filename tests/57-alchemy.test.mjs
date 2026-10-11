@@ -68,9 +68,12 @@ test('work against gravity uses the Stair Sense physics; an unmeasured staircase
   // the body-energy illustration is a labelled assumption: W / 0.25 and W / 0.20 -> 3.8-4.7 kcal
   const c = await txt(page, '#al-cr');
   assert.match(c, /20–25%/); assert.match(c, /3\.8\d?–4\.7\d? kcal/); assert.match(c, /assumptions, not measurements of you/);
-  await page.selectOption('#al-sid', 'ST03');
+  await page.selectOption('#al-sid', 'ST03');                       // no measured rise: 30.53 cm x tan 19.6 = 10.9 cm, an estimate
   assert.equal(await page.inputValue('#al-r'), '');
-  assert.match(await txt(page, '#al-cres'), /work against gravity is unavailable.*height of one step.*not measured for this staircase/);
+  assert.match(await txt(page, '#al-cres'), /10\.9 cm, estimated from the stairway.s angle/);
+  assert.match(await txt(page, '#al-cres'), /4\.35 m/);              // 40 x 0.10878
+  await page.selectOption('#al-sid', 'ST33');                       // 65.5 degrees would give 67 cm: not guessed
+  assert.match(await txt(page, '#al-cres'), /work against gravity is unavailable.*height of one step.*very steep/);
   assert.match(await txt(page, '#al-cr'), /unavailable/);
   await page.fill('#al-r', '17');
   assert.match(await txt(page, '#al-cres'), /6\.80 m/);

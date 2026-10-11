@@ -59,6 +59,9 @@ test('unsupported browser: timer and manual steps work, review shows the measure
   assert.ok(await page.locator('#gvtrial').isVisible());
   await page.selectOption('#gv-sid', 'ST20');
   assert.match(await page.textContent('.gvq'), /16\.9 cm.*measured/);
+  await page.selectOption('#gv-sid', 'ST03');
+  assert.match(await page.textContent('.gvq'), /10\.9 cm.*estimated from its angle \(19\.6/);
+  await page.selectOption('#gv-sid', 'ST20');
   const before = await stairs(page);
   await page.click('[data-a="gvstart"]');
   assert.equal(await page.evaluate(() => HWGravity.sensor), 'unsupported');
@@ -138,8 +141,12 @@ test('sensor granted: steps and cadence appear, PAUSE and FINISH stop the sensor
   assert.equal(await page.evaluate(() => HWGravity.listening), false, 'sensor processing stops when the session ends');
   assert.equal(+await page.inputValue('#gv-n'), est);
   assert.match(await page.textContent('#gv-nn'), /sensor estimated/);
-  // an unmeasured staircase: height, work and power are unavailable, never guessed
+  // a stairway with no measured step height: estimated from its angle (run x tan angle), labelled as an estimate
   await page.selectOption('#gv-sid', 'ST03');
+  assert.equal(+await page.inputValue('#gv-r'), 10.9);   // 30.53 cm x tan 19.6 degrees
+  assert.match(await page.textContent('#gv-rn'), /Estimated from the stairway.s angle[\s\S]*tan 19\.6/);
+  // a very steep stairway would give an absurd height (> 30 cm): nothing is guessed, work and power are unavailable
+  await page.selectOption('#gv-sid', 'ST33');
   assert.equal(await page.inputValue('#gv-r'), '');
   assert.match(await page.textContent('#gv-res'), /unavailable[\s\S]*unavailable[\s\S]*unavailable[\s\S]*unavailable/);
   assert.match(await page.textContent('#gv-res'), /Unavailable until you enter: height of one step/);

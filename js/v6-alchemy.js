@@ -12,7 +12,7 @@
                 A food outside the menu is typed in (kcal, optional stated portion). Portion multiples are PMS (js/hw-06). With no stated
                 portion the energy is used as typed and cannot be scaled.
      climb      a stairway (STAIRS) and a step count, or one of the user's recorded stair sessions (HWStairs.all()). Step height: only the three
-                stairways measured in the Group 14 study have one (HWGravity.verifiedRise); a Stair Sense record carries its own. Otherwise the
+                stairways measured in the Group 14 study have a measured one; the others get an estimate from their angle (HWGravity.verifiedRise: run × tan θ); a Stair Sense record carries its own. Otherwise the
                 user types it, or the work stays unavailable. Mass: the session's own, else HWGravity.massInfo() (weight record, then profile).
      work       HWGravity.physics(): h = n r, W = m g h with g = 9.80665 m/s².
      metabolic  (a) the estimate the Stairs page saved with the session (HWStairs.estimate: MET × resting energy, with the heart-rate formula
@@ -46,7 +46,7 @@ function climb(){
   const mi=HWGravity.massInfo(),rec=climbRec();
   const riseCm=Z.rise!==''?+Z.rise:(Z.recRise!==''?+Z.recRise:vr?vr*100:null);
   const massKg=Z.mass!==''?+Z.mass:(Z.recMass!==''?+Z.recMass:mi?mi.kg:null);
-  const riseSrc=Z.rise!==''?'typed by you':Z.recRise!==''?'saved with that Stair Sense record':vr?'measured in the Group 14 study':'';
+  const riseSrc=Z.rise!==''?'typed by you':Z.recRise!==''?'saved with that Stair Sense record':vr?(HWGravity.riseKind(q.id)==='study'?'measured in the Group 14 study':'estimated from the stairway\u2019s angle (tread 30.5 cm \u00d7 tan \u03b8)'):'';
   const massSrc=Z.mass!==''?'typed by you':Z.recMass!==''?'saved with that Stair Sense record':mi?mi.src:'';
   const P=HWGravity.physics(n,riseCm==null?NaN:riseCm/100,massKg==null?NaN:massKg,60);
   const saved=rec&&rec.kcal?rec.kcal:null;
@@ -84,14 +84,14 @@ function climbCard(){
   const L=HWStairs.all().filter(s=>s.total>0).slice(-12).reverse();
   return '<div class="card alc" id="al-climb"><h3>'+ico('stairs')+' ASCENT CRYSTAL</h3><span class="pxtag">MOVEMENT</span>'
     +(L.length?'<label for="al-rec">A climb you recorded <small class="mut">(optional)</small></label><select id="al-rec" data-in="al" data-f="rec"><option value="">Pick a recorded climb…</option>'+L.map(s=>'<option value="'+esc(s.id)+'"'+(s.id===Z.rec?' selected':'')+'>'+esc(s.d)+' · '+esc(s.loc.length>34?s.loc.slice(0,33)+'…':s.loc)+' · '+s.total+' steps</option>').join('')+'</select>':'<small class="mut">No stair sessions recorded yet. Choose a staircase and type a step count to explore.</small>')
-    +'<label for="al-sid">Staircase</label><select id="al-sid" data-in="al" data-f="sid"><option value="">Choose a staircase…</option>'+CATS.map(c=>'<optgroup label="'+c[1]+'">'+stairsOf(c[1]).map(s=>'<option value="'+s.id+'"'+(s.id===Z.sid?' selected':'')+'>'+esc(s.name)+(HWGravity.verifiedRise(s.id)?' · step height measured':'')+'</option>').join('')+'</optgroup>').join('')+'</select>'
+    +'<label for="al-sid">Staircase</label><select id="al-sid" data-in="al" data-f="sid"><option value="">Choose a staircase…</option>'+CATS.map(c=>'<optgroup label="'+c[1]+'">'+stairsOf(c[1]).map(s=>'<option value="'+s.id+'"'+(s.id===Z.sid?' selected':'')+'>'+esc(s.name)+(HWGravity.riseKind(s.id)==='study'?' · step height measured':HWGravity.riseKind(s.id)==='angle'?' · step height from angle':'')+'</option>').join('')+'</optgroup>').join('')+'</select>'
     +'<label for="al-n">Steps climbed (up only)</label><input id="al-n" data-in="al" data-f="n" type="number" min="1" max="1000" inputmode="numeric" value="'+esc(Z.n)+'">'
     +'<label for="al-r">Height of one step (cm)</label><input id="al-r" data-in="al" data-f="rise" type="number" min="5" max="30" step="0.1" inputmode="decimal" placeholder="measured value" value="'+esc(Z.rise)+'">'
     +'<label for="al-m">Body mass (kg)</label><input id="al-m" data-in="al" data-f="mass" type="number" min="20" max="300" step="0.1" inputmode="decimal" value="'+esc(Z.mass)+'">'
     +'<div id="al-cres">'+climbRes()+'</div></div>'}
 function climbRes(){
   const c=climb();let h='';
-  const need=[];if(!c.q)need.push('a staircase');if(!c.okN)need.push('steps climbed (1–1000)');if(!c.okR)need.push('the height of one step (5–30 cm)'+(c.q&&!HWGravity.verifiedRise(c.q.id)?', which is not measured for this staircase':''));if(!c.okM)need.push('your body mass (20–300 kg)');
+  const need=[];if(!c.q)need.push('a staircase');if(!c.okN)need.push('steps climbed (1–1000)');if(!c.okR)need.push('the height of one step (5–30 cm)'+(c.q&&!HWGravity.verifiedRise(c.q.id)?', which cannot be worked out for this very steep stairway':''));if(!c.okM)need.push('your body mass (20–300 kg)');
   h+='<small class="mut">Step height: '+(c.okR?fmt(c.riseCm,1)+' cm, '+esc(c.riseSrc):'<b>unavailable</b>')+'. Mass: '+(c.okM?fmt(c.massKg,1)+' kg, '+esc(c.massSrc):'<b>unavailable</b>')+'.</small>';
   if(c.W==null)return h+'<p class="mut" role="status">The work against gravity is unavailable. Needs: '+need.join('; ')+'.</p>'+(c.saved?savedLine(c):'');
   return h+'<div class="alres" role="status"><p class="alnum">h = '+c.n+' × '+fmt(c.riseCm/100,3)+' m = <b>'+fmt(c.h,2)+' m</b></p><p class="alnum">W = m g h = '+fmt(c.massKg,1)+' × 9.80665 × '+fmt(c.h,2)+' = <b>'+fmt(c.W,0)+' J</b> <span class="mut">=</span> <b>'+en(c.W/1000)+' kJ</b> <span class="mut">=</span> '+en(kcalOfJ(c.W))+' kcal</p>'
@@ -143,7 +143,7 @@ INP.al=el=>{const f=el.dataset.f;if(!(f in Z))return;Z[f]=el.value;
   if(f==='q'){const s=$i('al-fi');if(s)s.innerHTML=foodOptions();return}
   if(f==='fi'){Z.pm=1;Z.kc='';const k=$i('al-kc');if(k)k.innerHTML=kcInput()}
   if(f==='rise')Z.ed.rise=1;if(f==='mass')Z.ed.mass=1;
-  if(f==='sid'){const q=STAIRS.find(s=>s.id===Z.sid);if(Z.rec){Z.rec='';Z.recRise=Z.recMass=''}const r=$i('al-r');if(r&&q&&HWGravity.verifiedRise(q.id)&&!Z.ed.rise)r.placeholder=fmt(HWGravity.verifiedRise(q.id)*100,1)+' (measured)';else if(r)r.placeholder='measured value'}
+  if(f==='sid'){const q=STAIRS.find(s=>s.id===Z.sid);if(Z.rec){Z.rec='';Z.recRise=Z.recMass=''}const r=$i('al-r');if(r&&q&&HWGravity.verifiedRise(q.id)&&!Z.ed.rise)r.placeholder=fmt(HWGravity.verifiedRise(q.id)*100,1)+(HWGravity.riseKind(q.id)==='study'?' (measured)':' (from angle)');else if(r)r.placeholder='measured value'}
   if(f==='rec'){const s=climbRec();Z.recRise=Z.recMass='';
     if(s){Z.sid=s.sid||'';Z.n=String(s.total);const e=st.e.find(x=>x.id===s.id),g=e&&e.m&&e.m.gv;
       if(g){if(+g.rise>0)Z.recRise=String(Math.round(g.rise*1000)/10);if(+g.mass>0)Z.recMass=String(g.mass)}
