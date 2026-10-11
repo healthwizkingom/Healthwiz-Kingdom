@@ -155,7 +155,7 @@ HWUI.css('whatif',`
 .wifadd{min-height:44px}.wifx{font:9px var(--fh);min-height:32px;padding:2px 8px;margin-left:6px}
 .wifwhy summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-size:13px;color:var(--vio)}.wifwhy p{margin:4px 0;font-size:13px;overflow-wrap:anywhere}
 .wifsec{margin:12px 0}.wifsec h4{margin:0 0 6px;display:flex;align-items:center;gap:6px;font:10px/1.6 var(--fh)}
-.wiftbl{min-width:0}.wiftbl th{white-space:normal}.wiftbl td{overflow-wrap:anywhere}
+.wiftbl{min-width:460px}.wiftbl th{white-space:normal}.wiftbl td{overflow-wrap:normal}.wiftbl td:nth-child(2),.wiftbl td:nth-child(3){min-width:92px}
 @media(max-width:420px){.wifscore{grid-template-columns:1fr 1fr}.wifarrow{display:none}}
 @media(prefers-reduced-motion:reduce){.wifb.pulse{animation:none}}
 html.hw-rm .wifb.pulse{animation:none}

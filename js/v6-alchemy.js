@@ -174,13 +174,13 @@ HWUI.css('alchemy',`
 .alres{margin:10px 0 0;padding:8px;border:3px solid var(--ln);background:var(--p2)}.alres p{margin:4px 0}.alnum{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.alnum b{font:700 16px var(--fb)}
 .alsaved{margin:8px 0 0;padding:6px 8px;border:2px dashed var(--vio);font-size:13px}
 .alcrs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:8px 0}@media(max-width:700px){.alcrs{grid-template-columns:minmax(0,1fr)}}
-.alcr{display:flex;gap:10px;padding:10px;border:3px solid var(--ln);background:var(--p2);min-width:0}.alcr>div{min-width:0}.alcr b{display:block;font:9px/1.6 var(--fh)}.alwhat{display:block;font-size:12px;color:var(--mut);margin:2px 0 6px}
+.alcr{display:flex;gap:10px;padding:10px;border:3px solid var(--ln);background:var(--p2);min-width:0}.alcr>div{min-width:0}.alcr>div>b{display:block;font:9px/1.6 var(--fh)}.alwhat{display:block;font-size:12px;color:var(--mut);margin:2px 0 6px}
 .alg{flex:0 0 26px;height:34px;margin-top:2px;background:var(--c);clip-path:polygon(50% 0,100% 28%,100% 72%,50% 100%,0 72%,0 28%);box-shadow:inset -5px -5px 0 rgba(0,0,0,.2),inset 5px 5px 0 rgba(255,255,255,.25);filter:drop-shadow(0 0 4px var(--c))}
 .alcr.f{--c:var(--gold)}.alcr.w{--c:var(--blue)}.alcr.m{--c:var(--vio)}.alas{display:block;font-size:12px;margin-top:4px}
 .alscale{margin-top:8px;padding:8px;border:3px solid var(--vio);background:var(--pn);box-shadow:0 0 6px rgba(135,103,200,.45)}
 .alsr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;margin:8px 0}.alsl{font-size:13px;grid-column:1/-1}.alsb{height:16px;border:3px solid var(--ln);background:var(--p2);display:block;min-width:0}.alsb i{display:block;height:100%;background:var(--c)}
 .alsr.f{--c:var(--gold)}.alsr.w{--c:var(--blue)}.alsr.m{--c:var(--vio)}.alsv{font:700 13px var(--fb);white-space:nowrap}
-.alshow{width:100%;min-height:44px}.alscale .sm{min-height:44px;margin-top:6px}
+.alshow{width:100%;min-height:44px}.alscale .sm{display:block;min-height:44px;margin-top:6px}
 .alli{margin:6px 0 8px 18px}.alli li{margin:6px 0;font-size:14px}.aldoor{border-style:dashed}.aldoor button{width:100%;min-height:44px}
 html.hw-rm .alg{filter:none}@media(prefers-reduced-motion:reduce){.alg{filter:none}}
 `);

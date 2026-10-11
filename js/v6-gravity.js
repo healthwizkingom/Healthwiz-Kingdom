@@ -254,6 +254,6 @@ HWUI.css('gravity',`
 .gvt{min-width:0;width:100%}.gvt th{font:700 16px var(--fb);text-align:center;width:2ch}.gvt td{overflow-wrap:anywhere}.gvt td:nth-child(3){white-space:nowrap}
 .gvna{color:var(--mut);font-weight:400;font-style:italic}
 .gvvar summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-size:13px;color:var(--vio)}.gvvar dl{margin:4px 0;display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:13px}.gvvar dt{font-weight:700}.gvvar dd{margin:0}
-@media(max-width:380px){.gvhud{gap:4px}.gvst b{font-size:14px}.gvt td:nth-child(3){white-space:normal}}
+@media(max-width:380px){.gvhud{gap:4px}.gvst b{font-size:14px}.gvt td:nth-child(2){font-size:12px}.gvt td:nth-child(4){font-size:11px}}
 `);
 return{counter,physics,verifiedRise,massInfo,G0,get state(){return G.ph},get sensor(){return G.sensor},get listening(){return listening},get gid(){return G.gid}}})();
