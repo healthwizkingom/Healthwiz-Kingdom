@@ -97,6 +97,14 @@ Calisthenics offers bodyweight moves only, the seven moves added without a sprit
 card with the kcal / VO₂ / kJ estimates; XP cap of two rewarded sessions a day; "I feel dizzy" / "Chest pain" stop and log nothing;
 doctor-note gate on sets to failure; 360 px fit). The sprite sheets are made by `tools/art/make_exercise.py`.
 
+### Pulse Wave Lab (camera pulse)
+
+`54-ppg` (`js/v6-ppg.js`: the signal processing on synthetic signals, 1.2 / 0.9 / 2.5 Hz with noise and drift → 72 / 54 / 150 BPM, flat noise → none,
+motion swings → weak, never a number; the sheet → START → countdown → result against a fake camera (`canvas.captureStream`, red level pulsing at 1.2 Hz) with
+f, T, ω from `shmTxt(pulseSHM(bpm))`; USE AS BEFORE / AFTER / 1 MIN AFTER, LOG BPM with `m.src` 'camera' and `m.ppg`, counted by `hrLast`, typing over the field
+clears the camera flag, a custom date refused, SEAL THE WORKOUT with `hrCam` and `hrS` 'camera' / 'mixed'; every track ended after finish, cancel, leaving the page and a hidden page;
+permission denied and no camera). It takes about 1 minute because the measurement runs in real time. A real phone is still needed to compare readings with a manual count or a watch.
+
 ### §92 Performance
 
 `24-performance`: page budgets with a year of logs, one storage write per action, storage-full handling, looping scenery
