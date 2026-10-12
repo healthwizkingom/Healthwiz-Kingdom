@@ -1,4 +1,4 @@
-// The Arcane Score Simulator on the Health Score page (js/v6-whatif.js): a simulation only, on the real scoring functions.
+// The Healer's What-if on the Health Score page (js/v6-whatif.js): a simulation only, on the real scoring functions.
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { openApp, closeBrowser, go, RETURNING, entry } from './helpers.mjs';

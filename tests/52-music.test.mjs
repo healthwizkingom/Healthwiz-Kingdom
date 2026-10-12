@@ -70,3 +70,30 @@ test('every tutorial line has a recording that matches its text, and the tutoria
   assert.deepEqual(errors.filter(e => !/AudioContext|autoplay|play\(\)/i.test(e)), []);
   await ctx.close();
 });
+
+test('the music starts by itself when the app opens, a first tap wakes the audio, and a user who switched it off is left alone', async () => {
+  const seed = { ...RETURNING, s: { ...RETURNING.s, sound: 1 } };
+  const { page, ctx, errors } = await openApp({ seed, url: URL_ });
+  await page.waitForSelector('.wl');
+  let s = await until(page, x => x.mt && x.playing);
+  assert.ok(s.mt && s.playing && s.mk === 'home', 'music is on without touching anything');
+  assert.equal(await page.textContent('#mus'), '🔊');
+  await page.mouse.click(5, 5);                                                   // the first touch: the browser now allows sound
+  assert.equal(await page.evaluate(() => ac && ac.state), 'running');
+  await page.click('#mus');                                                       // the user switches it off
+  assert.equal((await st(page)).mt, false);
+  assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('healthwiz')).s.musOff), 1);
+  await page.reload(); await page.waitForSelector('.wl');
+  await page.waitForTimeout(500);
+  assert.equal((await st(page)).mt, false, 'their choice is kept on the next visit');
+  await page.click('#mus');                                                       // and back on
+  assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('healthwiz')).s.musOff), 0);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('with Sound turned off in Settings the music does not start by itself', async () => {
+  const { page, ctx, errors } = await openApp({ seed: { ...RETURNING, s: { ...RETURNING.s, sound: 0 } }, url: URL_ });
+  await page.waitForSelector('.wl'); await page.waitForTimeout(500);
+  assert.equal((await st(page)).mt, false);
+  assert.deepEqual(errors, []); await ctx.close();
+});
