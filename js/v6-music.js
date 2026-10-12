@@ -10,7 +10,9 @@ const HWMusic=(()=>{
 const SRC='assets/audio/home-theme.mp3',FADE=.8;
 let buf=null,bad=0,loading=0,src=null,gain=null,wd=0;
 const desired=()=>!!MT&&MK==='home'&&!bad;
-function load(){if(buf||bad||loading)return;loading=1;
+function load(){if(buf||bad||loading)return;
+  if(/^file:/.test(location.protocol)){bad=1;if(MT&&MK==='home')musTick();return}   // opened from disk the browser refuses fetch(): go straight to the built-in tune, without a console error
+  loading=1;
   fetch(SRC).then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).then(a=>new Promise((ok,no)=>{ac=ac||new(window.AudioContext||window.webkitAudioContext)();ac.decodeAudioData(a,ok,no)}))
     .then(b=>{buf=b;loading=0;sync()}).catch(()=>{bad=1;loading=0;if(MT&&MK==='home')musTick()})}
 function start(){if(src||!buf)return;try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();
@@ -25,4 +27,21 @@ function sync(){if(desired()){if(!buf)load();else if(!src)start();else try{gain.
 // the 'home' track's own tick: only the fallback tune, and only when the recording cannot be used
 TRK.home[1]=()=>{if(bad){musTick();return}try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume()}catch(e){}   // made inside the button tap, so phones allow it
   if(!buf)load();sync()};
-return{state:()=>({playing:!!src,loaded:!!buf,failed:!!bad}),src:SRC}})();
+/* Music starts by itself when the app opens, unless the user has turned sound off (Settings → Sound, st.s.sound = 0) or has switched the
+   music button off themselves (st.s.musOff = 1, saved when they tap it; the alarm and other code that stops the music do not set it).
+   Browsers only let sound play after the person has touched the page, so the music is set up at once and the audio context is resumed on
+   the first tap, key press or click; where the browser already allows sound (an installed app, a returning visitor) it is heard straight away. */
+{const orig=acts.mus,orig2=acts.mus2,remember=()=>{const off=MT?0:1;if(!!st.s.musOff!==!!off){st.s.musOff=off;save()}};
+  acts.mus=function(d,t,e){const r=orig.apply(this,arguments);if(e&&e.isTrusted)remember();return r};
+  acts.mus2=function(d,t,e){const r=orig2.apply(this,arguments);if(e&&e.isTrusted)remember();return r}}
+function auto(){
+  if(!st.s.sound||st.s.musOff||MT)return;
+  try{acts.mus()}catch(e){return}
+  const evs=['pointerdown','touchend','keydown','click'],kick=ev=>{
+    if(ev&&ev.isTrusted===false)return;
+    evs.forEach(n=>removeEventListener(n,kick,true));
+    try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume()}catch(e){}
+    sync()};
+  evs.forEach(n=>addEventListener(n,kick,true))}
+HWEvents.on('app:ready',auto);
+return{state:()=>({playing:!!src,loaded:!!buf,failed:!!bad}),src:SRC,auto}})();

@@ -42,32 +42,40 @@ const macroOff=x=>{const R=mref();return MKEY.map(([k,n])=>({k,n,v:x[k],lo:R[k][
 const macroSub=x=>clamp(100-macroOff(x).reduce((s,m)=>s+m.off,0)*5,0,100);
 const burnOf=d=>{const s=A('stair',d).reduce((a,e)=>a+(+((e.m||{}).kcal||{}).v||0),0),b=typeof HWRun!=='undefined'?HWRun.burned(d):null,x=A('exercise',d).reduce((a,e)=>a+(+((e.m||{}).kcal||{}).v||0),0);return s+(b?b.v:0)+x}; // stairs + runs + training (Training Hall estimates)
 
-function indicators(){
-  const D0=days(),I={};
+/* One place for "measured value → sub-score (0–100)". indicators() below and the What-if simulator (js/v6-whatif.js) both use it,
+   so a simulated value is scored by exactly the formula the real score uses. */
+const SUBF={fv:v=>clamp(v/FV_GOAL*100,0,100),water:v=>clamp(v/st.s.water*100,0,100),kcal:v=>kcalSub(v/st.s.kcal),stairs:v=>clamp(v/STAIR_GOAL*100,0,100),
+  burn:v=>clamp(v/BURN_GOAL*100,0,100),hr:hrSub,sleep:v=>sleepSub(v,SR(+st.p.age||16)),bmi:bmiSub,stress:stressSub};
+// D0 = the days to average (default: today or the last 7 days, as chosen on the page); opts.asOf = last day, so BMI is the latest log up to then
+function indicators(D0,opts){
+  D0=D0||days();const I={};
   const fv=D0.map(fvOf).filter(v=>v>0),wtr=D0.map(wt).filter(v=>v>0);
-  I.fv=fv.length?{val:mean(fv),txt:r1(mean(fv))+' portions/day',sub:clamp(mean(fv)/FV_GOAL*100,0,100)}:null;
-  I.water=wtr.length?{val:mean(wtr),txt:Math.round(mean(wtr))+' mL/day',sub:clamp(mean(wtr)/st.s.water*100,0,100)}:null;
+  I.fv=fv.length?{val:mean(fv),txt:r1(mean(fv))+' portions/day',sub:SUBF.fv(mean(fv))}:null;
+  I.water=wtr.length?{val:mean(wtr),txt:Math.round(mean(wtr))+' mL/day',sub:SUBF.water(mean(wtr))}:null;
   const eq=D0.map(d=>A('stair',d).reduce((s,e)=>s+eqSteps(e),0)),any=D0.some(d=>A('stair',d).length);
-  I.stairs=any?{val:mean(eq),txt:Math.round(mean(eq))+' effort-steps/day',sub:clamp(mean(eq)/STAIR_GOAL*100,0,100)}:null;
+  I.stairs=any?{val:mean(eq),txt:Math.round(mean(eq))+' effort-steps/day',sub:SUBF.stairs(mean(eq))}:null;
   const hrs=D0.map(rest).filter(v=>v);
-  I.hr=hrs.length?{val:mean(hrs),txt:Math.round(mean(hrs))+' BPM at rest',sub:hrSub(mean(hrs))}:null;
+  I.hr=hrs.length?{val:mean(hrs),txt:Math.round(mean(hrs))+' BPM at rest',sub:SUBF.hr(mean(hrs))}:null;
   const kc0=D0.map(kc).filter(v=>v>0);
-  I.kcal=kc0.length&&+st.s.kcal>0?{val:mean(kc0),txt:Math.round(mean(kc0))+' of '+st.s.kcal+' kcal/day',sub:kcalSub(mean(kc0)/st.s.kcal)}:null;
+  I.kcal=kc0.length&&+st.s.kcal>0?{val:mean(kc0),txt:Math.round(mean(kc0))+' of '+st.s.kcal+' kcal/day',sub:SUBF.kcal(mean(kc0))}:null;
   const mp=D0.map(macroPct).filter(Boolean);
   if(mp.length){const x={P:mean(mp.map(m=>m.P)),C:mean(mp.map(m=>m.C)),F:mean(mp.map(m=>m.F))};I.macro={val:x,txt:'P '+Math.round(x.P)+'% · C '+Math.round(x.C)+'% · F '+Math.round(x.F)+'% of energy',sub:macroSub(x)}}else I.macro=null;
   const bn=D0.map(burnOf);
-  I.burn=bn.some(v=>v>0)?{val:mean(bn),txt:Math.round(mean(bn))+' kcal/day (stairs, runs + training)',sub:clamp(mean(bn)/BURN_GOAL*100,0,100)}:null;
-  const sl=D0.map(slH).filter(v=>v>0),SRg=SR(+st.p.age||16);
-  I.sleep=sl.length?{val:mean(sl),txt:r1(mean(sl))+' h/night',sub:sleepSub(mean(sl),SRg)}:null;
-  const b=LC('bmi').pop();I.bmi=b&&+b.v>0?{val:+b.v,txt:'BMI '+(+b.v).toFixed(1),sub:bmiSub(+b.v)}:null;
+  I.burn=bn.some(v=>v>0)?{val:mean(bn),txt:Math.round(mean(bn))+' kcal/day (stairs, runs + training)',sub:SUBF.burn(mean(bn))}:null;
+  const sl=D0.map(slH).filter(v=>v>0);
+  I.sleep=sl.length?{val:mean(sl),txt:r1(mean(sl))+' h/night',sub:SUBF.sleep(mean(sl))}:null;
+  const b=LC('bmi').filter(x=>!(opts&&opts.asOf)||x.d<=opts.asOf).pop();I.bmi=b&&+b.v>0?{val:+b.v,txt:'BMI '+(+b.v).toFixed(1),sub:SUBF.bmi(+b.v)}:null;
   const ss=D0.map(str).filter(v=>v!=null);
-  I.stress=ss.length?{val:mean(ss),txt:r1(mean(ss))+' / 10',sub:stressSub(mean(ss))}:null;
+  I.stress=ss.length?{val:mean(ss),txt:r1(mean(ss))+' / 10',sub:SUBF.stress(mean(ss))}:null;
   return I}
-function compute(){
-  const I=indicators();let w=0,p=0,n=0;
+// the weighted score of any set of indicators {key: {sub}}: Σ weight × sub-score ÷ Σ weight of the indicators that have data
+function combine(I){let w=0,p=0,n=0;
   for(const k in WT)if(I[k]){w+=WT[k];p+=WT[k]*I[k].sub/100}
   GROUP.forEach(g=>{if(g[2].some(k=>I[k]))n++});
   return{I,score:w?Math.round(p/w*100):null,covered:n,w}}
+function compute(){return combine(indicators())}
+// the same score for a chosen list of days (the weekly report, js/v6-report.js); nothing on the page changes
+const computeFor=(D0,asOf)=>combine(indicators(D0,{asOf}));
 const band=s=>s>=80?['Excellent','var(--grn)']:s>=60?['Good','var(--gold)']:s>=40?['Fair','#e0a030']:['Needs attention','var(--red)'];
 
 // the latest stair workout with a heart rate before and after (for the exercise-level and heart advice)
@@ -160,19 +168,23 @@ function recCard(C){
   const plain=recList(C);
   if(typeof HWOrb==='undefined')return plain;
   try{return HWOrb.section(C,plain)}catch(e){return plain}}
+// the reasons for the weights, by area; the Why These Weights card and the What-if simulator (js/v6-whatif.js) show the same text
+const WHY={
+  nutrition:'<b>Nutrition 25</b>: diet is a major daily lever for health. Fruit &amp; veg 10 (WHO: ≥400 g a day), water 5 (your target ≈ 35 mL per kg), calories 5 (your target from the Calorie Forge, Mifflin-St Jeor) and macronutrients 5 (% of energy within the AMDR ranges, IOM).',
+  activity:'<b>Activity 25</b>: physical activity has the strongest evidence for lowering cardiovascular risk (WHO, 2020). Stairs 15, the activity this project measures directly; calories burned 10, from stair workouts and runs (ACSM: about 1,000 kcal a week).<br><b>Project data, not a clinical result.</b> Our own stair study (Group 14, 6 participants): pulse rate rose 6–37% from the least to the most steep stair for every participant.',
+  hr:'<b>Heart rate 15</b>: resting heart rate is a quick, objective fitness marker (typical 60–100 BPM, AHA), but caffeine, sleep and anxiety affect it.',
+  sleep:'<b>Sleep 15</b>: 8–10 h for teens and 7–9 h for adults (AASM); short sleep is linked to stress, overeating and poorer learning.',
+  bmi:'<b>BMI 10</b>: a screening tool only (WHO 18.5–24.9); it ignores muscle and body shape.',
+  stress:'<b>Stress 10</b>: linked to sleep, eating and wellbeing, but self-rated (perceived stress, Cohen et al., 1983), so its weight is limited.'};
 function whyCard(){
   return '<div class="card"><h3>🔬 WHY THESE WEIGHTS '+HWHelp.btn('scorewt')+'</h3><p>Nutrition 25 · Activity 25 · Heart rate 15 · Sleep 15 · BMI 10 · Stress 10 (total 100).</p>'
-  +'<ul class="v6why"><li><b>Nutrition 25</b>: diet is a major daily lever for health. Fruit &amp; veg 10 (WHO: ≥400 g a day), water 5 (your target ≈ 35 mL per kg), calories 5 (your target from the Calorie Forge, Mifflin-St Jeor) and macronutrients 5 (% of energy within the AMDR ranges, IOM).</li>'
-  +'<li><b>Activity 25</b>: physical activity has the strongest evidence for lowering cardiovascular risk (WHO, 2020). Stairs 15, the activity this project measures directly; calories burned 10, from stair workouts and runs (ACSM: about 1,000 kcal a week).<br><b>Project data, not a clinical result.</b> Our own stair study (Group 14, 6 participants): pulse rate rose 6–37% from the least to the most steep stair for every participant.</li>'
-  +'<li><b>Heart rate 15</b>: resting heart rate is a quick, objective fitness marker (typical 60–100 BPM, AHA), but caffeine, sleep and anxiety affect it.</li>'
-  +'<li><b>Sleep 15</b>: 8–10 h for teens and 7–9 h for adults (AASM); short sleep is linked to stress, overeating and poorer learning.</li>'
-  +'<li><b>BMI 10</b>: a screening tool only (WHO 18.5–24.9); it ignores muscle and body shape.</li>'
-  +'<li><b>Stress 10</b>: linked to sleep, eating and wellbeing, but self-rated (perceived stress, Cohen et al., 1983), so its weight is limited.</li></ul>'
+  +'<ul class="v6why">'+GROUP.map(g=>'<li>'+WHY[g[0]]+'</li>').join('')+'</ul>'
   +'</div>'}
 
+const whatIf=C=>{if(typeof HWWhatIf==='undefined')return '';try{return HWWhatIf.section(C)}catch(e){console.error('[HealthWiz] what-if failed:',e);return ''}}; // js/v6-whatif.js: a simulation only
 pages.score=()=>{
   const C=compute();
-  return '<h2>🏆 HEALTH SCORE</h2><p class="mut">Your logged habits, weighed into one score, with advice for each area.</p>'+head(C)+table(C)+recCard(C)+whyCard()
+  return '<h2>🏆 HEALTH SCORE</h2><p class="mut">Your logged habits, weighed into one score, with advice for each area.</p>'+head(C)+whatIf(C)+table(C)+recCard(C)+whyCard()
    +'<div class="card"><small class="mut">Supports UN Sustainable Development Goal 3: Good Health and Well-being. HealthWiz is a wellness tracker, not a medical device.</small></div>'};
 
 acts.scw=d=>{W=d.w==='week'?'week':'day';render()};
@@ -187,4 +199,4 @@ HWUI.css('score',`
 `);
 // read-only access to the goals and helpers the recommendations use, for js/v6-orb.js
 const K={FV_GOAL,STAIR_GOAL,BURN_GOAL,CLASSN,lastWorkout,macroOff,r1,win:()=>W};
-return{compute,fvFoods,fvCard,WT,recs,K,burnOf}})();
+return{compute,computeFor,combine,indicators,SUBF,WHY,GROUP,LBL,band,fvFoods,fvCard,WT,recs,K,burnOf}})();
