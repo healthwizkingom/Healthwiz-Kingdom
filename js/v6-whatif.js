@@ -86,8 +86,8 @@ function out(C,S){
     +'<p class="wifnote" id="wif-note">If these numbers changed, the arithmetic of the score would change like this. It does not predict that your real health would change.</p>'}
 function inner(C){
   const S=simulate(C),win=SC.K.win()==='week'?'your 7-day averages':'today’s values';
-  const head='<div class="wifhd"><h3>'+ico('heart')+' THE HEALER\u2019S WHAT-IF '+help()+'</h3><span class="wifcr" aria-hidden="true"><i></i><i></i><i></i></span></div>';
-  if(!open)return head+'<p class="mut">Sit by the healer\u2019s fire. Try one gentle change and see how the weighted Health Score would respond. Nothing you do here is saved.</p>'
+  const head='<div class="wifhd"><h3>'+ico('wizard')+ico('heart')+' THE HEALER MAGE\u2019S WHAT-IF '+help()+'</h3><span class="wifcr" aria-hidden="true"><i></i><i></i><i></i></span></div>';
+  if(!open)return head+'<p class="mut">The healer mage weighs your habits and shows how the score would respond. Try one gentle change and see how the weighted Health Score would respond. Nothing you do here is saved.</p>'
     +'<button type="button" class="wifopen" data-a="wifopen" aria-expanded="false" aria-controls="wif-body">WHAT IF?</button><p class="wifsimtag pxtag" role="note">'+LABEL+'</p>';
   return head+'<p class="wifsimtag pxtag" role="note">'+LABEL+'</p>'
     +'<div id="wif-body"><p class="mut">Starting from '+win+'. Try one gentle change at a time and watch how the score responds.</p>'
@@ -132,28 +132,27 @@ function section(C){
 HWEvents.on('page:viewed',e=>{if(e.view!=='score'&&open){open=false;sim={}}});
 
 HWUI.css('whatif',`
-.wif{border-color:var(--grn)}
-.wifhd{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:3px solid var(--grn);margin-bottom:8px;padding-bottom:6px}.wifhd h3{margin:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px;min-width:0}
-.wifcr{display:inline-flex;gap:6px;flex:0 0 auto}.wifcr i{position:relative;display:block;width:12px;height:12px}.wifcr i:before,.wifcr i:after{content:'';position:absolute;background:var(--grn)}.wifcr i:before{left:4px;top:0;width:4px;height:12px}.wifcr i:after{left:0;top:4px;width:12px;height:4px}.wifcr i:nth-child(2){opacity:.6;transform:scale(.7)}.wifcr i:nth-child(3){opacity:.35;transform:scale(.5)}
+.wifhd{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:3px solid var(--ln);margin-bottom:8px;padding-bottom:6px}.wifhd h3{margin:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px;min-width:0}
+.wifcr{display:inline-flex;gap:6px;flex:0 0 auto}.wifcr i{position:relative;display:block;width:12px;height:12px}.wifcr i:before,.wifcr i:after{content:'';position:absolute;background:var(--gold)}.wifcr i:before{left:4px;top:0;width:4px;height:12px}.wifcr i:after{left:0;top:4px;width:12px;height:4px}.wifcr i:nth-child(2){opacity:.6;transform:scale(.7)}.wifcr i:nth-child(3){opacity:.35;transform:scale(.5)}
 .wifopen{width:100%;min-height:48px;margin:6px 0}
 .wifsimtag{display:block;margin:6px 0 8px;padding:4px 6px;line-height:1.7;overflow-wrap:anywhere;white-space:normal}
 .wifscore{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0}
-.wifc{border:3px solid var(--ln);background:var(--pn);padding:8px 10px;min-width:0}.wifc.sim{border-style:dashed;border-color:var(--grn);background:var(--p2)}.wifc.sim .pxtag{border-color:var(--grn)}.wifc .v6sc{margin:8px 0 6px}.wifc .v6scn{font-size:38px}
+.wifc{border:3px solid var(--ln);background:var(--pn);padding:8px 10px;min-width:0}.wifc.sim{border-style:dashed;background:var(--p2)}.wifc.sim .pxtag{background:var(--gold);color:#2b2418}.wifc .v6sc{margin:8px 0 6px}.wifc .v6scn{font-size:38px}
 .wifc .pxtag{display:inline-block}
 .wifb.pulse{animation:wifp .45s steps(4)}@keyframes wifp{40%{transform:translateY(-2px);color:var(--gold)}}
 .wifarrow{font:var(--px-f2,16px) var(--fh);color:var(--mut)}
 .wifdiff{grid-column:1/-1;text-align:center;font:9px/1.7 var(--fh);padding:6px;border:3px solid var(--ln);background:var(--pn)}.wifdiff.up{border-color:var(--grn);background:var(--p2)}.wifdiff.dn{border-color:var(--blue)}
 .wifnote{font-size:12px;color:var(--mut);margin:4px 0 8px}
 .wifbtns{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px}.wifbtns button{flex:1 1 150px;min-height:44px}
-.wifg{border:3px solid var(--ln);margin:0 0 12px;padding:8px 10px 10px;min-width:0;background:var(--pn)}.wifg{border-color:var(--grn)}.wifg legend{font:8px/1.6 var(--fh);padding:0 6px;display:inline-flex;align-items:center;gap:4px}.wifw{font:11px var(--fb);color:var(--mut)}
+.wifg{border:3px solid var(--ln);margin:0 0 12px;padding:8px 10px 10px;min-width:0;background:var(--pn)}.wifg legend{font:8px/1.6 var(--fh);padding:0 6px;display:inline-flex;align-items:center;gap:4px}.wifw{font:11px var(--fb);color:var(--mut)}
 .wifrow{margin:10px 0;border-top:2px dashed var(--p2);padding-top:8px}.wifrow:first-of-type{border-top:0;padding-top:0}
 .wifh{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:14px}.wifreal{color:var(--mut);font-size:13px;overflow-wrap:anywhere}
 .wifs{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.wifs input[type=range]{flex:1 1 140px;min-width:0;height:44px;margin:0;background:transparent;accent-color:var(--grn);touch-action:pan-y}
+.wifs input[type=range]{flex:1 1 140px;min-width:0;height:44px;margin:0;background:transparent;accent-color:var(--gold);touch-action:pan-y}
 .wifs input[type=range]::-webkit-slider-runnable-track{height:10px;background:var(--p2);border:3px solid var(--ln)}
-.wifs input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:30px;margin-top:-13px;background:var(--grn);border:3px solid var(--ln);box-shadow:2px 2px 0 var(--ln)}
+.wifs input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:30px;margin-top:-13px;background:var(--gold);border:3px solid var(--ln);box-shadow:2px 2px 0 var(--ln)}
 .wifs input[type=range]::-moz-range-track{height:10px;background:var(--p2);border:3px solid var(--ln)}
-.wifs input[type=range]::-moz-range-thumb{width:18px;height:26px;border-radius:0;background:var(--grn);border:3px solid var(--ln)}
+.wifs input[type=range]::-moz-range-thumb{width:18px;height:26px;border-radius:0;background:var(--gold);border:3px solid var(--ln)}
 .wifs input[type=range]:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
 .wifv{flex:0 1 auto;font:700 14px var(--fb);font-variant-numeric:tabular-nums;min-width:8ch;overflow-wrap:anywhere}
 .wifadd{min-height:44px}.wifx{font:9px var(--fh);min-height:32px;padding:2px 8px;margin-left:6px}
