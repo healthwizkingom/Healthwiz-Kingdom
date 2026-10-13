@@ -85,8 +85,9 @@ js/v6-orb.js               the Health Orb on the Health Score page: Medius reads
 js/v6-foodsel.js           pick several foods, then LOG SELECTED once (selection kept while searching; no duplicate logs)
 js/v6-expbar.js            every progress bar in one modern style (changed values flow in); the EXP bar as flowing mana with level-up glow
 supabase/migrations/       SQL for accounts, cloud save, leaderboards and Medius limits (Row Level Security) — run each file once, in order
-supabase/functions/        medius-chat: the Edge Function that talks to Google Gemini for the Wizard's Counsel
-supabase/tests/            SQL behaviour checks (tools/test-sql.sh, local PostgreSQL) and Deno tests for medius-chat
+supabase/functions/        medius-chat: the Edge Function that talks to Google Gemini for the Wizard's Counsel;
+                           luna-chat: Luna's chat in Ask Luna, through xAI (Grok), key in the XAI_API_KEY secret
+supabase/tests/            SQL behaviour checks (tools/test-sql.sh, local PostgreSQL) and Deno tests for medius-chat and luna-chat
 sw.js                      service worker: pre-caches the app, network first, works offline (keep PRECACHE in sync)
 manifest.webmanifest       web app manifest (name, colours, standalone display, icons)
 js/v6-help.js              contextual "?" help buttons (tap, click, keyboard; small panel with Escape / CLOSE); the moved explanations live here

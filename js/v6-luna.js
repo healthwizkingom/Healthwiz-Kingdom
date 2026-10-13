@@ -12,6 +12,11 @@
    * Ask Luna (HWLuna.open): a panel with no AI. It finds features (names and the trackers' own header text from
      js/v6-hall.js) and opens the "?" explanations already on the page (js/v6-help.js), pointing at each one. It never
      reads or changes saved entries and sends nothing anywhere.
+   * Talk with Luna (in the same panel): signed-in players chat with Luna through the luna-chat Edge Function
+     (supabase/functions/luna-chat: Grok by xAI, with her persona and safety rules on the server; the key never reaches
+     the app). Only the conversation typed here is sent, never saved entries. It lives in memory for this visit and
+     is not saved or synced. Signed out, the panel says "Sign in to talk with Luna". The crisis numbers show when the
+     player writes crisis words or the reply carries the help flag (the same rule as the Wizard's Counsel).
    * Preferences (Settings): help style st.s.lst ('q' Quick · 'g' Guided, default · 'e' Explore), size st.s.lsz
      (0 full · 1 compact portrait) and how often she talks (st.s.med, unchanged: 2 Chatty · 1 Calm · 0 Off).
      Missing keys mean the defaults, so older saves need no migration. RESET puts all three back. */
@@ -73,6 +78,7 @@ function results(q){const s=style(),L=find(q);if(!L.length)return '<p class="mut
 function sheet(q){const s=style(),H2=helps(),n=(BN[S.v]||[])[1]||'this page';
   return '<div class="card v6lp" role="dialog" aria-modal="true" aria-labelledby="v6lpt"><div class="v6lph"><span class="v6lpic"></span><div><h3 id="v6lpt">ASK LUNA</h3>'+
   '<small>I find pages and open the explanations already in HealthWiz. I don\'t read or change your entries, and I\'m not a doctor.</small></div></div>'+
+  '<div id="v6lchat">'+chat()+'</div>'+
   '<div class="row" role="group" aria-label="How much help">'+[['q','Quick'],['g','Guided'],['e','Explore']].map(m=>'<button class="chip'+(s===m[0]?' on':'')+'" data-a="lunast" data-m="'+m[0]+'" aria-pressed="'+(s===m[0])+'">'+m[1]+'</button>').join('')+'</div>'+
   '<label for="v6lq"><b>Find a feature</b></label><input id="v6lq" type="search" autocomplete="off" value="'+esc(q||'')+'" aria-describedby="v6lqx v6lres"><small class="mut" id="v6lqx">Example: water, sleep, heart rate</small>'+
   '<div id="v6lres" aria-live="polite">'+results(q)+'</div>'+
@@ -80,10 +86,60 @@ function sheet(q){const s=style(),H2=helps(),n=(BN[S.v]||[])[1]||'this page';
     '<p class="mut">This page has no "?" explanations. Calculations such as calories, Health Score and BMI have one beside them.</p>')+
   (s!=='q'?'<div class="row"><button class="g sm" data-a="lunatour">SHOW ME AROUND</button></div><small class="mut">The tour is narrated by Medius, the Wizard King.</small>':'')+
   '<div class="row"><button data-a="mclose">CLOSE</button></div></div>'}
+/* ---------- Talk with Luna (AI through the luna-chat Edge Function) ---------- */
+const CL=()=>typeof HWCloud!=='undefined'?HWCloud:null;
+const CH={m:[],busy:0,err:'',help:0};   // this visit only: never saved or synced
+const crisisWords=t=>typeof CRISIS!=='undefined'&&CRISIS.test(t);
+const signed=()=>{const c=CL();return!!(c&&c.who())};
+const lerr=(code,x)=>Object.assign(new Error(code),{code},x||{});
+async function talk(msgs){const c=CL();
+  if(!c||!c.who())throw lerr('signin');
+  if(navigator.onLine===false)throw lerr('offline');
+  const name=((st.p&&st.p.name)||'').trim().slice(0,20)||'traveller';
+  let d;try{d=await c.api('/functions/v1/luna-chat',{method:'POST',body:{name,messages:msgs.map(m=>({role:m.role,content:m.content}))},ms:30000})}
+  catch(e){const b=e.body||{};
+    throw e.code==='net'?lerr('offline'):e.status===429&&b.error==='limit'?lerr('limit',{scope:b.scope,retry:+b.retry||0}):e.status===401||e.code==='auth'?lerr('signin')
+      :b.error==='busy'?lerr('busy'):b.error==='nokey'||b.error==='setup'||e.code==='setup'?lerr('nokey'):lerr('ai')}
+  const text=String((d&&d.reply)||'').trim();if(!text)throw lerr('ai');
+  return{text,help:!!(d&&d.help)}}
+const mn=s=>Math.max(1,Math.round(s/60));
+function talkError(e){const k=e&&e.code;
+  if(k==='limit')return e.scope==='day'?'Luna has chatted a lot today and is resting her wand. Try again in about '+(e.retry>5400?Math.max(1,Math.round(e.retry/3600))+' hours':mn(e.retry)+' minutes')+'.'
+    :'Luna needs a short rest. Try again in about '+mn(e.retry||600)+' minute'+(mn(e.retry||600)===1?'':'s')+'.';
+  return{signin:'Sign in to talk with Luna.',offline:'You are offline, so Luna cannot reach her spellbook. Try again when you are back online.',
+    busy:'Many adventurers are talking with Luna right now. Please try again in a few minutes.',
+    nokey:'Luna\'s spellbook is not set up on the server yet, so she cannot answer here.'}[k]||'Luna could not find an answer just now. Try again in a moment.'}
+function helpBox(){return typeof HWCounsel!=='undefined'?HWCounsel.help(true):''}
+function chat(){
+  const note='<small class="mut v6lcn">Luna\'s replies are written by an AI (Grok by xAI). She is not a doctor and can be wrong. What you type here is sent to xAI to write her reply; HealthWiz does not save it.</small>';
+  if(!signed())return '<h4>TALK WITH LUNA</h4><div class="v6lco">'+HWPixel.icon('lock',1)+'<div><b>Sign in to talk with Luna</b><p>An account lets Luna chat with you. Finding features below works without one.</p>'
+    +'<button data-a="lunasign">SIGN IN TO TALK WITH LUNA</button></div></div>'+note;
+  const log=CH.m.length?CH.m.map(m=>'<div class="v6lcm '+(m.role==='user'?'u':'a')+'"><b>'+(m.role==='user'?'You':'Luna')+'</b><span>'+esc(m.content)+'</span></div>').join('')
+    :'<p class="mut">Say hello, or ask about a habit, a feature or your day.</p>';
+  return '<h4>TALK WITH LUNA</h4>'+note+'<div class="v6lclog" id="v6lclog" role="log" aria-live="polite" aria-label="Conversation with Luna">'+log+
+    (CH.busy?'<p class="mut v6lcb">Luna is thinking...</p>':'')+'</div>'+
+    (CH.err?'<p class="v6lce" role="alert">'+esc(CH.err)+' Nothing you wrote was saved.</p>':'')+
+    (CH.help?helpBox():'')+
+    '<div class="v6lcf"><label for="v6lcin" class="cssr">Message to Luna</label><input id="v6lcin" type="text" maxlength="1500" autocomplete="off" placeholder="Message Luna"'+(CH.busy?' disabled':'')+'>'+
+    '<button data-a="lunasend"'+(CH.busy?' disabled':'')+'>SEND</button></div>'+
+    (CH.m.length?'<button class="g sm" data-a="lunaclear">CLEAR CHAT</button>':'')}
+function paintChat(focus){const el=$('#mo #v6lchat');if(!el)return;const i=el.querySelector('#v6lcin'),v=i?i.value:'';el.innerHTML=chat();
+  const j=el.querySelector('#v6lcin');if(j){j.value=v;j.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();acts.lunasend()}};if(focus)j.focus()}
+  const lg=el.querySelector('#v6lclog');if(lg)lg.scrollTop=lg.scrollHeight}
+acts.lunasend=async()=>{const i=$('#mo #v6lcin');const t=i?i.value.trim():'';if(!t||CH.busy)return;
+  CH.m.push({role:'user',content:t.slice(0,1500)});CH.err='';if(crisisWords(t))CH.help=1;CH.busy=1;i.value='';paintChat();
+  try{const r=await talk(CH.m.slice(-30));CH.m.push({role:'assistant',content:r.text});if(r.help)CH.help=1}
+  catch(e){CH.m.pop();CH.err=talkError(e);if(i)i.value=t}
+  CH.busy=0;paintChat(1);const j=$('#mo #v6lcin');if(j&&CH.err&&!j.value)j.value=t};
+acts.lunaclear=()=>{CH.m=[];CH.err='';CH.help=0;paintChat(1)};
+acts.lunasign=()=>{close();if(typeof HWAccount!=='undefined')HWAccount.open(()=>open())};
+HWEvents.on('cloud:signed-in',()=>paintChat());
+HWEvents.on('cloud:signed-out',()=>{CH.m=[];CH.err='';CH.help=0;paintChat()});
 let opened=0;
 function open(q){const m=$('#mo');if(!m||!m.hidden&&!m.querySelector('.v6lp'))return; // never over another open dialog
   m.innerHTML=sheet(q);m.hidden=false;opened=1;m.querySelector('.v6lpic').innerHTML=portrait('cheerful');
   const i=m.querySelector('#v6lq');if(i){i.oninput=()=>{const r=m.querySelector('#v6lres');if(r)r.innerHTML=results(i.value);const x=m.querySelector('#v6lqx');if(x)x.hidden=!!i.value};if(q)i.dispatchEvent(new Event('input'))}
+  paintChat();
   HWEvents.emit('luna:opened',{view:S.v})}
 function close(){const m=$('#mo');if(m&&m.querySelector('.v6lp')){m.hidden=true;m.innerHTML=''}}
 acts.luna=()=>open();
@@ -125,7 +181,13 @@ header .v6lb{margin-right:56px;align-self:flex-start}.hbar .v6lb{margin:0 0 0 au
 .v6lf{display:flex;gap:8px;align-items:center;border-top:2px solid var(--ln);padding:8px 0}.v6lf>div{flex:1 1 auto;min-width:0}
 .v6lf b{display:block}.v6lf small{display:block;color:var(--mut);margin-top:2px}.v6lfi{flex:0 0 auto;line-height:0}
 .v6lh{display:flex;flex-wrap:wrap;gap:6px}
+.v6lcn{display:block;margin:0 0 6px}.v6lclog{max-height:240px;overflow-y:auto;border:2px solid var(--ln);background:var(--bg);padding:8px;margin:6px 0}
+.v6lcm{margin:0 0 8px}.v6lcm b{font:8px/1.6 var(--fh);display:block}.v6lcm span{display:block;white-space:pre-wrap;overflow-wrap:anywhere}
+.v6lcm.a span{color:var(--ink)}.v6lcm.u{text-align:right}.v6lce{color:var(--red);font-weight:bold}
+.v6lcf{display:flex;gap:6px;align-items:stretch;margin:6px 0}.v6lcf input{flex:1 1 auto;min-width:0;margin:0}.v6lcf button{flex:0 0 auto}
+.v6lco{display:flex;gap:10px;align-items:flex-start;border:3px dashed var(--ln);background:var(--p2);padding:10px;margin:6px 0}.v6lco>svg{flex:0 0 auto}
+.v6lco b{font:8px/1.6 var(--fh);display:block}.v6lco p{margin:4px 0 8px;font-size:14px}.v6lco button{width:100%}
 .hwh.v6lpt{outline:4px solid var(--gold);outline-offset:3px;animation:v6lpt .5s steps(2) infinite alternate}@keyframes v6lpt{to{outline-color:var(--vio)}}
 @media(prefers-reduced-motion:reduce){.hwh.v6lpt{animation:none}}
 `);
-return{mount,portrait,mini,full,open,close,style,compact,find,expressions:NAMES,FULL,FACES}})();
+return{mount,portrait,mini,full,open,close,style,compact,find,talk,talkError,get chat(){return CH},expressions:NAMES,FULL,FACES}})();
