@@ -75,10 +75,6 @@ fndds:{t:'2021-2023 Food and Nutrient Database for Dietary Studies: Documentatio
   u:'https://www.ars.usda.gov/ARSUserFiles/80400530/pdf/fndds/2021_2023_FNDDS_Doc.pdf',k:'method',
   s:'"Nutrient values per 100 grams of edible portion"; portion weights are "grams of edible portion as consumed" and "estimations to represent a group of foods", so a household measure is approximate. HealthWiz scales: value per 100 g × grams ÷ 100.',
   c:'PDF read on 2026-10-13 (sections "Portion Weight" and "FNDDS Nutrient Values").'},
-sr28:{t:'Composition of Foods Raw, Processed, Prepared: USDA National Nutrient Database for Standard Reference, Release 28. Documentation and User Guide',by:'USDA Agricultural Research Service, Nutrient Data Laboratory',in:'ars.usda.gov',d:'2015 (slightly revised May 2016)',
-  u:'https://www.ars.usda.gov/ARSUserFiles/80400535/DATA/SR/SR28/sr28_doc.pdf',k:'method',
-  s:'SR (published in FoodData Central as SR Legacy) gives "mean nutrient values per 100 g of the edible portion"; household-measure weights are for edible material, and "N = (V*W)/100" gives the nutrient in a portion. Add More Food\'s book uses this for its SR Legacy parts.',
-  c:'PDF read on 2026-10-13 (sections "Nutrients" and "Weight File").'},
 gbfpd:{t:'USDA Global Branded Food Products Database (GBFPD) Documentation',by:'USDA FoodData Central',in:'fdc.nal.usda.gov',d:'2024 (April)',u:'https://fdc.nal.usda.gov/GBFPD_Documentation/',k:'data',
   s:'Branded foods: USDA calculates nutrient values per 100 g (or 100 ml) from the label\'s per-serving values; label rounding can make them differ from analysis; a missing value "does not indicate a zero value".',
   c:'Page read on 2026-10-13.'}

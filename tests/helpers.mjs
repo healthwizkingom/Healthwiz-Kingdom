@@ -49,7 +49,7 @@ export async function openApp({ seed, fresh = false, viewport, before, context, 
   page.on('pageerror', e => keep('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error') keep('console: ' + m.text().slice(0, 300)); });
   const init = fresh ? null : JSON.stringify(seed || RETURNING);
-  if (init) await page.addInitScript(s => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('healthwiz', s); localStorage.setItem('hwtut', '1'); sessionStorage.setItem('seeded', '1'); } }, init);
+  if (init) await page.addInitScript(s => { if (window !== window.top) return; if (!sessionStorage.getItem('seeded')) { localStorage.setItem('healthwiz', s); localStorage.setItem('hwtut', '1'); sessionStorage.setItem('seeded', '1'); } }, init);
   if (before) await before(page);
   await page.goto(url || APP_URL);
   return { page, ctx, errors };

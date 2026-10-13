@@ -115,7 +115,7 @@ async function food(S, body, send) {
 export async function device(S, { seed, cloud = CLOUD, viewport, context } = {}) {
   const r = await openApp({ seed, viewport, context, before: async page => {
     await page.route(URL0 + '/**', S.handle);
-    if (cloud) await page.addInitScript(c => { if (!sessionStorage.getItem('cl')) { localStorage.setItem('healthwiz_cloud', c); sessionStorage.setItem('cl', '1'); } }, cloud);
+    if (cloud) await page.addInitScript(c => { if (window !== window.top) return; if (!sessionStorage.getItem('cl')) { localStorage.setItem('healthwiz_cloud', c); sessionStorage.setItem('cl', '1'); } }, cloud);
   } });
   await r.page.waitForSelector('.wl');
   await r.page.evaluate(() => { window.__ev = []; HWEvents.on('*', e => { if (/^cloud:|^data:imported/.test(e.type)) window.__ev.push(e.type + (e.mode ? ':' + e.mode : '') + (e.how ? ':' + e.how : '')); }); });

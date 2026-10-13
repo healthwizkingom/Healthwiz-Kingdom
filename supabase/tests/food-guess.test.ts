@@ -17,15 +17,19 @@ async function token(claims: Record<string, unknown>) {
 }
 const good = (sub = 'user-1') => token({ sub, role: 'authenticated', iss: SB + '/auth/v1', exp: Math.floor(Date.now() / 1000) + 3600 });
 
-let reply: unknown = { kind: 'ask', question: 'How much rice was on the plate?', options: ['Half a plate', 'One plate', 'A big plate'], multi: false };
-let status = 200;
+let reply: unknown = { kind: 'food', name: 'Nasi lemak', portion: 'one big plate', note: 'MyFCD values for coconut rice; extra chicken added, no sambal.', confidence: 'medium',
+  items: [{ label: 'Coconut rice', grams: 250, kcal: 450, protein: 8, carbs: 70, fat: 15 }, { label: 'Fried chicken (extra)', grams: 120, kcal: 330, protein: 25, carbs: 8, fat: 22 }] };
+let status = 200, firstStatus = 0, grounding: unknown = { groundingChunks: [{ web: { uri: 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/abc', title: 'myfcd.moh.gov.my' } },
+  { web: { uri: 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/abc', title: 'dup' } }, { web: { uri: 'javascript:alert(1)', title: 'bad' } }],
+  searchEntryPoint: { renderedContent: '<div class="chips">nasi lemak calories</div>' } };
 const calls: { url: string; init?: RequestInit }[] = [], logs: string[] = [];
 globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
   const url = String(input instanceof Request ? input.url : input); calls.push({ url, init });
   if (url === SB + '/auth/v1/.well-known/jwks.json') return Response.json({ keys: [jwk] });
   if (url.startsWith('https://generativelanguage.googleapis.com/')) {
+    if (firstStatus) { const st = firstStatus; firstStatus = 0; return new Response(JSON.stringify({ error: { status: 'INVALID_ARGUMENT', message: 'tool not supported' } }), { status: st }); }
     if (status !== 200) return new Response(JSON.stringify({ error: { status: 'X', message: 'nope' } }), { status });
-    return Response.json({ candidates: [{ content: { parts: [{ text: typeof reply === 'string' ? reply : JSON.stringify(reply) }] } }] });
+    return Response.json({ candidates: [{ content: { parts: [{ text: typeof reply === 'string' ? reply : JSON.stringify(reply) }] }, groundingMetadata: grounding }] });
   }
   return new Response('not found', { status: 404 });
 }) as typeof fetch;
@@ -33,7 +37,6 @@ console.log = (...a: unknown[]) => { logs.push(a.map(String).join(' ')); };
 let handler: (r: Request) => Promise<Response> | Response = () => new Response();
 (Deno as any).serve = (h: typeof handler) => { handler = h; return { finished: Promise.resolve(), shutdown() {} }; };
 const mod = await import('../functions/food-guess/index.ts');
-const REF = [['rice', 'Rice, white, cooked, no added fat'], ['eggfried', 'Egg, whole, fried with oil']];
 const ask = async (body: unknown, auth?: string) => {
   const r = await handler(new Request(SB + '/functions/v1/food-guess', { method: 'POST', headers: { 'Content-Type': 'application/json', ...(auth ? { Authorization: 'Bearer ' + auth } : {}) }, body: JSON.stringify(body) }));
   return { status: r.status, json: await r.json().catch(() => null) };
@@ -46,43 +49,42 @@ Deno.test('signed-in only: no token → 401 and Gemini is never called', async (
   assert(!calls.some(c => c.url.includes('generativelanguage')));
 });
 
-Deno.test('a question: the key stays on the server, the food and answers are sent, the words are never logged', async () => {
+Deno.test('a search: Google Search grounding is on, the key stays on the server, the parts and the sources come back, the words are never logged', async () => {
   calls.length = 0; logs.length = 0;
-  const r = await ask({ food: 'nasi <kerabu>', answers: [{ q: 'Which toppings?', a: 'fried fish, salted egg' }], ref: REF }, await good());
+  const r = await ask({ food: 'nasi lemak <big plate>, extra ayam goreng, no sambal' }, await good());
   assertEquals(r.status, 200);
-  assertEquals(r.json, { ask: { q: 'How much rice was on the plate?', options: ['Half a plate', 'One plate', 'A big plate'], multi: false } });
+  assertEquals(r.json.result.items, [{ label: 'Coconut rice', g: 250, kcal: 450, p: 8, c: 70, f: 15 }, { label: 'Fried chicken (extra)', g: 120, kcal: 330, p: 25, c: 8, f: 22 }]);
+  assertEquals([r.json.result.name, r.json.result.portion, r.json.result.confidence, r.json.result.searched], ['Nasi lemak', 'one big plate', 'medium', true]);
+  assertEquals(r.json.result.sources, [{ title: 'myfcd.moh.gov.my', url: 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/abc' }], 'deduplicated, https only');
+  assertEquals(r.json.result.suggest, '<div class="chips">nasi lemak calories</div>');
   const c = calls.find(x => x.url.includes('generativelanguage'))!;
   assertEquals((c.init!.headers as Record<string, string>)['x-goog-api-key'], 'gem-test-key');
   const sent = JSON.parse(c.init!.body as string);
-  assert(sent.contents[0].parts[0].text.includes('The player ate: nasi kerabu'), 'angle brackets are cleaned');
-  assert(sent.contents[0].parts[0].text.includes('Answer: fried fish, salted egg'));
-  assert(sent.systemInstruction.parts[0].text.includes('rice = Rice, white, cooked, no added fat'));
-  assertEquals(sent.generationConfig.responseMimeType, 'application/json');
+  assertEquals(sent.tools, [{ google_search: {} }]);
+  assert(sent.contents[0].parts[0].text.includes('The player ate: nasi lemak big plate , extra ayam goreng, no sambal'), 'angle brackets are cleaned');
+  assert(sent.systemInstruction.parts[0].text.includes('Apply every change the player typed'));
   assert(!JSON.stringify(r.json).includes('gem-test-key'));
-  assert(!logs.join('\n').includes('kerabu') && !logs.join('\n').includes('salted'), 'the player\'s words are never logged');
+  assert(!logs.join('\n').includes('lemak') && !logs.join('\n').includes('sambal'), 'the player\'s words are never logged');
 });
 
-Deno.test('a guess: parts are checked (unknown reference keys dropped, numbers clamped, empty parts removed)', async () => {
-  reply = '```json\n' + JSON.stringify({ kind: 'guess', name: 'Nasi kerabu', note: 'A canteen-size plate.', items: [
-    { label: 'Blue rice', part: 'rice', grams: 200, kcal: 260, protein: 5, carbs: 57, fat: 0.6 },
-    { label: 'Solok lada', part: 'madeup', grams: 60, kcal: 130, protein: 6, carbs: 5, fat: 9 },
-    { label: 'Huge', part: '', grams: 99999, kcal: -5, protein: 1, carbs: 1, fat: 1 },
-    { label: '', part: '', grams: 10, kcal: 10 }] }) + '\n```';
-  const r = await ask({ food: 'nasi kerabu', ref: REF }, await good());
+Deno.test('the answer is checked: JSON inside a fence or sentence is found; negative or missing energy is dropped; weights are clamped', async () => {
+  reply = 'Here you go:\n```json\n' + JSON.stringify({ kind: 'food', name: 'Roti canai', portion: '2 pieces', note: '', confidence: 'sure!', items: [
+    { label: 'Roti canai', grams: 99999, kcal: 600, protein: 12, carbs: 80, fat: 25 }, { label: 'Dal', grams: 50, kcal: -5 }, { label: '', grams: 10, kcal: 10 }] }) + '\n```';
+  const r = await ask({ food: 'roti canai 2' }, await good());
   assertEquals(r.status, 200);
-  assertEquals(r.json.guess.items, [
-    { label: 'Blue rice', part: 'rice', g: 200, kcal: 260, p: 5, c: 57, f: 0.6 },
-    { label: 'Solok lada', part: '', g: 60, kcal: 130, p: 6, c: 5, f: 9 }]);
-  assertEquals(r.json.guess.note, 'A canteen-size plate.');
+  assertEquals(r.json.result.items, [{ label: 'Roti canai', g: 3000, kcal: 600, p: 12, c: 80, f: 25 }]);
+  assertEquals(r.json.result.confidence, 'low');
+  assertEquals(mod.parse('no json here'), null);
 });
 
-Deno.test('after enough answers a question is not accepted: he must guess', async () => {
-  reply = { kind: 'ask', question: 'One more?', options: ['a', 'b'] };
-  const answers = Array.from({ length: 7 }, (_, i) => ({ q: 'q' + i, a: 'a' }));
-  const r = await ask({ food: 'roti canai', answers }, await good());
-  assertEquals([r.status, r.json.error], [502, 'ai']);
-  const sent = JSON.parse(calls.at(-1)!.init!.body as string);
-  assert(sent.contents[0].parts[0].text.includes('Answer now with kind "guess"'));
+Deno.test('a model without search grounding (400) is asked again without it, and the result says it was not searched', async () => {
+  firstStatus = 400; calls.length = 0;
+  const r = await ask({ food: 'teh tarik' }, await good());
+  assertEquals(r.status, 200);
+  assertEquals(r.json.result.searched, false);
+  const g = calls.filter(x => x.url.includes('generativelanguage'));
+  assertEquals(g.length, 2);
+  assertEquals(JSON.parse(g[1].init!.body as string).tools, undefined);
 });
 
 Deno.test('not a food → unknown; a bad body is 400; Gemini busy 503 busy; another Gemini error 502', async () => {
@@ -90,16 +92,15 @@ Deno.test('not a food → unknown; a bad body is 400; Gemini busy 503 busy; anot
   assertEquals((await ask({ food: 'my homework' }, await good())).json, { unknown: true });
   assertEquals((await ask({}, await good())).status, 400);
   status = 429; const b = await ask({ food: 'teh tarik' }, await good('user-2'));
-  status = 403; reply = ''; const k = await handler(new Request(SB + '/functions/v1/food-guess', { method: 'POST', headers: { Authorization: 'Bearer ' + await good('user-2') }, body: JSON.stringify({ food: 'x' }) }));
+  status = 500; const k = await ask({ food: 'x' }, await good('user-2'));
   status = 200;
-  assertEquals([b.status, (b.json as any).error, k.status], [503, 'busy', 502]);
-  assertEquals(mod.shape({ kind: 'ask', question: 'Q?', options: ['only one'] }, new Set(), false), null, 'a question needs two options');
+  assertEquals([b.status, b.json.error, k.status, k.json.error], [503, 'busy', 502, 'ai']);
 });
 
-Deno.test('a per-player hourly limit (120), then 429 with the wait', async () => {
+Deno.test('a per-player hourly limit (40), then 429 with the wait', async () => {
   reply = { kind: 'unknown' };
   let last = { status: 0, json: null as any };
-  for (let i = 0; i < 121; i++) last = await ask({ food: 'egg' }, await good('heavy-user'));
+  for (let i = 0; i < 41; i++) last = await ask({ food: 'egg' }, await good('heavy-user'));
   assertEquals([last.status, last.json.error], [429, 'limit']);
   assert(last.json.retry > 0);
 });
