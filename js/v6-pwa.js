@@ -43,7 +43,7 @@ function badge(){let b=D.getElementById('v6net');if(online()){if(b)b.remove();re
 function net(){badge();paint();HWEvents.emit('network:changed',{online:online()});
   if(online())toast('📶 Back online.');else try{HWMedius.say('offline')}catch(e){}}
 addEventListener('online',net);addEventListener('offline',net);
-try{HWMedius.rules.offline={p:50,cd:1800e3,line:()=>'The roads beyond the walls are closed, yet the kingdom stands. Thy logs are kept safe right here.'}}catch(e){}
+try{HWMedius.rules.offline={p:50,cd:1800e3,line:()=>'You are offline, but the kingdom is fine. Your logs are kept safe right here on this device.'}}catch(e){}
 
 /* service worker */
 function register(){

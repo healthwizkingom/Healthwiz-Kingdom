@@ -132,7 +132,7 @@ test('fits a 360 px phone without sideways scrolling', async () => {
   await ctx.close();
 });
 
-test('Medius stays quiet during a game and reacts after it', async () => {
+test('Luna stays quiet during a game and reacts after it', async () => {
   const { page, ctx, errors } = await boot({ ...RETURNING, s: { ...RETURNING.s, med: 1 } });
   await page.evaluate(() => { HWMedius.rules.game.line = () => 'Nice game!'; HWGames.open('demo'); });
   await page.click('#tgt'); await page.click('#tgt');

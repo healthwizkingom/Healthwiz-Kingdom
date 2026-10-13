@@ -2,7 +2,7 @@
 
 **HealthWiz Kingdom** (by Group 14) is a pixel-art fantasy RPG that is also a health tracker.
 You log water, meals, sleep, stairs (with workout heart rate), runs and stress, and Medius, the Wizard King, guides you
-as your actions restore the kingdom. It is a wellness tracker, not a medical device.
+as your actions restore the kingdom, with Luna, an apprentice witch, as your everyday companion. It is a wellness tracker, not a medical device.
 
 The app is the team's original **v5.4.3** build, split into files so it can live safely in git.
 Changes since then are small, tested and listed in `docs/ARCHITECTURE_AUDIT.md`.
@@ -39,7 +39,9 @@ js/v6-quests.js            adaptive daily focus quest + weekly quests
 js/v6-streaks.js           current + gentle streaks, week view, new achievements
 js/v6-xp.js                fair XP: daily logging allowance, exploration reward
 js/v6-kingdom.js           five region states (incl. Flourishing) and region detail panel
-js/v6-medius.js            Medius reacts to events (speech bubbles with cooldowns)
+js/v6-luna.js              Luna, the apprentice witch: hand-placed pixel sprite drawn by code (7 expressions, blink, breath, familiar),
+                           Ask Luna (find a feature, open the page's "?" explanations; no AI), her preferences (st.s.lst, st.s.lsz)
+js/v6-medius.js            the companion reacts to events (speech bubbles with cooldowns), spoken by Luna; Medius keeps the tutorial voice
 js/v6-charts.js            touch/keyboard/screen-reader charts, empty states, week-vs-week stats
 js/v6-world.js             visible world progression on the map + kingdom chronicle
 js/v6-title.js             title screen: time of day, weather, returning-player ribbon, tap reactions

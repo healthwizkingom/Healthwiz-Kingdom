@@ -143,3 +143,11 @@ opacity only, and every scene stops off screen, in a hidden tab and for reduced 
   layered canvases; moving details are a few CSS-animated SVG shapes with `shape-rendering: crispEdges`.
 * Wizard's Counsel (`js/v6-counsel.js`): Medius's expressions are small patches in the study picture's own style
   (`assets/img/medius-reactions.webp`); his hands are never redrawn.
+* Luna, the apprentice witch (`js/v6-luna.js`, 44 × 51, drawn at 2×): the one character drawn as a hand-placed grid of
+  palette letters instead of a picture, so she costs nothing from the image budget. Her look follows the owner's
+  character reference sheet (violet eyes, purple hair, star hat, midnight-blue and lavender robes, gold trim, staff with
+  a blue orb, teal familiar). Expressions are small patches over the eyes and mouth (cheerful, curious, focused,
+  thoughtful, surprised, encouraging, apologetic, plus idle and a wave); the outline is added around the composed
+  picture, and sparkles are drawn after it. Motion is whole pixels on a slow timer (blink, a 1-pixel breath, the
+  familiar's bob, staff sparkle) and stops off screen, in a hidden tab, with reduced motion and in Performance mode.
+  The compact portrait and the header button are crops of the same grid.

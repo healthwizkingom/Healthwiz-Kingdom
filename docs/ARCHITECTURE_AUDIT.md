@@ -1368,3 +1368,25 @@ which together caused these at narrow widths. No saved-data change.
   messages say that opening the email link uses the code up. The email template must contain `{{ .Token }}` (README, "Sign-in:
   dashboard steps").
 
+
+## Luna, the apprentice witch companion (`js/v6-luna.js`, `js/v6-medius.js`, `tests/59-luna.test.mjs`)
+
+Owner's decisions for this round (from the Master Upgrade Prompt, Feature H, and Luna's character reference sheet):
+Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel sprite; no AI yet.
+
+- **What changed.** The bubbles (`js/v6-medius.js`: same rules, priorities, cooldowns, daily limit, Chatty / Calm / Off)
+  now show Luna and her name, with a face chosen per kind of bubble (`FACE`). Her lines are rewritten in a modern, kind
+  voice (no "thee"); the same goes for the lines that the games, cloud sync and offline add-ons register. `HWMedius`,
+  `#v6md`, `st.md` and the `medius:said` event keep their names so nothing that depends on them changes. A bubble now
+  also waits while a dialog (`#mo`) is open.
+- **What Medius keeps.** The tutorial and the Traveller's Registry (with his recorded voice), the Wizard's Counsel AI
+  chat, the Health Orb, the Training Hall notes and the player avatar are unchanged.
+- **Ask Luna** (Home bar and every page header, or tap Luna in a bubble): finds features by word from one list whose
+  tracker text comes from `HWHall.heads` (now exported by `js/v6-hall.js`, so it is not duplicated), and lists the "?"
+  explanations on the page underneath; choosing one scrolls to it, marks it and opens the same `HWHelp` panel. Help
+  style: Quick (names), Guided (what to enter, default), Explore (+ why, and whether the numbers are entered or estimated).
+  It reads no entries, writes nothing but the three preferences and sends nothing.
+- **Saved data.** New optional settings `st.s.lst` and `st.s.lsz`; missing keys mean the defaults, so the schema stays at
+  version 8. Old bubble history entries (without `who`) are labelled as Medius's words on the guide page.
+- **Not done (later stages):** the Grok-backed AI for Luna (needs a server-side key in a Supabase Edge Function like
+  `medius-chat`), remembering further preferences, and full-body poses beyond the bubble sprite.
