@@ -17,7 +17,9 @@
    * Ask Luna (HWLuna.open): a panel with no AI. It finds features (names and the trackers' own header text from
      js/v6-hall.js) and opens the "?" explanations already on the page (js/v6-help.js), pointing at each one. It never
      reads or changes saved entries and sends nothing anywhere.
-   * Talk with Luna (in the same panel): signed-in players chat with Luna through the luna-chat Edge Function
+   * Talk with Luna (in the same panel) takes place in her room (assets/img/luna-room.webp), where her full figure waves
+     while waiting, thinks while a reply is on its way, cheers with a reply and looks confused on an error.
+     It works like this: signed-in players chat with Luna through the luna-chat Edge Function
      (supabase/functions/luna-chat: Google Gemini, the same key and model as Medius, with her persona and safety rules on the server; the key never reaches
      the app). Only the conversation typed here is sent, never saved entries. It lives in memory for this visit and
      is not saved or synced. Signed out, the panel says "Sign in to talk with Luna". The crisis numbers show when the
@@ -27,7 +29,7 @@
      Missing keys mean the defaults, so older saves need no migration. RESET puts all three back. */
 const HWLuna=(()=>{
 const NAMES=['cheerful','curious','focused','thoughtful','surprised','encouraging','apologetic'];
-const FACES='assets/img/luna-faces.webp',POSE_IMG='assets/img/luna-poses.webp',FS=64,PW=80,PH=120;
+const FACES='assets/img/luna-faces.webp',POSE_IMG='assets/img/luna-poses.webp',ROOM='assets/img/luna-room.webp',FS=64,PW=80,PH=120;
 const POSES=['idle','staff','walk','cast','point','think','happy','confused','wave'];   // the sheet's poses 1 to 9, in luna-poses.webp
 const POSEOF={idle:'idle',greet:'wave',cheerful:'happy',curious:'point',focused:'staff',thoughtful:'think',surprised:'cast',encouraging:'happy',apologetic:'confused'};
 const poseOf=(p,expr)=>POSES.includes(p)?p:POSEOF[expr]||'idle';
@@ -125,15 +127,19 @@ function talkError(e){const k=e&&e.code;
   return{signin:'Sign in to talk with Luna.',offline:'You are offline, so Luna cannot reach her spellbook. Try again when you are back online.',
     busy:'Many adventurers are talking with Luna right now. Please try again in a few minutes.',
     nokey:'Luna\'s spellbook is not set up on the server yet, so she cannot answer here.'}[k]||'Luna could not find an answer just now. Try again in a moment.'}
+// Talk with Luna happens in her room (assets/img/luna-room.webp, from the owner's scene, tools/art/make_apprentice.py):
+// her full figure stands in it, and her pose and face follow the chat
+const MOODPOSE={curious:'wave',thoughtful:'think',cheerful:'happy',apologetic:'confused'};
+function room(mood){return '<div class="v6lroom" data-face="'+mood+'"><img src="'+ROOM+'" alt="" width="336" height="189" class="v6lrbg">'+full({pose:MOODPOSE[mood]||'idle'})+'</div>'}
 function helpBox(){return typeof HWCounsel!=='undefined'?HWCounsel.help(true):''}
 function chat(){
   const note='<small class="mut v6lcn">Luna\'s replies are written by an AI (Google Gemini). She is not a doctor and can be wrong. What you type here is sent to Google to write her reply; HealthWiz does not save it.</small>';
-  if(!signed())return '<h4>TALK WITH LUNA</h4><div class="v6lco">'+HWPixel.icon('lock',1)+'<div><b>Sign in to talk with Luna</b><p>An account lets Luna chat with you. Finding features below works without one.</p>'
+  if(!signed())return '<h4>TALK WITH LUNA</h4>'+room('curious')+'<div class="v6lco">'+HWPixel.icon('lock',1)+'<div><b>Sign in to talk with Luna</b><p>An account lets Luna chat with you. Finding features below works without one.</p>'
     +'<button data-a="lunasign">SIGN IN TO TALK WITH LUNA</button></div></div>'+note;
   const log=CH.m.length?CH.m.map(m=>'<div class="v6lcm '+(m.role==='user'?'u':'a')+'"><b>'+(m.role==='user'?'You':'Luna')+'</b><span>'+esc(m.content)+'</span></div>').join('')
     :'<p class="mut">Say hello, or ask about a habit, a feature or your day.</p>';
   const last=CH.m[CH.m.length-1],mood=CH.busy?'thoughtful':CH.err?'apologetic':last&&last.role==='assistant'?'cheerful':'curious';
-  return '<h4>TALK WITH LUNA</h4><div class="v6lchd">'+portrait(mood)+note+'</div><div class="v6lclog" id="v6lclog" role="log" aria-live="polite" aria-label="Conversation with Luna">'+log+
+  return '<h4>TALK WITH LUNA</h4>'+room(mood)+'<div class="v6lchd">'+portrait(mood)+note+'</div><div class="v6lclog" id="v6lclog" role="log" aria-live="polite" aria-label="Conversation with Luna">'+log+
     (CH.busy?'<p class="mut v6lcb">Luna is thinking...</p>':'')+'</div>'+
     (CH.err?'<p class="v6lce" role="alert">'+esc(CH.err)+' Nothing you wrote was saved.</p>':'')+
     (CH.help?helpBox():'')+
@@ -204,6 +210,10 @@ header .v6lb{margin-right:56px;align-self:flex-start}.hbar .v6lb{margin:0 0 0 au
 .v6lf{display:flex;gap:8px;align-items:center;border-top:2px solid var(--ln);padding:8px 0}.v6lf>div{flex:1 1 auto;min-width:0}
 .v6lf b{display:block}.v6lf small{display:block;color:var(--mut);margin-top:2px}.v6lfi{flex:0 0 auto;line-height:0}
 .v6lh{display:flex;flex-wrap:wrap;gap:6px}
+.v6lroom{position:relative;line-height:0;border-radius:14px;overflow:hidden;border:1px solid var(--edge,var(--ln));margin:4px 0 8px;box-shadow:0 0 18px rgba(196,166,255,.35)}
+.v6lrbg{display:block;width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges}
+.v6lroom .v6lfull{position:absolute;left:50%;bottom:4%;transform:translateX(-50%) scale(1);transform-origin:bottom center;animation:none}
+@media(min-width:400px){.v6lroom .v6lfull{transform:translateX(-50%) scale(1.25)}}
 .v6lcn{display:block;margin:0 0 6px}.v6lchd{display:flex;gap:10px;align-items:flex-start}.v6lchd .v6lpf{flex:0 0 auto;border:2px solid var(--ln);border-radius:10px;background-color:var(--p2)}.v6lchd .v6lcn{flex:1 1 auto;min-width:0}.v6lclog{max-height:240px;overflow-y:auto;border:2px solid var(--ln);background:var(--bg);padding:8px;margin:6px 0}
 .v6lcm{margin:0 0 8px}.v6lcm b{font:8px/1.6 var(--fh);display:block}.v6lcm span{display:block;white-space:pre-wrap;overflow-wrap:anywhere}
 .v6lcm.a span{color:var(--ink)}.v6lcm.u{text-align:right}.v6lce{color:var(--red);font-weight:bold}

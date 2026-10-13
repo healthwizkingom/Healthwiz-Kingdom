@@ -42,10 +42,14 @@ test('signed in: the message goes to luna-chat with the session, the reply shows
   assert.equal(await page.locator('#v6lcin').count(), 1, 'the message box appears when signed in');
   const face = () => page.getAttribute('#v6lchat .v6lchd .v6lpf', 'data-face');
   assert.equal(await face(), 'curious', 'her portrait waits, curious');
+  const roomPose = () => page.getAttribute('#v6lchat .v6lroom .v6lfull', 'data-pose');
+  assert.equal(await roomPose(), 'wave', 'in her room she waves while waiting');
+  assert.equal(await page.evaluate(() => { const i = document.querySelector('#v6lchat .v6lroom img'); return i.complete && i.naturalWidth; }), 336, 'her room from the owner\'s scene');
   await page.fill('#v6lcin', 'How much water today?');
   await page.press('#v6lcin', 'Enter');
   await page.waitForFunction(() => document.querySelectorAll('#v6lclog .v6lcm.a').length === 1);
   assert.equal(await face(), 'cheerful', 'cheerful with a reply');
+  assert.equal(await roomPose(), 'happy', 'and cheers in her room');
   let t = await page.textContent('#v6lclog');
   assert.match(t, /You[\s\S]*How much water today\?[\s\S]*Luna[\s\S]*A sip of water is a fine spell\./);
   assert.equal(reqs.length, 1);

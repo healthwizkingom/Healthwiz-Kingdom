@@ -5,7 +5,8 @@
      recorded, so every point is labelled "Unverified: from the original app data". Stairways that share one coordinate
      are one marker; stairways without coordinates are listed, never placed. No routes are drawn (none are recorded).
    * The map is drawn from the coordinates themselves (an equirectangular projection around their centre, so distances
-     and the 100 m scale bar are real); the fantasy styling (night parchment, glow, compass) is decoration only.
+     and the 100 m scale bar are real). Its look follows the owner's illustrated campus maps (daylight grounds, trees,
+     a small red-roofed building at each stairway point, a gold compass): decoration only, with no roads or paths.
    * Live weather and haze (js/v6-live.js) are read for HWLive.KMK, a "Kolej MARA Kulim" point that is itself marked
      "verify on Google Maps" and lies about 2.9 km from the stairways: the page says so instead of hiding it.
    * SHOW WHERE I AM asks the browser for one position. It is shown on this screen only: never saved, never sent. If
@@ -40,12 +41,23 @@ const visited=id=>st.gp&&st.gp.v&&st.gp.v[id];
 function marker(g,i,pr){const[x,y]=pr.at(g),s=g.L[0],n=g.L.length,on=V.sel===i,vis=g.L.some(q=>visited(q.id)||sessionsAt(q.id).length);
   const name=g.L.map(q=>q.name).join('; ');
   return '<button type="button" class="cmpm cmp'+CK[s.cat]+(on?' on':'')+(vis?' vis':'')+'" style="left:'+x.toFixed(2)+'%;top:'+y.toFixed(2)+'%" data-a="cmpsel" data-i="'+i+'" aria-pressed="'+on+'" aria-label="'+esc(name)+', '+CN[s.cat]+(n>1?', '+n+' stairways at one point':'')+(vis?', you have climbed here':'')+'">'+CK[s.cat]+(n>1?'<small class="cmpn" aria-hidden="true">×'+n+'</small>':'')+'</button>'}
+/* The look follows the owner's illustrated campus maps (daylight grounds, trees, red-roofed blocks, a gold compass); it is
+   decoration only: the trees are placed by a fixed pseudo-random sequence away from the markers, and one small building
+   sits under each mapped stairway point. No roads or paths are drawn, because none are recorded. */
+function scenery(P,pr){const pts=P.map(g=>pr.at(g)).map(([x,y])=>[x*3,y*2]);let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  let trees='';for(let k=0;k<110;k++){const x=rnd()*300,y=rnd()*200,r=3+rnd()*3;if(pts.some(([a,b])=>Math.hypot(a-x,b-y-9)<16))continue;
+    trees+='<circle cx="'+x.toFixed(1)+'" cy="'+(y+1.5).toFixed(1)+'" r="'+r.toFixed(1)+'" fill="#2f5a2c"/><circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+r.toFixed(1)+'" fill="'+(k%3?'#4c8a3f':'#5f9d48')+'"/><circle cx="'+(x-r/3).toFixed(1)+'" cy="'+(y-r/3).toFixed(1)+'" r="'+(r/2.6).toFixed(1)+'" fill="#86c46a"/>'}
+  const blocks=pts.map(([x,y])=>{if(x<-6||x>306||y<-6||y>206)return'';return '<g transform="translate('+x.toFixed(1)+' '+(y+13).toFixed(1)+') scale(1.3)"><rect x="-8" y="-3" width="16" height="9" fill="#f3e6cf" stroke="#7a5b3c" stroke-width=".6"/>'
+    +'<path d="M-10 -3L0 -10L10 -3Z" fill="#c8553d" stroke="#7a3022" stroke-width=".6"/><rect x="-5" y="0" width="3" height="3" fill="#7fb6e0"/><rect x="2" y="0" width="3" height="3" fill="#7fb6e0"/></g>'}).join('');
+  return '<svg viewBox="0 0 300 200" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="cmpg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7cb963"/><stop offset="1" stop-color="#4f8a45"/></linearGradient>'
+    +'<pattern id="cmpgrid" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="2" height="2" fill="rgba(255,255,255,.05)"/><rect x="3" y="3" width="2" height="2" fill="rgba(0,0,0,.05)"/></pattern></defs>'
+    +'<rect width="300" height="200" fill="url(#cmpg)"/><rect width="300" height="200" fill="url(#cmpgrid)"/>'+trees+blocks
+    +'<g transform="translate(26 172)" class="cmpcompass"><circle r="15" fill="rgba(18,15,51,.55)" stroke="#f6c94f"/><path d="M0-13L3 0L0 13L-3 0Z" fill="#f6c94f"/><path d="M-13 0L0 -3L13 0L0 3Z" fill="#fff0a8"/>'
+    +'<text y="-17" text-anchor="middle" font-size="8" fill="#fff0a8" stroke="#120f33" stroke-width=".5">N</text></g>'
+    +'<rect x="1" y="1" width="298" height="198" fill="none" stroke="#f6c94f" stroke-width="2" rx="6"/></svg>'}
 function mapView(P,pr){const bar=100/pr.mPerPct; // 100 m in percent of the map width
   const me=V.me?(()=>{const[x,y]=pr.at(V.me);return x>=-5&&x<=105&&y>=-5&&y<=105?'<span class="cmpme" style="left:'+x.toFixed(2)+'%;top:'+y.toFixed(2)+'%" role="img" aria-label="You are here (± '+Math.round(V.me.acc)+' m)"></span>':''})():'';
-  return '<div class="cmpmap" role="group" aria-label="Campus stairways map"><svg viewBox="0 0 300 200" preserveAspectRatio="none" aria-hidden="true"><defs><radialGradient id="cmpg" cx="50%" cy="45%" r="70%"><stop offset="0" stop-color="#2c2470"/><stop offset="1" stop-color="#120f33"/></radialGradient>'
-    +'<pattern id="cmpgrid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="rgba(196,166,255,.12)" stroke-width=".6"/></pattern></defs>'
-    +'<rect width="300" height="200" fill="url(#cmpg)"/><rect width="300" height="200" fill="url(#cmpgrid)"/>'
-    +'<g transform="translate(272 26)" class="cmpcompass"><circle r="14" fill="none" stroke="rgba(246,201,79,.7)"/><path d="M0-12L3 0L0 12L-3 0Z" fill="#f6c94f"/><text y="-16" text-anchor="middle" font-size="8" fill="#fff0a8">N</text></g></svg>'
+  return '<div class="cmpmap" role="group" aria-label="Campus stairways map">'+scenery(P,pr)
     +P.map((g,i)=>{const[x,y]=pr.at(g);return x<-2||x>102||y<-2||y>102?'':marker(g,i,pr)}).join('')+me
     +'<button type="button" class="g sm cmpz" data-a="cmpzoom" aria-pressed="'+(V.z>1)+'">'+(V.z>1?'ZOOM OUT':'ZOOM IN')+'</button>'
     +'<div class="cmpscale" aria-hidden="true"><i style="width:'+Math.min(60,bar).toFixed(2)+'%"></i><small>'+(bar>60?'≈ '+Math.round(60*pr.mPerPct)+' m':'100 m')+'</small></div>'
@@ -110,15 +122,15 @@ const door=()=>'<div class="card cmpdoor" id="cmp-door"><h3>'+ico('map')+' CAMPU
 HWEvents.on('live:updated',()=>{if(S.v==='campus'){const y=window.scrollY;render();window.scrollTo(0,y)}});
 
 HWUI.css('campus',`
-.cmpmap{position:relative;width:100%;aspect-ratio:3/2;border-radius:14px;overflow:hidden;border:1px solid var(--edge,var(--ln));box-shadow:0 0 22px rgba(139,92,240,.25);background:#120f33;margin:8px 0 4px}
+.cmpmap{position:relative;width:100%;aspect-ratio:3/2;border-radius:14px;overflow:hidden;border:1px solid var(--edge,var(--ln));box-shadow:0 0 22px rgba(139,92,240,.25),inset 0 0 30px rgba(0,0,0,.25);background:#4f8a45;margin:8px 0 4px}
 .cmpmap svg{position:absolute;inset:0;width:100%;height:100%}
-.cmpm{position:absolute;width:30px;height:30px;min-height:30px;margin:-15px 0 0 -15px;padding:0;border-radius:50%;font:bold 12px/1 var(--fb,sans-serif);color:#10091f;border:2px solid #fff;
+.cmpm{position:absolute;width:30px;height:30px;min-height:30px;margin:-15px 0 0 -15px;padding:0;border-radius:50%;font:bold 12px/1 var(--fb,sans-serif);color:#10091f;border:3px solid #1b1745;
   background-image:none;box-shadow:0 0 0 3px rgba(0,0,0,.35),0 0 12px var(--cmpc);animation:cmpglow 2.4s steps(4) infinite alternate;z-index:1}
 .cmpm.cmp1,.cmpk.cmp1{--cmpc:#5cc05a;background-color:#7ee07c}.cmpm.cmp2,.cmpk.cmp2{--cmpc:#f6c94f;background-color:#f6c94f}.cmpm.cmp3,.cmpk.cmp3{--cmpc:#ff6b5e;background-color:#ff8a7e}
 .cmpm.vis{outline:3px solid #63e6dc;outline-offset:2px}.cmpm.on{z-index:2;transform:scale(1.2);box-shadow:0 0 0 3px #fff0a8,0 0 18px #fff0a8}
 @keyframes cmpglow{to{box-shadow:0 0 0 3px rgba(0,0,0,.35),0 0 20px var(--cmpc)}}
 .cmpme{position:absolute;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#4db3ff;border:3px solid #fff;box-shadow:0 0 0 6px rgba(77,179,255,.35);z-index:3}
-.cmpscale{position:absolute;left:10px;bottom:8px;width:60%;color:#fff0a8}.cmpscale i{display:block;height:4px;border:1px solid #fff0a8;border-top:0}.cmpscale small{font-size:11px}
+.cmpscale{position:absolute;left:62px;bottom:10px;width:60%;color:#fff0a8;text-shadow:0 1px 0 #120f33}.cmpscale i{display:block;height:4px;border:1px solid #fff0a8;border-top:0}.cmpscale small{font-size:11px}
 .cmpunv{margin:0 0 2px;font-size:12px;color:var(--mut);text-align:right}.cmpn{position:absolute;right:-8px;top:-8px;font:bold 10px/1 sans-serif;background:#fff0a8;color:#10091f;border-radius:8px;padding:2px 3px;border:1px solid #10091f}
 .cmpz{position:absolute;right:8px;bottom:8px;z-index:4;min-height:44px}
 .cmpleg{font-size:13px}.cmpk{display:inline-block;width:18px;height:18px;border-radius:50%;text-align:center;font:bold 11px/18px sans-serif;color:#10091f;vertical-align:-3px}
