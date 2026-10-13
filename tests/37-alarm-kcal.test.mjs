@@ -13,11 +13,13 @@ async function withRuns(runs, seed = RETURNING) {
   return openApp({ seed, before: p => p.addInitScript(r => { if (!sessionStorage.getItem('runs')) { localStorage.setItem('healthwiz_runs', JSON.stringify({ ok: 1, runs: r, del: [] })); sessionStorage.setItem('runs', '1'); } }, runs) });
 }
 
-test('MET by speed (Compendium points, interpolated; walking under 6 km/h) and kcal = MET × kg × h', async () => {
+test('MET by speed (2024 Compendium points, interpolated; walking under 6 km/h) and kcal = MET × kg × h', async () => {
   const { page, ctx, errors } = await openApp();
   const r = await page.evaluate(() => [HWRun.met(6), HWRun.met(8), HWRun.met(10), HWRun.met(16), HWRun.met(20), HWRun.met(5), HWRun.met(3),
     HWRun.kcalOf(5000, 1800, 60), HWRun.kcalOf(5, 60, 60), HWRun.kcalOf(1000, 0, 60), HWRun.kcalOf(5000, 1800, null)]);
-  assert.deepEqual(r, [6, 8.3, 10, 14.5, 14.5, 3.7, 3.5, 300, null, null, null]);
+  // 6 km/h is below the first running point (6.4 km/h, 6.5 MET); 10 km/h lies between 9.7 (9.3) and 10.8 (10.5): 9.3 + 1.2 × 0.3 ÷ 1.1 = 9.63;
+  // 5 km/h walking between 4.5 (3.8) and 5.6 (4.8): 4.25; 3 km/h between 0 (2.3) and 3.2 (2.8): 2.77; 5 km in 30 min at 60 kg: 9.6 × 60 × 0.5 = 288
+  assert.deepEqual(r, [6.5, 8.5, 9.6, 14.8, 14.8, 4.3, 2.8, 288, null, null, null]);
   assert.deepEqual(errors, []);
   await ctx.close();
 });
@@ -26,16 +28,17 @@ test('old runs get calories from their own distance and time; stored values win;
   const { page, ctx, errors } = await withRuns([run(3, 3000, 1200), run(0, 5000, 1800), run(0, 2000, 900, { kcal: { v: 111, met: 8, w: 60 } })]);
   await go(page, 'exercise');
   const list = await page.textContent('#v6runs');
-  assert.match(list, /≈300 kcal/, 'old run without a stored value: 10 km/h → 10 MET × 60 kg × 0.5 h');
+  assert.match(list, /≈288 kcal/, 'old run without a stored value: 10 km/h → 9.6 MET × 60 kg × 0.5 h');
   assert.match(list, /≈111 kcal/, 'a stored value is used as is');
-  assert.match(list, /Today: 7\.00 km in 2 runs · 45:00 · ≈411 kcal/);
-  assert.match(list, /≈ 19% of today's calorie goal/);
+  assert.match(list, /Today: 7\.00 km in 2 runs · 45:00 · ≈399 kcal/);
+  assert.match(list, /≈ 18% of today's calorie goal/);
   assert.match(list, /Last 7 days: 10\.00 km in 3 runs/);
-  assert.match(list, /±20–30%/);
+  assert.match(list, /≈ estimate from each run's speed and your weight/);
+  assert.doesNotMatch(list, /±/, 'no error margin without a source');
   assert.ok(await page.locator('#v6runs .pxi-flame').count() >= 3, 'pixel flame beside the calories');
   assert.match(await page.textContent('#v6run'), /CALORIES[\s\S]*kcal burned/);
   await go(page, 'food');
-  assert.match(await page.textContent('#nst-food'), /\+411 kcal burned running today/);
+  assert.match(await page.textContent('#nst-food'), /\+399 kcal burned running today/);
   assert.match(await page.textContent('#nst-food'), /\/ 2200 kcal/, 'the food target is not raised');
   assert.equal((await state(page)).s.kcal, 2200);
   assert.ok(!EMOJI.test(await page.textContent('.nsburn')));

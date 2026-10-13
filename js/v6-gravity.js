@@ -107,7 +107,8 @@ function help(){return HWHelp.btn('gvhelp','Stair Sense: how it works and what i
   +'<p>Work and power come from a formula, not from the sensor: <b>W = m × g × h</b> and <b>P = W ÷ t</b>, using your body mass, the height of the steps and the time. If the step height or your mass is missing, the result is marked unavailable instead of guessed.</p>'
   +'<p><b>What can go wrong:</b> carrying the phone in a swinging hand or a bag, texting, walking flat or going down the stairs can add or hide steps. Count the steps of one climb yourself and correct the number before you save.</p>'
   +'<p><b>Safety:</b> hold the handrail, look where you step and climb at a pace that is comfortable for you. Stop if you feel dizzy, faint or have chest pain. This is not a challenge or a race: slower is fine, and a lower power is not worse. It is not a medical measurement.</p>'
-  +'<p>The sensor only runs while a climb is running. Pausing, finishing, cancelling or leaving the page turns it off, and nothing is sent anywhere.</p>',{label:'About Stair Sense'})}
+  +'<p>The sensor only runs while a climb is running. Pausing, finishing, cancelling or leaving the page turns it off, and nothing is sent anywhere.</p>'
+  +(typeof HWSources!=='undefined'?'<b class="hwx-h">SOURCES</b><ul class="hwx-src">'+['nistg','nistcal'].map(HWSources.cite).join('')+'</ul>':''),{label:'About Stair Sense'})}
 function stairSelect(){
   const cur=G.sid||(HWStairs.pick&&stairOf(HWStairs.pick)?HWStairs.pick:'');
   if(!G.sid&&cur)G.sid=cur;

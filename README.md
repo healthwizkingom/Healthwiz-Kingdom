@@ -27,6 +27,8 @@ js/v6-schema.js            saved-data versioning, migrations and damaged-data re
 js/v6-events.js            event bus observing the app (catalog: docs/EVENTS.md)
 js/v6-ui.js                shared UI helpers (injected styles, completion banner, keyboard-friendly dialogs, saved theme)
 js/v6-pixel.js             pixel-art standard: design tokens, panel/HUD classes, crisp pixel icons (guide: docs/PIXEL_STYLE.md)
+js/v6-sources.js           verified source records (HWSources) and the worked "?" explanation (HWExplain): inputs, formula, your numbers step by step, sources, limits (audit: docs/CALCULATIONS.md)
+js/v6-calcx.js             the Stairs page's worked explanations (stair workout energy, our project's VO₂ method, peak heart rate)
 js/v6-emoji.js             every emoji the app shows drawn as pixel art (hand-drawn icon or the emoji pixelated)
 js/v6-provisions.js        Nutrition & Hydration as one page (the Provisions Hall): 'food' and 'water' are its two halves
 js/v6-stairs.js            the Stairs page: two halves side by side, casual stairs (GPS check-in first, then by hand) and workout & heart rate (LOG BPM before/after, f, T, ω of the pulse, calorie estimate and our project's VO₂ / kJ method behind a ? button), the Group 14 measured-stairways table; one session model

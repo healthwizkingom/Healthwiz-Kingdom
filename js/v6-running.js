@@ -49,9 +49,14 @@ function clock(s){s=Math.max(0,Math.floor(s));const h=Math.floor(s/3600),m=Math.
 function fmtPace(p){if(p==null||!(p>0)||p>=6000)return'--:--';p=Math.round(p);return Math.floor(p/60)+':'+two(p%60)}
 const km=m=>(Math.max(0,m)/1000).toFixed(2);
 /* ---------- calories burned (estimate) ---------- */
-// [km/h, MET]: 2024 Compendium of Physical Activities, running (12xxx) and walking (17xxx) at a level pace
-const MRUN=[[6,6.0],[8,8.3],[9.7,9.8],[11.3,11.0],[12.9,11.8],[14.5,12.8],[16,14.5]],MWALK=[[0,3.5],[4.8,3.5],[5.6,4.3],[6,5.0]];
+// [km/h, MET, Compendium code]: the 2024 Adult Compendium (pacompendium.com, read 2026-10-13), level running (12xxx) and walking
+// (17xxx); each point is the lower speed of its entry (1 mph = 1.609 km/h). The earlier table held 2011 values under a 2024 label.
+// Above 16.1 km/h (10 mph) the MET stays at 14.8, so a GPS jump never inflates a run.
+const MRUN=[[6.4,6.5,12028],[6.9,7.8,12029],[8.0,8.5,12030],[8.9,9.0,12045],[9.7,9.3,12050],[10.8,10.5,12060],[11.3,11.0,12070],[12.1,11.8,12080],[12.9,12.0,12090],[13.8,12.5,12100],[14.5,13.0,12110],[15.0,14.8,12115],[16.1,14.8,12120]],
+  MWALK=[[0,2.3,17151],[3.2,2.8,17152],[4.0,3.0,17170],[4.5,3.8,17190],[5.6,4.8,17200]];
 function lerp(P,x){if(x<=P[0][0])return P[0][1];for(let i=1;i<P.length;i++)if(x<=P[i][0]){const a=P[i-1],b=P[i];return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0])}return P[P.length-1][1]}
+// the Compendium points either side of a speed (for the "?" worked example)
+function around(kmh){const P=kmh<6?MWALK:MRUN;if(kmh<=P[0][0])return[P[0]];for(let i=1;i<P.length;i++)if(kmh<=P[i][0])return[P[i-1],P[i]];return[P[P.length-1]]}
 /** MET for an average speed in km/h: walking under 6 km/h, running from 6 (above 16 km/h it stays at 14.5). */
 const met=kmh=>kmh>0?Math.round(lerp(kmh<6?MWALK:MRUN,kmh)*10)/10:null;
 /** The weight the user confirmed (onboarding or a saved profile), or null. App defaults never count. */
@@ -223,8 +228,21 @@ const kcalTxt=(m,s,done)=>{const k=done?kcalRun(done):kcalOf(m,s);return k==null
 function kcalNote(m,s,done){if(!weight())return '<b>Calories burned needs your weight.</b> HealthWiz never guesses it. Add age, sex, height and weight on the Body &amp; Energy page.<br>'
     +btn('go','COMPLETE YOUR PROFILE','sm',' data-v="body"');
   const k=done?kcalRun(done):kcalOf(m,s),p=goalPct(k);
-  return k==null?'Calories appear after the first few metres. <span class="mut">≈ estimate (±20–30%)</span>'
-    :'<b>≈ '+k+' kcal</b> burned · <span class="mut">≈ estimate (±20–30%) from your speed and weight</span>'+(p!=null?'<br>≈ '+p+'% of today\'s calorie goal ('+st.s.kcal+' kcal). Your food target is not changed.':'')}
+  return k==null?'Calories appear after the first few metres. <span class="mut">≈ estimate</span>'
+    :'<b>≈ '+k+' kcal</b> burned · <span class="mut">≈ estimate from your speed and weight</span> '+runWhy(done?+done.dist:m,done?+done.dur:s,done)+(p!=null?'<br>≈ '+p+'% of today\'s calorie goal ('+st.s.kcal+' kcal). Your food target is not changed.':'')}
+/** The "?" beside a run's calories: kcal = MET × kg × hours, with the Compendium points the speed falls between. */
+function runWhy(m,s,done,key){const N=HWExplain.num,stored=done&&done.kcal&&+done.kcal.v>0,h=s/3600,kmh=m/1000/h,w=stored?+done.kcal.w:weight(),M=stored?+done.kcal.met:met(kmh),A=around(kmh),pt=p=>N(p[0],1)+' km/h = '+p[1]+' MET (code '+p[2]+')';
+  const steps=['Speed: '+N(m/1000,3)+' km ÷ '+N(h,4)+' h = '+N(kmh,2)+' km/h ('+(kmh<6?'walking':'running')+' table)'];
+  if(stored)steps.push('This run kept the MET and weight saved with it: '+M+' MET, '+N(w,1)+' kg');
+  else steps.push(A.length===2?'Between '+pt(A[0])+' and '+pt(A[1])+': '+A[0][1]+' + ('+A[1][1]+' − '+A[0][1]+') × ('+N(kmh,2)+' − '+N(A[0][0],1)+') ÷ ('+N(A[1][0],1)+' − '+N(A[0][0],1)+') = '+N(M,1)+' MET':'Outside the table: '+pt(A[0])+' is used');
+  steps.push('kcal = '+N(M,1)+' × '+N(w,1)+' kg × '+N(h,4)+' h = '+N(M*w*h,1)+', rounded');
+  return HWExplain.btn(key||'xrun','How your run\'s calories are worked out',{what:'An estimate of the energy this run used, from its average speed and your weight.',
+    inputs:[{n:'Distance',v:m/1000,u:'km',o:'device',d:3},{n:'Moving time',v:s/60,u:'min',o:'device',d:1},{n:'Average speed',v:kmh,u:'km/h',o:'calc',d:2},{n:'Weight',v:w,u:'kg',o:'you',d:1}],
+    formula:'speed (km/h) = distance ÷ moving time\nMET = straight line between the two Compendium points around that speed\nkcal = MET × weight (kg) × hours',
+    vars:[['MET','metabolic equivalent: 1 MET ≈ 1 kcal per kg per hour at rest',''],['moving time','time with the tracker running, pauses removed','h']],
+    steps,result:kcalRun(done||{dist:m,dur:s})+' kcal',src:['comprun','compwalk','compendium'],
+    app:'Distance and time come from your phone\'s GPS. HealthWiz uses the walking table under 6 km/h and the running table from 6 km/h, and stops at 14.8 MET above 16.1 km/h. Runs saved earlier keep the MET and weight stored with them.',
+    limits:['MET values are averages for adults 19–59; your own energy use can differ a lot.','GPS distance can be off, especially between tall buildings or under trees.','Hills, wind and stops are not included.']})}
 function card(){
   if(U.k==='explain')return '<h3>WHY LOCATION?</h3><ul><li>To measure your run, HealthWiz follows your GPS position <b>while a run is recording</b>, and only then.</li>'
     +'<li>Your route is saved on this device. If you are signed in (Settings → Account), it is also saved to your private cloud, where only your account can read it. It is never shared or shown to anyone else.</li>'
@@ -259,8 +277,8 @@ function runs(){const L=DB.runs.slice().reverse(),wk=Date.now()-7*864e5,W7=L.fil
   let h='<h3>📜 RECENT RUNS</h3>';
   if(!L.length)h+='<p class="mut">No runs yet. Your finished runs appear here.</p>';
   else h+='<p class="mut">'+totals(td,'Today')+(bt&&goalPct(bt.v)!=null?' (≈ '+goalPct(bt.v)+'% of today\'s calorie goal)':'')+'<br>'+totals(W7,'Last 7 days')+'</p>'
-    +(weight()?'<p class="mut"><small>Calories are an ≈ estimate (±20–30%) from each run\'s speed and your weight.</small></p>':'<p class="mut"><small>Add your weight on the Body &amp; Energy page to see calories burned.</small></p>')
-    +L.slice(0,SHOW).map(r=>{const k=kcalRun(r);return '<div class="v6rl"><div><b>'+km(r.dist)+' km · '+clock(r.dur)+(k!=null?' · <span class="v6rkx">'+flame()+'≈'+k+' kcal</span>':'')+'</b><small>'+esc(when(r))+' · '+fmtPace(r.pace)+' /km · '+(r.up?'☁️ in your cloud':r.bad?'⚠️ not accepted by the cloud':'📱 on this device')+'</small></div>'
+    +(weight()?'<p class="mut"><small>Calories are an ≈ estimate from each run\'s speed and your weight (press ? on a run for the working).</small></p>':'<p class="mut"><small>Add your weight on the Body &amp; Energy page to see calories burned.</small></p>')
+    +L.slice(0,SHOW).map(r=>{const k=kcalRun(r);return '<div class="v6rl"><div><b>'+km(r.dist)+' km · '+clock(r.dur)+(k!=null?' · <span class="v6rkx">'+flame()+'≈'+k+' kcal</span> '+runWhy(+r.dist,+r.dur,r,'xrun-'+r.id):'')+'</b><small>'+esc(when(r))+' · '+fmtPace(r.pace)+' /km · '+(r.up?'☁️ in your cloud':r.bad?'⚠️ not accepted by the cloud':'📱 on this device')+'</small></div>'
       +btn('rundel',arm===r.id?'TAP AGAIN':'DELETE','sm g',' data-id="'+esc(r.id)+'" aria-label="'+(arm===r.id?'Tap again to delete':'Delete')+' the run of '+esc(when(r))+'"')+'</div>'}).join('');
   return h+'<p class="mut" role="status" style="margin-top:8px">'+cloudLine()+'</p>'}
 // the Running section of the Training Hall page (js/v6-exercise.js); the old 'run' route opens that section

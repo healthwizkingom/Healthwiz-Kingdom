@@ -203,7 +203,7 @@ const ageOf=()=>{const p=st.p||{},a=+p.age;return(st.s.onb||p.cfm)&&a>=10&&a<=10
 function peak(hi,a,age){const pk=Math.max(okHR(hi)||0,okHR(a)||0);age=age===undefined?ageOf():age;return pk&&age?{pk,max:220-age,pct:Math.round(pk/(220-age)*100)}:pk?{pk}:null}
 function peakTxt(){const p=peak(W.cHi,W.hrA);if(!p)return'<span class="mut">Add the highest heart rate during the climb (or the after-workout number) to compare it with an estimated maximum.</span>';
   if(!p.max)return'Peak <b>'+p.pk+'</b> BPM. <span class="mut">Add your age in the profile below to compare it with an estimated maximum.</span>';
-  return'Peak <b>'+p.pk+'</b> BPM ≈ <b>'+p.pct+'%</b> of 220 − age ('+p.max+' BPM). <span class="mut">A rough estimate: for many people the real maximum is 10–20 BPM above or below this formula.</span>'}
+  return'Peak <b>'+p.pk+'</b> BPM ≈ <b>'+p.pct+'%</b> of 220 − age ('+p.max+' BPM). <span class="mut">A rough estimate: 220 − age is a common rule that was never checked in a large study.</span> '+HWCalcX.peak(p,!!W.cDev)}
 const cNote=()=>W.cDev&&W.cl?ico('watch',{label:'From your watch'})+' Recorded by your heart-rate device while the timer ran ('+W.cl.n+' readings).':W.cSet?'Typed in by you.':'Optional. Type them in, or connect a device: it records them while the workout timer runs.';
 function climbHR(){const f=(id,l,v)=>'<label>'+l+'<input id="'+id+'" data-in="stw" type="number" min="30" max="220" inputmode="numeric" value="'+esc(v)+'"></label>';
   return '<div class="stclimb" id="st-climb"><b>'+ico('heart')+' DURING THE CLIMB <span class="pxtag">OPTIONAL</span></b>'
@@ -233,14 +233,15 @@ function kcalBox(){const P=profile(),e=estimate({pace:PACES[S.pb.pace][1],dur:du
   if(e.need==='duration')return '<div class="stkc need"><b>'+ico('energy')+' CALORIE ESTIMATE</b><p class="mut">Use the Pace & Breathe timer, or type the workout time, to see an estimate.</p></div>';
   return '<div class="stkc"><b>'+ico('energy')+' ESTIMATED ENERGY USED</b><p><b class="big">≈ '+e.v+'</b> kcal'+(e.lo!==e.hi?' <span class="mut">(range '+e.lo+'–'+e.hi+')</span>':'')+'</p>'
     +'<small class="mut">An estimate, not a measurement. From '+(e.m==='met+hr'?'stair-climbing intensity at your pace and your after-workout heart rate':'stair-climbing intensity at your pace (add an after-workout heart rate of 90–180 BPM for a second method)')
-    +', with your age, sex, height and weight. Real values can differ a lot'+(e.minor?'; these formulas come from adult studies, so for under-18s it is only a rough guide':'')+'.</small></div>'}
+    +', with your age, sex, height and weight. Real values can differ a lot'+(e.minor?'; these formulas come from adult studies, so for under-18s it is only a rough guide':'')+'.</small>'+HWCalcX.stairKcal(e,P,PACES[S.pb.pace][1],durW(),okHR(W.hrA),MET[PACES[S.pb.pace][1]])+'</div>'}
+
 
 // OUR PROJECT'S METHOD: shown only with both heart rates and a confirmed profile weight; never saved, never in the Health Score
 function projBox(){const v=projectVO2({hrB:W.hrB,hrA:W.hrA,dur:durW()});if(!v)return '';
   return '<div class="stkc stproj"><b>'+ico('chart')+' OUR PROJECT\'S METHOD <span class="pxtag">ESTIMATE</span></b>'
     +'<p><b>'+vo2Txt(v)+'</b></p>'+(v.kj==null?'':'<p>Energy released ≈ <b>'+kjTxt(v)+'</b></p>')
     +'<small class="mut">VO₂ = 15.3 × after ÷ before · energy = VO₂ × time × 20.1 kJ/L</small><br>'
-    +'<small class="mut">Classroom estimate from our STEM project (Uth et al., 2004). The after-exercise pulse is not a true maximum, so this is rough.</small></div>'}
+    +'<small class="mut">Classroom estimate from our STEM project (Uth et al., 2004). The after-exercise pulse is not a true maximum, so this is rough.</small>'+HWCalcX.project(v,okHR(W.hrB),okHR(W.hrA),(profile()||{w:+st.p.w}).w)+'</div>'}
 // the project panel needs the pulse before the workout: with only the after number typed, ask for it (never filled silently)
 function restHint(){if(!okHR(W.hrA)||okHR(W.hrB))return'';const r=rest(today());
   return '<div class="stkc" id="st-rhint" role="status"><b>'+ico('heart')+' RESTING PULSE NEEDED</b><p>Add your resting pulse (count it before you start) to see VO₂ and energy by our project\'s method.</p>'

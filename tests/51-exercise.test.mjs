@@ -154,7 +154,8 @@ test('session: sets, rest countdown, finish card with estimates, XP reward and i
   assert.equal(s.xp - xp0, 25);
   const card = await page.textContent('#xdone');
   assert.match(card, /20MIN[\s\S]*2SETS[\s\S]*13REPS/);
-  assert.match(card, /ESTIMATES[\s\S]*EST[\s\S]*≈ 120 kcal[\s\S]*±25%[\s\S]*VO₂: ≈ 21\.0 mL\/kg\/min[\s\S]*≈ 507 kJ/);
+  assert.match(card, /ESTIMATES[\s\S]*EST[\s\S]*≈ 120 kcal \(estimate\)[\s\S]*VO₂: ≈ 21\.0 mL\/kg\/min[\s\S]*≈ 507 kJ/);
+  assert.doesNotMatch(card, /±/, 'no unsourced margin');
   assert.match(card, /GAME REWARD[\s\S]*\+25 XP[\s\S]*not a health measurement/);
   assert.ok(card.indexOf('MIN') < card.indexOf('kcal') && card.indexOf('kcal') < card.indexOf('XP'), 'what you did, then estimates, then the game reward');
   assert.equal(await page.$eval('#xdone', e => getComputedStyle(e).animationName), 'xglow');

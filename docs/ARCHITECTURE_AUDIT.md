@@ -1390,3 +1390,20 @@ Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel
   version 8. Old bubble history entries (without `who`) are labelled as Medius's words on the guide page.
 - **Not done (later stages):** the Grok-backed AI for Luna (needs a server-side key in a Supabase Edge Function like
   `medius-chat`), remembering further preferences, and full-body poses beyond the bubble sprite.
+
+## Master prompt Stage 2: source records and the worked "?" (`js/v6-sources.js`, `js/v6-calcx.js`, `docs/CALCULATIONS.md`)
+
+- **Sources.** `HWSources` holds one record per source (title, authors or organisation, journal or publisher, date, direct
+  link, kind, the claim it supports, how and when it was checked). Every record was opened on 2026-10-13 (PubMed records
+  with DOIs, or the official page); where only part could be confirmed, the record says so. No Wikipedia.
+- **Worked "?".** `HWExplain` builds the panel in the master prompt's order (meaning, inputs with origin, the formula the
+  code runs, the user's numbers step by step, sources, HealthWiz's own choices, limits) inside the existing `HWHelp`
+  popover, which grows for these panels. Converted: BMI, daily energy, macronutrients, water goal, stair workout energy,
+  our project's VO₂ method, peak heart rate, run calories; sources added to the Health Score weights and Stair Sense.
+- **Corrections, each justified by the checked source and tested:** running METs now match the 2024 Compendium (the
+  table held 2011 values under a 2024 label: a 5 km run in 30 min at 60 kg is now 288 kcal instead of 300); the unsourced
+  "±20–30%", "±25%" and "10–20 BPM" margins are no longer shown. Saved runs and sessions keep their stored values.
+- **Flags left for the owner:** the project VO₂ method's use of Uth's ratio; IOM table values, the AHA range, the ACSM
+  kcal reading and the Group 14 figures still to be checked (listed in `docs/CALCULATIONS.md`).
+- `js/v6-calcx.js` keeps `js/v6-stairs.js` under the 64 KB file cap. Tests: `tests/60-explain.test.mjs`; `tests/37` and
+  `tests/51` updated for the corrected values.

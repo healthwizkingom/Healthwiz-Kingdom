@@ -35,7 +35,7 @@ function mark(b,on){document.querySelectorAll('.hwh[aria-expanded="true"]').forE
 function open(k){const b=typeof k==='string'?find(k):k;if(!b)return;const key=b.dataset.hwh,t=T[key];if(!t)return;
   build();
   if(cur===key&&trig===b&&!pop.hidden){close(true);return}
-  trig=b;cur=key;returnTo=b;pop.querySelector('#hwh-t').textContent=t.t;pop.querySelector('#hwh-b').innerHTML=t.h;
+  trig=b;cur=key;returnTo=b;pop.querySelector('#hwh-t').textContent=t.t;pop.querySelector('#hwh-b').innerHTML=t.h;pop.classList.toggle('hwx-on',t.h.indexOf('class="hwx"')>=0);
   pop.hidden=false;mark(b,true);pop.style.visibility='hidden';place();pop.style.visibility='';
   // The panel is a place to read: move focus into it so keyboard and screen-reader users land on the text.
   try{pop.focus({preventScroll:true})}catch(e){pop.focus()}}
@@ -75,7 +75,9 @@ reg('streakrest','Rest days and your gentle streak','<p>One rest day a week keep
 reg('questpick','How quests are chosen','<p>The focus quest is picked from your own logs each day; weekly quests reset on Monday. All targets stay within your own plan.</p>');
 reg('statcmp','About this comparison','<p><b>Completed days only</b> (today is still in progress). Averages use days with data; stair steps are totals. Changes are descriptions, not judgments.</p>');
 reg('scorenote','About the Health Score','<p>A habit score from what you logged, <b>not a diagnosis</b>.</p>');
-reg('scorewt','About these weights','<p>These weights are the team\'s reasoned judgement from the sources above, not a validated clinical formula.</p><p class="mut"><small>For developers: edit WT in js/v6-score.js to change them.</small></p>');
+reg('scorewt','About these weights','<p>These weights are the team\'s reasoned judgement from the sources above, not a validated clinical formula.</p><p class="mut"><small>For developers: edit WT in js/v6-score.js to change them.</small></p>'
+  +(typeof HWSources!=='undefined'?'<b class="hwx-h">SOURCES CHECKED</b><ul class="hwx-src">'+['whofv','whodiet','iomdri','mifflin','whopa','acsm','aasm','aasmkids','cdcbmi','cohen'].map(HWSources.cite).join('')+'</ul>'
+    +'<b class="hwx-h">NOT YET CHECKED</b><ul class="hwx-l"><li>The AHA resting heart-rate range (60–100 BPM): the AHA page could not be opened for checking.</li><li>The Group 14 stair study figures: to be checked against the team\'s approved report.</li></ul>':''));
 reg('fvinfo','Fruit & vegetables','<p>1 portion = 80 g (dried fruit 30 g). Counted automatically from the fruit and vegetable dishes in your nutrition log.</p>');
 
 HWUI.css('help',`
