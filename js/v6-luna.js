@@ -4,11 +4,16 @@
    * Art: only from the owner's character reference sheet, turned into pixel art (drawn at whole-number scales):
        assets/img/luna-faces.webp  the seven expression portraits, 64 x 64 each (tools/art/make_luna_faces.py):
                                    cheerful, curious, focused, thoughtful, surprised, encouraging, apologetic
-       assets/img/luna-full.webp   her full figure, pose 1 "front view (idle)", 69 x 150, transparent (tools/art/make_luna_lab.py)
+       assets/img/luna-poses.webp  her nine full-body poses, 80 x 120 frames, transparent (tools/art/make_luna_poses.py):
+                                   idle, staff, walk, cast, point, think, happy, confused, wave (the sheet's poses 1 to 9)
      Where: the full figure in the bubble (full size) and in the Science Laboratory; the portrait for the moment's
-     expression in the compact bubble and Ask Luna; the middle of a portrait (44 x 44) on the header button.
-   * Motion is CSS only: a slow 2-pixel float and twinkling sparkles around her staff, a sparkle burst for big moments
-     ("cast"). Nothing moves with reduced motion or in the Performance mode; there are no timers.
+     expression in the compact bubble, Ask Luna and Talk with Luna; the middle of a portrait (44 x 44) on the header button.
+   * Motion is CSS only, from the sheet's own drawings: each moment picks a pose (POSEOF: a greeting waves, good news is
+     "happy", a tip points, an insight thinks, a badge casts, an apology is "confused"); a bubble walks in with the walking
+     pose and then changes to it; the Laboratory cycles idle, staff, pointing and thinking; a slow 2-pixel float and
+     twinkling sparkles, a sparkle burst for big moments ("cast"). In Talk with Luna her portrait follows the chat:
+     curious while waiting for you, thoughtful while the reply is on its way, cheerful with a reply, apologetic on an
+     error. Nothing moves with reduced motion or in the Performance mode (the pose itself still shows); no timers.
    * Ask Luna (HWLuna.open): a panel with no AI. It finds features (names and the trackers' own header text from
      js/v6-hall.js) and opens the "?" explanations already on the page (js/v6-help.js), pointing at each one. It never
      reads or changes saved entries and sends nothing anywhere.
@@ -22,7 +27,11 @@
      Missing keys mean the defaults, so older saves need no migration. RESET puts all three back. */
 const HWLuna=(()=>{
 const NAMES=['cheerful','curious','focused','thoughtful','surprised','encouraging','apologetic'];
-const FACES='assets/img/luna-faces.webp',FULL='assets/img/luna-full.webp',FS=64;
+const FACES='assets/img/luna-faces.webp',POSE_IMG='assets/img/luna-poses.webp',FS=64,PW=80,PH=120;
+const POSES=['idle','staff','walk','cast','point','think','happy','confused','wave'];   // the sheet's poses 1 to 9, in luna-poses.webp
+const POSEOF={idle:'idle',greet:'wave',cheerful:'happy',curious:'point',focused:'staff',thoughtful:'think',surprised:'cast',encouraging:'happy',apologetic:'confused'};
+const poseOf=(p,expr)=>POSES.includes(p)?p:POSEOF[expr]||'idle';
+const at=p=>(POSES.indexOf(p)/(POSES.length-1)*100).toFixed(4)+'%'; // the frame's background-position (the same at every scale)
 const FACEOF={idle:'focused',greet:'cheerful'}; // moments without their own portrait use the nearest one
 const faceOf=e=>{const n=FACEOF[e]||e;return NAMES.includes(n)?n:'focused'};
 /** A 64 x 64 portrait (whole-number scale s, default 1) with the expression's face from the reference sheet. */
@@ -31,10 +40,15 @@ function portrait(expr,s){s=s||1;const n=faceOf(expr),i=NAMES.indexOf(n),w=FS*s;
 /** The middle 44 x 44 of a portrait at 1x: her face, for the header button. */
 function mini(expr){const n=faceOf(expr),i=NAMES.indexOf(n);
   return '<span class="v6lmini" aria-hidden="true" style="background-position:'+(-(i*FS+10))+'px -12px" data-face="'+n+'"></span>'}
-/** Her full figure (69 x 150 at scale s) with sparkles; cast adds a sparkle burst. */
-function full(o){o=o||{};const s=o.scale||1;
-  return '<span class="v6lfull'+(o.cast?' cast':'')+'" aria-hidden="true" style="width:'+69*s+'px;height:'+150*s+'px"><img class="v6lfi" src="'+FULL+'" alt="" width="'+69*s+'" height="'+150*s+'">'
+/** Her full figure (80 x 120 at scale s) in a pose from the sheet (o.pose, else the pose for o.expr), with sparkles.
+    o.cast adds a sparkle burst; o.enter walks her in first (the walking pose, then the chosen one); o.cycle is the
+    Laboratory's slow loop of idle, staff, pointing and thinking. */
+function full(o){o=o||{};const s=o.scale||1,p=poseOf(o.pose,o.expr);
+  return '<span class="v6lfull'+(o.cast?' cast':'')+(o.enter?' enter':'')+(o.cycle?' cycle':'')+'" aria-hidden="true" data-pose="'+p+'" style="width:'+PW*s+'px;height:'+PH*s+'px">'
+    +'<span class="v6lfi" style="background-size:'+PW*s*POSES.length+'px '+PH*s+'px;background-position:'+at(p)+' 0;--px:'+at(p)+'"></span>'
     +'<i class="v6ls s1"></i><i class="v6ls s2"></i><i class="v6ls s3"></i><i class="v6ls s4"></i></span>'}
+/** Changes a mounted figure's pose (el: the .v6lfull element). */
+function pose(el,p){if(!el||!POSES.includes(p))return;el.dataset.pose=p;const i=el.querySelector('.v6lfi');if(i){i.style.backgroundPosition=at(p)+' 0';i.style.setProperty('--px',at(p))}}
 /** Puts Luna in `host`: o.kind 'full' (default), 'face' (portrait) or 'mini'; o.expr picks the portrait. Returns the element. */
 function mount(host,o){o=o||{};const k=o.kind||(o.compact==='face'?'mini':o.compact?'face':'full');
   host.insertAdjacentHTML('beforeend',k==='mini'?mini(o.expr):k==='face'?portrait(o.expr,o.scale):full(o));return host.lastElementChild}
@@ -58,6 +72,7 @@ const FEAT=[
 ['exercise','workout','Training Hall','exercise training muscle moves calisthenics gym','Pick a goal, then a muscle and a move with its tutorial.','Choose a goal first; Running Road is further down.'],
 ['run','running','Running Road','run running jog gps pace distance','A GPS run tracker: distance, moving time and pace.','Tap START before you set off; it needs location permission.'],
 ['lab','flask','Science Laboratory','lab laboratory experiment science evidence vault trial uncertainty sources research test question','Test your own questions with your logs, the Evidence Trial, the Evidence Vault of sources, and how sure each estimate is.','Pick a question: HealthWiz uses what you already log.'],
+['time','alarm','Health Time Machine','time machine timeline history past day week month compare scrub','Everything you saved on one timeline: slide back through days, weeks and months.','Pick Day, Week or Month, then slide or tap EARLIER.'],
 ['stats','chart','Statistics','stats statistics charts trends history report weekly chronicle','Charts of everything you logged, by day, week or month.','Pick a range; the weekly report is at the top.'],
 ['alchemy','scroll','Alchemist\'s Workshop','alchemy energy food work physics joules','Food energy compared with the work of climbing stairs (a simulation).','Pick a food and a climb to compare.'],
 ['guide','scroll','HealthWiz guide','guide insights tips patterns notice','Patterns from your own logs, and Luna\'s recent words.','Log for a few days; insights appear as patterns show up.'],
@@ -116,7 +131,8 @@ function chat(){
     +'<button data-a="lunasign">SIGN IN TO TALK WITH LUNA</button></div></div>'+note;
   const log=CH.m.length?CH.m.map(m=>'<div class="v6lcm '+(m.role==='user'?'u':'a')+'"><b>'+(m.role==='user'?'You':'Luna')+'</b><span>'+esc(m.content)+'</span></div>').join('')
     :'<p class="mut">Say hello, or ask about a habit, a feature or your day.</p>';
-  return '<h4>TALK WITH LUNA</h4>'+note+'<div class="v6lclog" id="v6lclog" role="log" aria-live="polite" aria-label="Conversation with Luna">'+log+
+  const last=CH.m[CH.m.length-1],mood=CH.busy?'thoughtful':CH.err?'apologetic':last&&last.role==='assistant'?'cheerful':'curious';
+  return '<h4>TALK WITH LUNA</h4><div class="v6lchd">'+portrait(mood)+note+'</div><div class="v6lclog" id="v6lclog" role="log" aria-live="polite" aria-label="Conversation with Luna">'+log+
     (CH.busy?'<p class="mut v6lcb">Luna is thinking...</p>':'')+'</div>'+
     (CH.err?'<p class="v6lce" role="alert">'+esc(CH.err)+' Nothing you wrote was saved.</p>':'')+
     (CH.help?helpBox():'')+
@@ -164,8 +180,14 @@ HWUI.css('luna',`
 .v6lpf,.v6lmini{display:block;background-image:url(${FACES});background-repeat:no-repeat;image-rendering:pixelated;image-rendering:crisp-edges}
 .v6lmini{width:44px;height:44px;background-size:${FS*7}px ${FS}px}
 .v6lfull{position:relative;display:inline-block;line-height:0;animation:v6lfl 3.2s steps(4) infinite alternate}
-.v6lfull .v6lfi{display:block;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;filter:drop-shadow(0 0 6px rgba(196,166,255,.6)) drop-shadow(0 0 2px rgba(99,230,220,.5))}
+.v6lfull .v6lfi{display:block;width:100%;height:100%;background-image:url(${POSE_IMG});background-repeat:no-repeat;image-rendering:pixelated;image-rendering:crisp-edges;filter:drop-shadow(0 0 6px rgba(196,166,255,.6)) drop-shadow(0 0 2px rgba(99,230,220,.5))}
 @keyframes v6lfl{to{transform:translateY(-2px)}}
+.v6lfull.enter .v6lfi{animation:v6lwalk .9s steps(1) both}
+@keyframes v6lwalk{0%{background-position:${at('walk')} 0;transform:translateX(18px)}33%{background-position:${at('walk')} 0;transform:translateX(9px)}66%{background-position:${at('walk')} 0;transform:translateX(0)}100%{background-position:var(--px) 0}}
+.v6lfull.cycle .v6lfi{animation:v6lcyc 16s steps(1) infinite}
+@keyframes v6lcyc{0%,45%{background-position:${at('idle')} 0}45.01%,60%{background-position:${at('staff')} 0}60.01%,75%{background-position:${at('point')} 0}75.01%,90%{background-position:${at('think')} 0}90.01%,100%{background-position:${at('idle')} 0}}
+html.hw-rm .v6lfull .v6lfi,html.hw-q-performance .v6lfull .v6lfi{animation:none!important}
+@media(prefers-reduced-motion:reduce){.v6lfull .v6lfi{animation:none!important}}
 .v6ls{position:absolute;width:4px;height:4px;background:#fff0a8;box-shadow:0 0 6px 2px rgba(255,240,168,.8);opacity:0;animation:v6ltw 2.4s steps(3) infinite}
 .v6ls.s1{left:8%;top:6%}.v6ls.s2{left:2%;top:18%;animation-delay:.8s}.v6ls.s3{left:30%;top:2%;animation-delay:1.5s}.v6ls.s4{right:6%;top:30%;animation-delay:2s;background:#c4fff7;box-shadow:0 0 6px 2px rgba(99,230,220,.8)}
 @keyframes v6ltw{50%{opacity:1}}
@@ -181,7 +203,7 @@ header .v6lb{margin-right:56px;align-self:flex-start}.hbar .v6lb{margin:0 0 0 au
 .v6lf{display:flex;gap:8px;align-items:center;border-top:2px solid var(--ln);padding:8px 0}.v6lf>div{flex:1 1 auto;min-width:0}
 .v6lf b{display:block}.v6lf small{display:block;color:var(--mut);margin-top:2px}.v6lfi{flex:0 0 auto;line-height:0}
 .v6lh{display:flex;flex-wrap:wrap;gap:6px}
-.v6lcn{display:block;margin:0 0 6px}.v6lclog{max-height:240px;overflow-y:auto;border:2px solid var(--ln);background:var(--bg);padding:8px;margin:6px 0}
+.v6lcn{display:block;margin:0 0 6px}.v6lchd{display:flex;gap:10px;align-items:flex-start}.v6lchd .v6lpf{flex:0 0 auto;border:2px solid var(--ln);border-radius:10px;background-color:var(--p2)}.v6lchd .v6lcn{flex:1 1 auto;min-width:0}.v6lclog{max-height:240px;overflow-y:auto;border:2px solid var(--ln);background:var(--bg);padding:8px;margin:6px 0}
 .v6lcm{margin:0 0 8px}.v6lcm b{font:8px/1.6 var(--fh);display:block}.v6lcm span{display:block;white-space:pre-wrap;overflow-wrap:anywhere}
 .v6lcm.a span{color:var(--ink)}.v6lcm.u{text-align:right}.v6lce{color:var(--red);font-weight:bold}
 .v6lcf{display:flex;gap:6px;align-items:stretch;margin:6px 0}.v6lcf input{flex:1 1 auto;min-width:0;margin:0}.v6lcf button{flex:0 0 auto}
@@ -190,4 +212,4 @@ header .v6lb{margin-right:56px;align-self:flex-start}.hbar .v6lb{margin:0 0 0 au
 .hwh.v6lpt{outline:4px solid var(--gold);outline-offset:3px;animation:v6lpt .5s steps(2) infinite alternate}@keyframes v6lpt{to{outline-color:var(--vio)}}
 @media(prefers-reduced-motion:reduce){.hwh.v6lpt{animation:none}}
 `);
-return{mount,portrait,mini,full,open,close,style,compact,find,talk,talkError,get chat(){return CH},expressions:NAMES,FULL,FACES}})();
+return{mount,portrait,mini,full,pose,open,close,style,compact,find,talk,talkError,get chat(){return CH},expressions:NAMES,poses:POSES,POSEOF,POSE_IMG,FACES}})();

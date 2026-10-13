@@ -161,9 +161,11 @@ opacity only, and every scene stops off screen, in a hidden tab and for reduced 
 * Wizard's Counsel (`js/v6-counsel.js`): Medius's expressions are small patches in the study picture's own style
   (`assets/img/medius-reactions.webp`); his hands are never redrawn.
 * Luna, the apprentice witch (`js/v6-luna.js`): only the owner's character reference sheet, turned into pixel art. The
-  seven expression portraits (`assets/img/luna-faces.webp`, 64 × 64 each, `tools/art/make_luna_faces.py`) and her full
-  figure (`assets/img/luna-full.webp`, 69 × 150, transparent, `tools/art/make_luna_lab.py`), drawn at whole-number scales.
-  Her idle float and sparkles are CSS (transform and opacity), still with reduced motion. (An earlier code-drawn sprite
+  seven expression portraits (`assets/img/luna-faces.webp`, 64 × 64 each, `tools/art/make_luna_faces.py`) and all nine
+  full-body poses of the sheet (`assets/img/luna-poses.webp`, 80 × 120 frames, transparent, one shared 48-colour palette,
+  `tools/art/make_luna_poses.py`), drawn at whole-number scales. Her movement is the sheet's own drawings: each moment
+  picks a pose, a bubble walks in with the walking pose, the Laboratory cycles idle, staff, pointing and thinking (CSS
+  `steps()` on the frame position); her float and sparkles are CSS. All still with reduced motion. (An earlier code-drawn sprite
   was replaced at the owner's request.)
 * Science Laboratory (`js/v6-lab.js`): the laboratory from the owner's concept sheet (`assets/img/lab-scene.webp`,
   290 × 210, 80 colours, `tools/art/make_luna_lab.py`) with Luna in front, a CSS glow on the orb and a few motes.

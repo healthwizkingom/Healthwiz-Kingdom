@@ -51,7 +51,7 @@ HWUI.css('medius',`.v6md{position:fixed;right:10px;bottom:calc(14px + env(safe-a
 function show(it){const M=md(),d=today();M.last[it.type]=Date.now();M.day[d]=(M.day[d]||0)+1;M.seen[it.key]=d;M.log.push({t:it.text,at:new Date().toISOString(),type:it.type,who:'L'});if(M.log.length>20)M.log.shift();
   Object.keys(M.day).forEach(k=>{if(k<rng(7)[0])delete M.day[k]});Object.keys(M.seen).forEach(k=>{if(M.seen[k]<rng(7)[0])delete M.seen[k]});save();
   const el=document.createElement('div');el.className='v6md';el.id='v6md';el.setAttribute('role','status');const f=FACE[it.type]||['idle'],cp=HWLuna.compact();if(cp)el.classList.add('cp');
-  el.innerHTML='<button type="button" class="v6lav" aria-label="Ask Luna for help"></button><p><b>LUNA</b>'+esc(it.text)+'</p>';if(cp){el.firstChild.innerHTML=HWLuna.portrait(f[0]);el.firstChild.classList.add('pf')}else HWLuna.mount(el.firstChild,{expr:f[0],cast:f[1]}); // compact: her portrait from the reference sheet
+  el.innerHTML='<button type="button" class="v6lav" aria-label="Ask Luna for help"></button><p><b>LUNA</b>'+esc(it.text)+'</p>';if(cp){el.firstChild.innerHTML=HWLuna.portrait(f[0]);el.firstChild.classList.add('pf')}else HWLuna.mount(el.firstChild,{expr:f[0],cast:f[1],enter:1}); // compact: her portrait from the reference sheet
   showing=el;lastShown=Date.now();let gone=0;const close=()=>{if(gone)return;gone=1;el.classList.add('out');setTimeout(()=>{el.remove();if(showing===el)showing=null;if(pending)schedule()},300)};el.onclick=e=>{hush();close();if(e.target.closest('.v6lav'))HWLuna.open()};setTimeout(close,6500);document.body.appendChild(el);
   HWEvents.emit('medius:said',{kind:it.type,text:it.text})}
 

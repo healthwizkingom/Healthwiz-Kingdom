@@ -40,9 +40,12 @@ test('signed in: the message goes to luna-chat with the session, the reply shows
   const before = JSON.stringify(await state(page));
   await openLuna(page);
   assert.equal(await page.locator('#v6lcin').count(), 1, 'the message box appears when signed in');
+  const face = () => page.getAttribute('#v6lchat .v6lchd .v6lpf', 'data-face');
+  assert.equal(await face(), 'curious', 'her portrait waits, curious');
   await page.fill('#v6lcin', 'How much water today?');
   await page.press('#v6lcin', 'Enter');
   await page.waitForFunction(() => document.querySelectorAll('#v6lclog .v6lcm.a').length === 1);
+  assert.equal(await face(), 'cheerful', 'cheerful with a reply');
   let t = await page.textContent('#v6lclog');
   assert.match(t, /You[\s\S]*How much water today\?[\s\S]*Luna[\s\S]*A sip of water is a fine spell\./);
   assert.equal(reqs.length, 1);
@@ -77,6 +80,7 @@ test('errors are friendly and keep what the player typed: limit, server not set 
     assert.match(await page.textContent('#v6lchat .v6lce'), /Nothing you wrote was saved\./);
     assert.equal(await page.inputValue('#v6lcin'), 'Hello Luna', 'the message stays in the box');
     assert.equal(await page.locator('#v6lclog .v6lcm').count(), 0, 'a failed message is not left in the log');
+    assert.equal(await page.getAttribute('#v6lchat .v6lchd .v6lpf', 'data-face'), 'apologetic', 'apologetic on an error');
   }
   // the browser's own line for each answer the fake server failed on purpose; anything else is a real error
   assert.deepEqual(errors.filter(e => !/Failed to load resource: the server responded with a status of (429|503|502)/.test(e)), []);

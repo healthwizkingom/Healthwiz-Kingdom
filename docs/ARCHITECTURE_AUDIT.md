@@ -1486,3 +1486,40 @@ Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel
 - **Tests:** `tests/64-plan.test.mjs` (making a plan, pace logic and the "?", health answers, done/skip/start, edit and
   turn off, the route under reduced motion, the 360 px layout).
 
+## Master prompt Stage 4 (part 2): Health Time Machine (`js/v6-time.js`)
+
+- **Where.** A door card at the top of Statistics opens the page `time` (under the Health Hall, so the bottom menu and the
+  Health Hall order are unchanged). Ask Luna can find it.
+- **What it shows:** saved records only, in lanes: water (ml), food (kcal), sleep (h), stress check-ins (/10), energy (/5),
+  heart rate (pulse logs with "before/after" and the BPM saved with stair sessions), stairs (steps), workouts (min), runs
+  (km, from the run log on this device) and BMI. Weather and haze are only live in HealthWiz (no stored history), so they
+  are not lanes, and the page does not pretend otherwise.
+- **Moving through time:** Day, Week (Monday first) or Month; EARLIER / LATER; a slider from the first saved day to today
+  (it redraws only the view, so it keeps focus); RETURN TO TODAY.
+- **Missing data:** a day without a record in a lane is an empty dashed cell, "not logged", never 0; lanes with nothing in
+  the period are listed as "Not logged in this period". An empty day says "Nothing was saved on …".
+- **Details:** day view places each record at its saved time; a marker or cell opens a card with each record's time,
+  value and origin (entered by you, GPS check-in, from a device, camera estimate, GPS run, or calculated for BMI), with a
+  button to open that feature.
+- **COMPARE** shows, per lane, the days logged and the average on logged days for the period and the one before, with
+  "not logged" where empty and the note that a difference between periods does not show its cause.
+- **Motion:** markers pop in (CSS); none under reduced motion or the Performance mode. Nothing is written.
+- **Tests:** `tests/65-time.test.mjs` (lanes and "not logged", sources, day positions, the slider and navigation,
+  compare, the 360 px layout and reduced motion).
+
+## Luna's movements from the sheet (`tools/art/make_luna_poses.py`, `js/v6-luna.js`)
+
+- **Art.** At the owner's request every figure on the character reference sheet is used. The nine full-body poses (front
+  idle, three-quarter with staff, walking, casting, pointing, thinking, happy, confused, waving) are cut from the sheet,
+  the lavender background removed from the edges inward, pieces of neighbouring figures dropped, reduced to 80 × 120
+  frames with one shared 48-colour palette: `assets/img/luna-poses.webp` (720 × 120, ≈ 24 KB). It replaces
+  `luna-full.webp` (pose 1 alone), so the image total is ≈ 747 KB, within the owner's 740 KB (757,760-byte) budget. The
+  seven expressions stay in `luna-faces.webp`.
+- **Motion.** Each bubble moment picks a pose (`POSEOF`: a greeting waves, good news is happy, a first time points, an
+  insight thinks, a badge casts, an apology is confused, restored data holds the staff); a bubble walks in with the
+  walking pose, then changes to its pose. The Laboratory figure cycles idle, staff, pointing and thinking. In Talk with
+  Luna the portrait is curious while waiting, thoughtful while the reply comes, cheerful with a reply and apologetic on
+  an error. CSS only, no timers; with reduced motion or the Performance mode the pose shows, still.
+- **Tests:** `tests/59-luna.test.mjs` (the nine poses load, every pose is used, a greeting walks in and waves, pose
+  changes) and `tests/63-luna-chat.test.mjs` (the chat portrait).
+
