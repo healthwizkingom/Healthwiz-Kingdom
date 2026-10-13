@@ -1,14 +1,14 @@
 /* v6: Luna, the apprentice witch, HealthWiz's friendly companion. Not part of the original.
    Luna speaks the event bubbles that Medius used to (js/v6-medius.js keeps the rules, cooldowns and limits). Medius
    stays the Wizard King: the tutorial, the Traveller's Registry, the Wizard's Counsel and the Health Orb are his.
-   * Art, two kinds that work together: the seven expression portraits (assets/img/luna-faces.webp, 64 x 64 each) are
-     crops of the owner's character reference sheet turned into pixel art by tools/art/make_luna_faces.py; they show her
-     face up close (the compact bubble, the Ask Luna panel). The full figure is one hand-placed pixel sprite (BASE, 44 x 51, light from the top left) with patches for the eyes, mouth and
-     waving arm, her teal familiar as its own layer, and the 1-pixel ink outline added around the composed picture
-     (docs/PIXEL_STYLE.md). Drawn with code at 2x, so it costs nothing from the image budget. Expressions follow the
-     owner's reference sheet: cheerful, curious, focused, thoughtful, surprised, encouraging, apologetic (+ idle, greet).
-   * Motion: blink, a 1-pixel idle breath, the familiar bobbing and a staff sparkle, in whole pixels on a slow timer.
-     Only while a picture is on screen and the tab is visible; reduced motion and the Performance mode draw one still frame.
+   * Art: only from the owner's character reference sheet, turned into pixel art (drawn at whole-number scales):
+       assets/img/luna-faces.webp  the seven expression portraits, 64 x 64 each (tools/art/make_luna_faces.py):
+                                   cheerful, curious, focused, thoughtful, surprised, encouraging, apologetic
+       assets/img/luna-full.webp   her full figure, pose 1 "front view (idle)", 69 x 150, transparent (tools/art/make_luna_lab.py)
+     Where: the full figure in the bubble (full size) and in the Science Laboratory; the portrait for the moment's
+     expression in the compact bubble and Ask Luna; the middle of a portrait (44 x 44) on the header button.
+   * Motion is CSS only: a slow 2-pixel float and twinkling sparkles around her staff, a sparkle burst for big moments
+     ("cast"). Nothing moves with reduced motion or in the Performance mode; there are no timers.
    * Ask Luna (HWLuna.open): a panel with no AI. It finds features (names and the trackers' own header text from
      js/v6-hall.js) and opens the "?" explanations already on the page (js/v6-help.js), pointing at each one. It never
      reads or changes saved entries and sends nothing anywhere.
@@ -16,123 +16,23 @@
      (0 full · 1 compact portrait) and how often she talks (st.s.med, unchanged: 2 Chatty · 1 Calm · 0 Off).
      Missing keys mean the defaults, so older saves need no migration. RESET puts all three back. */
 const HWLuna=(()=>{
-const PAL={k:'#1b1626',H:'#3d2c84',h:'#5b47b5',j:'#251a55',b:'#2b4cb0',B:'#1a2d73',y:'#f6c94f',Y:'#b9832b',z:'#fff0a8',
-  P:'#7246c4',p:'#a27cf0',Q:'#452680',s:'#ffe3cc',S:'#f2b99c',r:'#f49aaa',e:'#2a1858',v:'#8b5cf0',V:'#c4a6ff',w:'#ffffff',
-  m:'#b8475e',N:'#272a66',n:'#3d4396',M:'#17183f',L:'#c9b8f4',l:'#efe8ff',t:'#7d4b2c',T:'#4b2b19',d:'#2e2546',D:'#1e182f',
-  u:'#563596',U:'#33205c',c:'#8fe3ff',C:'#3aa4e6',o:'#1f5fa8',a:'#63e6dc',A:'#2aa8ac',g:'#c4fff7'};
-const W=44,H=51;
-const BASE=[
-'...................................',
-'..........................jj.......',
-'........................hHHj.......',
-'......yy...............hHHj........',
-'....yzcCy.............hHHHj........',
-'...yzcwcCy...........hHHHj.........',
-'...ycccCCy..........hhHHHj.........',
-'...yCcCCoy.........hhHHHHj.........',
-'....yCooy........hhhHHHHHj.........',
-'....Y.yY.......hhhHHHHHHHj.........',
-'.....yzY.....hhhHHHHHHHHHHj........',
-'......zY....hhHHHHyHHHHHHHHHj......',
-'......zY...BbbbbbyzybbbbbbbbbB.....',
-'......zY...YyyyyyyYyyyyyyyyyyY.....',
-'......hhhhhhhHHHHHHHHHHHHHHHHHH....',
-'...hhhhHHHHHHHHHHHHHHHHHHHHHHHHHjj.',
-'.....jjjjjjQQQQQQQQQQQQQQQjjjjjj...',
-'......zY.QPPPPPPPPPPPPPPPPPQ.......',
-'......zYQPPpPPPPPPPPPPpPPPPPQ......',
-'......zYQPPPpPPPPPPPPPPpPPPPQ......',
-'......zYQPPPPsPPssPssPPsPPPPQQ.....',
-'......zYQPPPeeeesssseeeeePPPQQ.....',
-'......zYQPPPsewvsssssvweSPPPQQ.....',
-'......zYQPPPsevvsssssvveSPPPQQ.....',
-'......zYQPPPseVVsssssVVeSPPPQQ.....',
-'......zYQPPPrrsssssssssrrPPPQQ.....',
-'......zYQPPPsssssmsmssssSPPPQQ.....',
-'......zYQPPPPSssssmssssSPPPPQQ.....',
-'......zYQPPPPPPSsssssSPPPPPPQQ.....',
-'......zYQPPNnNylLSSSLlyNnNPPQQ.....',
-'......zYQNnnnNylLlClLlyNNnNNPQQ....',
-'......zYNnnNnNylLlLlLlyNNMNnNQQ....',
-'......zYNnNNnNylLlLlLlyNNMNnNQQ....',
-'......zYLlLNnNylLlLlLlyNNMNnNQQ....',
-'......sssSPNnNyttTtTttyNNMNnNQQ....',
-'......zYSPPNnNyttTtTttyNNMLlLQQ....',
-'......zYQPPNNTTTTyzyTTTTNNsSPQQ....',
-'......zYQPNNNNlLlLlLlLlNNttNPQQ....',
-'......zYQNNNNNllLllLlllNNtTNNQQ....',
-'......zYQNNNNNlLlLlLlLlNNNNNNQQ....',
-'......zYQnNNNNLlLlLlLlLNNNNMQQ.....',
-'......zY.yyyyylLlLlLlLlyyyyy.......',
-'......zY.......dD...dD.............',
-'......zY.......dD...dD.............',
-'......zY.......dD...dD.............',
-'......zY.......dD...dD.............',
-'......zY......uuuU.uuuU............',
-'......zY......uyuU.uyuU............',
-'......zY.....uuuuU.uuuuU...........',
-'......zY.....UUUUU.UUUUU...........',
-'...................................'];
-// Eyes: the left eye's 4 x 4 block (columns 12-15, rows 21-24); the right eye mirrors it unless given separately.
-const EYES={open:['eeee','sewv','sevv','seVV'],shut:['ssss','ssss','eeee','ssss'],happy:['ssss','sses','sese','ssss'],
-  wide:['seee','ewve','ewwe','seee'],half:['ssss','eeee','sevv','seVV'],up:['eeee','sevv','seVV','ssss'],soft:['ssss','ssee','seVe','ssss'],
-  side:{l:['eeee','swev','swvv','sVVe'],r:['eeee','wevs','wvvs','VVeS']},wink:{l:['eeee','sewv','sevv','seVV'],r:['ssss','sess','eseS','sssS']}};
-// Mouth: columns 16-20, rows 26-27.
-const MOUTH={v:['smsms','ssmss'],open:['smmms','ssrss'],o:['ssmss','ssmss'],flat:['ssmms','sssss'],side:['sssms','sssss'],frown:['ssmss','smsms']};
-// Her free arm (viewer's right) raised in a wave; the hanging arm is painted over with hair. ' ' keeps the pixel.
-const WAVE=[[28,23,'sss'],[28,24,'sss'],[28,25,'sSs'],[28,26,'LlL'],[27,27,'NnN'],[27,28,'NnN'],[26,29,'NnN'],
-  [26,31,'PPP'],[26,32,'PPP'],[26,33,'PPP'],[26,34,'PPP'],[26,35,'PPP'],[26,36,'PP']];
-// The familiar: a small teal spirit cat, two frames (its wisp of a tail sways).
-const FAM=[['.a.....a.','.aa...aa.','aaaaaaaaa','aggggggga','agegggega','agrgAgrga','.aggggga.','..aaaaa..','...aA.a..'],
-           ['.a.....a.','.aa...aa.','aaaaaaaaa','aggggggga','agegggega','agrgAgrga','.aggggga.','..aaaaa..','..a.Aa...']];
-const SPARK=[[[2,2],[11,3],[1,10],[10,9]],[[5,1],[12,6],[2,7],[9,11]]];
-const EXPR={idle:{e:'open',m:'v'},cheerful:{e:'happy',m:'open'},curious:{e:'side',m:'o'},focused:{e:'half',m:'flat'},
-  thoughtful:{e:'up',m:'side'},surprised:{e:'wide',m:'o'},encouraging:{e:'wink',m:'open'},apologetic:{e:'soft',m:'frown',drop:1},
-  greet:{e:'open',m:'open',wave:1}};
 const NAMES=['cheerful','curious','focused','thoughtful','surprised','encouraging','apologetic'];
-
-/** The picture as rows of palette letters. o = {expr, blink, breath, fam (0/1 frame), bob (0/-1), cast (0/1/2)} */
-function grid(o){o=o||{};const x=EXPR[o.expr]||EXPR.idle,g=BASE.map(r=>(r+'.'.repeat(W)).slice(0,W).split(''));
-  const put=(c,r,s)=>{for(let i=0;i<s.length;i++)if(s[i]!==' ')g[r][c+i]=s[i]};
-  const ey=o.blink?EYES.shut:EYES[x.e],L=ey.l||ey,R=ey.r||ey.map(s=>s.split('').reverse().join(''));
-  for(let i=0;i<4;i++){put(12,21+i,L[i]);put(21,21+i,R[i]);if(g[21+i][24]==='s')g[21+i][24]='S'}
-  const M=MOUTH[x.m];put(16,26,M[0]);put(16,27,M[1]);
-  if(x.drop){put(26,19,'c');put(26,20,'C')}
-  if(x.wave)WAVE.forEach(p=>put(p[0],p[1],p[2]));
-  if(o.cast)for(let r=3;r<10;r++)for(let c=3;c<10;c++)g[r][c]=({C:'c',o:'C',c:'w'})[g[r][c]]||g[r][c];
-  if(o.breath){for(let r=29;r>0;r--)g[r]=g[r-1].slice();g[0]=g[0].map(()=>'.')}
-  FAM[o.fam?1:0].forEach((s,i)=>put(33,19+i+(o.bob||0),s.replace(/\./g,' ')));
-  const out=g.map(r=>r.slice());for(let r=0;r<H;r++)for(let c=0;c<W;c++)if(g[r][c]==='.'&&[[1,0],[-1,0],[0,1],[0,-1]].some(d=>{const v=(g[r+d[1]]||[])[c+d[0]];return v&&v!=='.'&&v!=='k'}))out[r][c]='k';
-  if(o.cast)SPARK[o.cast-1].forEach(p=>{if(out[p[1]][p[0]]==='.')out[p[1]][p[0]]='z'});
-  return out.map(r=>r.join(''))}
-// compact: the face and hat brim only (a portrait, like the reference sheet's mobile widget)
-const CROP={x:8,y:9,w:22,h:22},FACE={x:10,y:14,w:17,h:17}; // FACE: the header button
-function paint(cv,o){const g=grid(o),c=o&&o.compact?(o.compact==='face'?FACE:CROP):{x:0,y:0,w:W,h:H},x=cv.getContext('2d');if(!x)return;
-  if(cv.width!==c.w)cv.width=c.w;if(cv.height!==c.h)cv.height=c.h;const im=x.createImageData(c.w,c.h);
-  for(let r=0;r<c.h;r++)for(let k=0;k<c.w;k++){const ch=g[r+c.y][k+c.x],v=PAL[ch];if(!v)continue;const i=(r*c.w+k)*4;
-    im.data[i]=parseInt(v.slice(1,3),16);im.data[i+1]=parseInt(v.slice(3,5),16);im.data[i+2]=parseInt(v.slice(5,7),16);im.data[i+3]=255}
-  x.putImageData(im,0,0)}
-const still=()=>HWUI.reduced()||typeof HWMotion!=='undefined'&&HWMotion.level&&HWMotion.level()==='performance';
-/** Puts an animated Luna in `host` (any element). o = {expr, compact, scale (default 2), cast (sparkle at first)}.
-    Returns the canvas. All pictures share one timer, which stops once none is left on the page. */
-function mount(host,o){o=Object.assign({expr:'idle',scale:2},o||{});const cv=document.createElement('canvas'),c=o.compact?(o.compact==='face'?FACE:CROP):{w:W,h:H};
-  cv.className='v6luna';cv.setAttribute('aria-hidden','true');cv.style.width=c.w*o.scale+'px';cv.style.height=c.h*o.scale+'px';
-  host.appendChild(cv);const st0={expr:o.expr,compact:o.compact,cast:0,fam:0,bob:0,breath:0,blink:0};
-  if(still()){paint(cv,st0);return cv}
-  let t=0,nextBlink=6+Math.floor(Math.random()*8),cast=o.cast?8:0;
-  const tick=()=>{t++;st0.breath=t%6<3?0:1;st0.fam=t%4<2?0:1;st0.bob=t%8<4?0:-1;st0.blink=t===nextBlink?1:0;if(t>nextBlink)nextBlink=t+10+Math.floor(Math.random()*12);
-    st0.cast=cast>0?(cast--%2)+1:0;paint(cv,st0)};
-  live.add({cv,tick});if(!iv)iv=setInterval(loop,260);paint(cv,Object.assign({},st0,{cast:cast?1:0}));return cv}
-// one timer for every Luna on screen: a picture that left the page is dropped, a hidden one waits, none left stops it
-const live=new Set();let iv=null;
-function loop(){live.forEach(a=>{if(!a.cv.isConnected){live.delete(a);return}if(!document.hidden&&!a.cv.closest('[hidden]'))a.tick()});if(!live.size){clearInterval(iv);iv=null}}
-
-/* ---------- portraits from the reference sheet ---------- */
-const FACES='assets/img/luna-faces.webp',FS=64;
-const FACEOF={idle:'focused',greet:'cheerful'}; // the sprite's extra poses use the nearest portrait
+const FACES='assets/img/luna-faces.webp',FULL='assets/img/luna-full.webp',FS=64;
+const FACEOF={idle:'focused',greet:'cheerful'}; // moments without their own portrait use the nearest one
+const faceOf=e=>{const n=FACEOF[e]||e;return NAMES.includes(n)?n:'focused'};
 /** A 64 x 64 portrait (whole-number scale s, default 1) with the expression's face from the reference sheet. */
-function portrait(expr,s){s=s||1;const n=FACEOF[expr]||expr,i=Math.max(0,NAMES.indexOf(n)),w=FS*s;
+function portrait(expr,s){s=s||1;const n=faceOf(expr),i=NAMES.indexOf(n),w=FS*s;
   return '<span class="v6lpf" role="img" aria-label="Luna, '+n+'" style="width:'+w+'px;height:'+w+'px;background-size:'+(w*NAMES.length)+'px '+w+'px;background-position:'+(-i*w)+'px 0" data-face="'+n+'"></span>'}
+/** The middle 44 x 44 of a portrait at 1x: her face, for the header button. */
+function mini(expr){const n=faceOf(expr),i=NAMES.indexOf(n);
+  return '<span class="v6lmini" aria-hidden="true" style="background-position:'+(-(i*FS+10))+'px -12px" data-face="'+n+'"></span>'}
+/** Her full figure (69 x 150 at scale s) with sparkles; cast adds a sparkle burst. */
+function full(o){o=o||{};const s=o.scale||1;
+  return '<span class="v6lfull'+(o.cast?' cast':'')+'" aria-hidden="true" style="width:'+69*s+'px;height:'+150*s+'px"><img class="v6lfi" src="'+FULL+'" alt="" width="'+69*s+'" height="'+150*s+'">'
+    +'<i class="v6ls s1"></i><i class="v6ls s2"></i><i class="v6ls s3"></i><i class="v6ls s4"></i></span>'}
+/** Puts Luna in `host`: o.kind 'full' (default), 'face' (portrait) or 'mini'; o.expr picks the portrait. Returns the element. */
+function mount(host,o){o=o||{};const k=o.kind||(o.compact==='face'?'mini':o.compact?'face':'full');
+  host.insertAdjacentHTML('beforeend',k==='mini'?mini(o.expr):k==='face'?portrait(o.expr,o.scale):full(o));return host.lastElementChild}
 
 /* ---------- preferences ---------- */
 const style=()=>['q','g','e'].includes(st.s.lst)?st.s.lst:'g';
@@ -152,6 +52,7 @@ const FEAT=[
 ['score','achievement','Health Score','score what-if simulator orb recommendations','One 0 to 100 score built from five areas of what you logged.','Open it to see each area and try the What-if simulator.'],
 ['exercise','workout','Training Hall','exercise training muscle moves calisthenics gym','Pick a goal, then a muscle and a move with its tutorial.','Choose a goal first; Running Road is further down.'],
 ['run','running','Running Road','run running jog gps pace distance','A GPS run tracker: distance, moving time and pace.','Tap START before you set off; it needs location permission.'],
+['lab','flask','Science Laboratory','lab laboratory experiment science evidence vault trial uncertainty sources research test question','Test your own questions with your logs, the Evidence Trial, the Evidence Vault of sources, and how sure each estimate is.','Pick a question: HealthWiz uses what you already log.'],
 ['stats','chart','Statistics','stats statistics charts trends history report weekly chronicle','Charts of everything you logged, by day, week or month.','Pick a range; the weekly report is at the top.'],
 ['alchemy','scroll','Alchemist\'s Workshop','alchemy energy food work physics joules','Food energy compared with the work of climbing stairs (a simulation).','Pick a food and a climb to compare.'],
 ['guide','scroll','HealthWiz guide','guide insights tips patterns notice','Patterns from your own logs, and Luna\'s recent words.','Log for a few days; insights appear as patterns show up.'],
@@ -200,12 +101,21 @@ const btn=()=>'<button type="button" class="g v6lb" data-a="luna" aria-label="As
 function launcher(){if(S.v==='welcome'||S.v==='onb')return;const m=$('#main');if(!m||m.querySelector('.v6lb'))return;
   const hb=m.querySelector('.hbar>button'),hd=m.querySelector('header');let b=null;
   if(hb){hb.insertAdjacentHTML('beforebegin',btn());b=hb.previousElementSibling}else if(hd){hd.insertAdjacentHTML('beforeend',btn());b=hd.lastElementChild}
-  if(b)mount(b,{expr:'idle',compact:'face'})}
+  if(b)mount(b,{kind:'mini',expr:'cheerful'})}
 {const r=render;render=function(){const x=r.apply(this,arguments);try{launcher()}catch(e){}return x}}
 
 HWUI.css('luna',`
-.v6luna{display:block;image-rendering:pixelated;image-rendering:crisp-edges}
-.v6lpf{display:block;background-image:url(${FACES});background-repeat:no-repeat;image-rendering:pixelated;image-rendering:crisp-edges}
+.v6lpf,.v6lmini{display:block;background-image:url(${FACES});background-repeat:no-repeat;image-rendering:pixelated;image-rendering:crisp-edges}
+.v6lmini{width:44px;height:44px;background-size:${FS*7}px ${FS}px}
+.v6lfull{position:relative;display:inline-block;line-height:0;animation:v6lfl 3.2s steps(4) infinite alternate}
+.v6lfi{display:block;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;filter:drop-shadow(0 0 6px rgba(196,166,255,.6)) drop-shadow(0 0 2px rgba(99,230,220,.5))}
+@keyframes v6lfl{to{transform:translateY(-2px)}}
+.v6ls{position:absolute;width:4px;height:4px;background:#fff0a8;box-shadow:0 0 6px 2px rgba(255,240,168,.8);opacity:0;animation:v6ltw 2.4s steps(3) infinite}
+.v6ls.s1{left:8%;top:6%}.v6ls.s2{left:2%;top:18%;animation-delay:.8s}.v6ls.s3{left:30%;top:2%;animation-delay:1.5s}.v6ls.s4{right:6%;top:30%;animation-delay:2s;background:#c4fff7;box-shadow:0 0 6px 2px rgba(99,230,220,.8)}
+@keyframes v6ltw{50%{opacity:1}}
+.v6lfull.cast .v6ls{animation:v6lcast .5s steps(2) 6 alternate}@keyframes v6lcast{to{opacity:1;transform:scale(1.8)}}
+html.hw-rm .v6lfull,html.hw-rm .v6ls{animation:none!important}html.hw-rm .v6ls{opacity:0}
+@media(prefers-reduced-motion:reduce){.v6lfull,.v6ls{animation:none!important}.v6ls{opacity:0}}html.hw-q-performance .v6ls{display:none}
 .v6lb{display:inline-grid;place-items:center;width:44px;height:44px;min-height:44px;padding:0;margin-left:auto;flex:0 0 auto;overflow:hidden}
 header .v6lb{margin-right:56px;align-self:flex-start}.hbar .v6lb{margin:0 0 0 auto}@media(min-width:360px){.hbar>button[data-v=quests]{white-space:nowrap;flex:0 0 auto}}
 .hbar>div{min-width:0}.hbar small{overflow-wrap:anywhere} /* a long name wraps instead of widening the page */
@@ -218,4 +128,4 @@ header .v6lb{margin-right:56px;align-self:flex-start}.hbar .v6lb{margin:0 0 0 au
 .hwh.v6lpt{outline:4px solid var(--gold);outline-offset:3px;animation:v6lpt .5s steps(2) infinite alternate}@keyframes v6lpt{to{outline-color:var(--vio)}}
 @media(prefers-reduced-motion:reduce){.hwh.v6lpt{animation:none}}
 `);
-return{grid,paint,mount,portrait,open,close,style,compact,find,expressions:NAMES,EXPR:Object.keys(EXPR),size:{w:W,h:H,crop:CROP,face:FACE}}})();
+return{mount,portrait,mini,full,open,close,style,compact,find,expressions:NAMES,FULL,FACES}})();

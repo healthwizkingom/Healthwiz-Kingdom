@@ -4,8 +4,9 @@
            injected as :root[data-skin=…] rules. Each theme sits on a base ('light' or 'dark') that goes in
            data-theme, so every existing light/dark rule (ambient dusk, games…) keeps working. Health colours
            (--red --blue --grn --vio --gold) are the same in every theme; each theme keeps text ≥ 7:1 and muted text
-           ≥ 4.5:1 on --bg, --pn and --p2. Saved in st.s.theme (optional string, missing or 'auto' = match the
-           device, as before). The original THEME button still toggles light/dark. Settings → Theme has the swatches.
+           ≥ 4.5:1 on --bg, --pn and --p2. Saved in st.s.theme (optional string). Missing = Arcane Night, the default
+           since the magical redesign (js/v6-arcane.js); 'auto' = match the device. The original THEME button still
+           toggles light/dark. Settings → Theme has the swatches.
    CHAMBER The Traveller's Registry (pages.onb) gets an arcane chamber behind it: CSS/SVG only (stone arches, two
            torches, motes, a fog band), a slowly turning gold rune circle behind Medius whose six runes light as the
            six steps are done, and a scroll for the form (its own parchment colours, so the form stays high-contrast
@@ -18,6 +19,7 @@
            the Shadow Keep card. The storm weakens as regions are restored (game layer only). */
 const HWLooks=(()=>{
 const THEMES={
+  arcane:{name:'Arcane Night',base:'dark',v:{bg:'#0d0b26',pn:'#1b1745',p2:'#29235f',ink:'#f3efff',mut:'#bfb7ee',ln:'#05040f'}},
   light:{name:'Parchment',base:'light',v:{bg:'#efe3bd',pn:'#fbf3d6',p2:'#e6d6a2',ink:'#2b2418',mut:'#6b5d3d',ln:'#2b2418'}},
   dark:{name:'Night Keep',base:'dark',v:{bg:'#101a24',pn:'#1d3043',p2:'#2a4259',ink:'#f6edcf',mut:'#a9b8c4',ln:'#06090d'}},
   forest:{name:'Enchanted Forest',base:'dark',v:{bg:'#0e1d15',pn:'#173123',p2:'#21432f',ink:'#eef6e0',mut:'#a8c9ad',ln:'#040b07'}},
@@ -25,14 +27,15 @@ const THEMES={
   ember:{name:'Ember Forge',base:'dark',v:{bg:'#1c110e',pn:'#301d17',p2:'#432a20',ink:'#fbeedd',mut:'#d9b9a2',ln:'#0a0504'}},
   frost:{name:'Frost Citadel',base:'light',v:{bg:'#e2edf5',pn:'#f6fafd',p2:'#cfe0ec',ink:'#12243a',mut:'#3f566d',ln:'#12243a'}},
   desert:{name:'Desert Oasis',base:'light',v:{bg:'#f0dbb0',pn:'#fbefd3',p2:'#ecd8a8',ink:'#32200e',mut:'#664622',ln:'#32200e'}}};
-const ORDER=['auto','light','dark','forest','crystal','ember','frost','desert'];
+const ORDER=['arcane','auto','light','dark','forest','crystal','ember','frost','desert'];
 const s=()=>(typeof st!=='undefined'&&st&&st.s)||{};
-const choice=()=>THEMES[s().theme]?s().theme:'auto';
+// no choice saved: Arcane Night, the default look since the owner's magical redesign; 'auto' (Match system) is now saved explicitly
+const choice=()=>THEMES[s().theme]?s().theme:s().theme==='auto'?'auto':'arcane';
 const device=()=>{try{return matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}catch(e){return 'light'}};
 function apply(k){const r=document.documentElement,t=THEMES[k];
   if(!t){delete r.dataset.theme;delete r.dataset.skin;return}
   r.dataset.theme=t.base;if(k===t.base)delete r.dataset.skin;else r.dataset.skin=k}
-function set(k){if(k==='auto')delete st.s.theme;else if(THEMES[k])st.s.theme=k;else return;apply(choice());save()}
+function set(k){if(k==='auto'||THEMES[k])st.s.theme=k;else return;apply(choice());save()}
 // contrast helpers (WCAG relative luminance) used by the swatches' tooltip and the tests
 const lum=h=>{const c=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255).map(x=>x<=.03928?x/12.92:((x+.055)/1.055)**2.4);return .2126*c[0]+.7152*c[1]+.0722*c[2]};
 const ratio=(a,b)=>{const[x,y]=[lum(a),lum(b)].sort((p,q)=>q-p);return(x+.05)/(y+.05)};

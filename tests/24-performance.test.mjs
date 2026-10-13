@@ -180,8 +180,10 @@ test('no leaks: 60 navigations leave listeners, DOM nodes and timers flat', asyn
 // The budget was 500 KB; the Training Hall's sprite sheets (assets/img/exercise/, ≈ 23 KB) raised it to 540 KB. The
 // owner then chose 4x-detail sheets for the hand-placed pixel face (moves.webp 1536 x 8448 ≈ 158 KB, muscles.webp
 // ≈ 11 KB): moves.webp alone may reach 180 KB, every other image stays within 100 KB, and the total is 680 KB.
+// On 2026-10-13 the owner raised the total to 740 KB for Luna from their character sheet (luna-faces.webp ≈ 15 KB,
+// luna-full.webp ≈ 4 KB) and the Science Laboratory background from their concept sheet (lab-scene.webp ≈ 29 KB).
 const SHEET_CAP = { 'exercise/moves.webp': 180 * 1024 };
-test('assets stay lean: the art is lossless WebP, no image over 100 KB (the moves sheet 180 KB), all images ≤ 680 KB together', () => {
+test('assets stay lean: the art is lossless WebP, no image over 100 KB (the moves sheet 180 KB), all images ≤ 740 KB together', () => {
   const dir = path.join(root, 'assets', 'img'), files = fs.readdirSync(dir, { recursive: true }).filter(f => fs.statSync(path.join(dir, f)).isFile());
   assert.deepEqual(files.filter(f => f.endsWith('.png')), [], 'PNG art was re-encoded as lossless WebP');
   for (const n of ['wiz', 'kn', 'knight-kbd', 'knight-kcp', 'knight-khr', 'orc']) {
@@ -190,6 +192,6 @@ test('assets stay lean: the art is lossless WebP, no image over 100 KB (the move
   }
   let total = 0;
   for (const f of files) { const s = fs.statSync(path.join(dir, f)).size; total += s; assert.ok(s <= (SHEET_CAP[f.split(path.sep).join('/')] || 100 * 1024), f + ' is ' + s + ' bytes'); }
-  assert.ok(total <= 680 * 1024, 'images total ' + total + ' bytes');
+  assert.ok(total <= 740 * 1024, 'images total ' + total + ' bytes');
   for (const f of files.filter(f => f.startsWith('exercise'))) { const b = fs.readFileSync(path.join(dir, f)); assert.equal(b.toString('ascii', 8, 16), 'WEBPVP8L', f + ' is lossless'); }
 });

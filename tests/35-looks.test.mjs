@@ -12,15 +12,15 @@ const contrast = () => {
   return { bg: v('--bg'), red: v('--red'), grn: v('--grn'), ink: ['--bg', '--pn', '--p2'].map(b => cr('--ink', b)), mut: ['--bg', '--pn', '--p2'].map(b => cr('--mut', b)) };
 };
 
-test('themes: light and dark unchanged, every swatch applies at once, reads well, keeps health colours and survives a reload', async () => {
+test('themes: Arcane Night by default, light and dark unchanged, every swatch applies at once, reads well, keeps health colours and survives a reload', async () => {
   const { page, ctx, errors } = await boot({ context: { colorScheme: 'light' } });
-  assert.equal((await page.evaluate(contrast)).bg, '#efe3bd', 'no choice saved: follows the device as before');
+  assert.equal((await page.evaluate(contrast)).bg, '#0d0b26', 'no choice saved: Arcane Night, the default since the magical redesign');
   const keys = await page.evaluate(() => HWLooks.ORDER);
-  assert.deepEqual(keys, ['auto', 'light', 'dark', 'forest', 'crystal', 'ember', 'frost', 'desert']);
+  assert.deepEqual(keys, ['arcane', 'auto', 'light', 'dark', 'forest', 'crystal', 'ember', 'frost', 'desert']);
   assert.deepEqual(await page.evaluate(() => [HWLooks.THEMES.light.v.bg, HWLooks.THEMES.dark.v.bg]), ['#efe3bd', '#101a24']);
   await go(page, 'set');
-  assert.equal(await page.locator('#v6theme .v6sw').count(), 8);
-  for (const k of keys.slice(1)) {
+  assert.equal(await page.locator('#v6theme .v6sw').count(), 9);
+  for (const k of keys.filter(k => k !== 'auto')) {
     await page.click(`#v6theme [data-a="skin"][data-v="${k}"]`);
     const c = await page.evaluate(contrast), want = await page.evaluate(k => HWLooks.THEMES[k], k);
     assert.equal(c.bg, want.v.bg, k + ' applied');
@@ -41,8 +41,8 @@ test('themes: light and dark unchanged, every swatch applies at once, reads well
   await page.click('[data-a="theme"]');
   assert.deepEqual([await page.evaluate(() => document.documentElement.dataset.skin), (await state(page)).s.theme], [undefined, 'light'], 'THEME button still toggles');
   await page.click('#v6theme [data-v="auto"]');
-  assert.equal((await state(page)).s.theme, undefined, 'Match system clears the choice');
-  assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), undefined);
+  assert.equal((await state(page)).s.theme, 'auto', 'Match system is saved, so it stays chosen over the default');
+  assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), undefined, 'and follows the device');
   assert.deepEqual(errors, []);
   await ctx.close();
 });

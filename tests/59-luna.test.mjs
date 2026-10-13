@@ -10,34 +10,29 @@ const quietMd = { last: { greet: Date.now() }, day: {}, seen: {}, ms: {}, log: [
 const seed = (s = {}) => ({ ...RETURNING, md: quietMd, s: { ...RETURNING.s, med: 2, ...s } });
 const PHONE = { viewport: { width: 360, height: 760 }, context: { isMobile: true, hasTouch: true } };
 
-test('sprite: 44 x 51, palette letters only, ink outline, every expression looks different, eyes mirror when idle; one portrait strip', async () => {
+test('art from the owner\'s sheet only: the full figure (69 x 150) and the seven portraits load; nothing else is drawn for her', async () => {
   const { page, ctx, errors } = await openApp({ seed: seed() });
-  const r = await page.evaluate(() => {
-    const g = HWLuna.grid({ expr: 'idle' }), ok = /^[.kHhjbByYzPpQsSrevVwmNnMLltTdDuUcCoaAg]+$/;
-    const faces = HWLuna.EXPR.map(e => HWLuna.grid({ expr: e }).join('\n'));
-    const mirror = [21, 22, 23, 24].every(r => { const L = g[r].slice(12, 16), R = g[r].slice(21, 25).split('').reverse().join('').replace(/S/g, 's'); return L === R; });
-    return { h: g.length, w: [...new Set(g.map(x => x.length))], ok: g.every(x => ok.test(x)), outline: g.join('').split('k').length - 1, distinct: new Set(faces).size, n: faces.length,
-      exprs: HWLuna.expressions, mirror, blink: HWLuna.grid({ expr: 'idle', blink: 1 }).join() !== g.join(), cast: HWLuna.grid({ expr: 'idle', cast: 1 }).join('').includes('z') };
+  const r = await page.evaluate(async () => {
+    const load = async src => { const i = new Image(); i.src = src; await i.decode(); return [i.naturalWidth, i.naturalHeight]; };
+    return { full: await load(HWLuna.FULL), faces: await load(HWLuna.FACES), exprs: HWLuna.expressions, canvas: typeof HWLuna.grid };
   });
-  assert.equal(r.h, 51); assert.deepEqual(r.w, [44]);
-  assert.ok(r.ok, 'only palette letters'); assert.ok(r.outline > 150, 'outlined: ' + r.outline);
-  assert.equal(r.distinct, r.n, 'each expression is its own face');
+  assert.deepEqual(r.full, [69, 150]); assert.deepEqual(r.faces, [448, 64]);
   assert.deepEqual(r.exprs, ['cheerful', 'curious', 'focused', 'thoughtful', 'surprised', 'encouraging', 'apologetic'], 'the seven from the reference sheet');
-  assert.ok(r.mirror, 'idle eyes mirror each other'); assert.ok(r.blink && r.cast);
-  // the figure is drawn by code; the only Luna picture is the strip of reference-sheet portraits (tools/art/make_luna_faces.py)
-  assert.deepEqual(fs.readdirSync(new URL('../assets/img/', import.meta.url)).filter(f => /luna/i.test(f)), ['luna-faces.webp']);
+  assert.equal(r.canvas, 'undefined', 'the code-drawn sprite is gone: the owner asked for the Luna of their sheet');
+  // only these two Luna pictures, made from the sheet by tools/art/make_luna_faces.py and make_luna_lab.py
+  assert.deepEqual(fs.readdirSync(new URL('../assets/img/', import.meta.url)).filter(f => /luna/i.test(f)).sort(), ['luna-faces.webp', 'luna-full.webp']);
   assert.deepEqual(errors, []); await ctx.close();
 });
 
-test('Luna speaks the bubbles: canvas portrait with the right face, LUNA label, compact size from Settings', async () => {
+test('Luna speaks the bubbles: her full figure, LUNA label; compact shows the portrait for the moment', async () => {
   const { page, ctx, errors } = await openApp({ seed: seed() });
   await go(page, 'home');
   await page.evaluate(() => HWMedius.say('badge', { name: 'First Sip', icon: '' }));
-  await page.waitForSelector('#v6md canvas.v6luna');
+  await page.waitForSelector('#v6md .v6lfull img.v6lfi');
   assert.match(await page.textContent('#v6md'), /^LUNAOoh, a new badge: First Sip/);
-  assert.equal(await page.locator('#v6md img').count(), 0, 'no Medius picture in the bubble');
-  const size = await page.$eval('#v6md canvas', c => [c.width, c.height, c.getBoundingClientRect().width]);
-  assert.deepEqual(size, [44, 51, 88], 'full sprite at 2x');
+  assert.equal(await page.locator('#v6md img[src*="wiz"]').count(), 0, 'no Medius picture in the bubble');
+  const size = await page.$eval('#v6md .v6lfi', i => [i.naturalWidth, i.getBoundingClientRect().width, i.getBoundingClientRect().height, getComputedStyle(i).imageRendering]);
+  assert.deepEqual(size, [69, 69, 150, 'pixelated'], 'the full figure at 1x');
   await page.evaluate(() => { document.getElementById('v6md').remove(); HWMedius.hush(); });
   await go(page, 'set');
   await page.click('#v6lunaset [data-a="lunasz"][data-m="1"]');
@@ -46,7 +41,7 @@ test('Luna speaks the bubbles: canvas portrait with the right face, LUNA label, 
   await page.waitForSelector('#v6md.cp .v6lpf');
   // compact: the level-up face (cheerful) from the reference-sheet portraits, 64 x 64 at 1x: the first of seven
   assert.deepEqual(await page.$eval('#v6md .v6lpf', e => { const s = getComputedStyle(e); return [e.dataset.face, s.width, s.height, s.backgroundPosition, s.imageRendering]; }), ['cheerful', '64px', '64px', '0px 0px', 'pixelated']);
-  assert.equal(await page.locator('#v6md canvas').count(), 0, 'the portrait replaces the sprite when compact');
+  assert.equal(await page.locator('#v6md .v6lfull').count(), 0, 'the portrait replaces the full figure when compact');
   assert.deepEqual(errors, []); await ctx.close();
 });
 
@@ -131,15 +126,18 @@ test('Settings: one Luna card (talk, size, style, reset); Medius keeps his voice
   await page.click('#v6lunaset [data-a="lunarst"]');
   const s = (await state(page)).s;
   assert.deepEqual([s.lst, s.lsz, s.med], [undefined, undefined, 1]);
-  assert.equal((await state(page)).sv, 8, 'schema version unchanged');
+  assert.equal((await state(page)).sv, 9, 'Luna adds no schema version of her own (9 is the Science Laboratory)');
   assert.deepEqual(errors, []); await ctx.close();
 });
 
-test('reduced motion: one still frame; the guide labels Medius\'s older words', async () => {
+test('reduced motion: Luna stays still; the guide labels Medius\'s older words', async () => {
   const { page, ctx, errors } = await openApp({ seed: { ...seed(), md: { ...quietMd, log: [{ t: 'An old line.', at: '2026-10-01T09:00:00.000Z', type: 'greet' }, { t: 'A new line.', at: '2026-10-02T09:00:00.000Z', type: 'log', who: 'L' }] } }, context: { reducedMotion: 'reduce' } });
   await go(page, 'home');
-  const same = await page.evaluate(async () => { const c = document.querySelector('.hbar .v6lb canvas'), a = c.toDataURL(); await new Promise(r => setTimeout(r, 1300)); return a === c.toDataURL(); });
-  assert.ok(same, 'no animation with reduced motion');
+  await page.evaluate(() => HWMedius.say('level', { level: 2, name: 'Trail Walker' }));
+  await page.waitForSelector('#v6md .v6lfull');
+  const anim = await page.evaluate(() => [...document.querySelectorAll('#v6md .v6lfull, #v6md .v6ls')].map(e => getComputedStyle(e).animationName));
+  assert.ok(anim.length >= 5 && anim.every(a => a === 'none'), 'no animation with reduced motion: ' + anim);
+  assert.equal(await page.locator('.hbar .v6lb .v6lmini').count(), 1, 'the header button shows her face');
   await go(page, 'guide');
   const g = await page.textContent('#v6medlog');
   assert.match(g, /LUNA'S RECENT WORDS[\s\S]*A new line\.[\s\S]*An old line\.”\s*Medius ·/);

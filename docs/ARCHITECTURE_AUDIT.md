@@ -1418,3 +1418,35 @@ Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel
 - Where each appears: the compact bubble and the Ask Luna panel show the portrait for the moment's expression (idle uses
   "focused", a greeting "cheerful"); the full bubble keeps the animated sprite (blink, breath, wave, familiar, sparkle);
   the 44 px header button keeps the sprite's face, since a 64 px portrait does not fit it at a whole-number scale.
+
+## Master prompt Stage 3: the Science Laboratory, with the owner's F21 report (`js/v6-f21.js`, `js/v6-lab.js`, `js/v6-trial.js`, `js/v6-vault.js`, `js/v6-uncert.js`)
+
+- **The report.** The owner supplied "HealthWiz Kingdom: Group 14 F21 Full Written Report" (2026-10-10) as the source for
+  now. `js/v6-f21.js` stores only its raw measurements (Appendix A counts, Table 10 resting pulses, Table 3 height and weight,
+  participants as P1–P6) and works out every table; `tests/61-f21.test.mjs` shows they agree with Tables 3, 7, 8, 9 and 11.
+  Flags (also in `docs/CALCULATIONS.md` and the source record): one rounding (P2 moderate VO₂ 22.95, printed 22.9), and
+  Section 4.4's "vigorous gave the highest energy for every participant" holds for 5 of 6 (P2: moderate 87.5 kJ > 85.1 kJ).
+  From the report the Stairs page's project method now says "not valid" when the pulse after is below the pulse before.
+- **Science Laboratory** (route `lab`, doorway at the end of the Health Hall and in Ask Luna; navigation order unchanged):
+  * Be Your Own Experiment: question → prediction → plan (variables, controls, how to measure, safety) → results → report,
+    on the user's own entries (read, never changed) or the labelled Group 14 sample. Conclusion rule: fewer than 3
+    observations in a compared group = "not enough evidence yet"; otherwise "lean towards / do not support", always "not
+    proof"; no significance test.
+  * Evidence Trial: seven questions whose right answers are computed from the data (one checks the report's own claim);
+    hint, retry without cost, the data after answering, 5 XP once per question for reasoning.
+  * Evidence Vault: every `HWSources` record on a shelf by topic; a book shows source → what it supports → how HealthWiz uses
+    it (formula and its own choices) → how it was checked, with a way to the page and back.
+  * Uncertainty Engine: our project's energy (RER 0.7–1.0 by the report's interpolation, which pulse is the peak, which
+    resting pulse), stair workout energy (pace and method), BMR sensitivity; the original stays visible; a "spread" is never
+    called a confidence interval.
+- **Saved data:** schema v9 adds `lab = {ex, tr}` (migration step 8, repair in `sanitize`, tests in `tests/02-schema.test.mjs`).
+
+## The magical redesign and Luna from the owner's sheet (`js/v6-arcane.js`, `js/v6-luna.js`, `tools/art/make_luna_lab.py`)
+
+- The owner asked for a more magical, modern look. Arcane Night (midnight indigo, violet and teal light, gold) is the
+  default theme; every theme gets rounded glowing panels and controls; pixel art stays pixel art. `docs/PIXEL_STYLE.md`
+  records the new direction. Tests that encoded the old default (`tests/25-matrix`, `35-looks`, `26-journey`, `47-buttons`)
+  now check the new default and the violet "?" / teal focus ring, with every contrast check kept.
+- Luna is drawn only from the owner's character sheet: the code-drawn sprite was removed. The Laboratory's background is the
+  laboratory from the owner's concept sheet. The owner raised the image budget from 680 KB to 740 KB for this art
+  (`tests/24-performance.test.mjs`, `AGENTS.md`).

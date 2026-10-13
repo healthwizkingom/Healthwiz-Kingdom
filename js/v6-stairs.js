@@ -499,4 +499,4 @@ HWUI.css('stairs',`
 .stclimb .row label{flex:1 1 90px}.stclimb p{margin:6px 0;font-size:14px}.stclimb small{display:flex;gap:6px;align-items:center}.stsh b{display:inline-flex;align-items:center;gap:2px}
 @media(prefers-reduced-motion:reduce){.stses{animation:none}}html.hw-rm .stses,html.hw-still .stses{animation:none}
 `);
-return{session,all,record,fill,estimate,projectVO2,pulseSHM,shmTxt,STUDY,profile,peak,MET,get pick(){return pick},get draft(){return Object.assign({},W,{secs:secsW()})}}})();
+return{session,all,record,fill,estimate,projectVO2,pulseSHM,shmTxt,STUDY,profile,peak,MET,bandOf,get pick(){return pick},get draft(){return Object.assign({},W,{secs:secsW()})}}})();
