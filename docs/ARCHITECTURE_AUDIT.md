@@ -1574,5 +1574,28 @@ Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel
 - **Not done / flags:** no Malaysian food-composition database (MyFCD) is searched: it has no public API; the canteen
   menu is the Malaysian source in the app. No AI estimates are used. A nutrient missing from the database counts as 0 in
   the day's macro total after logging (the existing custom-food rule).
-- **Tests:** `tests/67-addfood.test.mjs` (5) and `supabase/tests/food-search.test.ts` (6 Deno tests).
+- **Tests:** `tests/67-addfood.test.mjs` and `supabase/tests/food-search.test.ts` (6 Deno tests).
+
+### Stage 5 follow-up: the guessing game (owner: "questions like Akinator, he deduces until he gets the answer")
+
+- ADD MORE FOOD now opens on the game; the search above is reached by TYPE IT INSTEAD, NONE OF THESE, or when he gives up.
+- **What he knows:** the 134 distinct dishes of the canteen menu that have a kcal value (one per name; a dish listed more
+  than once keeps each listing as a portion choice, e.g. Sup Ayam 170 g 105 kcal, 150 ml 85 kcal, 170 g 150 kcal). The 8
+  menu items without kcal (most flavoured drinks, Kurma 3 biji) are left out because the game must end at kcal.
+- **Traits:** 40 yes/no questions (`QS`), each a rule on the Malay dish name and the existing dish type `fcat` (drink,
+  rice, noodles, fried, gravy, coconut milk, spicy, chicken, fish, egg, vegetables, pulses...). Rule-based tags, not AI;
+  a few are borderline, so answers weigh dishes rather than rule them out.
+- **Deduction:** prior weight 1 + times the menu serves the dish. Each answer multiplies a dish's weight by the fit of the
+  answer to its trait, clamped to 0.04–0.96 (YES 0.96 / 0.04, PROBABLY 0.75 / 0.25, DON'T KNOW 0.5 / 0.5 = no change). The
+  next question is the unasked one whose "yes" share of the weight is closest to 50 %. He guesses once a dish holds
+  ≥ 60 %; NO sets it to 0. When no question splits the rest (≥ 3 % each way) or after 18 questions, he lists the likely
+  dishes (≤ 8). Three wrong guesses: he gives up and offers the search with his closest guesses. UNDO removes the last answer.
+- **Measured on the menu** (test 2, truthful answers): every dish is reached, 86 named outright and 48 in a final list of
+  2–6 look-alikes (e.g. Ikan Kembung Goreng / Ikan Selar Goreng), 8.2 questions on average, 13 at most. With one wrong
+  answer at question 2, 122 of 134 were still reached (a scratch check, not a test).
+- **Then:** the dish's portion (½ to 3 × the menu portion, or which listing), the card (kcal from the menu; protein,
+  carbohydrate and fat labelled as HealthWiz estimates from the dish type), CONFIRM AND LOG. Saved entries keep the menu
+  shape, so nothing changes in saved data.
+- **He reacts:** determined, then excited as he closes in; surprised when he guesses; confused after a wrong guess; tired
+  over a list; nervous when he gives up; excited when he gets it.
 
