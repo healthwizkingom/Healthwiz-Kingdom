@@ -1466,3 +1466,23 @@ Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel
 - **Tests.** `supabase/tests/luna-chat.test.ts` (8 Deno tests) and `tests/63-luna-chat.test.mjs` (signed out and in,
   crisis, errors, phone layout, no AI key or direct AI call in the app).
 - **Not checked yet:** a real reply from Gemini through the deployed function (needs a signed-in player on the live site).
+
+## Master prompt Stage 4 (part 1): Stair Prescription (`js/v6-plan.js`)
+
+- **Where.** A MY STAIR PLAN card on the Stairs page. Without a plan it is a small card above the session chronicle, so the
+  check-in and logging form stay where they were; a saved plan sits right below the page's two halves. No navigation moved.
+- **The player chooses** a goal (start a habit, keep steady, climb a bit more), the days, the minutes (5, 10, 15 or 20) and,
+  optionally, a stairway. Every other day is a rest day; with six or seven days a tip suggests keeping rest days.
+- **Logic, shown under "?":** pace is Easy for "start"; "steady" keeps the pace the player logged most in their own last 28
+  days (Easy if none); "more" makes one session a week Moderate. The Health Conditions answer always wins (a pace cap lowers
+  every session; "ask your doctor first" plans no stair sessions). Stairway: the chosen one, else the one logged most in
+  the last 28 days, else any. The angle is said not to decide personal intensity. Stop guidance is included.
+- **The week** (Monday to Sunday) is a route with a checkpoint per day and the knight at today's checkpoint (CSS only, still
+  with reduced motion or the Performance mode). A day is done only when a stair session is saved that day. A missed day
+  reads "Not logged, and that is okay": no XP, no penalty, no streak. START (today) picks the stairway and pace on the
+  Stairs page and writes nothing; SKIP and UNSKIP; EDIT keeps the skips; TURN OFF asks first and leaves sessions saved.
+- **Saved:** `st.s.pl = {goal, days, min, sid, sk, at}` (a settings key, so no schema migration; skips older than 8 weeks
+  are dropped).
+- **Tests:** `tests/64-plan.test.mjs` (making a plan, pace logic and the "?", health answers, done/skip/start, edit and
+  turn off, the route under reduced motion, the 360 px layout).
+

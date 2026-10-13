@@ -50,7 +50,7 @@ const FEAT=[
 ['water','water','Water log','water drink hydration glass ml thirsty'],
 ['food','food','Food log','food meal eat calories kcal nutrition breakfast lunch dinner snack menu'],
 ['sleep','sleep','Sleep log','sleep bed wake rest alarm dream tired'],
-['stair','stairs','Stairs & workout','stairs steps climb workout gps stair sense gravity'],
+['stair','stairs','Stairs & workout','stairs steps climb workout gps stair sense gravity plan schedule week rest'],
 ['pulse','pulse','Heart rate','heart rate pulse bpm camera watch strap recovery','Your heart-rate logs: before and after activity.','Count by hand, use the camera or connect a heart-rate strap, then LOG BPM.'],
 ['stress','stress','Stress check-in','stress mood calm breathe relax worried counsel medius chat grove'],
 ['body','balance','Body & Energy','bmi weight height energy target macros protein forge'],
