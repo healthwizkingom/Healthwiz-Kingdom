@@ -10,7 +10,7 @@ const quietMd = { last: { greet: Date.now() }, day: {}, seen: {}, ms: {}, log: [
 const seed = (s = {}) => ({ ...RETURNING, md: quietMd, s: { ...RETURNING.s, med: 2, ...s } });
 const PHONE = { viewport: { width: 360, height: 760 }, context: { isMobile: true, hasTouch: true } };
 
-test('sprite: 44 x 51, palette letters only, ink outline, every expression looks different, eyes mirror when idle', async () => {
+test('sprite: 44 x 51, palette letters only, ink outline, every expression looks different, eyes mirror when idle; one portrait strip', async () => {
   const { page, ctx, errors } = await openApp({ seed: seed() });
   const r = await page.evaluate(() => {
     const g = HWLuna.grid({ expr: 'idle' }), ok = /^[.kHhjbByYzPpQsSrevVwmNnMLltTdDuUcCoaAg]+$/;
@@ -24,8 +24,8 @@ test('sprite: 44 x 51, palette letters only, ink outline, every expression looks
   assert.equal(r.distinct, r.n, 'each expression is its own face');
   assert.deepEqual(r.exprs, ['cheerful', 'curious', 'focused', 'thoughtful', 'surprised', 'encouraging', 'apologetic'], 'the seven from the reference sheet');
   assert.ok(r.mirror, 'idle eyes mirror each other'); assert.ok(r.blink && r.cast);
-  // drawn by code: no new image file
-  assert.ok(!fs.readdirSync(new URL('../assets/img/', import.meta.url)).some(f => /luna/i.test(f)));
+  // the figure is drawn by code; the only Luna picture is the strip of reference-sheet portraits (tools/art/make_luna_faces.py)
+  assert.deepEqual(fs.readdirSync(new URL('../assets/img/', import.meta.url)).filter(f => /luna/i.test(f)), ['luna-faces.webp']);
   assert.deepEqual(errors, []); await ctx.close();
 });
 
@@ -43,8 +43,25 @@ test('Luna speaks the bubbles: canvas portrait with the right face, LUNA label, 
   await page.click('#v6lunaset [data-a="lunasz"][data-m="1"]');
   assert.equal((await state(page)).s.lsz, 1);
   await page.evaluate(() => { const M = st.md; M.last = {}; M.seen = {}; HWMedius.say('level', { level: 4, name: 'Pathfinder' }); });
-  await page.waitForSelector('#v6md.cp canvas');
-  assert.deepEqual(await page.$eval('#v6md canvas', c => [c.width, c.height]), [22, 22], 'compact portrait');
+  await page.waitForSelector('#v6md.cp .v6lpf');
+  // compact: the level-up face (cheerful) from the reference-sheet portraits, 64 x 64 at 1x: the first of seven
+  assert.deepEqual(await page.$eval('#v6md .v6lpf', e => { const s = getComputedStyle(e); return [e.dataset.face, s.width, s.height, s.backgroundPosition, s.imageRendering]; }), ['cheerful', '64px', '64px', '0px 0px', 'pixelated']);
+  assert.equal(await page.locator('#v6md canvas').count(), 0, 'the portrait replaces the sprite when compact');
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('portraits: the strip from the reference sheet loads (7 faces of 64 px), each expression picks its own face', async () => {
+  const { page, ctx, errors } = await openApp({ seed: seed() });
+  const r = await page.evaluate(async () => {
+    const img = new Image(); img.src = 'assets/img/luna-faces.webp'; await img.decode();
+    const d = document.createElement('div'); d.innerHTML = ['cheerful', 'apologetic', 'idle', 'greet'].map(e => HWLuna.portrait(e, 2)).join(''); document.body.appendChild(d);
+    return { w: img.naturalWidth, h: img.naturalHeight, faces: [...d.children].map(e => [e.dataset.face, e.style.backgroundPosition, e.style.width, e.getAttribute('aria-label')]) };
+  });
+  assert.deepEqual([r.w, r.h], [448, 64]);
+  // at 2x a face is 128 px wide: apologetic is the 7th (index 6) → −768 px; idle uses the calm "focused" face (index 2) → −256 px
+  assert.deepEqual(r.faces, [['cheerful', '0px 0px', '128px', 'Luna, cheerful'], ['apologetic', '-768px 0px', '128px', 'Luna, apologetic'], ['focused', '-256px 0px', '128px', 'Luna, focused'], ['cheerful', '0px 0px', '128px', 'Luna, cheerful']]);
+  await go(page, 'home'); await page.click('.hbar .v6lb');
+  assert.equal(await page.getAttribute('#mo .v6lpic .v6lpf', 'data-face'), 'cheerful', 'Ask Luna shows her portrait');
   assert.deepEqual(errors, []); await ctx.close();
 });
 

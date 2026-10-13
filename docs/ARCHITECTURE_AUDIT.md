@@ -1407,3 +1407,14 @@ Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel
   kcal reading and the Group 14 figures still to be checked (listed in `docs/CALCULATIONS.md`).
 - `js/v6-calcx.js` keeps `js/v6-stairs.js` under the 64 KB file cap. Tests: `tests/60-explain.test.mjs`; `tests/37` and
   `tests/51` updated for the corrected values.
+
+## Luna's art: reference-sheet portraits combined with the sprite (owner's request)
+
+- `tools/art/make_luna_faces.py` crops the seven expression portraits from the owner's character reference sheet
+  (124 × 124 around each face), reduces them to 64 × 64 (box filter) and snaps them to one 40-colour palette without
+  dithering: `assets/img/luna-faces.webp`, 448 × 64, lossless, 14,826 bytes. The image budget (680 KB,
+  `tests/24-performance.test.mjs`) had about 17 KB left; about 2 KB remain. The sheet itself is the owner's file and is
+  not stored in the repository; the script names its size and the panel positions so it can be re-run on it.
+- Where each appears: the compact bubble and the Ask Luna panel show the portrait for the moment's expression (idle uses
+  "focused", a greeting "cheerful"); the full bubble keeps the animated sprite (blink, breath, wave, familiar, sparkle);
+  the 44 px header button keeps the sprite's face, since a 64 px portrait does not fit it at a whole-number scale.

@@ -150,4 +150,7 @@ opacity only, and every scene stops off screen, in a hidden tab and for reduced 
   thoughtful, surprised, encouraging, apologetic, plus idle and a wave); the outline is added around the composed
   picture, and sparkles are drawn after it. Motion is whole pixels on a slow timer (blink, a 1-pixel breath, the
   familiar's bob, staff sparkle) and stops off screen, in a hidden tab, with reduced motion and in Performance mode.
-  The compact portrait and the header button are crops of the same grid.
+  The header button is a crop of the same grid. Her close-up face comes from the reference sheet instead: the seven
+  expression portraits are cropped from it, reduced to 64 × 64 and snapped to a 40-colour palette without dithering by
+  `tools/art/make_luna_faces.py` (`assets/img/luna-faces.webp`, 448 × 64, about 15 KB), and drawn at whole-number
+  scales with `pixelated`. They appear in the compact bubble and the Ask Luna panel; the animated figure stays the sprite.

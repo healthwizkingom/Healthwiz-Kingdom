@@ -45,13 +45,13 @@ function say(type,e){const r=R[type];if(!r||!mode())return false;if(pending&&pen
 let tm=null;function schedule(){clearTimeout(tm);tm=setTimeout(()=>{if(!pending)return;if(showing||quiet()){schedule();return}const it=pending;pending=null;show(it)},Math.max(1200,GAP-(Date.now()-lastShown)))}
 HWUI.css('medius',`.v6md{position:fixed;right:10px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:66;display:flex;align-items:flex-end;gap:6px;max-width:min(340px,calc(100vw - 20px));cursor:pointer;animation:v6in .3s steps(3)}
 .v6md .v6lav{flex:0 0 auto;padding:0;min-height:0;border:0;background:none;box-shadow:none;line-height:0;filter:drop-shadow(0 0 5px rgba(196,166,255,.55))}
-.v6md.cp p{font-size:12px}.v6md.cp{max-width:min(300px,calc(100vw - 20px))}
+.v6md.cp p{font-size:12px}.v6md .v6lav.pf{border:3px solid var(--ln);box-shadow:3px 3px 0 var(--ln);filter:none;background:var(--p2)}.v6md.cp{max-width:min(300px,calc(100vw - 20px))}
 .v6md p{margin:0;background:var(--pn);color:var(--ink);border:3px solid var(--ln);box-shadow:3px 3px 0 var(--ln);padding:8px 10px;font-size:13px;line-height:1.45}.v6md p b{display:block;font:7px/1.6 var(--fh);color:var(--vio)}
 .v6md.out{opacity:0;transition:opacity .3s}@media(max-width:760px){.v6md{bottom:calc(84px + env(safe-area-inset-bottom,0px))}}@media(prefers-reduced-motion:reduce){.v6md{animation:none}}`);
 function show(it){const M=md(),d=today();M.last[it.type]=Date.now();M.day[d]=(M.day[d]||0)+1;M.seen[it.key]=d;M.log.push({t:it.text,at:new Date().toISOString(),type:it.type,who:'L'});if(M.log.length>20)M.log.shift();
   Object.keys(M.day).forEach(k=>{if(k<rng(7)[0])delete M.day[k]});Object.keys(M.seen).forEach(k=>{if(M.seen[k]<rng(7)[0])delete M.seen[k]});save();
   const el=document.createElement('div');el.className='v6md';el.id='v6md';el.setAttribute('role','status');const f=FACE[it.type]||['idle'],cp=HWLuna.compact();if(cp)el.classList.add('cp');
-  el.innerHTML='<button type="button" class="v6lav" aria-label="Ask Luna for help"></button><p><b>LUNA</b>'+esc(it.text)+'</p>';HWLuna.mount(el.firstChild,{expr:f[0],cast:f[1],compact:cp});
+  el.innerHTML='<button type="button" class="v6lav" aria-label="Ask Luna for help"></button><p><b>LUNA</b>'+esc(it.text)+'</p>';if(cp){el.firstChild.innerHTML=HWLuna.portrait(f[0]);el.firstChild.classList.add('pf')}else HWLuna.mount(el.firstChild,{expr:f[0],cast:f[1]}); // compact: her portrait from the reference sheet
   showing=el;lastShown=Date.now();let gone=0;const close=()=>{if(gone)return;gone=1;el.classList.add('out');setTimeout(()=>{el.remove();if(showing===el)showing=null;if(pending)schedule()},300)};el.onclick=e=>{hush();close();if(e.target.closest('.v6lav'))HWLuna.open()};setTimeout(close,6500);document.body.appendChild(el);
   HWEvents.emit('medius:said',{kind:it.type,text:it.text})}
 

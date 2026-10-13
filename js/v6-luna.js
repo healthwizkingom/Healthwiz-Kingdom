@@ -1,7 +1,9 @@
 /* v6: Luna, the apprentice witch, HealthWiz's friendly companion. Not part of the original.
    Luna speaks the event bubbles that Medius used to (js/v6-medius.js keeps the rules, cooldowns and limits). Medius
    stays the Wizard King: the tutorial, the Traveller's Registry, the Wizard's Counsel and the Health Orb are his.
-   * Art: one hand-placed pixel sprite (BASE, 44 x 51, light from the top left) with patches for the eyes, mouth and
+   * Art, two kinds that work together: the seven expression portraits (assets/img/luna-faces.webp, 64 x 64 each) are
+     crops of the owner's character reference sheet turned into pixel art by tools/art/make_luna_faces.py; they show her
+     face up close (the compact bubble, the Ask Luna panel). The full figure is one hand-placed pixel sprite (BASE, 44 x 51, light from the top left) with patches for the eyes, mouth and
      waving arm, her teal familiar as its own layer, and the 1-pixel ink outline added around the composed picture
      (docs/PIXEL_STYLE.md). Drawn with code at 2x, so it costs nothing from the image budget. Expressions follow the
      owner's reference sheet: cheerful, curious, focused, thoughtful, surprised, encouraging, apologetic (+ idle, greet).
@@ -125,6 +127,13 @@ function mount(host,o){o=Object.assign({expr:'idle',scale:2},o||{});const cv=doc
 const live=new Set();let iv=null;
 function loop(){live.forEach(a=>{if(!a.cv.isConnected){live.delete(a);return}if(!document.hidden&&!a.cv.closest('[hidden]'))a.tick()});if(!live.size){clearInterval(iv);iv=null}}
 
+/* ---------- portraits from the reference sheet ---------- */
+const FACES='assets/img/luna-faces.webp',FS=64;
+const FACEOF={idle:'focused',greet:'cheerful'}; // the sprite's extra poses use the nearest portrait
+/** A 64 x 64 portrait (whole-number scale s, default 1) with the expression's face from the reference sheet. */
+function portrait(expr,s){s=s||1;const n=FACEOF[expr]||expr,i=Math.max(0,NAMES.indexOf(n)),w=FS*s;
+  return '<span class="v6lpf" role="img" aria-label="Luna, '+n+'" style="width:'+w+'px;height:'+w+'px;background-size:'+(w*NAMES.length)+'px '+w+'px;background-position:'+(-i*w)+'px 0" data-face="'+n+'"></span>'}
+
 /* ---------- preferences ---------- */
 const style=()=>['q','g','e'].includes(st.s.lst)?st.s.lst:'g';
 const compact=()=>+st.s.lsz===1;
@@ -172,7 +181,7 @@ function sheet(q){const s=style(),H2=helps(),n=(BN[S.v]||[])[1]||'this page';
   '<div class="row"><button data-a="mclose">CLOSE</button></div></div>'}
 let opened=0;
 function open(q){const m=$('#mo');if(!m||!m.hidden&&!m.querySelector('.v6lp'))return; // never over another open dialog
-  m.innerHTML=sheet(q);m.hidden=false;opened=1;mount(m.querySelector('.v6lpic'),{expr:'greet',compact:1});
+  m.innerHTML=sheet(q);m.hidden=false;opened=1;m.querySelector('.v6lpic').innerHTML=portrait('cheerful');
   const i=m.querySelector('#v6lq');if(i){i.oninput=()=>{const r=m.querySelector('#v6lres');if(r)r.innerHTML=results(i.value);const x=m.querySelector('#v6lqx');if(x)x.hidden=!!i.value};if(q)i.dispatchEvent(new Event('input'))}
   HWEvents.emit('luna:opened',{view:S.v})}
 function close(){const m=$('#mo');if(m&&m.querySelector('.v6lp')){m.hidden=true;m.innerHTML=''}}
@@ -196,6 +205,7 @@ function launcher(){if(S.v==='welcome'||S.v==='onb')return;const m=$('#main');if
 
 HWUI.css('luna',`
 .v6luna{display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+.v6lpf{display:block;background-image:url(${FACES});background-repeat:no-repeat;image-rendering:pixelated;image-rendering:crisp-edges}
 .v6lb{display:inline-grid;place-items:center;width:44px;height:44px;min-height:44px;padding:0;margin-left:auto;flex:0 0 auto;overflow:hidden}
 header .v6lb{margin-right:56px;align-self:flex-start}.hbar .v6lb{margin:0 0 0 auto}@media(min-width:360px){.hbar>button[data-v=quests]{white-space:nowrap;flex:0 0 auto}}
 .hbar>div{min-width:0}.hbar small{overflow-wrap:anywhere} /* a long name wraps instead of widening the page */
@@ -208,4 +218,4 @@ header .v6lb{margin-right:56px;align-self:flex-start}.hbar .v6lb{margin:0 0 0 au
 .hwh.v6lpt{outline:4px solid var(--gold);outline-offset:3px;animation:v6lpt .5s steps(2) infinite alternate}@keyframes v6lpt{to{outline-color:var(--vio)}}
 @media(prefers-reduced-motion:reduce){.hwh.v6lpt{animation:none}}
 `);
-return{grid,paint,mount,open,close,style,compact,find,expressions:NAMES,EXPR:Object.keys(EXPR),size:{w:W,h:H,crop:CROP,face:FACE}}})();
+return{grid,paint,mount,portrait,open,close,style,compact,find,expressions:NAMES,EXPR:Object.keys(EXPR),size:{w:W,h:H,crop:CROP,face:FACE}}})();

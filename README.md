@@ -41,7 +41,8 @@ js/v6-quests.js            adaptive daily focus quest + weekly quests
 js/v6-streaks.js           current + gentle streaks, week view, new achievements
 js/v6-xp.js                fair XP: daily logging allowance, exploration reward
 js/v6-kingdom.js           five region states (incl. Flourishing) and region detail panel
-js/v6-luna.js              Luna, the apprentice witch: hand-placed pixel sprite drawn by code (7 expressions, blink, breath, familiar),
+js/v6-luna.js              Luna, the apprentice witch: hand-placed pixel sprite drawn by code (7 expressions, blink, breath, familiar)
+                           plus 7 pixel-art portraits cropped from the owner's reference sheet (assets/img/luna-faces.webp),
                            Ask Luna (find a feature, open the page's "?" explanations; no AI), her preferences (st.s.lst, st.s.lsz)
 js/v6-medius.js            the companion reacts to events (speech bubbles with cooldowns), spoken by Luna; Medius keeps the tutorial voice
 js/v6-charts.js            touch/keyboard/screen-reader charts, empty states, week-vs-week stats
@@ -95,7 +96,7 @@ legacy/HealthWiz_Kingdom_5-4-3.html   the complete original single file (source 
 tools/import-original.mjs  one-time import of the original (re-running it overwrites later edits)
 tools/build-standalone.mjs bundles everything back into one HTML file
 tools/make-icons.mjs       redraws the app icons
-tools/art/                 Python scripts that made assets/img/bedroom.webp, sleeper-react.webp and medius-reactions.webp
+tools/art/                 Python scripts that made assets/img/bedroom.webp, sleeper-react.webp, medius-reactions.webp and luna-faces.webp
 tests/                     browser tests (Playwright + node:test): fidelity, every feature, performance budgets, device matrix
 docs/                      architecture audit and plan, event catalog, testing guide (docs/TESTING.md), pixel-art standard (docs/PIXEL_STYLE.md)
 ```
