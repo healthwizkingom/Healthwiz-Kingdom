@@ -231,7 +231,7 @@ HWEvents.on('cloud:signed-in',()=>{phase='idle';sync('user')});
 addEventListener('online',()=>sync('online'));addEventListener('offline',()=>{if(signed()){phase='offline';paint()}});
 D.addEventListener('visibilitychange',()=>{if(!signed())return;if(D.visibilityState==='visible'){if(!C.last||Date.now()-Date.parse(C.last)>60e3)sync('focus')}else if(J(st)!==base())sync('hide')});
 setInterval(()=>{if(signed()&&D.visibilityState!=='hidden'&&(!C.last||Date.now()-Date.parse(C.last)>300e3))sync('poll')},30e3);
-try{HWMedius.rules.cloud={p:40,cd:1800e3,line:()=>'A messenger rode in from thine other device. The chronicle is whole again.'}}catch(e){}
+try{HWMedius.rules.cloud={p:40,cd:1800e3,line:()=>'News arrived from your other device. Your records are all in one place again.'}}catch(e){}
 
 /* ---------- status for the ACCOUNT card ---------- */
 const hm=t=>{const d=new Date(t);return isNaN(d)?'':String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};

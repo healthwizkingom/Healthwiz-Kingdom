@@ -108,7 +108,8 @@ leather `#3a2418`. Add a 1-pixel ink outline around the silhouette (`outline()`)
 ## Limits the tests check
 
 * `tests/24-performance.test.mjs`: lossless WebP (VP8L), no image over 100 KB except `moves.webp` (180 KB), all of
-  `assets/img/` (subfolders included) ≤ 680 KB. The 4x sheets are about 169 KB together, leaving about 17 KB of room.
+  `assets/img/` (subfolders included) ≤ 740 KB (680 KB until the owner raised it for Luna and the Science Laboratory).
+  The 4x sheets are about 169 KB together.
 * `tests/51-exercise.test.mjs`: the sheet sizes at 4x detail (1536 × 8448 and 512 × 7680), every muscle except Abdominals has map pixels,
   one sprite row per drawn move (22), and the seven moves without a sprite row are exactly the ones listed below.
 * Keep the file names: they are listed in `sw.js` PRECACHE and embedded by `tools/build-standalone.mjs`.

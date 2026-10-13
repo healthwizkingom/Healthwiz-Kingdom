@@ -276,6 +276,23 @@ chart:[
 '.tttttttttttttt.',
 '................',
 '................'],
+flask:[
+'................',
+'.....tnnnn......',
+'.....tnNNn......',
+'......cbbB......',
+'......cbbB......',
+'.....cbbbbB.....',
+'....cbbwbbbB....',
+'...cbbbbbbbbB...',
+'..cmmmmmmmmmmB..',
+'..cvvwvvvvvvVB..',
+'..cvvvvvvwvvVB..',
+'..cvvvvvvvvvVB..',
+'...vvvvvvvvVV...',
+'....VVVVVVVV....',
+'................',
+'................'],
 scroll:[
 '................',
 '..tnnnnnnnnnn...',
@@ -802,7 +819,7 @@ const EMOJI={'❤':'heart','💓':'pulse','🫀':'pulse','💧':'water','💦':'
 // Hydration page shows both of its systems on either tab.
 const REGION={alchemy:'scroll',exercise:'workout',food:['food','water'],water:['food','water'],sleep:'sleep',pulse:'heart',stair:'stairs',stress:'stress',bmi:'balance',body:'balance',
   calc:'energy',stats:'chart',health:'chart',guide:'scroll',badges:'achievement',set:'gear',run:'running',
-  quests:'quest',kingdom:'map',score:'achievement'};
+  quests:'quest',kingdom:'map',score:'achievement',lab:'flask'};
 
 const G={},P={};
 /** The icon's 16 rows with the outline (k) added, or null. Also drawable on a canvas: spr(HWPixel.grid('heart'),HWPixel.PAL,3). */

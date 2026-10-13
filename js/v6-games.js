@@ -161,8 +161,8 @@ function place(h,html,marks){for(const k of marks){const i=h.indexOf(k);if(i>=0)
 {const p=pages.kingdom;pages.kingdom=(...a)=>{const h=p(...a);return place(h,hub(),['<div class="card"><h3>REGIONS</h3>'])}}
 {const p=pages.stats;pages.stats=(...a)=>p(...a)+statsCard()}
 
-/* Medius reacts once the player is back in the kingdom (bubbles stay quiet while a game is open) */
-HWMedius.rules.game={p:52,cd:1800e3,line:e=>{const L={water:['The gardens drink deep. Thank thee for carrying the bucket!','Every patch watered — the bees approve.'],food:['A colourful plate! Variety is a fine spell.','The market cooks still talk of thy plate.'],trail:['Checkpoint to checkpoint — a fine little journey.','The trail remembers thy footsteps.'],grove:['The grove is calmer for thy visit. So am I.','Slow breaths, quiet pond. Well done.'],night:['The night sky smiles back at thee.','Stars counted, lanterns lit. Rest well when it is time.']}[e.id];return L?pick(L):null}};
+/* Luna reacts once the player is back in the kingdom (bubbles stay quiet while a game is open) */
+HWMedius.rules.game={p:52,cd:1800e3,line:e=>{const L={water:['The gardens are drinking deep. Thanks for carrying the bucket!','Every patch watered. The bees approve!'],food:['A colourful plate! Variety is a great spell.','The market cooks are still talking about your plate.'],trail:['Checkpoint to checkpoint, what a nice little journey.','The trail remembers your footsteps.'],grove:['The grove is calmer after your visit. So am I.','Slow breaths, quiet pond. Well done.'],night:['The night sky is smiling back at you.','Stars counted, lanterns lit. Rest well when it is time.']}[e.id];return L?pick(L):null}};
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 HWEvents.on('game:completed',e=>{if(e.ok)setTimeout(()=>HWMedius.say('game',e),0)});
 

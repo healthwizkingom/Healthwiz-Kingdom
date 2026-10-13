@@ -144,7 +144,7 @@ test('saved data is left alone: every key survives boot, all pages and a reload;
     assert.equal(now.hwtut, '1');
     assert.deepEqual(Object.keys(now).filter(k => k.startsWith('healthwiz_backup_')), ['healthwiz_backup_pre-v8_1'], 'no new safety copies: nothing was migrated or repaired');
     const s = await state(page);
-    assert.equal(s.sv, 8);
+    assert.equal(s.sv, 9);
     assert.deepEqual(s.e, seed.e, 'entries exactly as saved');
     for (const b in seed.b) assert.equal(s.b[b], seed.b[b], b + ' keeps its date');
     assert.ok(s.xp >= seed.xp, 'XP is never lost');

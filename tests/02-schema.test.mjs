@@ -98,6 +98,27 @@ test('data from a newer app version is kept, not upgraded or overwritten', async
   await ctx.close();
 });
 
+test('v8 → v9: the Science Laboratory store is added; entries, badges and settings are untouched', async () => {
+  const v8 = { ...V1, sv: 8, b: { 'First Sip': '2026-08-30' }, md: { last: {}, day: {}, seen: {}, ms: {}, log: [] }, gp: { ok: 1, v: { ST20: '2026-09-02' } } };
+  const { page, ctx, errors } = await openRaw(JSON.stringify(v8));
+  const s = await state(page);
+  assert.equal(s.sv, 9);
+  assert.deepEqual(s.lab, { ex: {}, tr: {} });
+  assert.deepEqual(s.e, v8.e, 'entries exactly as saved');
+  assert.deepEqual([s.b, s.gp, s.s.kcal], [v8.b, v8.gp, 2200]);
+  assert.ok((await backups(page)).some(k => /pre-v9/.test(k)), 'pre-upgrade copy kept');
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test('a damaged lab store is repaired, never dropped', async () => {
+  const { page, ctx, errors } = await openRaw(JSON.stringify({ ...V1, sv: 9, lab: { ex: 'oops', tr: { q1: { ok: 1, at: '2026-10-01' } } } }));
+  const s = await state(page);
+  assert.deepEqual(s.lab, { ex: {}, tr: { q1: { ok: 1, at: '2026-10-01' } } });
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
 test('restoring an old backup migrates it; a newer backup is refused with a clear message', async () => {
   const { page, ctx, errors } = await openRaw(JSON.stringify({ ...V1, sv: 2, b: {}, e: [] }));
   await go(page, 'set');

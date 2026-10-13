@@ -177,4 +177,4 @@ HWUI.css('hall',`
 .hmq h3{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.hmq .big{margin-left:auto}
 .hmd{margin:0 0 14px}.hmd>summary{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;min-height:44px;margin:0;padding:8px 12px;cursor:pointer}.hmd>summary small{font-size:12px;color:var(--mut)}.hmd[open]>summary{margin-bottom:10px}.hmd>.card{margin-bottom:0}
 `);
-return{head,next,examples,compact,tiles:TILE}})();
+return{head,next,examples,compact,tiles:TILE,heads:HEAD}})();

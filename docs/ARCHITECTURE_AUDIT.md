@@ -1368,3 +1368,85 @@ which together caused these at narrow widths. No saved-data change.
   messages say that opening the email link uses the code up. The email template must contain `{{ .Token }}` (README, "Sign-in:
   dashboard steps").
 
+
+## Luna, the apprentice witch companion (`js/v6-luna.js`, `js/v6-medius.js`, `tests/59-luna.test.mjs`)
+
+Owner's decisions for this round (from the Master Upgrade Prompt, Feature H, and Luna's character reference sheet):
+Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel sprite; no AI yet.
+
+- **What changed.** The bubbles (`js/v6-medius.js`: same rules, priorities, cooldowns, daily limit, Chatty / Calm / Off)
+  now show Luna and her name, with a face chosen per kind of bubble (`FACE`). Her lines are rewritten in a modern, kind
+  voice (no "thee"); the same goes for the lines that the games, cloud sync and offline add-ons register. `HWMedius`,
+  `#v6md`, `st.md` and the `medius:said` event keep their names so nothing that depends on them changes. A bubble now
+  also waits while a dialog (`#mo`) is open.
+- **What Medius keeps.** The tutorial and the Traveller's Registry (with his recorded voice), the Wizard's Counsel AI
+  chat, the Health Orb, the Training Hall notes and the player avatar are unchanged.
+- **Ask Luna** (Home bar and every page header, or tap Luna in a bubble): finds features by word from one list whose
+  tracker text comes from `HWHall.heads` (now exported by `js/v6-hall.js`, so it is not duplicated), and lists the "?"
+  explanations on the page underneath; choosing one scrolls to it, marks it and opens the same `HWHelp` panel. Help
+  style: Quick (names), Guided (what to enter, default), Explore (+ why, and whether the numbers are entered or estimated).
+  It reads no entries, writes nothing but the three preferences and sends nothing.
+- **Saved data.** New optional settings `st.s.lst` and `st.s.lsz`; missing keys mean the defaults, so the schema stays at
+  version 8. Old bubble history entries (without `who`) are labelled as Medius's words on the guide page.
+- **Not done (later stages):** the Grok-backed AI for Luna (needs a server-side key in a Supabase Edge Function like
+  `medius-chat`), remembering further preferences, and full-body poses beyond the bubble sprite.
+
+## Master prompt Stage 2: source records and the worked "?" (`js/v6-sources.js`, `js/v6-calcx.js`, `docs/CALCULATIONS.md`)
+
+- **Sources.** `HWSources` holds one record per source (title, authors or organisation, journal or publisher, date, direct
+  link, kind, the claim it supports, how and when it was checked). Every record was opened on 2026-10-13 (PubMed records
+  with DOIs, or the official page); where only part could be confirmed, the record says so. No Wikipedia.
+- **Worked "?".** `HWExplain` builds the panel in the master prompt's order (meaning, inputs with origin, the formula the
+  code runs, the user's numbers step by step, sources, HealthWiz's own choices, limits) inside the existing `HWHelp`
+  popover, which grows for these panels. Converted: BMI, daily energy, macronutrients, water goal, stair workout energy,
+  our project's VO₂ method, peak heart rate, run calories; sources added to the Health Score weights and Stair Sense.
+- **Corrections, each justified by the checked source and tested:** running METs now match the 2024 Compendium (the
+  table held 2011 values under a 2024 label: a 5 km run in 30 min at 60 kg is now 288 kcal instead of 300); the unsourced
+  "±20–30%", "±25%" and "10–20 BPM" margins are no longer shown. Saved runs and sessions keep their stored values.
+- **Flags left for the owner:** the project VO₂ method's use of Uth's ratio; IOM table values, the AHA range, the ACSM
+  kcal reading and the Group 14 figures still to be checked (listed in `docs/CALCULATIONS.md`).
+- `js/v6-calcx.js` keeps `js/v6-stairs.js` under the 64 KB file cap. Tests: `tests/60-explain.test.mjs`; `tests/37` and
+  `tests/51` updated for the corrected values.
+
+## Luna's art: reference-sheet portraits combined with the sprite (owner's request)
+
+- `tools/art/make_luna_faces.py` crops the seven expression portraits from the owner's character reference sheet
+  (124 × 124 around each face), reduces them to 64 × 64 (box filter) and snaps them to one 40-colour palette without
+  dithering: `assets/img/luna-faces.webp`, 448 × 64, lossless, 14,826 bytes. The image budget (680 KB,
+  `tests/24-performance.test.mjs`) had about 17 KB left; about 2 KB remain. The sheet itself is the owner's file and is
+  not stored in the repository; the script names its size and the panel positions so it can be re-run on it.
+- Where each appears: the compact bubble and the Ask Luna panel show the portrait for the moment's expression (idle uses
+  "focused", a greeting "cheerful"); the full bubble keeps the animated sprite (blink, breath, wave, familiar, sparkle);
+  the 44 px header button keeps the sprite's face, since a 64 px portrait does not fit it at a whole-number scale.
+
+## Master prompt Stage 3: the Science Laboratory, with the owner's F21 report (`js/v6-f21.js`, `js/v6-lab.js`, `js/v6-trial.js`, `js/v6-vault.js`, `js/v6-uncert.js`)
+
+- **The report.** The owner supplied "HealthWiz Kingdom: Group 14 F21 Full Written Report" (2026-10-10) as the source for
+  now. `js/v6-f21.js` stores only its raw measurements (Appendix A counts, Table 10 resting pulses, Table 3 height and weight,
+  participants as P1–P6) and works out every table; `tests/61-f21.test.mjs` shows they agree with Tables 3, 7, 8, 9 and 11.
+  Flags (also in `docs/CALCULATIONS.md` and the source record): one rounding (P2 moderate VO₂ 22.95, printed 22.9), and
+  Section 4.4's "vigorous gave the highest energy for every participant" holds for 5 of 6 (P2: moderate 87.5 kJ > 85.1 kJ).
+  From the report the Stairs page's project method now says "not valid" when the pulse after is below the pulse before.
+- **Science Laboratory** (route `lab`, doorway at the end of the Health Hall and in Ask Luna; navigation order unchanged):
+  * Be Your Own Experiment: question → prediction → plan (variables, controls, how to measure, safety) → results → report,
+    on the user's own entries (read, never changed) or the labelled Group 14 sample. Conclusion rule: fewer than 3
+    observations in a compared group = "not enough evidence yet"; otherwise "lean towards / do not support", always "not
+    proof"; no significance test.
+  * Evidence Trial: seven questions whose right answers are computed from the data (one checks the report's own claim);
+    hint, retry without cost, the data after answering, 5 XP once per question for reasoning.
+  * Evidence Vault: every `HWSources` record on a shelf by topic; a book shows source → what it supports → how HealthWiz uses
+    it (formula and its own choices) → how it was checked, with a way to the page and back.
+  * Uncertainty Engine: our project's energy (RER 0.7–1.0 by the report's interpolation, which pulse is the peak, which
+    resting pulse), stair workout energy (pace and method), BMR sensitivity; the original stays visible; a "spread" is never
+    called a confidence interval.
+- **Saved data:** schema v9 adds `lab = {ex, tr}` (migration step 8, repair in `sanitize`, tests in `tests/02-schema.test.mjs`).
+
+## The magical redesign and Luna from the owner's sheet (`js/v6-arcane.js`, `js/v6-luna.js`, `tools/art/make_luna_lab.py`)
+
+- The owner asked for a more magical, modern look. Arcane Night (midnight indigo, violet and teal light, gold) is the
+  default theme; every theme gets rounded glowing panels and controls; pixel art stays pixel art. `docs/PIXEL_STYLE.md`
+  records the new direction. Tests that encoded the old default (`tests/25-matrix`, `35-looks`, `26-journey`, `47-buttons`)
+  now check the new default and the violet "?" / teal focus ring, with every contrast check kept.
+- Luna is drawn only from the owner's character sheet: the code-drawn sprite was removed. The Laboratory's background is the
+  laboratory from the owner's concept sheet. The owner raised the image budget from 680 KB to 740 KB for this art
+  (`tests/24-performance.test.mjs`, `AGENTS.md`).

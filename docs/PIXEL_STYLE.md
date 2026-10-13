@@ -4,6 +4,23 @@ The visual direction for every screen from now on, and the shared code behind it
 Introduced in the visual-foundation session (`docs/ARCHITECTURE_AUDIT.md` §30). Later sessions redesign screens with
 these pieces instead of inventing new ones.
 
+## Direction since the magical redesign (owner's request, October 2026)
+
+**Magical and modern, with pixel art at its heart.** The owner asked for a look that is "more visually magical, and a
+modern UI, not bland", after their concept sheet: deep midnight indigo, violet and teal light, gold accents, starlight.
+`js/v6-arcane.js` carries it and **overrides the panel and control rules below** where they differ:
+
+* **Arcane Night** is the default theme (`js/v6-looks.js`); the other themes stay and share the same shapes.
+* Panels: rounded (16 px), a thin edge in `--edge` (≥ 3:1 on the surfaces), depth (`--shade`) and a soft glow (`--glow`);
+  a gentle top highlight. Gradients are allowed for light and magic, always over a solid `background-color`.
+* Controls: gold gradient primary buttons, glass secondary buttons and chips with a visible edge, rounded inputs, a
+  teal (Arcane Night) or blue focus ring, pill tags, a round violet "?" button, a glowing active menu tab.
+* Still pixel art: the pixel font, the pixel icons, the characters, the scenes and the map. Nothing pixel-art is
+  rounded, blurred or scaled by a fraction of its size.
+* Motion stays quiet and respects reduced motion and the Performance mode.
+
+The sections below describe the original pixel standard; its tokens, icons, emoji and scene rules still apply.
+
 ## Direction
 
 **A modern pixel-art RPG.** Think of a polished indie RPG: a steady pixel grid, crisp edges, hard shadows, a warm
@@ -143,3 +160,10 @@ opacity only, and every scene stops off screen, in a hidden tab and for reduced 
   layered canvases; moving details are a few CSS-animated SVG shapes with `shape-rendering: crispEdges`.
 * Wizard's Counsel (`js/v6-counsel.js`): Medius's expressions are small patches in the study picture's own style
   (`assets/img/medius-reactions.webp`); his hands are never redrawn.
+* Luna, the apprentice witch (`js/v6-luna.js`): only the owner's character reference sheet, turned into pixel art. The
+  seven expression portraits (`assets/img/luna-faces.webp`, 64 × 64 each, `tools/art/make_luna_faces.py`) and her full
+  figure (`assets/img/luna-full.webp`, 69 × 150, transparent, `tools/art/make_luna_lab.py`), drawn at whole-number scales.
+  Her idle float and sparkles are CSS (transform and opacity), still with reduced motion. (An earlier code-drawn sprite
+  was replaced at the owner's request.)
+* Science Laboratory (`js/v6-lab.js`): the laboratory from the owner's concept sheet (`assets/img/lab-scene.webp`,
+  290 × 210, 80 colours, `tools/art/make_luna_lab.py`) with Luna in front, a CSS glow on the orb and a few motes.

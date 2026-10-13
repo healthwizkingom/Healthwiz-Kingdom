@@ -13,7 +13,7 @@ test('quiet on the title screen; the daily greeting appears once the user enters
   assert.equal(await page.locator('#v6md').count(), 0, 'nothing over the title screen');
   await go(page, 'home');
   await page.waitForSelector('#v6md', { timeout: 4000 });
-  assert.match(await bubble(page), /^MEDIUSGood (morning|afternoon|evening)|Still awake/);
+  assert.match(await bubble(page), /^LUNA(Good (morning|afternoon|evening)|Still awake)/, 'Luna speaks the bubbles');
   assert.deepEqual(errors, []);
   await ctx.close();
 });
@@ -42,7 +42,7 @@ test('level-up line; per-type cooldown; global gap queues lower priority', async
   await go(page, 'home');
   await page.evaluate(() => { st.xp = 145; gain(10, 'test'); });
   await page.waitForSelector('#v6md');
-  assert.match(await bubble(page), /Level 2 — thou art now a Trail Walker/);
+  assert.match(await bubble(page), /Level 2, Tester! You are now a Trail Walker/);
   await page.evaluate(() => { add('water', 100, {}, '', 0, 0, 5, 'W'); add('water', 100, {}, '', 0, 0, 5, 'W'); });
   await page.waitForTimeout(200);
   const logs = await page.evaluate(() => HWMedius.history().filter(x => x.type === 'log').length + (HWEvents.recent('medius:said').length));
@@ -80,7 +80,7 @@ test('held back while the tutorial overlay is open', async () => {
   await ctx.close();
 });
 
-test('new insight and kingdom change reach Medius; settings toggle and recent words on the guide', async () => {
+test('new insight and kingdom change reach Luna; settings toggle and recent words on the guide', async () => {
   const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
   // the six check-ins sit before this Monday, so they never complete the weekly "Forest visits" quest (on a Sunday they
   // used to, and its level-up bubbles then filled the window this test waits on)
@@ -100,7 +100,7 @@ test('new insight and kingdom change reach Medius; settings toggle and recent wo
   await ctx.close();
 });
 
-test('every Medius line stays kind: no guilt, shame or diagnosis', async () => {
+test('every Luna line stays kind and in her modern voice: no guilt, shame, diagnosis or "thee"', async () => {
   const { page, ctx } = await openApp();
   const lines = await page.evaluate(() => {
     const ins = { title: 'Water lower than last week', action: 'Pair a glass with meals.' }, out = [];
@@ -111,5 +111,6 @@ test('every Medius line stays kind: no guilt, shame or diagnosis', async () => {
   });
   assert.ok(lines.length >= 20, lines.length);
   for (const l of lines) assert.doesNotMatch(l, /lazy|disappoint|should have|you failed|shame|diagnos|disorder|bad job|not enough/i, l);
+  for (const l of lines) assert.doesNotMatch(l, /\b(thee|thou|thy|thine|art)\b/i, l);
   await ctx.close();
 });

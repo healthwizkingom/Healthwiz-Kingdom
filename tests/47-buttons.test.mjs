@@ -35,7 +35,7 @@ for (const [theme, scheme] of [['', 'light'], ['', 'dark'], ['forest', 'dark'], 
   });
 }
 
-test('disabled buttons are flat with a dashed edge; the help button is blue with white text; focus ring is blue', async () => {
+test('disabled buttons are flat with a dashed edge; the help button is violet with white text; the focus ring is the accent light', async () => {
   const { page, ctx, errors } = await openApp({ seed: seedWith(''), viewport: { width: 390, height: 780 } });
   await page.waitForSelector('.wl'); await go(page, 'bmi');
   const r = await page.evaluate(() => {
@@ -45,10 +45,13 @@ test('disabled buttons are flat with a dashed edge; the help button is blue with
     d.remove(); return out;
   });
   assert.equal(r.dis[0], 'dashed'); assert.equal(r.dis[1], 'none');
-  assert.deepEqual(r.help, ['rgb(31, 111, 176)', 'rgb(255, 255, 255)']);
-  assert.ok(ratio([31, 111, 176], [255, 255, 255]) >= 4.5, 'white on the help blue');
+  // the owner's magical redesign (js/v6-arcane.js): a round violet "?" and, in Arcane Night (the default), a teal focus ring
+  assert.deepEqual(r.help, ['rgb(124, 77, 220)', 'rgb(255, 255, 255)']);
+  assert.ok(ratio([124, 77, 220], [255, 255, 255]) >= 4.5, 'white on the help violet');
   await page.keyboard.press('Tab');
-  assert.equal(await page.evaluate(() => getComputedStyle(document.activeElement).outlineColor), 'rgb(31, 95, 168)');
+  const ring = await page.evaluate(() => [getComputedStyle(document.activeElement).outlineColor, getComputedStyle(document.activeElement).outlineWidth, getComputedStyle(document.body).backgroundColor]);
+  assert.deepEqual(ring.slice(0, 2), ['rgb(99, 230, 220)', '3px']);
+  assert.ok(ratio([99, 230, 220], ring[2].match(/\d+/g).slice(0, 3).map(Number)) >= 3, 'the ring stands out from the page');
   assert.deepEqual(errors, []);
   await ctx.close();
 });

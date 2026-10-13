@@ -3,3 +3,7 @@
 # (it accepts the project's ES256 / RS256 signing keys and legacy HS256), and the function checks it again.
 [functions.medius-chat]
 verify_jwt = true
+
+# luna-chat answers signed-in players only, same as medius-chat.
+[functions.luna-chat]
+verify_jwt = true

@@ -82,7 +82,7 @@ function estimate(o,P){P=P===undefined?profile():P;if(!P)return{need:'profile'};
     → {ml, lmin, dur, kj, kcal} (kj/kcal null without a duration) or null when a heart rate or the profile weight is missing. */
 const UTH=15.3,KJ_PER_L=20.1,KJ_PER_KCAL=4.184;
 function projectVO2(o,P){P=P===undefined?profile():P;const b=okHR(o.hrB),a=okHR(o.hrA);if(!P||!b||!a)return null;
-  const ml=UTH*a/b,lmin=ml*P.w/1000,dur=+o.dur>0?+o.dur:0,kj=dur?lmin*dur*KJ_PER_L:null;return{ml,lmin,dur,kj,kcal:kj==null?null:kj/KJ_PER_KCAL}}
+  const ml=UTH*a/b,lmin=ml*P.w/1000,dur=+o.dur>0?+o.dur:0,kj=dur?lmin*dur*KJ_PER_L:null;return{ml,lmin,dur,kj,kcal:kj==null?null:kj/KJ_PER_KCAL,valid:a>=b}}
 /** The pulse as a periodic motion (SHM): f = BPM ÷ 60 (Hz), T = 1 ÷ f (s), ω = 2πf (rad/s). */
 function pulseSHM(bpm){bpm=okHR(bpm);if(!bpm)return null;const f=bpm/60;return{f,T:1/f,w:2*Math.PI*f}}
 const shmTxt=m=>m.f.toFixed(2)+' Hz · T '+m.T.toFixed(2)+' s · ω '+m.w.toFixed(2)+' rad/s';
@@ -203,7 +203,7 @@ const ageOf=()=>{const p=st.p||{},a=+p.age;return(st.s.onb||p.cfm)&&a>=10&&a<=10
 function peak(hi,a,age){const pk=Math.max(okHR(hi)||0,okHR(a)||0);age=age===undefined?ageOf():age;return pk&&age?{pk,max:220-age,pct:Math.round(pk/(220-age)*100)}:pk?{pk}:null}
 function peakTxt(){const p=peak(W.cHi,W.hrA);if(!p)return'<span class="mut">Add the highest heart rate during the climb (or the after-workout number) to compare it with an estimated maximum.</span>';
   if(!p.max)return'Peak <b>'+p.pk+'</b> BPM. <span class="mut">Add your age in the profile below to compare it with an estimated maximum.</span>';
-  return'Peak <b>'+p.pk+'</b> BPM ≈ <b>'+p.pct+'%</b> of 220 − age ('+p.max+' BPM). <span class="mut">A rough estimate: for many people the real maximum is 10–20 BPM above or below this formula.</span>'}
+  return'Peak <b>'+p.pk+'</b> BPM ≈ <b>'+p.pct+'%</b> of 220 − age ('+p.max+' BPM). <span class="mut">A rough estimate: 220 − age is a common rule that was never checked in a large study.</span> '+HWCalcX.peak(p,!!W.cDev)}
 const cNote=()=>W.cDev&&W.cl?ico('watch',{label:'From your watch'})+' Recorded by your heart-rate device while the timer ran ('+W.cl.n+' readings).':W.cSet?'Typed in by you.':'Optional. Type them in, or connect a device: it records them while the workout timer runs.';
 function climbHR(){const f=(id,l,v)=>'<label>'+l+'<input id="'+id+'" data-in="stw" type="number" min="30" max="220" inputmode="numeric" value="'+esc(v)+'"></label>';
   return '<div class="stclimb" id="st-climb"><b>'+ico('heart')+' DURING THE CLIMB <span class="pxtag">OPTIONAL</span></b>'
@@ -233,14 +233,15 @@ function kcalBox(){const P=profile(),e=estimate({pace:PACES[S.pb.pace][1],dur:du
   if(e.need==='duration')return '<div class="stkc need"><b>'+ico('energy')+' CALORIE ESTIMATE</b><p class="mut">Use the Pace & Breathe timer, or type the workout time, to see an estimate.</p></div>';
   return '<div class="stkc"><b>'+ico('energy')+' ESTIMATED ENERGY USED</b><p><b class="big">≈ '+e.v+'</b> kcal'+(e.lo!==e.hi?' <span class="mut">(range '+e.lo+'–'+e.hi+')</span>':'')+'</p>'
     +'<small class="mut">An estimate, not a measurement. From '+(e.m==='met+hr'?'stair-climbing intensity at your pace and your after-workout heart rate':'stair-climbing intensity at your pace (add an after-workout heart rate of 90–180 BPM for a second method)')
-    +', with your age, sex, height and weight. Real values can differ a lot'+(e.minor?'; these formulas come from adult studies, so for under-18s it is only a rough guide':'')+'.</small></div>'}
+    +', with your age, sex, height and weight. Real values can differ a lot'+(e.minor?'; these formulas come from adult studies, so for under-18s it is only a rough guide':'')+'.</small>'+HWCalcX.stairKcal(e,P,PACES[S.pb.pace][1],durW(),okHR(W.hrA),MET[PACES[S.pb.pace][1]])+'</div>'}
+
 
 // OUR PROJECT'S METHOD: shown only with both heart rates and a confirmed profile weight; never saved, never in the Health Score
-function projBox(){const v=projectVO2({hrB:W.hrB,hrA:W.hrA,dur:durW()});if(!v)return '';
+function projBox(){const v=projectVO2({hrB:W.hrB,hrA:W.hrA,dur:durW()});if(!v)return '';if(!v.valid)return HWCalcX.invalid(okHR(W.hrB),okHR(W.hrA));
   return '<div class="stkc stproj"><b>'+ico('chart')+' OUR PROJECT\'S METHOD <span class="pxtag">ESTIMATE</span></b>'
     +'<p><b>'+vo2Txt(v)+'</b></p>'+(v.kj==null?'':'<p>Energy released ≈ <b>'+kjTxt(v)+'</b></p>')
     +'<small class="mut">VO₂ = 15.3 × after ÷ before · energy = VO₂ × time × 20.1 kJ/L</small><br>'
-    +'<small class="mut">Classroom estimate from our STEM project (Uth et al., 2004). The after-exercise pulse is not a true maximum, so this is rough.</small></div>'}
+    +'<small class="mut">Classroom estimate from our STEM project (Uth et al., 2004). The after-exercise pulse is not a true maximum, so this is rough.</small>'+HWCalcX.project(v,okHR(W.hrB),okHR(W.hrA),(profile()||{w:+st.p.w}).w)+'</div>'}
 // the project panel needs the pulse before the workout: with only the after number typed, ask for it (never filled silently)
 function restHint(){if(!okHR(W.hrA)||okHR(W.hrB))return'';const r=rest(today());
   return '<div class="stkc" id="st-rhint" role="status"><b>'+ico('heart')+' RESTING PULSE NEEDED</b><p>Add your resting pulse (count it before you start) to see VO₂ and energy by our project\'s method.</p>'
@@ -296,7 +297,7 @@ function sessCard(s){const w=s.kind==='workout',mx=Math.max(s.hrB||0,s.hrA||0,1)
     +'<small>'+esc(s.d)+' · '+esc(s.t)+'</small><div class="ststags"><span class="pxtag">'+(w?'WORKOUT':'CASUAL')+'</span><span class="pxtag">'+(s.src==='gps'?'GPS CHECK-IN':'BY HAND')+'</span>'+(s.pace?'<span class="pxtag">'+s.pace.toUpperCase()+'</span>':'')+(s.dev?'<span class="pxtag">'+ico('watch',{label:'Heart rate from a smartwatch'})+'WATCH</span>':'')+(s.cam?'<span class="pxtag">'+ico('camera',{label:'Heart rate from the camera'})+'CAMERA</span>':'')+'</div>'
     +'<p><b>'+s.total+'</b> steps'+(s.climbs&&s.climbs*s.steps===s.total?' ('+s.climbs+' × '+s.steps+')':'')+(s.dur?' · '+s.dur+' min':'')+(s.kcal?' '+HWHelp.btn('sk-'+s.id,'Estimated energy use','<p>About <b>'+s.kcal.v+' kcal</b> (range '+s.kcal.lo+'–'+s.kcal.hi+'), worked out when this session was saved'+(s.kcal.m==='met+hr'?' from stair-climbing intensity at the chosen pace and the after-workout heart rate':' from stair-climbing intensity at the chosen pace')+', with the age, sex, height and weight you confirmed.</p><p class="mut">An estimate, not a measurement. Real values can differ a lot.</p>',{label:'About the energy estimate'}):'')+'</p>'
     +(s.hrB||s.hrA?'<div class="stsh"><span>Before</span>'+bar((s.hrB||0)/mx*100,'var(--blue)')+'<b>'+(s.hrB||'–')+(s.dev&&s.dev.b&&s.hrB?ico('watch',{label:'from your watch'}):s.cam&&s.cam.b&&s.hrB?ico('camera',{label:'camera estimate'}):'')+'</b><span>After</span>'+bar((s.hrA||0)/mx*100,'var(--red)')+'<b>'+(s.hrA||'–')+(s.dev&&s.dev.a&&s.hrA?ico('watch',{label:'from your watch'}):s.cam&&s.cam.a&&s.hrA?ico('camera',{label:'camera estimate'}):'')+'</b></div>':'')
-    +(()=>{const v=s.kind==='workout'&&s.dur?projectVO2(s):null;return v?'<p class="mut">Project method '+HWHelp.btn('sp-'+s.id,'Our project\'s method (estimate)','<p>'+vo2Txt(v)+'</p><p>Energy released ≈ <b>'+kjTxt(v)+'</b></p><p class="mut">Worked out with your current weight. VO₂ = 15.3 × after ÷ before; energy = VO₂ × time × 20.1 kJ/L. A classroom estimate from our STEM project (Uth et al., 2004); the after-exercise pulse is not a true maximum, so it is rough.</p>',{label:'About our project\'s method'})+'</p>':''})()
+    +(()=>{const v=s.kind==='workout'&&s.dur?projectVO2(s):null;return v&&!v.valid?HWCalcX.invalid(+s.hrB,+s.hrA,1):v?'<p class="mut">Project method '+HWHelp.btn('sp-'+s.id,'Our project\'s method (estimate)','<p>'+vo2Txt(v)+'</p><p>Energy released ≈ <b>'+kjTxt(v)+'</b></p><p class="mut">Worked out with your current weight. VO₂ = 15.3 × after ÷ before; energy = VO₂ × time × 20.1 kJ/L. A classroom estimate from our STEM project (Uth et al., 2004); the after-exercise pulse is not a true maximum, so it is rough.</p>',{label:'About our project\'s method'})+'</p>':''})()
     +(s.hrHi||s.hrAv||s.hrLo?'<p class="mut">Climb: '+(s.hrLo||'–')+' / '+(s.hrAv||'–')+' / '+(s.hrHi||'–')+' BPM <small>(low / avg / high)</small>'+(s.dev&&s.dev.c?' '+ico('watch',{label:'recorded by your watch'}):'')+(s.hrPct?' · peak ≈'+Math.round(s.hrPct)+'% of est. max <small>(rough)</small>':'')+'</p>':'')
     +'</div><div class="stsa"><button class="sm g" aria-label="Edit" data-a="edit" data-id="'+esc(s.id)+'">✏️</button><button class="sm g" aria-label="Delete" data-a="del" data-id="'+esc(s.id)+'">🗑️</button></div></div>'}
 function chronicle(){const L=all().slice(-10).reverse();
@@ -498,4 +499,4 @@ HWUI.css('stairs',`
 .stclimb .row label{flex:1 1 90px}.stclimb p{margin:6px 0;font-size:14px}.stclimb small{display:flex;gap:6px;align-items:center}.stsh b{display:inline-flex;align-items:center;gap:2px}
 @media(prefers-reduced-motion:reduce){.stses{animation:none}}html.hw-rm .stses,html.hw-still .stses{animation:none}
 `);
-return{session,all,record,fill,estimate,projectVO2,pulseSHM,shmTxt,STUDY,profile,peak,MET,get pick(){return pick},get draft(){return Object.assign({},W,{secs:secsW()})}}})();
+return{session,all,record,fill,estimate,projectVO2,pulseSHM,shmTxt,STUDY,profile,peak,MET,bandOf,get pick(){return pick},get draft(){return Object.assign({},W,{secs:secsW()})}}})();

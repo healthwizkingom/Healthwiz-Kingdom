@@ -81,23 +81,26 @@ const contrast = () => { const v = k => getComputedStyle(document.documentElemen
   const cr = (a, b) => { const [x, y] = [L(v(a)), L(v(b))].sort((p, q) => q - p); return +((x + 0.05) / (y + 0.05)).toFixed(2); };
   return { bg: v('--bg'), ink: ['--bg', '--pn', '--p2'].map(b => cr('--ink', b)), mut: ['--bg', '--pn'].map(b => cr('--mut', b)) }; };
 
-test('themes: follows the device until chosen, the choice survives a reload, every page works and reads well in both', async () => {
+test('themes: Arcane Night until chosen, Match system follows the device, the choice survives a reload, every page works and reads well in both', async () => {
   for (const scheme of ['light', 'dark']) {
-    const { page, ctx, errors } = await openApp({ context: { colorScheme: scheme } });
-    await page.waitForSelector('.wl');
-    assert.equal((await page.evaluate(contrast)).bg, scheme === 'dark' ? '#101a24' : '#efe3bd', 'device scheme followed: ' + scheme);
-    await ctx.close();
-    assert.deepEqual(errors, []);
+    let o = await openApp({ context: { colorScheme: scheme } });
+    await o.page.waitForSelector('.wl');
+    assert.equal((await o.page.evaluate(contrast)).bg, '#0d0b26', 'no choice: Arcane Night in a ' + scheme + ' device');
+    await o.ctx.close(); assert.deepEqual(o.errors, []);
+    o = await openApp({ seed: { ...busy(), s: { ...busy().s, theme: 'auto' } }, context: { colorScheme: scheme } });
+    await o.page.waitForSelector('.wl');
+    assert.equal((await o.page.evaluate(contrast)).bg, scheme === 'dark' ? '#101a24' : '#efe3bd', 'Match system follows the device: ' + scheme);
+    await o.ctx.close(); assert.deepEqual(o.errors, []);
   }
   const { page, ctx, errors } = await openApp({ seed: busy(), context: { colorScheme: 'light' } });
   await page.waitForSelector('.wl');
   await go(page, 'set');
-  await page.click('[data-a="theme"]');
-  assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'dark');
-  assert.equal((await state(page)).s.theme, 'dark', 'choice saved');
+  await page.click('[data-a="theme"]');   // from Arcane Night (a dark theme) the original button flips to light
+  assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'light');
+  assert.equal((await state(page)).s.theme, 'light', 'choice saved');
   await page.reload();
   await page.waitForSelector('.wl');
-  assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'dark', 'still dark after a reload');
+  assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'light', 'still light after a reload');
   for (const theme of ['dark', 'light']) {
     await page.evaluate(t => { document.documentElement.dataset.theme = t; }, theme);
     for (const v of PAGES) { await go(page, v); assert.equal(await snag(page), false, `${v} in ${theme}`); }
@@ -106,6 +109,7 @@ test('themes: follows the device until chosen, the choice survives a reload, eve
     assert.ok(c.mut.every(x => x >= 4.5), `${theme}: muted text contrast ${c.mut} (AA 4.5:1)`);
   }
   await go(page, 'set');
+  await page.evaluate(() => { document.documentElement.dataset.theme = 'light'; });
   await page.click('[data-a="theme"]');
   assert.equal((await state(page)).s.theme, 'dark', 'the button still toggles');
   assert.deepEqual(errors, []);

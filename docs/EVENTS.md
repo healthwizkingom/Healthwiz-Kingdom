@@ -41,7 +41,8 @@ take precedence over payload fields with the same name.
 | `data:imported` | `mode: merge\|replace\|cloud, added, total` | a backup is merged or restored, or a cloud sync changed this device's data (`cloud`) |
 | `data:reset` | — | all data erased (second tap) |
 | `kingdom:state` | `key, name, from, to, up` | a log, edit or delete changes a region's state (`js/v6-kingdom.js`) |
-| `medius:said` | `kind, text` | Medius shows a speech bubble (`js/v6-medius.js`) |
+| `medius:said` | `kind, text` | a companion speech bubble is shown; since the Luna update Luna speaks them (`js/v6-medius.js`, art in `js/v6-luna.js`). The name is kept for compatibility |
+| `luna:opened` | `view` | Ask Luna is opened (`js/v6-luna.js`); `view` is the page it was opened over |
 | `insights:updated` | `ids` (top 3) | insights recomputed after a data change (`js/v6-insights.js`) |
 | `title:interact` | `k` (castle, tower, village, falls) | a scene object on the title screen is tapped (`js/v6-title.js`) |
 | `insight:new` | `insight` | an insight newly reaches the top 3 after a log, edit or delete (never at boot) |

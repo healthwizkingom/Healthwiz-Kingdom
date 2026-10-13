@@ -2,7 +2,7 @@
 
 **HealthWiz Kingdom** (by Group 14) is a pixel-art fantasy RPG that is also a health tracker.
 You log water, meals, sleep, stairs (with workout heart rate), runs and stress, and Medius, the Wizard King, guides you
-as your actions restore the kingdom. It is a wellness tracker, not a medical device.
+as your actions restore the kingdom, with Luna, an apprentice witch, as your everyday companion. It is a wellness tracker, not a medical device.
 
 The app is the team's original **v5.4.3** build, split into files so it can live safely in git.
 Changes since then are small, tested and listed in `docs/ARCHITECTURE_AUDIT.md`.
@@ -27,6 +27,14 @@ js/v6-schema.js            saved-data versioning, migrations and damaged-data re
 js/v6-events.js            event bus observing the app (catalog: docs/EVENTS.md)
 js/v6-ui.js                shared UI helpers (injected styles, completion banner, keyboard-friendly dialogs, saved theme)
 js/v6-pixel.js             pixel-art standard: design tokens, panel/HUD classes, crisp pixel icons (guide: docs/PIXEL_STYLE.md)
+js/v6-sources.js           verified source records (HWSources) and the worked "?" explanation (HWExplain): inputs, formula, your numbers step by step, sources, limits (audit: docs/CALCULATIONS.md)
+js/v6-calcx.js             the Stairs page's worked explanations (stair workout energy, our project's VO₂ method, peak heart rate)
+js/v6-f21.js               the Group 14 F21 study's raw measurements, every report table worked out from them (tests/61-f21)
+js/v6-lab.js               the Science Laboratory (route 'lab'): Be Your Own Experiment, page shell, the concept-sheet lab scene
+js/v6-trial.js             the Evidence Trial: reasoning questions built from real data, answers worked out from the data
+js/v6-vault.js             the Evidence Vault: every source on shelves, source → claim → HealthWiz's use → where you see it
+js/v6-uncert.js            the Uncertainty Engine: how unmeasured assumptions move an estimate (no made-up error margins)
+js/v6-arcane.js            the magical, modern look: Arcane Night default theme, glowing rounded panels and controls (docs/PIXEL_STYLE.md)
 js/v6-emoji.js             every emoji the app shows drawn as pixel art (hand-drawn icon or the emoji pixelated)
 js/v6-provisions.js        Nutrition & Hydration as one page (the Provisions Hall): 'food' and 'water' are its two halves
 js/v6-stairs.js            the Stairs page: two halves side by side, casual stairs (GPS check-in first, then by hand) and workout & heart rate (LOG BPM before/after, f, T, ω of the pulse, calorie estimate and our project's VO₂ / kJ method behind a ? button), the Group 14 measured-stairways table; one session model
@@ -39,7 +47,10 @@ js/v6-quests.js            adaptive daily focus quest + weekly quests
 js/v6-streaks.js           current + gentle streaks, week view, new achievements
 js/v6-xp.js                fair XP: daily logging allowance, exploration reward
 js/v6-kingdom.js           five region states (incl. Flourishing) and region detail panel
-js/v6-medius.js            Medius reacts to events (speech bubbles with cooldowns)
+js/v6-luna.js              Luna, the apprentice witch, from the owner's character sheet: 7 expression portraits (luna-faces.webp) and
+                           her full figure (luna-full.webp), CSS idle motion,
+                           Ask Luna (find a feature, open the page's "?" explanations; no AI), her preferences (st.s.lst, st.s.lsz)
+js/v6-medius.js            the companion reacts to events (speech bubbles with cooldowns), spoken by Luna; Medius keeps the tutorial voice
 js/v6-charts.js            touch/keyboard/screen-reader charts, empty states, week-vs-week stats
 js/v6-world.js             visible world progression on the map + kingdom chronicle
 js/v6-title.js             title screen: time of day, weather, returning-player ribbon, tap reactions
@@ -74,8 +85,9 @@ js/v6-orb.js               the Health Orb on the Health Score page: Medius reads
 js/v6-foodsel.js           pick several foods, then LOG SELECTED once (selection kept while searching; no duplicate logs)
 js/v6-expbar.js            every progress bar in one modern style (changed values flow in); the EXP bar as flowing mana with level-up glow
 supabase/migrations/       SQL for accounts, cloud save, leaderboards and Medius limits (Row Level Security) — run each file once, in order
-supabase/functions/        medius-chat: the Edge Function that talks to Google Gemini for the Wizard's Counsel
-supabase/tests/            SQL behaviour checks (tools/test-sql.sh, local PostgreSQL) and Deno tests for medius-chat
+supabase/functions/        medius-chat: the Edge Function that talks to Google Gemini for the Wizard's Counsel;
+                           luna-chat: Luna's chat in Ask Luna, through xAI (Grok), key in the XAI_API_KEY secret
+supabase/tests/            SQL behaviour checks (tools/test-sql.sh, local PostgreSQL) and Deno tests for medius-chat and luna-chat
 sw.js                      service worker: pre-caches the app, network first, works offline (keep PRECACHE in sync)
 manifest.webmanifest       web app manifest (name, colours, standalone display, icons)
 js/v6-help.js              contextual "?" help buttons (tap, click, keyboard; small panel with Escape / CLOSE); the moved explanations live here
@@ -91,7 +103,8 @@ legacy/HealthWiz_Kingdom_5-4-3.html   the complete original single file (source 
 tools/import-original.mjs  one-time import of the original (re-running it overwrites later edits)
 tools/build-standalone.mjs bundles everything back into one HTML file
 tools/make-icons.mjs       redraws the app icons
-tools/art/                 Python scripts that made assets/img/bedroom.webp, sleeper-react.webp and medius-reactions.webp
+tools/art/                 Python scripts that made assets/img/bedroom.webp, sleeper-react.webp, medius-reactions.webp, luna-faces.webp,
+                           luna-full.webp and lab-scene.webp
 tests/                     browser tests (Playwright + node:test): fidelity, every feature, performance budgets, device matrix
 docs/                      architecture audit and plan, event catalog, testing guide (docs/TESTING.md), pixel-art standard (docs/PIXEL_STYLE.md)
 ```
@@ -102,7 +115,7 @@ The scripts are classic `<script>` tags that share one global scope, so keep the
 
 ## Saved data and versions
 
-Saved data carries a schema version (`sv`, currently **8**). On load, `js/v6-schema.js` upgrades
+Saved data carries a schema version (`sv`, currently **9**). On load, `js/v6-schema.js` upgrades
 older data step by step, and restored backups go through the same steps. Before anything is
 upgraded, repaired or discarded, the raw stored text is copied to a `healthwiz_backup_<reason>_<time>`
 key (the newest 3 are kept). If data was saved by a newer app version, it is left as it is.

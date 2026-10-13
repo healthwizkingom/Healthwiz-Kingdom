@@ -102,7 +102,7 @@ test('a new adventurer’s first day on a phone, end to end, with zero console e
   const w = after.e.find(e => e.c === 'stair' && e.m.kind === 'workout');
   assert.deepEqual([w.m.hrB, w.m.hrA, w.m.dur], [72, 118, 5]);
   assert.ok(w.m.kcal && w.m.kcal.v > 0, 'onboarding profile → calorie estimate');
-  assert.deepEqual([after.p.name, after.s.onb, after.s.theme, after.s.perf], ['Aina', 1, 'dark', 'performance']);
+  assert.deepEqual([after.p.name, after.s.onb, after.s.theme, after.s.perf], ['Aina', 1, 'light', 'performance'], 'one THEME tap from Arcane Night (dark) gives light');
   assert.ok(after.xp > 0 && Object.keys(after.en).length === 1);
   assert.deepEqual(errors, []);
   await ctx.close();

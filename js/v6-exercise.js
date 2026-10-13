@@ -229,7 +229,8 @@ function helpScreen(){const x=X(),chest=x.stop==='chest';
 
 function doneScreen(){const x=X(),e=st.e.find(q=>q.id===x.saved),m=e?e.m:null;if(!m)return mapScreen();
   const P=GOALS[m.goal]||{n:'Training'},est=estimate(m.met,m.dur),reps=sum(m.reps);
-  const kcal=m.kcal?'<b>≈ '+m.kcal.v+' kcal</b> <small>(about '+m.kcal.lo+'–'+m.kcal.hi+', ±25%)</small>'
+  // the saved lo/hi (±25%) had no source, so only the estimate is shown; the fields stay in saved sessions unchanged
+  const kcal=m.kcal?'<b>≈ '+m.kcal.v+' kcal</b> <small>(estimate)</small>'
     :est.need==='weight'?'<b>Needs your weight.</b> <small>HealthWiz never guesses it. Add it on the Body &amp; Energy page.</small>':'<small>Too short to estimate.</small>';
   return runes('done')+medius(SAY.done)+'<div class="pxp pxn pxdk xpan xdone" id="xdone">'+head('star','TRAINING COMPLETE')
     +'<p class="xsm">'+esc(m.name)+' · '+P.n+'</p>'
@@ -238,7 +239,7 @@ function doneScreen(){const x=X(),e=st.e.find(q=>q.id===x.saved),m=e?e.m:null;if
     +'<p>Calories burned: '+kcal+'</p>'
     +'<p>VO₂: <b>≈ '+est.vo2.toFixed(1)+' mL/kg/min</b>'+(est.lmin?' <small>('+est.lmin.toFixed(2)+' L/min)</small>':'')+'</p>'
     +(m.kj!=null?'<p>Energy: <b>≈ '+m.kj+' kJ</b> <small>(VO₂ × minutes × 20.1 kJ per litre of O₂)</small></p>':'')
-    +'<p class="xsm mut">From MET '+m.met.toFixed(1)+' (Compendium code '+m.code+') × your weight × time. Estimates vary by ±20–30% from person to person; they are not measurements.</p></div>'
+    +'<p class="xsm mut">From MET '+m.met.toFixed(1)+' (Compendium code '+m.code+') × your weight × time. This is an estimate for an average adult, not a measurement.</p></div>'
     +'<div class="xrew"><span class="pxtag">GAME REWARD</span> '+ico('star')+' <b>+'+(m.xp||0)+' XP</b> <small>'+(m.xp?'XP is a game reward, not a health measurement.':'XP for training is full for today. The session still counts in your stats.')+'</small></div>'
     +'<div class="row xrow">'+btn('xagain','TRAIN AGAIN','g')+btn('go','BACK TO THE HEALTH HALL','xpri',' data-v="health"')+'</div></div>'}
 
