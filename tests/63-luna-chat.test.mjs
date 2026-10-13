@@ -93,6 +93,11 @@ test('the phone layout: the chat fits a 360 px screen without sideways scrolling
   assert.ok(w.doc <= 360, 'no sideways scroll: ' + w.doc);
   assert.ok(w.box <= 360, 'the chat stays on screen');
   assert.ok(w.send.height >= 44 && w.send.right <= 360, 'SEND is a full-size tap target on screen');
+  // the feature rows below stay inside the panel (the row icon once took the figure's width: 100% and pushed them off)
+  const rows = await page.evaluate(() => { const card = document.querySelector('#mo .v6lp').getBoundingClientRect().right;
+    return [...document.querySelectorAll('#mo .v6lf')].map(f => [f.querySelector('.v6lfi').getBoundingClientRect().width, Math.round(f.querySelector('button').getBoundingClientRect().right - card)]); });
+  assert.ok(rows.length > 0);
+  for (const [icon, past] of rows) { assert.ok(icon <= 40, 'row icon keeps its size: ' + icon); assert.ok(past <= 0, 'GO inside the panel: ' + past); }
   assert.deepEqual(errors, []);
 });
 
