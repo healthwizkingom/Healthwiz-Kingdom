@@ -119,5 +119,5 @@ test('Deno unit tests of luna-chat (skipped when Deno is not installed)', t => {
   const has = spawnSync('deno', ['--version']).status === 0;
   if (!has) return t.skip('deno not installed');
   const out = execFileSync('deno', ['test', '--no-lock', '--allow-env', 'supabase/tests/luna-chat.test.ts'], { cwd: root, encoding: 'utf8', env: { ...process.env, NO_COLOR: '1' } });
-  assert.match(out, /ok \| 8 passed \| 0 failed/);
+  assert.match(out, /ok \| 9 passed \| 0 failed/);
 });

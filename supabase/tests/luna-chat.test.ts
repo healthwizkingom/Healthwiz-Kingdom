@@ -105,6 +105,19 @@ Deno.test('a missing or rejected key gives 503 nokey, never a leak of the key', 
   assert(!logs.join('\n').includes('xai-test-key'), 'the key is never logged');
 });
 
+Deno.test('an xAI error (e.g. an unknown model) is 502 ai; the log keeps its status and short reason, never the key or the text', async () => {
+  logs.length = 0;
+  xai = () => new Response(JSON.stringify({ code: 'Some requested entity was not found', error: 'The model grok-4.7 does not exist or your team does not have access to it.' }), { status: 404 });
+  const r = await ask(MSGS, await good());
+  xai = () => Response.json({ output: [{ type: 'message', content: [{ type: 'output_text', text: 'Well met!' }] }] });
+  assertEquals([r.status, r.json.error], [502, 'ai']);
+  const line = logs.join('\n');
+  assertStringIncludes(line, '"status":404');
+  assertStringIncludes(line, 'does not exist');
+  assert(!line.includes('xai-test-key') && !line.includes('Finals are next week'));
+  assert(!JSON.stringify(r.json).includes('does not exist'), 'the reason stays in the log, not the reply');
+});
+
 Deno.test('a bad body is 400, and the log holds counts only, never the messages', async () => {
   const r = await ask({ messages: [] }, await good());
   assertEquals(r.status, 400);

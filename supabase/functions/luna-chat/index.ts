@@ -5,7 +5,7 @@
 // code checks it again (signature against the project's JWKS, expiry, role "authenticated") before anything else.
 // Luna's persona and safety rules are set here, so the key cannot be used as a general chatbot.
 // The per-player message limit is the same counter Medius uses (medius_take, supabase/migrations/20261007000200_medius_usage.sql),
-// so the two companions share one allowance. Nothing is stored, and the log holds counts only, never text.
+// so the two companions share one allowance. Nothing is stored, and the log holds counts and outcomes only (with xAI's short error reason when a call fails), never the player's text.
 //
 //   POST { name, messages: [{ role: 'user' | 'assistant', content }] }   Authorization: Bearer <player's access token>
 //     200 { reply, help }     help: true → the app shows the crisis help numbers (crisis words, blocked or empty reply)
@@ -122,7 +122,12 @@ async function grok(name: string, messages: Msg[]) {
   if (!r) return { error: 'ai' };
   if (r.status === 429) return { error: 'busy' };                                       // the xAI rate limit, for now
   if (r.status === 401 || r.status === 403) return { error: 'nokey' };                 // the key is wrong or lacks access
-  if (!r.ok) return { error: 'ai' };
+  if (!r.ok) {   // xAI's own short reason (e.g. an unknown model), so the cause shows in the log; never the player's text
+    const t = await r.text().catch(() => '');
+    let why = '';
+    try { const e = JSON.parse(t); why = String(e.code || '') + ' ' + String(typeof e.error === 'string' ? e.error : (e.error && e.error.message) || ''); } catch { why = ''; }
+    return { error: 'ai', status: r.status, why: why.split(KEY).join('').replace(/\s+/g, ' ').trim().slice(0, 160) };
+  }
   const text = replyText(await r.json().catch(() => null));
   if (!text) return { reply: FALLBACK, blocked: true };
   return { reply: text.slice(0, 4000) };
@@ -144,7 +149,7 @@ Deno.serve(async req => {
   if (!n.ok) { log({ out: 'limit', scope: n.scope, hour: n.hour, day: n.day }); return json(429, { error: 'limit', scope: n.scope, retry: n.retry }); }
   const crisis = CRISIS.test(b.messages[b.messages.length - 1].content);
   const g: any = await grok(b.name, b.messages);
-  log({ out: g.reply ? (g.blocked ? 'fallback' : 'ok') : g.error, hour: n.hour, day: n.day });
+  log({ out: g.reply ? (g.blocked ? 'fallback' : 'ok') : g.error, hour: n.hour, day: n.day, ...(g.status ? { status: g.status, why: g.why } : {}) });
   if (g.reply) return json(200, { reply: g.reply, help: crisis || !!g.blocked });
   return json(g.error === 'busy' || g.error === 'nokey' ? 503 : 502, { error: g.error });
 });
