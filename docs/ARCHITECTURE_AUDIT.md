@@ -1388,7 +1388,7 @@ Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel
   It reads no entries, writes nothing but the three preferences and sends nothing.
 - **Saved data.** New optional settings `st.s.lst` and `st.s.lsz`; missing keys mean the defaults, so the schema stays at
   version 8. Old bubble history entries (without `who`) are labelled as Medius's words on the guide page.
-- **Not done (later stages):** the Grok-backed AI for Luna (done since: see "Master prompt Stage 6" below), remembering further preferences, and full-body poses beyond the bubble sprite.
+- **Not done (later stages):** the AI chat for Luna (done since: see "Master prompt Stage 6" below), remembering further preferences, and full-body poses beyond the bubble sprite.
 
 ## Master prompt Stage 2: source records and the worked "?" (`js/v6-sources.js`, `js/v6-calcx.js`, `docs/CALCULATIONS.md`)
 
@@ -1452,15 +1452,17 @@ Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel
 
 ## Master prompt Stage 6 (part 1): Luna's AI chat (`supabase/functions/luna-chat`, `js/v6-luna.js`)
 
-- **Server.** The Edge Function `luna-chat` calls xAI's Responses API (`https://api.x.ai/v1/responses`) with the model
-  `grok-4.7`, named once (`MODEL`). The key is the Edge Function secret `XAI_API_KEY` and never reaches the app. Signed-in
+- **Server.** The Edge Function `luna-chat` calls Google Gemini (`gemini-3.5-flash-lite`, named once in `MODEL`) with the
+  same Edge Function secret as `medius-chat`, `GEMINI_API_KEY`, which never reaches the app. (It first used xAI's Grok;
+  the owner switched it to the Gemini key after xAI rejected the stored key.) A failed call logs Gemini's status and
+  short reason, never the player's text or the key. Signed-in
   players only: the platform checks the JWT (`verify_jwt = true`) and the function checks it again. Luna's persona and
   safety rules are on the server: short, warm replies, no diagnosis, medication or medical advice, never claims to be human,
   and the Malaysian crisis numbers when danger is mentioned. Logs hold counts and outcomes only, never message text.
 - **Limits.** Luna shares Medius's per-player allowance (`medius_take`: 30 an hour, 100 a day), so no new migration.
 - **App.** Ask Luna has a TALK WITH LUNA section. Signed out it offers sign-in and sends nothing. The conversation lives in
   memory for the visit and is not saved or synced; crisis words or the server's help flag show the help numbers; errors
-  are friendly and keep the typed message. A note says replies come from an AI (Grok by xAI) and Luna is not a doctor.
+  are friendly and keep the typed message. A note says replies come from an AI (Google Gemini) and Luna is not a doctor.
 - **Tests.** `supabase/tests/luna-chat.test.ts` (8 Deno tests) and `tests/63-luna-chat.test.mjs` (signed out and in,
-  crisis, errors, phone layout, no xAI key or direct call in the app).
-- **Not checked yet:** a real reply from xAI through the deployed function (needs a signed-in player on the live site).
+  crisis, errors, phone layout, no AI key or direct AI call in the app).
+- **Not checked yet:** a real reply from Gemini through the deployed function (needs a signed-in player on the live site).

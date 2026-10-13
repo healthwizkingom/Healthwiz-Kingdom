@@ -13,7 +13,7 @@
      js/v6-hall.js) and opens the "?" explanations already on the page (js/v6-help.js), pointing at each one. It never
      reads or changes saved entries and sends nothing anywhere.
    * Talk with Luna (in the same panel): signed-in players chat with Luna through the luna-chat Edge Function
-     (supabase/functions/luna-chat: Grok by xAI, with her persona and safety rules on the server; the key never reaches
+     (supabase/functions/luna-chat: Google Gemini, the same key and model as Medius, with her persona and safety rules on the server; the key never reaches
      the app). Only the conversation typed here is sent, never saved entries. It lives in memory for this visit and
      is not saved or synced. Signed out, the panel says "Sign in to talk with Luna". The crisis numbers show when the
      player writes crisis words or the reply carries the help flag (the same rule as the Wizard's Counsel).
@@ -111,7 +111,7 @@ function talkError(e){const k=e&&e.code;
     nokey:'Luna\'s spellbook is not set up on the server yet, so she cannot answer here.'}[k]||'Luna could not find an answer just now. Try again in a moment.'}
 function helpBox(){return typeof HWCounsel!=='undefined'?HWCounsel.help(true):''}
 function chat(){
-  const note='<small class="mut v6lcn">Luna\'s replies are written by an AI (Grok by xAI). She is not a doctor and can be wrong. What you type here is sent to xAI to write her reply; HealthWiz does not save it.</small>';
+  const note='<small class="mut v6lcn">Luna\'s replies are written by an AI (Google Gemini). She is not a doctor and can be wrong. What you type here is sent to Google to write her reply; HealthWiz does not save it.</small>';
   if(!signed())return '<h4>TALK WITH LUNA</h4><div class="v6lco">'+HWPixel.icon('lock',1)+'<div><b>Sign in to talk with Luna</b><p>An account lets Luna chat with you. Finding features below works without one.</p>'
     +'<button data-a="lunasign">SIGN IN TO TALK WITH LUNA</button></div></div>'+note;
   const log=CH.m.length?CH.m.map(m=>'<div class="v6lcm '+(m.role==='user'?'u':'a')+'"><b>'+(m.role==='user'?'You':'Luna')+'</b><span>'+esc(m.content)+'</span></div>').join('')

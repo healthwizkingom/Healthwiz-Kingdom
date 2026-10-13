@@ -1,11 +1,13 @@
 // HealthWiz Kingdom: Luna's companion chat (apprentice witch). Called by the app with the player's session.
 //
-// The xAI (Grok) API key lives only here, as the Edge Function secret XAI_API_KEY. The app never sees it.
+// The Gemini API key lives only here, as the Edge Function secret GEMINI_API_KEY (the same key and model as Medius's
+// medius-chat). The app never sees it.
 // Only signed-in players can call this: the platform checks the JWT (verify_jwt = true, supabase/config.toml), and this
 // code checks it again (signature against the project's JWKS, expiry, role "authenticated") before anything else.
 // Luna's persona and safety rules are set here, so the key cannot be used as a general chatbot.
 // The per-player message limit is the same counter Medius uses (medius_take, supabase/migrations/20261007000200_medius_usage.sql),
-// so the two companions share one allowance. Nothing is stored, and the log holds counts and outcomes only (with xAI's short error reason when a call fails), never the player's text.
+// so the two companions share one allowance. Nothing is stored, and the log holds counts and outcomes only (with Gemini's
+// short error reason when a call fails), never the player's text.
 //
 //   POST { name, messages: [{ role: 'user' | 'assistant', content }] }   Authorization: Bearer <player's access token>
 //     200 { reply, help }     help: true → the app shows the crisis help numbers (crisis words, blocked or empty reply)
@@ -13,13 +15,14 @@
 //     502 { error: 'ai' } · 503 { error: 'busy' | 'nokey' | 'setup' }
 //
 // Deploy: supabase functions deploy luna-chat
-// Secret: supabase secrets set XAI_API_KEY=…   (or Dashboard → Edge Functions → Secrets)
+// Secret: GEMINI_API_KEY, already set for medius-chat (supabase secrets set GEMINI_API_KEY=… or Dashboard → Edge Functions → Secrets)
 
-const MODEL = 'grok-4.7';                                         // the one place the model is named
+const MODEL = 'gemini-3.5-flash-lite';                            // the one place the model is named (the same as medius-chat)
+const GENERATION = { temperature: 0.8, maxOutputTokens: 600 };
 const HOUR_LIMIT = 30, DAY_LIMIT = 100;                           // messages per player: per hour, per 24 hours (shared with Medius)
-const XAI = 'https://api.x.ai/v1/responses';
+const GEMINI = 'https://generativelanguage.googleapis.com/v1beta/models/' + MODEL + ':generateContent';
 
-const KEY = (Deno.env.get('XAI_API_KEY') || '').trim();
+const KEY = (Deno.env.get('GEMINI_API_KEY') || '').trim();
 const SB = (Deno.env.get('SUPABASE_URL') || '').replace(/\/+$/, '');
 const PUB = (() => { try { return JSON.parse(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS') || '{}').default; } catch { return ''; } })() || Deno.env.get('SUPABASE_ANON_KEY') || '';
 
@@ -101,35 +104,27 @@ function clean(b: any): { name: string; messages: Msg[] } | null {
   return { name, messages };
 }
 
-/** The text of an xAI Responses API reply: output_text when present, else the message parts. */
-function replyText(d: any): string {
-  if (d && typeof d.output_text === 'string') return d.output_text.trim();
-  const out = d && Array.isArray(d.output) ? d.output : [];
-  return out.filter((o: any) => o && o.type === 'message' && Array.isArray(o.content))
-    .flatMap((o: any) => o.content).filter((p: any) => p && p.type === 'output_text' && typeof p.text === 'string')
-    .map((p: any) => p.text).join('').trim();
-}
-
-async function grok(name: string, messages: Msg[]) {
+async function gemini(name: string, messages: Msg[]) {
   const body = JSON.stringify({
-    model: MODEL,
-    instructions: persona(name),
-    input: messages.map(m => ({ role: m.role, content: m.content })),
-    max_output_tokens: 600,
-    temperature: 0.8,
+    systemInstruction: { parts: [{ text: persona(name) }] },
+    contents: messages.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
+    generationConfig: GENERATION,
   });
-  const r = await timed(XAI, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + KEY }, body }, 25000).catch(() => null);
+  const r = await timed(GEMINI, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': KEY }, body }, 25000).catch(() => null);
   if (!r) return { error: 'ai' };
-  if (r.status === 429) return { error: 'busy' };                                       // the xAI rate limit, for now
-  if (r.status === 401 || r.status === 403) return { error: 'nokey' };                 // the key is wrong or lacks access
-  if (!r.ok) {   // xAI's own short reason (e.g. an unknown model), so the cause shows in the log; never the player's text
+  if (r.status === 429) return { error: 'busy' };                                       // Gemini's quota, for now
+  if (!r.ok) {   // Gemini's own short reason, so the cause shows in the log; never the player's text or the key
     const t = await r.text().catch(() => '');
     let why = '';
-    try { const e = JSON.parse(t); why = String(e.code || '') + ' ' + String(typeof e.error === 'string' ? e.error : (e.error && e.error.message) || ''); } catch { why = ''; }
-    return { error: 'ai', status: r.status, why: why.split(KEY).join('').replace(/\s+/g, ' ').trim().slice(0, 160) };
+    try { const e = JSON.parse(t).error || {}; why = String(e.status || '') + ' ' + String(e.message || ''); } catch { why = ''; }
+    why = (KEY ? why.split(KEY).join('') : why).replace(/\s+/g, ' ').trim().slice(0, 160);
+    return { error: /API key|API_KEY|PERMISSION/i.test(t) ? 'nokey' : 'ai', status: r.status, why };
   }
-  const text = replyText(await r.json().catch(() => null));
-  if (!text) return { reply: FALLBACK, blocked: true };
+  const d = await r.json().catch(() => null);
+  const c = d && d.candidates && d.candidates[0];
+  const text = c && c.content && Array.isArray(c.content.parts) ? c.content.parts.filter((p: any) => typeof p.text === 'string' && !p.thought).map((p: any) => p.text).join('').trim() : '';
+  const blocked = !!(d && d.promptFeedback && d.promptFeedback.blockReason) || /SAFETY|BLOCKLIST|PROHIBITED|SPII/.test((c && c.finishReason) || '');
+  if (blocked || !text) return { reply: FALLBACK, blocked: true };
   return { reply: text.slice(0, 4000) };
 }
 
@@ -148,7 +143,7 @@ Deno.serve(async req => {
   if (!n) { log({ out: 'setup' }); return json(503, { error: 'setup' }); }   // the limits SQL has not been run
   if (!n.ok) { log({ out: 'limit', scope: n.scope, hour: n.hour, day: n.day }); return json(429, { error: 'limit', scope: n.scope, retry: n.retry }); }
   const crisis = CRISIS.test(b.messages[b.messages.length - 1].content);
-  const g: any = await grok(b.name, b.messages);
+  const g: any = await gemini(b.name, b.messages);
   log({ out: g.reply ? (g.blocked ? 'fallback' : 'ok') : g.error, hour: n.hour, day: n.day, ...(g.status ? { status: g.status, why: g.why } : {}) });
   if (g.reply) return json(200, { reply: g.reply, help: crisis || !!g.blocked });
   return json(g.error === 'busy' || g.error === 'nokey' ? 503 : 502, { error: g.error });
