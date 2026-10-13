@@ -9,13 +9,17 @@
      a small red-roofed building at each stairway point, a gold compass): decoration only, with no roads or paths.
    * Live weather and haze (js/v6-live.js) are read for HWLive.KMK, a "Kolej MARA Kulim" point that is itself marked
      "verify on Google Maps" and lies about 2.9 km from the stairways: the page says so instead of hiding it.
+   * The map moves: drag it (mouse or finger) to look around; ZOOM IN spreads the points; RECENTRE puts it back.
+   * Opening the Observatory asks the browser for one position by itself (the owner's request: "auto locate to the
+     nearest stair"). On campus it selects the nearest mapped stairway, zooms in and centres the map on it; if location is
+     off or far away it says so quietly, and the player picks a stairway instead. SHOW WHERE I AM asks again.
    * SHOW WHERE I AM asks the browser for one position. It is shown on this screen only: never saved, never sent. If
      location is denied, unavailable or far away, the player picks a stairway on the map or in the list instead.
    * Campus-wide activity: HealthWiz collects no one else's location, so there is no overlay; the page says so. The
      player's own visits (first GPS check-ins st.gp.v, their stair sessions) are shown only to them.
    * Markers glow (CSS); nothing moves with reduced motion or the Performance mode. Reads only: nothing is written. */
 const HWCampus=(()=>{
-const ico=(n,s)=>HWPixel.icon(n,s||1);
+const ico=(n,s)=>HWPixel.icon(n,s||1),D0=document;
 const CN={MILD:'Mild',MODERATE:'Moderate',VIGOROUS:'Vigorous'},CK={MILD:1,MODERATE:2,VIGOROUS:3};
 const UNV='Unverified: from the original app data';
 const dist=(a,b,c,d)=>typeof HWGps!=='undefined'?HWGps.dist(a,b,c,d):(()=>{const R=6371e3,r=Math.PI/180,x=Math.sin((c-a)*r/2),y=Math.sin((d-b)*r/2);return 2*R*Math.asin(Math.sqrt(x*x+Math.cos(a*r)*Math.cos(c*r)*y*y))})();
@@ -34,7 +38,7 @@ function proj(P){const la=P.reduce((a,p)=>a+p.lat,0)/P.length,ln=P.reduce((a,p)=
   return{at,c:{lat:la,lng:ln},mPerPct:1/(sc*100*z)}}
 
 /* ---------- state for this visit only (never saved) ---------- */
-const V={sel:null,me:null,gps:'',err:'',z:1};
+const V={sel:null,me:null,gps:'',err:'',note:'',z:1,px:0,py:0,auto:0};
 const sessionsAt=id=>(typeof HWStairs!=='undefined'?HWStairs.all():[]).filter(s=>s.sid===id);
 const visited=id=>st.gp&&st.gp.v&&st.gp.v[id];
 
@@ -54,12 +58,14 @@ function scenery(P,pr){const pts=P.map(g=>pr.at(g)).map(([x,y])=>[x*3,y*2]);let 
     +'<rect width="300" height="200" fill="url(#cmpg)"/><rect width="300" height="200" fill="url(#cmpgrid)"/>'+trees+blocks
     +'<g transform="translate(26 172)" class="cmpcompass"><circle r="15" fill="rgba(18,15,51,.55)" stroke="#f6c94f"/><path d="M0-13L3 0L0 13L-3 0Z" fill="#f6c94f"/><path d="M-13 0L0 -3L13 0L0 3Z" fill="#fff0a8"/>'
     +'<text y="-17" text-anchor="middle" font-size="8" fill="#fff0a8" stroke="#120f33" stroke-width=".5">N</text></g>'
-    +'<rect x="1" y="1" width="298" height="198" fill="none" stroke="#f6c94f" stroke-width="2" rx="6"/></svg>'}
+    +'</svg>'}
 function mapView(P,pr){const bar=100/pr.mPerPct; // 100 m in percent of the map width
-  const me=V.me?(()=>{const[x,y]=pr.at(V.me);return x>=-5&&x<=105&&y>=-5&&y<=105?'<span class="cmpme" style="left:'+x.toFixed(2)+'%;top:'+y.toFixed(2)+'%" role="img" aria-label="You are here (± '+Math.round(V.me.acc)+' m)"></span>':''})():'';
-  return '<div class="cmpmap" role="group" aria-label="Campus stairways map">'+scenery(P,pr)
-    +P.map((g,i)=>{const[x,y]=pr.at(g);return x<-2||x>102||y<-2||y>102?'':marker(g,i,pr)}).join('')+me
-    +'<button type="button" class="g sm cmpz" data-a="cmpzoom" aria-pressed="'+(V.z>1)+'">'+(V.z>1?'ZOOM OUT':'ZOOM IN')+'</button>'
+  const me=V.me?(()=>{const[x,y]=pr.at(V.me);return x>=-150&&x<=250&&y>=-150&&y<=250?'<span class="cmpme" style="left:'+x.toFixed(2)+'%;top:'+y.toFixed(2)+'%" role="img" aria-label="You are here (± '+Math.round(V.me.acc)+' m)"></span>':''})():'';
+  return '<div class="cmpmap" role="group" aria-label="Campus stairways map. Drag to move it.">'
+    +'<div class="cmppan" style="transform:translate('+V.px.toFixed(2)+'%,'+V.py.toFixed(2)+'%)">'+scenery(P,pr)
+    +P.map((g,i)=>marker(g,i,pr)).join('')+me+'</div>'
+    +'<div class="cmpctl"><button type="button" class="g sm" data-a="cmpzoom" aria-pressed="'+(V.z>1)+'">'+(V.z>1?'ZOOM OUT':'ZOOM IN')+'</button>'
+    +(V.px||V.py?'<button type="button" class="g sm" data-a="cmpcentre">RECENTRE</button>':'')+'</div>'
     +'<div class="cmpscale" aria-hidden="true"><i style="width:'+Math.min(60,bar).toFixed(2)+'%"></i><small>'+(bar>60?'≈ '+Math.round(60*pr.mPerPct)+' m':'100 m')+'</small></div>'
     +'</div><p class="cmpunv">'+UNV+'</p>'
     +'<p class="cmpleg mut"><span class="cmpk cmp1">1</span> Mild · <span class="cmpk cmp2">2</span> Moderate · <span class="cmpk cmp3">3</span> Vigorous · ×2 or ×3: stairways at one point · a ring: you have climbed there</p>'}
@@ -93,27 +99,48 @@ function page(){const P=points(),pr=proj(P);
     +'<p class="warn cmpwarn" role="note"><b>Locations are not verified.</b> They come from the original app data and have no recorded source. One stairway can be off by a little or a lot; check before relying on it.</p>'
     +mapView(P,pr)+detail(P)
     +'<div class="row"><button type="button" data-a="cmpgps"'+(V.gps==='wait'?' disabled':'')+'>'+(V.gps==='wait'?'FINDING YOU...':'SHOW WHERE I AM')+'</button>'+(V.me?'<button type="button" class="g" data-a="cmpforget">HIDE MY POSITION</button>':'')+'</div>'
-    +(V.err?'<p class="cmpe" role="alert">'+esc(V.err)+' Pick a stairway on the map or in the list instead.</p>':'')+where(P)
+    +(V.err?'<p class="cmpe" role="alert">'+esc(V.err)+' Pick a stairway on the map or in the list instead.</p>':V.note?'<p class="mut cmpnote">'+esc(V.note)+'</p>':'')+where(P)
     +list(P)+weather()
     +'<div class="cmpwx"><b>'+ico('map')+' Campus-wide activity</b><p class="mut">Not available. HealthWiz does not collect anyone else\'s location, so there is nothing to show here. Your own visits stay on your device.</p></div></div>'}
 
 /* ---------- actions ---------- */
 const keep=()=>{const y=window.scrollY;render();window.scrollTo(0,y)};
-acts.cmpgo=()=>go('campus');
+acts.cmpgo=()=>{V.auto=0;go('campus')};
 acts.cmpsel=d=>{V.sel=+d.i;keep();const e=$('#cmpdet');if(e){e.focus({preventScroll:true});e.scrollIntoView({block:'nearest',behavior:HWUI.reduced()?'auto':'smooth'})}};
 acts.cmpstair=d=>{const i=STAIRS.findIndex(s=>s.id===d.id);if(i>=0){S.loc=i;S.cat=STAIRS[i].cat}go('stair')};
-acts.cmpzoom=()=>{V.z=V.z>1?1:2;keep()};
+acts.cmpzoom=()=>{const k=V.z>1?.5:2;V.z=V.z>1?1:2;V.px*=k;V.py*=k;clampPan();keep()};
+acts.cmpcentre=()=>{V.px=V.py=0;keep()};
+const clampPan=()=>{const m=60*V.z;V.px=Math.max(-m,Math.min(m,V.px));V.py=Math.max(-m,Math.min(m,V.py))};
+/** Centre the map on a point (zoomed in): the pan layer moves by percent of the map's own size. */
+function centreOn(g){V.z=2;V.px=V.py=0;const[x,y]=proj(points()).at(g);V.px=50-x;V.py=50-y;clampPan()}
+// dragging the map: the layer follows the pointer; a drag never counts as a tap on a marker
+{let d=null,moved=0;
+  D0.addEventListener('pointerdown',e=>{const m=e.target.closest&&e.target.closest('.cmpmap');if(!m||e.button>0||e.target.closest('.cmpctl'))return;const r=m.getBoundingClientRect();
+    d={x:e.clientX,y:e.clientY,px:V.px,py:V.py,w:r.width,h:r.height,id:e.pointerId,m};moved=0});
+  D0.addEventListener('pointermove',e=>{if(!d||e.pointerId!==d.id)return;const dx=e.clientX-d.x,dy=e.clientY-d.y;if(!moved&&Math.hypot(dx,dy)<6)return;
+    if(!moved){moved=1;try{d.m.setPointerCapture(e.pointerId)}catch(_){}}e.preventDefault();
+    V.px=d.px+dx/d.w*100;V.py=d.py+dy/d.h*100;clampPan();const l=d.m.querySelector('.cmppan');if(l)l.style.transform='translate('+V.px.toFixed(2)+'%,'+V.py.toFixed(2)+'%)'});
+  const end=e=>{if(!d||e.pointerId!==d.id)return;const was=moved;d=null;if(was){setTimeout(()=>{moved=0},0);const c=$('.cmpctl');if(c&&!c.querySelector('[data-a="cmpcentre"]'))keep()}};
+  D0.addEventListener('pointerup',end);D0.addEventListener('pointercancel',end);
+  D0.addEventListener('click',e=>{if(moved&&e.target.closest&&e.target.closest('.cmpmap')){e.stopPropagation();e.preventDefault();moved=0}},true)}
 acts.cmpforget=()=>{V.me=null;V.err='';keep()};
-acts.cmpgps=()=>{const g=navigator.geolocation;V.err='';
-  if(!window.isSecureContext){V.err='Location needs a secure (https) page.';keep();return}
-  if(!g){V.err='This browser cannot share a location.';keep();return}
-  V.gps='wait';keep();
-  g.getCurrentPosition(p=>{V.gps='';const c=p.coords;V.me={lat:c.latitude,lng:c.longitude,acc:c.accuracy||0};if(S.v==='campus')keep()},
-    e=>{V.gps='';V.err=e&&e.code===1?'Location permission is off for HealthWiz.':e&&e.code===3?'Finding your position took too long.':'Your position is not available right now.';if(S.v==='campus')keep()},
-    {enableHighAccuracy:true,timeout:20000,maximumAge:0})};
+/** Ask for one position. auto: on opening (a quiet note if it fails); otherwise the SHOW WHERE I AM button. On campus the
+    nearest mapped stairway is selected and the map centres on it. */
+function locate(auto){const g=navigator.geolocation;V.err='';V.note='';
+  const fail=m=>{if(auto)V.note='I could not find you automatically ('+m.replace(/\.$/,'').toLowerCase()+'). Pick a stairway, or tap SHOW WHERE I AM.';else V.err=m;if(S.v==='campus')keep()};
+  if(!window.isSecureContext)return fail('Location needs a secure (https) page.');
+  if(!g)return fail('This browser cannot share a location.');
+  V.gps='wait';if(!auto)keep();
+  g.getCurrentPosition(p=>{V.gps='';const c=p.coords;V.me={lat:c.latitude,lng:c.longitude,acc:c.accuracy||0};
+      const P=points(),near=P.map((q,i)=>({i,d:dist(V.me.lat,V.me.lng,q.lat,q.lng)})).sort((a,b)=>a.d-b.d)[0];
+      if(near&&near.d<1500){V.sel=near.i;centreOn(P[near.i])}
+      if(S.v==='campus')keep()},
+    e=>{V.gps='';fail(e&&e.code===1?'Location permission is off for HealthWiz.':e&&e.code===3?'Finding your position took too long.':'Your position is not available right now.')},
+    {enableHighAccuracy:true,timeout:20000,maximumAge:0})}
+acts.cmpgps=()=>locate(0);
 
 /* ---------- the page, and its door in the Health Hall (after the Science Laboratory's) ---------- */
-pages.campus=()=>page();
+pages.campus=()=>{if(!V.auto){V.auto=1;setTimeout(()=>{if(S.v==='campus')locate(1)},0)}return page()};
 PAR.campus='health';
 BN.campus=['🗺','Campus Health Observatory','The campus stairways, your climbs, the air outside.','rgba(92,192,90,.20)'];
 DIS.campus='Locations are unverified app data. Your position is shown on this screen only and is never saved or sent.';
@@ -123,7 +150,8 @@ HWEvents.on('live:updated',()=>{if(S.v==='campus'){const y=window.scrollY;render
 
 HWUI.css('campus',`
 .cmpmap{position:relative;width:100%;aspect-ratio:3/2;border-radius:14px;overflow:hidden;border:1px solid var(--edge,var(--ln));box-shadow:0 0 22px rgba(139,92,240,.25),inset 0 0 30px rgba(0,0,0,.25);background:#4f8a45;margin:8px 0 4px}
-.cmpmap svg{position:absolute;inset:0;width:100%;height:100%}
+.cmpmap{touch-action:none;cursor:grab;user-select:none;background:#5f9d4e}.cmpmap::after{content:"";position:absolute;inset:0;border:2px solid #f6c94f;border-radius:14px;pointer-events:none;z-index:5}.cmpmap:active{cursor:grabbing}.cmppan{position:absolute;inset:0}
+.cmpmap svg{position:absolute;inset:0;width:100%;height:100%}.cmpctl{position:absolute;right:8px;bottom:8px;z-index:4;display:flex;gap:6px}.cmpctl button{min-height:44px;margin:0}
 .cmpm{position:absolute;width:30px;height:30px;min-height:30px;margin:-15px 0 0 -15px;padding:0;border-radius:50%;font:bold 12px/1 var(--fb,sans-serif);color:#10091f;border:3px solid #1b1745;
   background-image:none;box-shadow:0 0 0 3px rgba(0,0,0,.35),0 0 12px var(--cmpc);animation:cmpglow 2.4s steps(4) infinite alternate;z-index:1}
 .cmpm.cmp1,.cmpk.cmp1{--cmpc:#5cc05a;background-color:#7ee07c}.cmpm.cmp2,.cmpk.cmp2{--cmpc:#f6c94f;background-color:#f6c94f}.cmpm.cmp3,.cmpk.cmp3{--cmpc:#ff6b5e;background-color:#ff8a7e}
@@ -132,7 +160,7 @@ HWUI.css('campus',`
 .cmpme{position:absolute;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#4db3ff;border:3px solid #fff;box-shadow:0 0 0 6px rgba(77,179,255,.35);z-index:3}
 .cmpscale{position:absolute;left:62px;bottom:10px;width:60%;color:#fff0a8;text-shadow:0 1px 0 #120f33}.cmpscale i{display:block;height:4px;border:1px solid #fff0a8;border-top:0}.cmpscale small{font-size:11px}
 .cmpunv{margin:0 0 2px;font-size:12px;color:var(--mut);text-align:right}.cmpn{position:absolute;right:-8px;top:-8px;font:bold 10px/1 sans-serif;background:#fff0a8;color:#10091f;border-radius:8px;padding:2px 3px;border:1px solid #10091f}
-.cmpz{position:absolute;right:8px;bottom:8px;z-index:4;min-height:44px}
+
 .cmpleg{font-size:13px}.cmpk{display:inline-block;width:18px;height:18px;border-radius:50%;text-align:center;font:bold 11px/18px sans-serif;color:#10091f;vertical-align:-3px}
 .cmpdet{border:1px solid var(--edge,var(--ln));border-radius:12px;padding:10px;margin:8px 0;background:var(--p2)}.cmpdet ul{list-style:none;padding:0;margin:6px 0}.cmpdet li{margin:6px 0;overflow-wrap:anywhere}
 .cmpdet button,.cmpcard .row button,.cmplb{min-height:44px}.cmpe{color:var(--red);font-weight:bold}
@@ -140,4 +168,4 @@ HWUI.css('campus',`
 .cmplist ul{list-style:none;padding:0;margin:4px 0;display:flex;flex-wrap:wrap;gap:6px}.cmplist summary{cursor:pointer;min-height:44px;display:flex;align-items:center}
 html.hw-rm .cmpm,html.hw-q-performance .cmpm{animation:none}@media(prefers-reduced-motion:reduce){.cmpm{animation:none}.cmpm.on{transform:none}}
 `);
-return{points,unmapped,proj,UNV,get state(){return{sel:V.sel,me:V.me,err:V.err}}}})();
+return{points,unmapped,proj,UNV,get state(){return{sel:V.sel,me:V.me,err:V.err,note:V.note,z:V.z,px:V.px,py:V.py}}}})();
