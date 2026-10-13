@@ -3,7 +3,7 @@
 //   Auth: /otp (sends a "mail" with a code), /verify (type email), /token (refresh_token, pkce), /authorize (Google), /settings,
 //   /logout. Data: user_data (own row only, updated_at moves forward on every write; a PATCH with an old updated_at
 //   changes nothing), hw_delete_account, the Hall of Heroes RPCs. Medius: /functions/v1/medius-chat (signed-in only).
-//   Luna: /functions/v1/luna-chat (signed-in only). Food: /functions/v1/food-search (signed-in only).
+//   Luna: /functions/v1/luna-chat (signed-in only). Food: /functions/v1/food-search and food-guess (signed-in only).
 import { openApp, go } from './helpers.mjs';
 
 export const URL0 = 'https://hwtest.supabase.co';
@@ -17,7 +17,7 @@ const stamp = () => new Date(clock += 1000).toISOString().replace('Z', '+00:00')
 
 export function fakeSupabase() {
   const S = { users: {}, rows: {}, board: {}, noBoard: false, sent: [], down: false, calls: [], race: 0, n: 0, mail: [], google: true, codes: {},
-    ai: [], aiReply: null, aiDelay: 0, aiStatus: 200, aiBody: null, ask: [], luna: [], lunaReply: null, lunaStatus: 200, lunaBody: null, food: [], foodStatus: 200, foodBody: null, foods: null, foodDetail: null };
+    ai: [], aiReply: null, aiDelay: 0, aiStatus: 200, aiBody: null, ask: [], luna: [], lunaReply: null, lunaStatus: 200, lunaBody: null, food: [], foodStatus: 200, foodBody: null, foods: null, foodDetail: null, guess: [], guessReplies: [], guessStatus: 200, guessBody: null };
   const session = u => ({ access_token: tok({ sub: u.id, email: u.email, role: 'authenticated', exp: 9e9 }), refresh_token: 'r-' + u.id, expires_in: 3600, user: { id: u.id, email: u.email } });
   const user = email => S.users[email] || (S.users[email] = { id: 'u' + (++S.n) + '-0000', email });
   S.handle = async route => {
@@ -50,6 +50,7 @@ export function fakeSupabase() {
     if (u.pathname === '/functions/v1/medius-chat') return medius(S, body, send);
     if (u.pathname === '/functions/v1/luna-chat') return luna(S, body, send);
     if (u.pathname === '/functions/v1/food-search') return food(S, body, send);
+    if (u.pathname === '/functions/v1/food-guess') return guess(S, body, send);
     if (u.pathname === '/rest/v1/rpc/hw_delete_account') { for (const k in S.users) if (S.users[k].id === sub) delete S.users[k]; delete S.rows[sub]; delete S.board[sub]; return send(204); }
     if (u.pathname.startsWith('/rest/v1/rpc/hw_board_') || u.pathname === '/rest/v1/hw_board') return board(S, u, m, sub, body, send);
     if (/^\/rest\/v1\/rpc\/(run_me|claim_run_scores|run_join_me|submit_run_score_me|leave_run_board_me|run_board)$/.test(u.pathname)) return runs(S, u.pathname.split('/').pop(), sub, body, send);
@@ -114,7 +115,7 @@ async function food(S, body, send) {
 export async function device(S, { seed, cloud = CLOUD, viewport, context } = {}) {
   const r = await openApp({ seed, viewport, context, before: async page => {
     await page.route(URL0 + '/**', S.handle);
-    if (cloud) await page.addInitScript(c => { if (!sessionStorage.getItem('cl')) { localStorage.setItem('healthwiz_cloud', c); sessionStorage.setItem('cl', '1'); } }, cloud);
+    if (cloud) await page.addInitScript(c => { if (window !== window.top) return; if (!sessionStorage.getItem('cl')) { localStorage.setItem('healthwiz_cloud', c); sessionStorage.setItem('cl', '1'); } }, cloud);
   } });
   await r.page.waitForSelector('.wl');
   await r.page.evaluate(() => { window.__ev = []; HWEvents.on('*', e => { if (/^cloud:|^data:imported/.test(e.type)) window.__ev.push(e.type + (e.mode ? ':' + e.mode : '') + (e.how ? ':' + e.how : '')); }); });
@@ -167,4 +168,12 @@ function board(S, u, m, sub, body, send) {
   if (m === 'GET') { const b = S.board[sub]; return send(200, b ? [{ name: b.name, hidden: b.hidden }] : []); }
   if (m === 'DELETE') { delete S.board[sub]; return send(204); }
   return send(405, {});
+}
+
+// food-guess: the same contract as supabase/functions/food-guess. Replies are taken in order from S.guessReplies
+// ({ ask } | { guess } | { unknown }); the requests are kept in S.guess.
+function guess(S, body, send) {
+  S.guess.push(body);
+  if (S.guessStatus !== 200) return send(S.guessStatus, S.guessBody || { error: 'ai' });
+  return send(200, S.guessReplies.length ? S.guessReplies.shift() : { unknown: true });
 }

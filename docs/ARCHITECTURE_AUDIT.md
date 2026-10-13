@@ -1574,5 +1574,37 @@ Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel
 - **Not done / flags:** no Malaysian food-composition database (MyFCD) is searched: it has no public API; the canteen
   menu is the Malaysian source in the app. No AI estimates are used. A nutrient missing from the database counts as 0 in
   the day's macro total after logging (the existing custom-food rule).
-- **Tests:** `tests/67-addfood.test.mjs` (5) and `supabase/tests/food-search.test.ts` (6 Deno tests).
+- **Tests:** `tests/67-addfood.test.mjs` and `supabase/tests/food-search.test.ts` (6 Deno tests).
 
+### Stage 5 follow-up: the Wizard is a food search engine (owner: "make the wizard a search engine where he searches for the best calorie and macros based on the food and portion, and any add-ons or removed things the user typed; use the Gemini API key so it can search the best estimate or real data")
+
+- **Flow:** one box: the food, the portion and any changes in the player's words ("nasi lemak, big plate, extra fried
+  chicken, no sambal"). Signed in, SEARCH asks `supabase/functions/food-guess`: Gemini (`gemini-3.5-flash-lite`, the
+  `GEMINI_API_KEY` secret Luna uses) with Grounding with Google Search looks up nutrition data (prompted to prefer MyFCD,
+  USDA FoodData Central, Singapore HPB and other databases, then labels), applies the changes and returns the parts
+  (weight, kcal, protein, carbohydrate, fat), the portion used, a note and its confidence. The web pages it used come
+  back from `groundingMetadata` and are listed as "Where he found it" (links open in a new tab); Google's search
+  suggestions (`searchEntryPoint.renderedContent`) are shown in a sandboxed frame, as Google asks for grounded answers.
+  If a model rejects the search tool (400) the function asks once without it and the card says the answer is from the
+  model's own knowledge. JWT checked twice; 40 searches per player per hour per instance; the words are never logged.
+  Deployed. Tests: `supabase/tests/food-guess.test.ts` (6 Deno tests).
+- **The card:** total kcal and macros (the app sums the parts), each part with − and + (half steps, 0 to 4×), the
+  portion, the note, "AI estimate by Google Gemini from web sources, not a measurement. How sure: …". Nothing is saved
+  before LOG IT. Not right? Change the words and search again.
+- **Signed out, offline, or the search failing:** he searches his books instead: the canteen menu and, signed in, USDA
+  FoodData Central through `food-search`, with food-specific portions, as before (SEARCH MY BOOKS INSTEAD when signed in).
+- **Saved entry:** a custom food with `db: 'est'`, `how: 'web' | 'ai'`, `g`, `p`, `c`, `f`, `parts` [label, g, kcal] and
+  `refs` (up to five source links); no schema change. The log shows "Wizard's estimate" and its macros count as
+  estimated (EST), not "YOURS". USDA book entries no longer show "kcal by you".
+- **Removed** (replaced by the search, at the owner's request): the question-by-question guesser and its offline parts
+  table (`js/v6-foodparts.js`, `tools/food/make_food_parts.py`).
+- **Art:** the scene is 3:2 and he stands at 97 % of its height.
+- **Flags:** web estimates can be wrong; the card shows the sources so the player can check. Test harness: the seed
+  scripts now run only in the top frame (Playwright runs init scripts in every frame, including the sandboxed one).
+
+### Campus Observatory follow-up (owner: "user can move the screen; auto locate to the nearest stair")
+
+- The map can be dragged (pointer events; a drag never counts as a tap on a marker); RECENTRE resets it; ZOOM IN keeps
+  the view's centre. Opening the Observatory asks for one position by itself: on campus the nearest mapped stairway is
+  selected, the map zooms in and centres on it, and its details open; if location is off or far away a quiet note says
+  so. The position is still never saved or sent. Tests: `tests/66-campus.test.mjs` (8).

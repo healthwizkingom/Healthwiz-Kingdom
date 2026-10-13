@@ -1,6 +1,7 @@
 // Campus Health Observatory (js/v6-observatory.js): the stairways on a map from the app's own coordinates, all marked
 // unverified; shared coordinates are one marker; unmapped stairways are listed, not placed; a marker opens the stairway
-// with the player's own climbs; SHOW WHERE I AM (granted, denied, far away) is never saved; the weather point's distance
+// with the player's own climbs; it locates you on opening and centres on the nearest stairway; the map can be dragged;
+// SHOW WHERE I AM (granted, denied, far away) is never saved; the weather point's distance
 // is stated; no campus-wide overlay; nothing is written; the phone layout.
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -80,6 +81,51 @@ test('SHOW WHERE I AM: on campus a "you" dot and the nearest stairway; far away 
   await no.page.waitForSelector('.cmpe');
   assert.match(await no.page.textContent('.cmpe'), /Location permission is off for HealthWiz\. Pick a stairway on the map or in the list instead\./);
   for (const r of [near, far, no]) assert.deepEqual(r.errors, []);
+});
+
+test('opening it finds you by itself: on campus the nearest stairway is selected and the map centres on it, zoomed in; location off is a quiet note', async () => {
+  const near = await openApp({ seed: RETURNING, context: { geolocation: { latitude: 5.3512, longitude: 100.5382, accuracy: 12 }, permissions: ['geolocation'] } });
+  await go(near.page, 'health'); await near.page.click('[data-a="cmpgo"]');
+  await near.page.waitForSelector('.cmpme');
+  const r = await near.page.evaluate(() => {
+    const st = HWCampus.state, P = HWCampus.points(), me = st.me;
+    const nearest = P.map((g, i) => ({ i, d: HWGps.dist(me.lat, me.lng, g.lat, g.lng) })).sort((a, b) => a.d - b.d)[0].i;
+    const m = document.querySelector('.cmpm[data-i="' + st.sel + '"]').getBoundingClientRect(), map = document.querySelector('.cmpmap').getBoundingClientRect();
+    return { sel: st.sel, nearest, z: st.z, dx: (m.x + m.width / 2 - map.x) / map.width, dy: (m.y + m.height / 2 - map.y) / map.height, det: !!document.querySelector('#cmpdet') };
+  });
+  assert.equal(r.sel, r.nearest, 'the nearest stairway is selected');
+  assert.equal(r.z, 2);
+  assert.ok(Math.abs(r.dx - 0.5) < 0.03 && Math.abs(r.dy - 0.5) < 0.03, 'centred on it: ' + r.dx.toFixed(3) + ', ' + r.dy.toFixed(3));
+  assert.ok(r.det, 'its details are open');
+  assert.match(await near.page.textContent('.cmpyou'), /Your position is used on this screen only: it is not saved or sent\./);
+  assert.doesNotMatch(JSON.stringify(await state(near.page)), /5\.3512|100\.5382/);
+  // no permission: a quiet note, not an alert
+  const off = await openApp({ seed: RETURNING });
+  await go(off.page, 'health'); await off.page.click('[data-a="cmpgo"]');
+  await off.page.waitForSelector('.cmpnote');
+  assert.match(await off.page.textContent('.cmpnote'), /I could not find you automatically \(location permission is off for healthwiz\)\. Pick a stairway, or tap SHOW WHERE I AM\./);
+  assert.equal(await off.page.locator('.cmpe').count(), 0);
+  for (const x of [near, off]) assert.deepEqual(x.errors, []);
+});
+
+test('the map moves: dragging pans every marker together, a drag does not select a marker, RECENTRE puts it back', async () => {
+  const { page, errors } = await open({ viewport: { width: 800, height: 900 } });
+  const pos = () => page.evaluate(() => [...document.querySelectorAll('.cmpm')].slice(0, 3).map(e => { const b = e.getBoundingClientRect(); return [b.x, b.y]; }));
+  const before = await pos(), map = await page.$eval('.cmpmap', m => { const b = m.getBoundingClientRect(); return { x: b.x, y: b.y, w: b.width, h: b.height }; });
+  const m0 = await page.$eval('.cmpm', e => { const b = e.getBoundingClientRect(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; });
+  // start the drag on a marker: it must not count as a tap
+  await page.mouse.move(m0.x, m0.y); await page.mouse.down(); await page.mouse.move(m0.x - 60, m0.y + 40, { steps: 6 }); await page.mouse.up();
+  const after = await pos();
+  for (let i = 0; i < before.length; i++) { assert.ok(Math.abs(after[i][0] - before[i][0] + 60) < 2 && Math.abs(after[i][1] - before[i][1] - 40) < 2, 'marker ' + i + ' moved with the map'); }
+  assert.equal(await page.evaluate(() => HWCampus.state.sel), null, 'a drag is not a tap');
+  assert.ok(map.w > 0);
+  await page.click('[data-a="cmpcentre"]');
+  assert.deepEqual(await page.evaluate(() => [HWCampus.state.px, HWCampus.state.py]), [0, 0]);
+  assert.deepEqual(await pos(), before);
+  // a tap still selects
+  await page.click('.cmpm >> nth=0');
+  assert.notEqual(await page.evaluate(() => HWCampus.state.sel), null);
+  assert.deepEqual(errors, []);
 });
 
 test('weather: off says so; a live reading states it is for a separate, unverified point about 2.9 km away', async () => {
