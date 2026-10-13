@@ -36,6 +36,7 @@ js/v6-vault.js             the Evidence Vault: every source on shelves, source â
 js/v6-uncert.js            the Uncertainty Engine: how unmeasured assumptions move an estimate (no made-up error margins)
 js/v6-plan.js              Stair Prescription on the Stairs page: a weekly stair plan the player chooses (st.s.pl); not a prescription
 js/v6-time.js              the Health Time Machine (route 'time', door on Statistics): saved records on a day / week / month timeline
+js/v6-observatory.js       the Campus Health Observatory (route 'campus', door in the Health Hall): the stairways on a map, all unverified
 js/v6-arcane.js            the magical, modern look: Arcane Night default theme, glowing rounded panels and controls (docs/PIXEL_STYLE.md)
 js/v6-emoji.js             every emoji the app shows drawn as pixel art (hand-drawn icon or the emoji pixelated)
 js/v6-provisions.js        Nutrition & Hydration as one page (the Provisions Hall): 'food' and 'water' are its two halves

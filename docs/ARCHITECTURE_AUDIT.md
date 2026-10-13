@@ -1523,3 +1523,28 @@ Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel
 - **Tests:** `tests/59-luna.test.mjs` (the nine poses load, every pose is used, a greeting walks in and waves, pose
   changes) and `tests/63-luna-chat.test.mjs` (the chat portrait).
 
+## Master prompt Stage 4 (part 3): Campus Health Observatory (`js/v6-observatory.js`)
+
+- **The owner's choice (2026-10-13):** build it now from the locations already in the app, clearly marked unverified.
+- **Locations:** the 32 stairways in `STAIRS` (`js/hw-02-core.js`, from the original v5.4.3 app). No source is recorded, so
+  the page warns "Locations are not verified" and every point says "Unverified: from the original app data". 28 have
+  coordinates; stairways sharing one coordinate (ST06/ST31/ST32, ST09/ST15) are one marker with a ×2 / ×3 badge; the four
+  without coordinates (ST02, ST08, ST16, ST29) are listed, never placed. No routes are drawn (none are recorded).
+- **The map** is projected from the coordinates (equirectangular around their centre, one scale for both axes, so the
+  100 m scale bar and distances are real); the night-parchment styling and compass are decoration. ZOOM IN spreads the
+  crowded centre 2x; the list "All stairways" is the accessible alternative to the markers.
+- **A marker** opens the stairway: category, floor, angle, coordinates, the player's own saved sessions there and first
+  GPS check-in (`st.gp.v`), distance from them if located, and CLIMB HERE (picks it on the Stairs page).
+- **SHOW WHERE I AM:** one position from the browser, shown on this screen only, never saved or sent; near campus a "you"
+  dot and the nearest stairway; far away a distance and no dot; denied, unavailable, slow or insecure each say so and
+  fall back to picking a stairway.
+- **Weather and haze:** the live reading from `js/v6-live.js` (now exporting `HWLive.KMK`), stated to be for its own
+  "Kolej MARA Kulim" point, itself marked "verify on Google Maps" and about 2.9 km from the stairways; off and no-reading
+  states say so. **Flag for the owner:** that point and the stairway cluster disagree; one of them is likely wrong.
+- **Campus-wide activity:** not available, because HealthWiz collects no one else's location; the page says so.
+- **Names:** an early version reused the original onboarding's `ob` prefix and replaced its `acts.obgo` (the Traveller's
+  Registry's last button); everything is now `cmp`, and `tests/66-campus.test.mjs` checks that the three Stage 4 modules
+  replace no existing action and that the original styles use none of their class prefixes.
+- **Tests:** `tests/66-campus.test.mjs` (points and grouping, warnings, the door order, a marker and the list, GPS granted,
+  far and denied, the weather point's distance, 360 px layout, zoom, reduced motion, no name clashes).
+
