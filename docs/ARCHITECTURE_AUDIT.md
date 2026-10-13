@@ -1388,7 +1388,7 @@ Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel
   It reads no entries, writes nothing but the three preferences and sends nothing.
 - **Saved data.** New optional settings `st.s.lst` and `st.s.lsz`; missing keys mean the defaults, so the schema stays at
   version 8. Old bubble history entries (without `who`) are labelled as Medius's words on the guide page.
-- **Not done (later stages):** the Grok-backed AI for Luna (done since: see "Master prompt Stage 6" below), remembering further preferences, and full-body poses beyond the bubble sprite.
+- **Not done (later stages):** the AI chat for Luna (done since: see "Master prompt Stage 6" below), remembering further preferences, and full-body poses beyond the bubble sprite.
 
 ## Master prompt Stage 2: source records and the worked "?" (`js/v6-sources.js`, `js/v6-calcx.js`, `docs/CALCULATIONS.md`)
 
@@ -1452,15 +1452,127 @@ Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel
 
 ## Master prompt Stage 6 (part 1): Luna's AI chat (`supabase/functions/luna-chat`, `js/v6-luna.js`)
 
-- **Server.** The Edge Function `luna-chat` calls xAI's Responses API (`https://api.x.ai/v1/responses`) with the model
-  `grok-4.7`, named once (`MODEL`). The key is the Edge Function secret `XAI_API_KEY` and never reaches the app. Signed-in
+- **Server.** The Edge Function `luna-chat` calls Google Gemini (`gemini-3.5-flash-lite`, named once in `MODEL`) with the
+  same Edge Function secret as `medius-chat`, `GEMINI_API_KEY`, which never reaches the app. (It first used xAI's Grok;
+  the owner switched it to the Gemini key after xAI rejected the stored key.) A failed call logs Gemini's status and
+  short reason, never the player's text or the key. Signed-in
   players only: the platform checks the JWT (`verify_jwt = true`) and the function checks it again. Luna's persona and
   safety rules are on the server: short, warm replies, no diagnosis, medication or medical advice, never claims to be human,
   and the Malaysian crisis numbers when danger is mentioned. Logs hold counts and outcomes only, never message text.
 - **Limits.** Luna shares Medius's per-player allowance (`medius_take`: 30 an hour, 100 a day), so no new migration.
 - **App.** Ask Luna has a TALK WITH LUNA section. Signed out it offers sign-in and sends nothing. The conversation lives in
   memory for the visit and is not saved or synced; crisis words or the server's help flag show the help numbers; errors
-  are friendly and keep the typed message. A note says replies come from an AI (Grok by xAI) and Luna is not a doctor.
+  are friendly and keep the typed message. A note says replies come from an AI (Google Gemini) and Luna is not a doctor.
 - **Tests.** `supabase/tests/luna-chat.test.ts` (8 Deno tests) and `tests/63-luna-chat.test.mjs` (signed out and in,
-  crisis, errors, phone layout, no xAI key or direct call in the app).
-- **Not checked yet:** a real reply from xAI through the deployed function (needs a signed-in player on the live site).
+  crisis, errors, phone layout, no AI key or direct AI call in the app).
+- **Not checked yet:** a real reply from Gemini through the deployed function (needs a signed-in player on the live site).
+
+## Master prompt Stage 4 (part 1): Stair Prescription (`js/v6-plan.js`)
+
+- **Where.** A MY STAIR PLAN card on the Stairs page. Without a plan it is a small card above the session chronicle, so the
+  check-in and logging form stay where they were; a saved plan sits right below the page's two halves. No navigation moved.
+- **The player chooses** a goal (start a habit, keep steady, climb a bit more), the days, the minutes (5, 10, 15 or 20) and,
+  optionally, a stairway. Every other day is a rest day; with six or seven days a tip suggests keeping rest days.
+- **Logic, shown under "?":** pace is Easy for "start"; "steady" keeps the pace the player logged most in their own last 28
+  days (Easy if none); "more" makes one session a week Moderate. The Health Conditions answer always wins (a pace cap lowers
+  every session; "ask your doctor first" plans no stair sessions). Stairway: the chosen one, else the one logged most in
+  the last 28 days, else any. The angle is said not to decide personal intensity. Stop guidance is included.
+- **The week** (Monday to Sunday) is a route with a checkpoint per day and the knight at today's checkpoint (CSS only, still
+  with reduced motion or the Performance mode). A day is done only when a stair session is saved that day. A missed day
+  reads "Not logged, and that is okay": no XP, no penalty, no streak. START (today) picks the stairway and pace on the
+  Stairs page and writes nothing; SKIP and UNSKIP; EDIT keeps the skips; TURN OFF asks first and leaves sessions saved.
+- **Saved:** `st.s.pl = {goal, days, min, sid, sk, at}` (a settings key, so no schema migration; skips older than 8 weeks
+  are dropped).
+- **Tests:** `tests/64-plan.test.mjs` (making a plan, pace logic and the "?", health answers, done/skip/start, edit and
+  turn off, the route under reduced motion, the 360 px layout).
+
+## Master prompt Stage 4 (part 2): Health Time Machine (`js/v6-time.js`)
+
+- **Where.** A door card at the top of Statistics opens the page `time` (under the Health Hall, so the bottom menu and the
+  Health Hall order are unchanged). Ask Luna can find it.
+- **What it shows:** saved records only, in lanes: water (ml), food (kcal), sleep (h), stress check-ins (/10), energy (/5),
+  heart rate (pulse logs with "before/after" and the BPM saved with stair sessions), stairs (steps), workouts (min), runs
+  (km, from the run log on this device) and BMI. Weather and haze are only live in HealthWiz (no stored history), so they
+  are not lanes, and the page does not pretend otherwise.
+- **Moving through time:** Day, Week (Monday first) or Month; EARLIER / LATER; a slider from the first saved day to today
+  (it redraws only the view, so it keeps focus); RETURN TO TODAY.
+- **Missing data:** a day without a record in a lane is an empty dashed cell, "not logged", never 0; lanes with nothing in
+  the period are listed as "Not logged in this period". An empty day says "Nothing was saved on …".
+- **Details:** day view places each record at its saved time; a marker or cell opens a card with each record's time,
+  value and origin (entered by you, GPS check-in, from a device, camera estimate, GPS run, or calculated for BMI), with a
+  button to open that feature.
+- **COMPARE** shows, per lane, the days logged and the average on logged days for the period and the one before, with
+  "not logged" where empty and the note that a difference between periods does not show its cause.
+- **Motion:** markers pop in (CSS); none under reduced motion or the Performance mode. Nothing is written.
+- **Tests:** `tests/65-time.test.mjs` (lanes and "not logged", sources, day positions, the slider and navigation,
+  compare, the 360 px layout and reduced motion).
+
+## Luna's movements from the sheet (`tools/art/make_luna_poses.py`, `js/v6-luna.js`)
+
+- **Art.** At the owner's request every figure on the character reference sheet is used. The nine full-body poses (front
+  idle, three-quarter with staff, walking, casting, pointing, thinking, happy, confused, waving) are cut from the sheet,
+  the lavender background removed from the edges inward, pieces of neighbouring figures dropped, reduced to 80 × 120
+  frames with one shared 48-colour palette: `assets/img/luna-poses.webp` (720 × 120, ≈ 24 KB). It replaces
+  `luna-full.webp` (pose 1 alone), so the image total is ≈ 747 KB, within the owner's 740 KB (757,760-byte) budget. The
+  seven expressions stay in `luna-faces.webp`.
+- **Motion.** Each bubble moment picks a pose (`POSEOF`: a greeting waves, good news is happy, a first time points, an
+  insight thinks, a badge casts, an apology is confused, restored data holds the staff); a bubble walks in with the
+  walking pose, then changes to its pose. The Laboratory figure cycles idle, staff, pointing and thinking. In Talk with
+  Luna the portrait is curious while waiting, thoughtful while the reply comes, cheerful with a reply and apologetic on
+  an error. CSS only, no timers; with reduced motion or the Performance mode the pose shows, still.
+- **Tests:** `tests/59-luna.test.mjs` (the nine poses load, every pose is used, a greeting walks in and waves, pose
+  changes) and `tests/63-luna-chat.test.mjs` (the chat portrait).
+
+## Master prompt Stage 4 (part 3): Campus Health Observatory (`js/v6-observatory.js`)
+
+- **The owner's choice (2026-10-13):** build it now from the locations already in the app, clearly marked unverified.
+- **Locations:** the 32 stairways in `STAIRS` (`js/hw-02-core.js`, from the original v5.4.3 app). No source is recorded, so
+  the page warns "Locations are not verified" and every point says "Unverified: from the original app data". 28 have
+  coordinates; stairways sharing one coordinate (ST06/ST31/ST32, ST09/ST15) are one marker with a ×2 / ×3 badge; the four
+  without coordinates (ST02, ST08, ST16, ST29) are listed, never placed. No routes are drawn (none are recorded).
+- **The map** is projected from the coordinates (equirectangular around their centre, one scale for both axes, so the
+  100 m scale bar and distances are real); the night-parchment styling and compass are decoration. ZOOM IN spreads the
+  crowded centre 2x; the list "All stairways" is the accessible alternative to the markers.
+- **A marker** opens the stairway: category, floor, angle, coordinates, the player's own saved sessions there and first
+  GPS check-in (`st.gp.v`), distance from them if located, and CLIMB HERE (picks it on the Stairs page).
+- **SHOW WHERE I AM:** one position from the browser, shown on this screen only, never saved or sent; near campus a "you"
+  dot and the nearest stairway; far away a distance and no dot; denied, unavailable, slow or insecure each say so and
+  fall back to picking a stairway.
+- **Weather and haze:** the live reading from `js/v6-live.js` (now exporting `HWLive.KMK`), stated to be for its own
+  "Kolej MARA Kulim" point, itself marked "verify on Google Maps" and about 2.9 km from the stairways; off and no-reading
+  states say so. **Flag for the owner:** that point and the stairway cluster disagree; one of them is likely wrong.
+- **Campus-wide activity:** not available, because HealthWiz collects no one else's location; the page says so.
+- **Names:** an early version reused the original onboarding's `ob` prefix and replaced its `acts.obgo` (the Traveller's
+  Registry's last button); everything is now `cmp`, and `tests/66-campus.test.mjs` checks that the three Stage 4 modules
+  replace no existing action and that the original styles use none of their class prefixes.
+- **Tests:** `tests/66-campus.test.mjs` (points and grouping, warnings, the door order, a marker and the list, GPS granted,
+  far and denied, the weather point's distance, 360 px layout, zoom, reduced motion, no name clashes).
+
+## Master prompt Stage 5: Add More Food with the Wannabe Wizard (`js/v6-addfood.js`, `supabase/functions/food-search`)
+
+- **Art** (owner's request): the Wannabe Wizard's six poses, seven expressions and his room, from the owner's sheet
+  (`tools/art/make_apprentice.py`); the owner raised the image budget to 880 KB for these and Luna's room.
+- **Flow:** ADD MORE FOOD opens the wizard above the original custom form, which is unchanged (one SAVE CUSTOM FOOD click
+  still saves). 1) "What did you eat?" searches the Kolej MARA Kulim canteen menu (offline, signed out) and, signed in, USDA
+  FoodData Central through the `food-search` Edge Function; each match says where it is from; the player picks. 2) The
+  portion is food-specific: a menu dish's own portion × ½ to 2; a database food's household measures with gram weights,
+  or a packaged food's label serving, each with a small picture of the kind of measure; grams only when the database
+  has no measure. 3) The card updates at once with kcal, protein, carbohydrate and fat, the method line, the source (FDC ID,
+  data type, CC0) and its limits. 4) Nothing is saved before CONFIRM AND LOG; the name and meal can be changed; the entry
+  records `src`, `db: 'fdc'`, `fdc`, `fdt`, `g`, `u`, `p`, `c`, `f` and is back-dated like any food. The log shows a
+  "USDA FoodData Central" badge instead of "Custom Food".
+- **He reacts:** front and happy when asking, walking and determined while searching, surprised with results, back
+  turned and nervous with none, confused on an error, determined while choosing, casting (with the card's reveal) when
+  logged. CSS only; still under reduced motion.
+- **Backend:** `food-search` (signed-in only, JWT checked twice, 60 searches per player per hour per instance, key in the
+  `FDC_API_KEY` secret, search words never logged). Deployed (version 1). **Needs the owner:** a free data.gov key
+  (https://fdc.nal.usda.gov/api-key-signup) saved as `FDC_API_KEY`; until then the wizard says the archive is not set
+  up, and the canteen menu and typing it yourself still work.
+- **Sources** (opened 2026-10-13): `fdc` (API guide + OpenAPI spec), `fndds` (FNDDS 2021–2023 documentation: values per
+  100 g edible portion; portion weights are estimations), `gbfpd` (branded foods: per 100 g / 100 ml from the label,
+  rounding, missing is not zero). Evidence Vault entry `foodportion`.
+- **Not done / flags:** no Malaysian food-composition database (MyFCD) is searched: it has no public API; the canteen
+  menu is the Malaysian source in the app. No AI estimates are used. A nutrient missing from the database counts as 0 in
+  the day's macro total after logging (the existing custom-food rule).
+- **Tests:** `tests/67-addfood.test.mjs` (5) and `supabase/tests/food-search.test.ts` (6 Deno tests).
+

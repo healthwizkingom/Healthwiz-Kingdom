@@ -3,7 +3,7 @@
 //   Auth: /otp (sends a "mail" with a code), /verify (type email), /token (refresh_token, pkce), /authorize (Google), /settings,
 //   /logout. Data: user_data (own row only, updated_at moves forward on every write; a PATCH with an old updated_at
 //   changes nothing), hw_delete_account, the Hall of Heroes RPCs. Medius: /functions/v1/medius-chat (signed-in only).
-//   Luna: /functions/v1/luna-chat (signed-in only).
+//   Luna: /functions/v1/luna-chat (signed-in only). Food: /functions/v1/food-search (signed-in only).
 import { openApp, go } from './helpers.mjs';
 
 export const URL0 = 'https://hwtest.supabase.co';
@@ -17,7 +17,7 @@ const stamp = () => new Date(clock += 1000).toISOString().replace('Z', '+00:00')
 
 export function fakeSupabase() {
   const S = { users: {}, rows: {}, board: {}, noBoard: false, sent: [], down: false, calls: [], race: 0, n: 0, mail: [], google: true, codes: {},
-    ai: [], aiReply: null, aiDelay: 0, aiStatus: 200, aiBody: null, ask: [], luna: [], lunaReply: null, lunaStatus: 200, lunaBody: null };
+    ai: [], aiReply: null, aiDelay: 0, aiStatus: 200, aiBody: null, ask: [], luna: [], lunaReply: null, lunaStatus: 200, lunaBody: null, food: [], foodStatus: 200, foodBody: null, foods: null, foodDetail: null };
   const session = u => ({ access_token: tok({ sub: u.id, email: u.email, role: 'authenticated', exp: 9e9 }), refresh_token: 'r-' + u.id, expires_in: 3600, user: { id: u.id, email: u.email } });
   const user = email => S.users[email] || (S.users[email] = { id: 'u' + (++S.n) + '-0000', email });
   S.handle = async route => {
@@ -49,6 +49,7 @@ export function fakeSupabase() {
     if (!sub || !Object.values(S.users).some(x => x.id === sub)) return send(401, { message: 'JWT invalid' });
     if (u.pathname === '/functions/v1/medius-chat') return medius(S, body, send);
     if (u.pathname === '/functions/v1/luna-chat') return luna(S, body, send);
+    if (u.pathname === '/functions/v1/food-search') return food(S, body, send);
     if (u.pathname === '/rest/v1/rpc/hw_delete_account') { for (const k in S.users) if (S.users[k].id === sub) delete S.users[k]; delete S.rows[sub]; delete S.board[sub]; return send(204); }
     if (u.pathname.startsWith('/rest/v1/rpc/hw_board_') || u.pathname === '/rest/v1/hw_board') return board(S, u, m, sub, body, send);
     if (/^\/rest\/v1\/rpc\/(run_me|claim_run_scores|run_join_me|submit_run_score_me|leave_run_board_me|run_board)$/.test(u.pathname)) return runs(S, u.pathname.split('/').pop(), sub, body, send);
@@ -100,6 +101,14 @@ async function luna(S, body, send) {
   const last = body.messages[body.messages.length - 1].content;
   const reply = typeof S.lunaReply === 'function' ? S.lunaReply(last, body) : S.lunaReply || 'Hello, ' + body.name + '! A sip of water is a fine spell.';
   return send(200, { reply, help: /suicid|kill myself|self[- ]?harm|want to die/i.test(last) });
+}
+
+// food-search: the same contract as supabase/functions/food-search (FoodData Central, per 100 g)
+async function food(S, body, send) {
+  S.food.push(body);
+  if (S.foodStatus !== 200) return send(S.foodStatus, S.foodBody || { error: 'db' });
+  if (body.q) return send(200, { foods: S.foods || [] });
+  return send(200, { food: S.foodDetail });
 }
 
 export async function device(S, { seed, cloud = CLOUD, viewport, context } = {}) {

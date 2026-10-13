@@ -1,7 +1,7 @@
 // Talk with Luna (js/v6-luna.js): the chat in the Ask Luna panel, through the luna-chat Edge Function
 // (supabase/functions/luna-chat). Signed out: no message box and nothing sent. Signed in: the session goes to luna-chat,
 // replies show, crisis words bring the help numbers, errors are friendly, nothing is saved. Also: no AI key or direct
-// xAI call in the app, and the function's Deno tests when Deno is installed.
+// AI call in the app, and the function's Deno tests when Deno is installed.
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -23,7 +23,7 @@ test('signed out: "Sign in to talk with Luna", no message box, the AI note, and 
   await openLuna(page);
   const t = await page.textContent('#v6lchat');
   assert.match(t, /TALK WITH LUNA[\s\S]*Sign in to talk with Luna[\s\S]*SIGN IN TO TALK WITH LUNA/);
-  assert.match(t, /written by an AI \(Grok by xAI\)\. She is not a doctor/);
+  assert.match(t, /written by an AI \(Google Gemini\)\. She is not a doctor[\s\S]*sent to Google/);
   assert.equal(await page.locator('#v6lcin').count(), 0, 'no message box while signed out');
   await page.click('[data-a="lunasign"]');
   assert.match(await page.textContent('#mo'), /WHAT HAPPENS WHEN YOU SIGN IN/);
@@ -40,9 +40,16 @@ test('signed in: the message goes to luna-chat with the session, the reply shows
   const before = JSON.stringify(await state(page));
   await openLuna(page);
   assert.equal(await page.locator('#v6lcin').count(), 1, 'the message box appears when signed in');
+  const face = () => page.getAttribute('#v6lchat .v6lchd .v6lpf', 'data-face');
+  assert.equal(await face(), 'curious', 'her portrait waits, curious');
+  const roomPose = () => page.getAttribute('#v6lchat .v6lroom .v6lfull', 'data-pose');
+  assert.equal(await roomPose(), 'wave', 'in her room she waves while waiting');
+  assert.equal(await page.evaluate(() => { const i = document.querySelector('#v6lchat .v6lroom img'); return i.complete && i.naturalWidth; }), 336, 'her room from the owner\'s scene');
   await page.fill('#v6lcin', 'How much water today?');
   await page.press('#v6lcin', 'Enter');
   await page.waitForFunction(() => document.querySelectorAll('#v6lclog .v6lcm.a').length === 1);
+  assert.equal(await face(), 'cheerful', 'cheerful with a reply');
+  assert.equal(await roomPose(), 'happy', 'and cheers in her room');
   let t = await page.textContent('#v6lclog');
   assert.match(t, /You[\s\S]*How much water today\?[\s\S]*Luna[\s\S]*A sip of water is a fine spell\./);
   assert.equal(reqs.length, 1);
@@ -77,6 +84,7 @@ test('errors are friendly and keep what the player typed: limit, server not set 
     assert.match(await page.textContent('#v6lchat .v6lce'), /Nothing you wrote was saved\./);
     assert.equal(await page.inputValue('#v6lcin'), 'Hello Luna', 'the message stays in the box');
     assert.equal(await page.locator('#v6lclog .v6lcm').count(), 0, 'a failed message is not left in the log');
+    assert.equal(await page.getAttribute('#v6lchat .v6lchd .v6lpf', 'data-face'), 'apologetic', 'apologetic on an error');
   }
   // the browser's own line for each answer the fake server failed on purpose; anything else is a real error
   assert.deepEqual(errors.filter(e => !/Failed to load resource: the server responded with a status of (429|503|502)/.test(e)), []);
@@ -101,16 +109,18 @@ test('the phone layout: the chat fits a 360 px screen without sideways scrolling
   assert.deepEqual(errors, []);
 });
 
-test('the function: one model constant, the key only on the server, sign-in required; no xAI key or call in the app', () => {
+test('the function: one model constant, the key only on the server, sign-in required; no AI key or direct AI call in the app', () => {
   const fn = read('supabase/functions/luna-chat/index.ts');
-  assert.equal((fn.match(/grok-[0-9][\w.-]*/g) || []).length, 1, 'the model is named once');
-  assert.match(fn, /Deno\.env\.get\('XAI_API_KEY'\)/);
+  assert.equal((fn.match(/gemini-[0-9][\w.-]*/g) || []).length, 1, 'the model is named once');
+  assert.match(fn, /const MODEL = 'gemini-3\.5-flash-lite';/, 'the same model as medius-chat');
+  assert.match(fn, /Deno\.env\.get\('GEMINI_API_KEY'\)/);
+  assert.doesNotMatch(fn, /x\.ai|XAI_API_KEY|grok/i, 'no xAI left');
   assert.match(read('supabase/config.toml'), /\[functions\.luna-chat\]\s*\nverify_jwt = true/);
   assert.doesNotMatch(fn, /console\.log\([^)]*(messages|content|reply|text|name)\b/, 'logs carry counts only');
   for (const f of ['index.html', 'sw.js', ...fs.readdirSync(path.join(root, 'js')).map(f => 'js/' + f)]) {
     const s = read(f);
-    assert.doesNotMatch(s, /xai-[0-9A-Za-z]{20,}/, f + ': xAI key');
-    assert.doesNotMatch(s, /api\.x\.ai/, f + ': direct xAI call');
+    assert.doesNotMatch(s, /xai-[0-9A-Za-z]{20,}|AIza[0-9A-Za-z_-]{20,}/, f + ': AI key');
+    assert.doesNotMatch(s, /api\.x\.ai|generativelanguage\.googleapis/, f + ': direct AI call');
   }
   assert.match(read('js/v6-luna.js'), /\/functions\/v1\/luna-chat/);
 });
@@ -119,5 +129,5 @@ test('Deno unit tests of luna-chat (skipped when Deno is not installed)', t => {
   const has = spawnSync('deno', ['--version']).status === 0;
   if (!has) return t.skip('deno not installed');
   const out = execFileSync('deno', ['test', '--no-lock', '--allow-env', 'supabase/tests/luna-chat.test.ts'], { cwd: root, encoding: 'utf8', env: { ...process.env, NO_COLOR: '1' } });
-  assert.match(out, /ok \| 8 passed \| 0 failed/);
+  assert.match(out, /ok \| 9 passed \| 0 failed/);
 });

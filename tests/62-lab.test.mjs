@@ -20,7 +20,7 @@ test('reachable: a doorway at the end of the Health Hall, its own banner, back t
   assert.match(await txt(page, '#main'), /Science Laboratory[\s\S]*Experiment[\s\S]*Evidence Trial[\s\S]*Evidence Vault[\s\S]*Uncertainty/);
   assert.equal(await page.getAttribute('[data-a="labtab"][data-k="exp"]', 'aria-selected'), 'true');
   assert.equal(await page.$eval('#labsc .labbg', i => i.complete && i.naturalWidth), 290, 'the laboratory scene from the owner\'s concept sheet');
-  assert.ok(await page.$('#labluna .v6lfull img.v6lfi'), 'Luna from the owner\'s sheet is in the laboratory');
+  assert.ok(await page.$('#labluna .v6lfull.cycle .v6lfi'), 'Luna from the owner\'s sheet is in the laboratory, cycling her poses');
   const nav = await page.evaluate(() => [...document.querySelectorAll('#nav button')].map(b => b.dataset.v));
   assert.deepEqual(nav, ['home', 'health', 'quests', 'kingdom', 'set'], 'navigation order unchanged');
   await page.evaluate(() => HWLuna.open('laboratory'));

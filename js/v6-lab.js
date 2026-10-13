@@ -184,7 +184,7 @@ acts.labgo=()=>go('lab');
 
 /* ---------- the laboratory scene: the owner's concept-sheet laboratory (assets/img/lab-scene.webp, tools/art/make_luna_lab.py)
    with Luna in front; the orb's glow and a few motes are CSS (transform and opacity only), still with reduced motion ---------- */
-function startScene(){const lu=document.getElementById('labluna');if(lu&&!lu.firstChild)HWLuna.mount(lu,{kind:'full'})}
+function startScene(){const lu=document.getElementById('labluna');if(lu&&!lu.firstChild)HWLuna.mount(lu,{kind:'full',cycle:1})}
 
 /* ---------- registration: route, banner, doorways ---------- */
 pages.lab=()=>page();

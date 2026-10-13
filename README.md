@@ -34,6 +34,10 @@ js/v6-lab.js               the Science Laboratory (route 'lab'): Be Your Own Exp
 js/v6-trial.js             the Evidence Trial: reasoning questions built from real data, answers worked out from the data
 js/v6-vault.js             the Evidence Vault: every source on shelves, source → claim → HealthWiz's use → where you see it
 js/v6-uncert.js            the Uncertainty Engine: how unmeasured assumptions move an estimate (no made-up error margins)
+js/v6-plan.js              Stair Prescription on the Stairs page: a weekly stair plan the player chooses (st.s.pl); not a prescription
+js/v6-time.js              the Health Time Machine (route 'time', door on Statistics): saved records on a day / week / month timeline
+js/v6-observatory.js       the Campus Health Observatory (route 'campus', door in the Health Hall): the stairways on a map, all unverified
+js/v6-addfood.js           Add More Food: the Wannabe Wizard's guided search (canteen menu + USDA FoodData Central via food-search), portions, confirm
 js/v6-arcane.js            the magical, modern look: Arcane Night default theme, glowing rounded panels and controls (docs/PIXEL_STYLE.md)
 js/v6-emoji.js             every emoji the app shows drawn as pixel art (hand-drawn icon or the emoji pixelated)
 js/v6-provisions.js        Nutrition & Hydration as one page (the Provisions Hall): 'food' and 'water' are its two halves
@@ -48,7 +52,8 @@ js/v6-streaks.js           current + gentle streaks, week view, new achievements
 js/v6-xp.js                fair XP: daily logging allowance, exploration reward
 js/v6-kingdom.js           five region states (incl. Flourishing) and region detail panel
 js/v6-luna.js              Luna, the apprentice witch, from the owner's character sheet: 7 expression portraits (luna-faces.webp) and
-                           her full figure (luna-full.webp), CSS idle motion,
+                           her 9 poses (luna-poses.webp): each moment picks a pose, bubbles walk in, CSS motion,
+                           Talk with Luna (luna-chat, Gemini) with a portrait that follows the chat,
                            Ask Luna (find a feature, open the page's "?" explanations; no AI), her preferences (st.s.lst, st.s.lsz)
 js/v6-medius.js            the companion reacts to events (speech bubbles with cooldowns), spoken by Luna; Medius keeps the tutorial voice
 js/v6-charts.js            touch/keyboard/screen-reader charts, empty states, week-vs-week stats
@@ -86,7 +91,8 @@ js/v6-foodsel.js           pick several foods, then LOG SELECTED once (selection
 js/v6-expbar.js            every progress bar in one modern style (changed values flow in); the EXP bar as flowing mana with level-up glow
 supabase/migrations/       SQL for accounts, cloud save, leaderboards and Medius limits (Row Level Security) — run each file once, in order
 supabase/functions/        medius-chat: the Edge Function that talks to Google Gemini for the Wizard's Counsel;
-                           luna-chat: Luna's chat in Ask Luna, through xAI (Grok), key in the XAI_API_KEY secret
+                           luna-chat: Luna's chat in Ask Luna, through Google Gemini (the same GEMINI_API_KEY as medius-chat);
+                           food-search: Add More Food's USDA FoodData Central search (key in the FDC_API_KEY secret)
 supabase/tests/            SQL behaviour checks (tools/test-sql.sh, local PostgreSQL) and Deno tests for medius-chat and luna-chat
 sw.js                      service worker: pre-caches the app, network first, works offline (keep PRECACHE in sync)
 manifest.webmanifest       web app manifest (name, colours, standalone display, icons)
@@ -104,7 +110,7 @@ tools/import-original.mjs  one-time import of the original (re-running it overwr
 tools/build-standalone.mjs bundles everything back into one HTML file
 tools/make-icons.mjs       redraws the app icons
 tools/art/                 Python scripts that made assets/img/bedroom.webp, sleeper-react.webp, medius-reactions.webp, luna-faces.webp,
-                           luna-full.webp and lab-scene.webp
+                           luna-poses.webp (make_luna_poses.py) and lab-scene.webp
 tests/                     browser tests (Playwright + node:test): fidelity, every feature, performance budgets, device matrix
 docs/                      architecture audit and plan, event catalog, testing guide (docs/TESTING.md), pixel-art standard (docs/PIXEL_STYLE.md)
 ```
