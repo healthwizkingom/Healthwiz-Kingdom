@@ -112,16 +112,18 @@ function paint(cv,o){const g=grid(o),c=o&&o.compact?(o.compact==='face'?FACE:CRO
   x.putImageData(im,0,0)}
 const still=()=>HWUI.reduced()||typeof HWMotion!=='undefined'&&HWMotion.level&&HWMotion.level()==='performance';
 /** Puts an animated Luna in `host` (any element). o = {expr, compact, scale (default 2), cast (sparkle at first)}.
-    Returns the canvas. The timer stops by itself once the canvas leaves the page or is hidden. */
+    Returns the canvas. All pictures share one timer, which stops once none is left on the page. */
 function mount(host,o){o=Object.assign({expr:'idle',scale:2},o||{});const cv=document.createElement('canvas'),c=o.compact?(o.compact==='face'?FACE:CROP):{w:W,h:H};
   cv.className='v6luna';cv.setAttribute('aria-hidden','true');cv.style.width=c.w*o.scale+'px';cv.style.height=c.h*o.scale+'px';
   host.appendChild(cv);const st0={expr:o.expr,compact:o.compact,cast:0,fam:0,bob:0,breath:0,blink:0};
   if(still()){paint(cv,st0);return cv}
   let t=0,nextBlink=6+Math.floor(Math.random()*8),cast=o.cast?8:0;
-  const tick=()=>{if(!cv.isConnected||cv.closest('[hidden]')){clearInterval(iv);return}if(document.hidden)return;t++;
-    st0.breath=t%6<3?0:1;st0.fam=t%4<2?0:1;st0.bob=t%8<4?0:-1;st0.blink=t===nextBlink?1:0;if(t>nextBlink)nextBlink=t+10+Math.floor(Math.random()*12);
+  const tick=()=>{t++;st0.breath=t%6<3?0:1;st0.fam=t%4<2?0:1;st0.bob=t%8<4?0:-1;st0.blink=t===nextBlink?1:0;if(t>nextBlink)nextBlink=t+10+Math.floor(Math.random()*12);
     st0.cast=cast>0?(cast--%2)+1:0;paint(cv,st0)};
-  const iv=setInterval(tick,260);paint(cv,Object.assign({},st0,{cast:cast?1:0}));return cv}
+  live.add({cv,tick});if(!iv)iv=setInterval(loop,260);paint(cv,Object.assign({},st0,{cast:cast?1:0}));return cv}
+// one timer for every Luna on screen: a picture that left the page is dropped, a hidden one waits, none left stops it
+const live=new Set();let iv=null;
+function loop(){live.forEach(a=>{if(!a.cv.isConnected){live.delete(a);return}if(!document.hidden&&!a.cv.closest('[hidden]'))a.tick()});if(!live.size){clearInterval(iv);iv=null}}
 
 /* ---------- preferences ---------- */
 const style=()=>['q','g','e'].includes(st.s.lst)?st.s.lst:'g';
@@ -185,7 +187,7 @@ acts.lunasz=d=>{st.s.lsz=+d.m;save();render();toast('Luna: '+(+d.m?'compact port
 acts.lunarst=()=>{delete st.s.lst;delete st.s.lsz;st.s.med=1;save();render();toast('Luna\'s preferences are back to the defaults.')};
 
 /* ---------- a button that opens Ask Luna: the Home bar, and the header of every other page ---------- */
-const btn=()=>'<button type="button" class="v6lb" data-a="luna" aria-label="Ask Luna for help" title="Ask Luna"></button>';
+const btn=()=>'<button type="button" class="g v6lb" data-a="luna" aria-label="Ask Luna for help" title="Ask Luna"></button>';
 function launcher(){if(S.v==='welcome'||S.v==='onb')return;const m=$('#main');if(!m||m.querySelector('.v6lb'))return;
   const hb=m.querySelector('.hbar>button'),hd=m.querySelector('header');let b=null;
   if(hb){hb.insertAdjacentHTML('beforebegin',btn());b=hb.previousElementSibling}else if(hd){hd.insertAdjacentHTML('beforeend',btn());b=hd.lastElementChild}
@@ -194,8 +196,9 @@ function launcher(){if(S.v==='welcome'||S.v==='onb')return;const m=$('#main');if
 
 HWUI.css('luna',`
 .v6luna{display:block;image-rendering:pixelated;image-rendering:crisp-edges}
-.v6lb{display:inline-grid;place-items:center;width:44px;height:44px;min-height:44px;padding:0;margin-left:auto;flex:0 0 auto;background:var(--p2);overflow:hidden}
+.v6lb{display:inline-grid;place-items:center;width:44px;height:44px;min-height:44px;padding:0;margin-left:auto;flex:0 0 auto;overflow:hidden}
 header .v6lb{margin-right:56px;align-self:flex-start}.hbar .v6lb{margin:0 0 0 auto}@media(min-width:360px){.hbar>button[data-v=quests]{white-space:nowrap;flex:0 0 auto}}
+.hbar>div{min-width:0}.hbar small{overflow-wrap:anywhere} /* a long name wraps instead of widening the page */
 .v6lp{width:min(460px,100%)}.v6lph{display:flex;gap:10px;align-items:center;margin-bottom:8px}.v6lph h3{margin:0 0 4px}
 .v6lpic{flex:0 0 auto;border:3px solid var(--ln);background:var(--pxdk-bg,#2a2350);box-shadow:3px 3px 0 var(--ln);line-height:0}
 .v6lp input{width:100%;margin:4px 0 2px}.v6lp h4{font:8px/1.6 var(--fh);margin:12px 0 6px}
