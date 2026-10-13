@@ -37,6 +37,7 @@ js/v6-uncert.js            the Uncertainty Engine: how unmeasured assumptions mo
 js/v6-plan.js              Stair Prescription on the Stairs page: a weekly stair plan the player chooses (st.s.pl); not a prescription
 js/v6-time.js              the Health Time Machine (route 'time', door on Statistics): saved records on a day / week / month timeline
 js/v6-observatory.js       the Campus Health Observatory (route 'campus', door in the Health Hall): the stairways on a map, all unverified
+js/v6-addfood.js           Add More Food: the Wannabe Wizard's guided search (canteen menu + USDA FoodData Central via food-search), portions, confirm
 js/v6-arcane.js            the magical, modern look: Arcane Night default theme, glowing rounded panels and controls (docs/PIXEL_STYLE.md)
 js/v6-emoji.js             every emoji the app shows drawn as pixel art (hand-drawn icon or the emoji pixelated)
 js/v6-provisions.js        Nutrition & Hydration as one page (the Provisions Hall): 'food' and 'water' are its two halves
@@ -90,7 +91,8 @@ js/v6-foodsel.js           pick several foods, then LOG SELECTED once (selection
 js/v6-expbar.js            every progress bar in one modern style (changed values flow in); the EXP bar as flowing mana with level-up glow
 supabase/migrations/       SQL for accounts, cloud save, leaderboards and Medius limits (Row Level Security) — run each file once, in order
 supabase/functions/        medius-chat: the Edge Function that talks to Google Gemini for the Wizard's Counsel;
-                           luna-chat: Luna's chat in Ask Luna, through Google Gemini (the same GEMINI_API_KEY as medius-chat)
+                           luna-chat: Luna's chat in Ask Luna, through Google Gemini (the same GEMINI_API_KEY as medius-chat);
+                           food-search: Add More Food's USDA FoodData Central search (key in the FDC_API_KEY secret)
 supabase/tests/            SQL behaviour checks (tools/test-sql.sh, local PostgreSQL) and Deno tests for medius-chat and luna-chat
 sw.js                      service worker: pre-caches the app, network first, works offline (keep PRECACHE in sync)
 manifest.webmanifest       web app manifest (name, colours, standalone display, icons)

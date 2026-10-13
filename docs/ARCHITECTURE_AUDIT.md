@@ -1548,3 +1548,31 @@ Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel
 - **Tests:** `tests/66-campus.test.mjs` (points and grouping, warnings, the door order, a marker and the list, GPS granted,
   far and denied, the weather point's distance, 360 px layout, zoom, reduced motion, no name clashes).
 
+## Master prompt Stage 5: Add More Food with the Wannabe Wizard (`js/v6-addfood.js`, `supabase/functions/food-search`)
+
+- **Art** (owner's request): the Wannabe Wizard's six poses, seven expressions and his room, from the owner's sheet
+  (`tools/art/make_apprentice.py`); the owner raised the image budget to 880 KB for these and Luna's room.
+- **Flow:** ADD MORE FOOD opens the wizard above the original custom form, which is unchanged (one SAVE CUSTOM FOOD click
+  still saves). 1) "What did you eat?" searches the Kolej MARA Kulim canteen menu (offline, signed out) and, signed in, USDA
+  FoodData Central through the `food-search` Edge Function; each match says where it is from; the player picks. 2) The
+  portion is food-specific: a menu dish's own portion × ½ to 2; a database food's household measures with gram weights,
+  or a packaged food's label serving, each with a small picture of the kind of measure; grams only when the database
+  has no measure. 3) The card updates at once with kcal, protein, carbohydrate and fat, the method line, the source (FDC ID,
+  data type, CC0) and its limits. 4) Nothing is saved before CONFIRM AND LOG; the name and meal can be changed; the entry
+  records `src`, `db: 'fdc'`, `fdc`, `fdt`, `g`, `u`, `p`, `c`, `f` and is back-dated like any food. The log shows a
+  "USDA FoodData Central" badge instead of "Custom Food".
+- **He reacts:** front and happy when asking, walking and determined while searching, surprised with results, back
+  turned and nervous with none, confused on an error, determined while choosing, casting (with the card's reveal) when
+  logged. CSS only; still under reduced motion.
+- **Backend:** `food-search` (signed-in only, JWT checked twice, 60 searches per player per hour per instance, key in the
+  `FDC_API_KEY` secret, search words never logged). Deployed (version 1). **Needs the owner:** a free data.gov key
+  (https://fdc.nal.usda.gov/api-key-signup) saved as `FDC_API_KEY`; until then the wizard says the archive is not set
+  up, and the canteen menu and typing it yourself still work.
+- **Sources** (opened 2026-10-13): `fdc` (API guide + OpenAPI spec), `fndds` (FNDDS 2021–2023 documentation: values per
+  100 g edible portion; portion weights are estimations), `gbfpd` (branded foods: per 100 g / 100 ml from the label,
+  rounding, missing is not zero). Evidence Vault entry `foodportion`.
+- **Not done / flags:** no Malaysian food-composition database (MyFCD) is searched: it has no public API; the canteen
+  menu is the Malaysian source in the app. No AI estimates are used. A nutrient missing from the database counts as 0 in
+  the day's macro total after logging (the existing custom-food rule).
+- **Tests:** `tests/67-addfood.test.mjs` (5) and `supabase/tests/food-search.test.ts` (6 Deno tests).
+

@@ -67,7 +67,17 @@ f21:{t:'HealthWiz Kingdom: Group 14 F21 Full Written Report',by:'Group 14, Class
 nistg:{t:'CODATA value: standard acceleration of gravity',by:'NIST Physical Measurement Laboratory',in:'physics.nist.gov',d:'current CODATA set',u:'https://physics.nist.gov/cgi-bin/cuu/Value?gn',k:'constant',
   s:'gₙ = 9.80665 m/s² (exact).',c:'Page read on 2026-10-13.'},
 nistcal:{t:'NIST Guide to the SI, Appendix B.8: Factors for units listed alphabetically',by:'NIST (Thompson A, Taylor BN, SP 811)',in:'nist.gov',d:'2008',u:'https://www.nist.gov/physical-measurement-laboratory/nist-guide-si-appendix-b8',k:'constant',
-  s:'1 kilocalorie (thermochemical) = 4.184 kJ (exact).',c:'Page read on 2026-10-13.'}
+  s:'1 kilocalorie (thermochemical) = 4.184 kJ (exact).',c:'Page read on 2026-10-13.'},
+fdc:{t:'FoodData Central: API Guide',by:'U.S. Department of Agriculture, Agricultural Research Service',in:'fdc.nal.usda.gov',d:'undated page; API version 1.0.0',u:'https://fdc.nal.usda.gov/api-guide/',k:'data',
+  s:'The food database Add More Food searches (Foundation, SR Legacy, Survey (FNDDS) and Branded foods): /foods/search and /food/{fdcId}, a data.gov key, 1,000 requests per hour; the data are public domain (CC0 1.0), credited to FoodData Central.',
+  c:'Page and its OpenAPI specification (fdc_api.json) read on 2026-10-13.'},
+fndds:{t:'2021-2023 Food and Nutrient Database for Dietary Studies: Documentation',by:'USDA Agricultural Research Service, Food Surveys Research Group',in:'ars.usda.gov',d:'2024',
+  u:'https://www.ars.usda.gov/ARSUserFiles/80400530/pdf/fndds/2021_2023_FNDDS_Doc.pdf',k:'method',
+  s:'"Nutrient values per 100 grams of edible portion"; portion weights are "grams of edible portion as consumed" and "estimations to represent a group of foods", so a household measure is approximate. HealthWiz scales: value per 100 g × grams ÷ 100.',
+  c:'PDF read on 2026-10-13 (sections "Portion Weight" and "FNDDS Nutrient Values").'},
+gbfpd:{t:'USDA Global Branded Food Products Database (GBFPD) Documentation',by:'USDA FoodData Central',in:'fdc.nal.usda.gov',d:'2024 (April)',u:'https://fdc.nal.usda.gov/GBFPD_Documentation/',k:'data',
+  s:'Branded foods: USDA calculates nutrient values per 100 g (or 100 ml) from the label\'s per-serving values; label rounding can make them differ from analysis; a missing value "does not indicate a zero value".',
+  c:'Page read on 2026-10-13.'}
 };
 const get=id=>S[id]||null;
 const KIND={method:'METHOD',reference:'REFERENCE VALUE',guideline:'GUIDELINE',constant:'CONSTANT',data:'DATA TABLE',project:'OUR PROJECT'};
