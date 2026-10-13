@@ -82,7 +82,7 @@ function estimate(o,P){P=P===undefined?profile():P;if(!P)return{need:'profile'};
     → {ml, lmin, dur, kj, kcal} (kj/kcal null without a duration) or null when a heart rate or the profile weight is missing. */
 const UTH=15.3,KJ_PER_L=20.1,KJ_PER_KCAL=4.184;
 function projectVO2(o,P){P=P===undefined?profile():P;const b=okHR(o.hrB),a=okHR(o.hrA);if(!P||!b||!a)return null;
-  const ml=UTH*a/b,lmin=ml*P.w/1000,dur=+o.dur>0?+o.dur:0,kj=dur?lmin*dur*KJ_PER_L:null;return{ml,lmin,dur,kj,kcal:kj==null?null:kj/KJ_PER_KCAL}}
+  const ml=UTH*a/b,lmin=ml*P.w/1000,dur=+o.dur>0?+o.dur:0,kj=dur?lmin*dur*KJ_PER_L:null;return{ml,lmin,dur,kj,kcal:kj==null?null:kj/KJ_PER_KCAL,valid:a>=b}}
 /** The pulse as a periodic motion (SHM): f = BPM ÷ 60 (Hz), T = 1 ÷ f (s), ω = 2πf (rad/s). */
 function pulseSHM(bpm){bpm=okHR(bpm);if(!bpm)return null;const f=bpm/60;return{f,T:1/f,w:2*Math.PI*f}}
 const shmTxt=m=>m.f.toFixed(2)+' Hz · T '+m.T.toFixed(2)+' s · ω '+m.w.toFixed(2)+' rad/s';
@@ -237,7 +237,7 @@ function kcalBox(){const P=profile(),e=estimate({pace:PACES[S.pb.pace][1],dur:du
 
 
 // OUR PROJECT'S METHOD: shown only with both heart rates and a confirmed profile weight; never saved, never in the Health Score
-function projBox(){const v=projectVO2({hrB:W.hrB,hrA:W.hrA,dur:durW()});if(!v)return '';
+function projBox(){const v=projectVO2({hrB:W.hrB,hrA:W.hrA,dur:durW()});if(!v)return '';if(!v.valid)return HWCalcX.invalid(okHR(W.hrB),okHR(W.hrA));
   return '<div class="stkc stproj"><b>'+ico('chart')+' OUR PROJECT\'S METHOD <span class="pxtag">ESTIMATE</span></b>'
     +'<p><b>'+vo2Txt(v)+'</b></p>'+(v.kj==null?'':'<p>Energy released ≈ <b>'+kjTxt(v)+'</b></p>')
     +'<small class="mut">VO₂ = 15.3 × after ÷ before · energy = VO₂ × time × 20.1 kJ/L</small><br>'
@@ -297,7 +297,7 @@ function sessCard(s){const w=s.kind==='workout',mx=Math.max(s.hrB||0,s.hrA||0,1)
     +'<small>'+esc(s.d)+' · '+esc(s.t)+'</small><div class="ststags"><span class="pxtag">'+(w?'WORKOUT':'CASUAL')+'</span><span class="pxtag">'+(s.src==='gps'?'GPS CHECK-IN':'BY HAND')+'</span>'+(s.pace?'<span class="pxtag">'+s.pace.toUpperCase()+'</span>':'')+(s.dev?'<span class="pxtag">'+ico('watch',{label:'Heart rate from a smartwatch'})+'WATCH</span>':'')+(s.cam?'<span class="pxtag">'+ico('camera',{label:'Heart rate from the camera'})+'CAMERA</span>':'')+'</div>'
     +'<p><b>'+s.total+'</b> steps'+(s.climbs&&s.climbs*s.steps===s.total?' ('+s.climbs+' × '+s.steps+')':'')+(s.dur?' · '+s.dur+' min':'')+(s.kcal?' '+HWHelp.btn('sk-'+s.id,'Estimated energy use','<p>About <b>'+s.kcal.v+' kcal</b> (range '+s.kcal.lo+'–'+s.kcal.hi+'), worked out when this session was saved'+(s.kcal.m==='met+hr'?' from stair-climbing intensity at the chosen pace and the after-workout heart rate':' from stair-climbing intensity at the chosen pace')+', with the age, sex, height and weight you confirmed.</p><p class="mut">An estimate, not a measurement. Real values can differ a lot.</p>',{label:'About the energy estimate'}):'')+'</p>'
     +(s.hrB||s.hrA?'<div class="stsh"><span>Before</span>'+bar((s.hrB||0)/mx*100,'var(--blue)')+'<b>'+(s.hrB||'–')+(s.dev&&s.dev.b&&s.hrB?ico('watch',{label:'from your watch'}):s.cam&&s.cam.b&&s.hrB?ico('camera',{label:'camera estimate'}):'')+'</b><span>After</span>'+bar((s.hrA||0)/mx*100,'var(--red)')+'<b>'+(s.hrA||'–')+(s.dev&&s.dev.a&&s.hrA?ico('watch',{label:'from your watch'}):s.cam&&s.cam.a&&s.hrA?ico('camera',{label:'camera estimate'}):'')+'</b></div>':'')
-    +(()=>{const v=s.kind==='workout'&&s.dur?projectVO2(s):null;return v?'<p class="mut">Project method '+HWHelp.btn('sp-'+s.id,'Our project\'s method (estimate)','<p>'+vo2Txt(v)+'</p><p>Energy released ≈ <b>'+kjTxt(v)+'</b></p><p class="mut">Worked out with your current weight. VO₂ = 15.3 × after ÷ before; energy = VO₂ × time × 20.1 kJ/L. A classroom estimate from our STEM project (Uth et al., 2004); the after-exercise pulse is not a true maximum, so it is rough.</p>',{label:'About our project\'s method'})+'</p>':''})()
+    +(()=>{const v=s.kind==='workout'&&s.dur?projectVO2(s):null;return v&&!v.valid?HWCalcX.invalid(+s.hrB,+s.hrA,1):v?'<p class="mut">Project method '+HWHelp.btn('sp-'+s.id,'Our project\'s method (estimate)','<p>'+vo2Txt(v)+'</p><p>Energy released ≈ <b>'+kjTxt(v)+'</b></p><p class="mut">Worked out with your current weight. VO₂ = 15.3 × after ÷ before; energy = VO₂ × time × 20.1 kJ/L. A classroom estimate from our STEM project (Uth et al., 2004); the after-exercise pulse is not a true maximum, so it is rough.</p>',{label:'About our project\'s method'})+'</p>':''})()
     +(s.hrHi||s.hrAv||s.hrLo?'<p class="mut">Climb: '+(s.hrLo||'–')+' / '+(s.hrAv||'–')+' / '+(s.hrHi||'–')+' BPM <small>(low / avg / high)</small>'+(s.dev&&s.dev.c?' '+ico('watch',{label:'recorded by your watch'}):'')+(s.hrPct?' · peak ≈'+Math.round(s.hrPct)+'% of est. max <small>(rough)</small>':'')+'</p>':'')
     +'</div><div class="stsa"><button class="sm g" aria-label="Edit" data-a="edit" data-id="'+esc(s.id)+'">✏️</button><button class="sm g" aria-label="Delete" data-a="del" data-id="'+esc(s.id)+'">🗑️</button></div></div>'}
 function chronicle(){const L=all().slice(-10).reverse();

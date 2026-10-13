@@ -76,8 +76,8 @@ reg('questpick','How quests are chosen','<p>The focus quest is picked from your 
 reg('statcmp','About this comparison','<p><b>Completed days only</b> (today is still in progress). Averages use days with data; stair steps are totals. Changes are descriptions, not judgments.</p>');
 reg('scorenote','About the Health Score','<p>A habit score from what you logged, <b>not a diagnosis</b>.</p>');
 reg('scorewt','About these weights','<p>These weights are the team\'s reasoned judgement from the sources above, not a validated clinical formula.</p><p class="mut"><small>For developers: edit WT in js/v6-score.js to change them.</small></p>'
-  +(typeof HWSources!=='undefined'?'<b class="hwx-h">SOURCES CHECKED</b><ul class="hwx-src">'+['whofv','whodiet','iomdri','mifflin','whopa','acsm','aasm','aasmkids','cdcbmi','cohen'].map(HWSources.cite).join('')+'</ul>'
-    +'<b class="hwx-h">NOT YET CHECKED</b><ul class="hwx-l"><li>The AHA resting heart-rate range (60–100 BPM): the AHA page could not be opened for checking.</li><li>The Group 14 stair study figures: to be checked against the team\'s approved report.</li></ul>':''));
+  +(typeof HWSources!=='undefined'?'<b class="hwx-h">SOURCES CHECKED</b><ul class="hwx-src">'+['f21','whofv','whodiet','iomdri','mifflin','whopa','acsm','aasm','aasmkids','cdcbmi','cohen'].map(HWSources.cite).join('')+'</ul>'
+    +'<b class="hwx-h">NOT YET CHECKED</b><ul class="hwx-l"><li>The AHA resting heart-rate range (60–100 BPM): the AHA page could not be opened for checking.</li></ul>':''));
 reg('fvinfo','Fruit & vegetables','<p>1 portion = 80 g (dried fruit 30 g). Counted automatically from the fruit and vegetable dishes in your nutrition log.</p>');
 
 HWUI.css('help',`

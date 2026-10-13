@@ -23,8 +23,8 @@ function project(v,b,a,w){const N=HWExplain.num,P={w};
   if(v.kj!=null)steps.push('Energy: '+N(v.lmin,3)+' × '+N(v.dur,1)+' min × 20.1 = '+N(v.kj,1)+' kJ','In kcal: '+N(v.kj,1)+' ÷ 4.184 = '+N(v.kcal,1)+' kcal');
   return HWExplain.html({inputs:[{n:'Pulse before (rest)',v:b,u:'BPM',o:'you',d:0},{n:'Pulse after',v:a,u:'BPM',o:'you',d:0},{n:'Weight',v:P.w,u:'kg',o:'you',d:1},{n:'Workout time',v:v.dur||null,u:'min',o:v.dur?'you':'missing',d:1}],
     formula:'VO₂ (mL/kg/min) = 15.3 × pulse after ÷ pulse before\nVO₂ (L/min) = VO₂ × weight ÷ 1000'+(v.kj!=null?'\nenergy = VO₂ (L/min) × minutes × 20.1 kJ per litre of O₂\nkcal = energy in kJ ÷ 4.184':''),
-    steps,src:v.kj!=null?['uth','weir','nistcal']:['uth'], // only the sources the shown steps use
-    app:'This is Group 14\'s classroom method. It borrows Uth\'s ratio, which was built for VO₂max from a measured maximal heart rate, and uses the pulse just after climbing instead; 20.1 kJ per litre assumes a mixed diet.',
+    steps,src:v.kj!=null?['f21','uth','mcardle','weir','nistcal']:['f21','uth'], // only the sources the shown steps use
+    app:'This is Group 14\'s classroom method (report, Section 3.1). It assumes the pulse just after climbing equals the maximum pulse, so the result is an estimated VO₂max, not the oxygen you used during the climb. 20.1 kJ per litre is the report\'s interpolation for a mixed diet (RER 0.8) between McArdle\'s 19.6 kJ/L (RER 0.7) and 21.1 kJ/L (RER 1.0); RER was not measured.',
     limits:['Uth\'s factor was found in well-trained men with a true maximal heart rate; an after-exercise pulse is lower, and the result is not your VO₂max or your real oxygen use.','Shown for learning only: never saved, never in the Health Score.']})}
 /** Peak heart rate as a share of 220 − age (js/v6-stairs.js peak()); dev = the peak came from a heart-rate device. */
 function peak(p,dev){const age=p&&p.max?220-p.max:null;
@@ -36,4 +36,9 @@ function peak(p,dev){const age=p&&p.max?220-p.max:null;
     result:p.pct+' %',src:['tanaka'],
     app:'HealthWiz keeps 220 − age because it is the rule taught in class, and shows Tanaka\'s formula beside it so the difference is visible.',
     limits:['Neither formula measures your own maximum heart rate.','The share does not say whether a workout was safe or too hard. Stop if you feel unwell.']})}
-return{stairKcal,project,peak}})();
+/** The project method cannot be used when the pulse after is below the pulse before: VO₂ would be under 15.3 and "cannot be a
+    maximum and should not be interpreted" (Group 14 report, Section 4.4). short = one line for a session card. */
+function invalid(b,a,short){const t='Our project\'s method is not valid here: the pulse after ('+a+' BPM) is lower than the pulse before ('+b+' BPM), so after ÷ before is below 1.';
+  return short?'<p class="mut">'+t+'</p>':'<div class="stkc stproj"><b>OUR PROJECT\'S METHOD <span class="pxtag">NOT VALID</span></b><p>'+t+'</p>'
+    +'<small class="mut">Our report found the same in 6 of 18 results and did not use them. Count your pulse in the first 15–30 seconds after climbing, when it is closest to its peak (report, Section 4.8).</small></div>'}
+return{stairKcal,project,peak,invalid}})();

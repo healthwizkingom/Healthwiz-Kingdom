@@ -4,6 +4,7 @@
 
    A record: t title · by authors / organisation · in journal or publisher · d date · u direct link (DOI or official page)
    · k kind: 'method' (how a number is worked out) | 'reference' (a reference value or cut-off) | 'guideline' | 'constant' | 'data'
+     | 'project' (the team's own report: not online, so u is empty and the panel shows the title without a link)
    · s what HealthWiz uses it for (the claim it supports) · c how it was checked, and when · x optional caution.
    Checked in this repository on 2026-10-13: PubMed records (title, authors, journal, DOI, abstract) and the official pages.
    A source is only listed after it was opened and seen to support its claim; where only part could be confirmed, `c` says
@@ -54,19 +55,26 @@ tanaka:{t:'Age-predicted maximal heart rate revisited',by:'Tanaka H, Monahan KD,
   s:'Maximal heart rate is better predicted by 208 − 0.7 × age; 220 − age, the common rule, underestimates it in older adults and was never validated in a large sample.',c:'PubMed 11153730: stated in the abstract.'},
 whopa:{t:'World Health Organization 2020 guidelines on physical activity and sedentary behaviour',by:'Bull FC, Al-Ansari SS, Biddle S, et al.',in:'British Journal of Sports Medicine 54(24):1451–1462',d:'2020',u:'https://doi.org/10.1136/bjsports-2020-102955',k:'guideline',
   s:'Adults: 150–300 min of moderate or 75–150 min of vigorous activity a week; children and adolescents: an average of 60 min a day of moderate-to-vigorous activity.',c:'PubMed 33239350: stated in the abstract. The WHO publication page (9789240015128) was also opened.'},
-cohen:{t:'A global measure of perceived stress',by:'Cohen S, Kamarck T, Mermelstein R',in:'Journal of Health and Social Behavior 24(4):385–396',d:'1983',u:'https://pubmed.ncbi.nlm.nih.gov/6668417/',k:'method',
-  s:'Perceived stress is measured by self-report (the Perceived Stress Scale).',c:'PubMed 6668417 (record only; no abstract or DOI listed).',x:'HealthWiz\'s stress check-in is a single self-rating, not the Perceived Stress Scale.'},
+cohen:{t:'A global measure of perceived stress',by:'Cohen S, Kamarck T, Mermelstein R',in:'Journal of Health and Social Behavior 24(4):385–396',d:'1983',u:'https://doi.org/10.2307/2136404',k:'method',
+  s:'Perceived stress is measured by self-report (the Perceived Stress Scale).',c:'PubMed 6668417; the DOI (given in the Group 14 report) resolves at Crossref to this article, checked 2026-10-13.',x:'HealthWiz\'s stress check-in is a single self-rating, not the Perceived Stress Scale.'},
+mcardle:{t:'Exercise Physiology: Nutrition, Energy, and Human Performance (8th ed.)',by:'McArdle WD, Katch FI, Katch VL',in:'Wolters Kluwer Health, Philadelphia',d:'2015',u:'https://eld.bl.uk/catalog/017933210',k:'reference',
+  s:'Energy released per litre of oxygen: about 19.6 kJ at RER 0.7 (mostly fat) and 21.1 kJ at RER 1.0 (mostly carbohydrate), as cited by the Group 14 report, which interpolates 20.1 kJ/L at RER 0.8.',
+  c:'The book was found in library catalogues (British Library record linked) on 2026-10-13; the page with the two values could not be opened. As a cross-check, Weir\'s equation gives 19.7 kJ/L at RER 0.7 and 21.1 kJ/L at RER 1.0.'},
+f21:{t:'HealthWiz Kingdom: Group 14 F21 Full Written Report',by:'Group 14, Class F21, Program Asasi Sains, Kolej MARA Kulim',in:'Integrated STEM Project Assessment (not published online)',d:'2026-10-10',u:'',k:'project',
+  s:'The three measured staircases (Table 2), the pulse counts of six participants after mild, moderate and vigorous climbing (Appendix A, Tables 7–11), the project\'s VO₂ and energy method, and its limitations (Section 4.7).',
+  c:'Supplied by the owner on 2026-10-13. Every derived value in HWF21 (js/v6-f21.js) was recomputed from the raw counts and agrees with Tables 7, 8, 9 and 11, except one rounding (P2 moderate VO₂ 15.3 × 1.5 = 22.95, printed 22.9). One sentence is not supported by its own Table 9: "the vigorous climb gave the highest energy release for every participant" holds for 5 of 6 (P2: moderate 87.5 kJ, vigorous 85.1 kJ).',
+  x:'Six 18-year-old male students, one session each; a classroom study, not clinical data.'},
 nistg:{t:'CODATA value: standard acceleration of gravity',by:'NIST Physical Measurement Laboratory',in:'physics.nist.gov',d:'current CODATA set',u:'https://physics.nist.gov/cgi-bin/cuu/Value?gn',k:'constant',
   s:'gₙ = 9.80665 m/s² (exact).',c:'Page read on 2026-10-13.'},
 nistcal:{t:'NIST Guide to the SI, Appendix B.8: Factors for units listed alphabetically',by:'NIST (Thompson A, Taylor BN, SP 811)',in:'nist.gov',d:'2008',u:'https://www.nist.gov/physical-measurement-laboratory/nist-guide-si-appendix-b8',k:'constant',
   s:'1 kilocalorie (thermochemical) = 4.184 kJ (exact).',c:'Page read on 2026-10-13.'}
 };
 const get=id=>S[id]||null;
-const KIND={method:'METHOD',reference:'REFERENCE VALUE',guideline:'GUIDELINE',constant:'CONSTANT',data:'DATA TABLE'};
+const KIND={method:'METHOD',reference:'REFERENCE VALUE',guideline:'GUIDELINE',constant:'CONSTANT',data:'DATA TABLE',project:'OUR PROJECT'};
 const e=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 /** A source as a short, clickable citation with what it supports and how it was checked. */
 function cite(id){const r=get(id);if(!r)return '<li>Source "'+e(id)+'" is not in the list (not verified).</li>';
-  return '<li class="hwsrc"><a href="'+e(r.u)+'" target="_blank" rel="noopener noreferrer">'+e(r.t)+'</a> <span class="pxtag">'+KIND[r.k]+'</span><br><small>'+e(r.by)+' · '+e(r.in)+' · '+e(r.d)+'</small>'+
+  return '<li class="hwsrc">'+(r.u?'<a href="'+e(r.u)+'" target="_blank" rel="noopener noreferrer">'+e(r.t)+'</a>':'<b>'+e(r.t)+'</b>')+' <span class="pxtag">'+KIND[r.k]+'</span><br><small>'+e(r.by)+' · '+e(r.in)+' · '+e(r.d)+'</small>'+
     '<small><i>Supports:</i> '+e(r.s)+'</small>'+(r.x?'<small><i>Limits:</i> '+e(r.x)+'</small>':'')+'<small class="mut"><i>Checked:</i> '+e(r.c)+'</small></li>'}
 return{get,cite,all:()=>Object.keys(S).map(k=>Object.assign({id:k},S[k])),ids:()=>Object.keys(S)}})();
 

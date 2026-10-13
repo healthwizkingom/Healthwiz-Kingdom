@@ -17,10 +17,11 @@ test('source records: complete, direct https links, no Wikipedia, and every cite
   const all = await page.evaluate(() => HWSources.all());
   assert.ok(all.length >= 20, 'records: ' + all.length);
   for (const r of all) {
-    for (const k of ['t', 'by', 'in', 'd', 'u', 'k', 's', 'c']) assert.ok(r[k], r.id + ' has ' + k);
-    assert.match(r.u, /^https:\/\//, r.id + ' link');
+    for (const k of ['t', 'by', 'in', 'd', 'k', 's', 'c']) assert.ok(r[k], r.id + ' has ' + k);
+    if (r.k === 'project') assert.equal(r.u, '', r.id + ': the team report is not online, so no link is made up');
+    else assert.match(r.u, /^https:\/\//, r.id + ' link');
     assert.doesNotMatch(r.u + r.t + r.in, /wikipedia/i, r.id);
-    assert.ok(['method', 'reference', 'guideline', 'constant', 'data'].includes(r.k), r.id + ' kind');
+    assert.ok(['method', 'reference', 'guideline', 'constant', 'data', 'project'].includes(r.k), r.id + ' kind');
   }
   // ids cited anywhere in the code: src:[…] in explanations and […].map(HWSources.cite) lists
   const ids = new Set(all.map(r => r.id)), used = new Set();
