@@ -99,14 +99,22 @@ Deno.test('with the search on but no web page found, the answer is not "sure"', 
   assertEquals([r.json.result.sources, r.json.result.confidence], [[], 'low']);
 });
 
-Deno.test('a model without search grounding (400) is asked again without it, and the result says it was not searched', async () => {
-  firstStatus = 400; calls.length = 0;
+Deno.test('a model or key that cannot use the search tool (400, or 429 for its quota) is asked again without it, the result says it was not searched, and the reason is logged', async () => {
+  firstStatus = 429; logs.length = 0; calls.length = 0;
   const r = await ask({ food: 'teh tarik' }, await good());
   assertEquals(r.status, 200);
   assertEquals(r.json.result.searched, false);
   const g = calls.filter(x => x.url.includes('generativelanguage'));
   assertEquals(g.length, 2);
   assertEquals(JSON.parse(g[1].init!.body as string).tools, undefined);
+  assert(logs.join('\n').includes('"first":"429 INVALID_ARGUMENT tool not supported"'), 'the reason is logged: ' + logs.join('|'));
+  assert(!logs.join('\n').includes('teh tarik'), 'the words are never logged');
+  // both calls refused for quota: busy, with both reasons logged
+  status = 429; firstStatus = 429; logs.length = 0;
+  const b = await ask({ food: 'teh tarik' }, await good('user-9'));
+  status = 200;
+  assertEquals([b.status, b.json.error], [503, 'busy']);
+  assert(logs.join('\n').includes('"status":429') && logs.join('\n').includes('"first":"429'));
 });
 
 Deno.test('not a food → unknown; a bad body is 400; Gemini busy 503 busy; another Gemini error 502', async () => {
