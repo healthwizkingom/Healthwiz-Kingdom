@@ -1548,59 +1548,51 @@ Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel
 - **Tests:** `tests/66-campus.test.mjs` (points and grouping, warnings, the door order, a marker and the list, GPS granted,
   far and denied, the weather point's distance, 360 px layout, zoom, reduced motion, no name clashes).
 
-## Master prompt Stage 5: Add More Food with the Wannabe Wizard (`js/v6-addfood.js`, `supabase/functions/food-search`)
+## Master prompt Stage 5: Add More Food with the Wannabe Wizard (`js/v6-addfood.js`, `supabase/functions/food-guess`)
 
 - **Art** (owner's request): the Wannabe Wizard's six poses, seven expressions and his room, from the owner's sheet
   (`tools/art/make_apprentice.py`); the owner raised the image budget to 880 KB for these and Luna's room.
-- **Flow:** ADD MORE FOOD opens the wizard above the original custom form, which is unchanged (one SAVE CUSTOM FOOD click
-  still saves). 1) "What did you eat?" searches the Kolej MARA Kulim canteen menu (offline, signed out) and, signed in, USDA
-  FoodData Central through the `food-search` Edge Function; each match says where it is from; the player picks. 2) The
-  portion is food-specific: a menu dish's own portion × ½ to 2; a database food's household measures with gram weights,
-  or a packaged food's label serving, each with a small picture of the kind of measure; grams only when the database
-  has no measure. 3) The card updates at once with kcal, protein, carbohydrate and fat, the method line, the source (FDC ID,
-  data type, CC0) and its limits. 4) Nothing is saved before CONFIRM AND LOG; the name and meal can be changed; the entry
-  records `src`, `db: 'fdc'`, `fdc`, `fdt`, `g`, `u`, `p`, `c`, `f` and is back-dated like any food. The log shows a
-  "USDA FoodData Central" badge instead of "Custom Food".
-- **He reacts:** front and happy when asking, walking and determined while searching, surprised with results, back
-  turned and nervous with none, confused on an error, determined while choosing, casting (with the card's reveal) when
-  logged. CSS only; still under reduced motion.
-- **Backend:** `food-search` (signed-in only, JWT checked twice, 60 searches per player per hour per instance, key in the
-  `FDC_API_KEY` secret, search words never logged). Deployed (version 1). **Needs the owner:** a free data.gov key
-  (https://fdc.nal.usda.gov/api-key-signup) saved as `FDC_API_KEY`; until then the wizard says the archive is not set
-  up, and the canteen menu and typing it yourself still work.
-- **Sources** (opened 2026-10-13): `fdc` (API guide + OpenAPI spec), `fndds` (FNDDS 2021–2023 documentation: values per
-  100 g edible portion; portion weights are estimations), `gbfpd` (branded foods: per 100 g / 100 ml from the label,
-  rounding, missing is not zero). Evidence Vault entry `foodportion`.
-- **Not done / flags:** no Malaysian food-composition database (MyFCD) is searched: it has no public API; the canteen
-  menu is the Malaysian source in the app. No AI estimates are used. A nutrient missing from the database counts as 0 in
-  the day's macro total after logging (the existing custom-food rule).
-- **Tests:** `tests/67-addfood.test.mjs` and `supabase/tests/food-search.test.ts` (6 Deno tests).
+- **History:** Stage 5 first searched the canteen menu and USDA FoodData Central (`food-search`). At the owner's request
+  (2026-10-14) USDA was removed completely: the function, its tests, its sources and Evidence Vault entry, and the USDA
+  key (`FDC_API_KEY`) are no longer used. The Wizard is now the web search described below.
 
-### Stage 5 follow-up: the Wizard is a food search engine (owner: "make the wizard a search engine where he searches for the best calorie and macros based on the food and portion, and any add-ons or removed things the user typed; use the Gemini API key so it can search the best estimate or real data")
+### Stage 5 follow-up: the Wizard is a food search engine (owner: "automatically know the macros and calories of any food, any portion, any add-on, any removal; a search engine that finds the best matches with correct, solid references; I don't want it to use USDA")
 
 - **Flow:** one box: the food, the portion and any changes in the player's words ("nasi lemak, big plate, extra fried
   chicken, no sambal"). Signed in, SEARCH asks `supabase/functions/food-guess`: Gemini (`gemini-3.5-flash-lite`, the
-  `GEMINI_API_KEY` secret Luna uses) with Grounding with Google Search looks up nutrition data (prompted to prefer MyFCD,
-  USDA FoodData Central, Singapore HPB and other databases, then labels), applies the changes and returns the parts
-  (weight, kcal, protein, carbohydrate, fat), the portion used, a note and its confidence. The web pages it used come
-  back from `groundingMetadata` and are listed as "Where he found it" (links open in a new tab); Google's search
-  suggestions (`searchEntryPoint.renderedContent`) are shown in a sandboxed frame, as Google asks for grounded answers.
-  If a model rejects the search tool (400) the function asks once without it and the card says the answer is from the
-  model's own knowledge. JWT checked twice; 40 searches per player per hour per instance; the words are never logged.
-  Deployed. Tests: `supabase/tests/food-guess.test.ts` (6 Deno tests).
-- **The card:** total kcal and macros (the app sums the parts), each part with − and + (half steps, 0 to 4×), the
-  portion, the note, "AI estimate by Google Gemini from web sources, not a measurement. How sure: …". Nothing is saved
-  before LOG IT. Not right? Change the words and search again.
-- **Signed out, offline, or the search failing:** he searches his books instead: the canteen menu and, signed in, USDA
-  FoodData Central through `food-search`, with food-specific portions, as before (SEARCH MY BOOKS INSTEAD when signed in).
-- **Saved entry:** a custom food with `db: 'est'`, `how: 'web' | 'ai'`, `g`, `p`, `c`, `f`, `parts` [label, g, kcal] and
-  `refs` (up to five source links); no schema change. The log shows "Wizard's estimate" and its macros count as
-  estimated (EST), not "YOURS". USDA book entries no longer show "kcal by you".
-- **Removed** (replaced by the search, at the owner's request): the question-by-question guesser and its offline parts
-  table (`js/v6-foodparts.js`, `tools/food/make_food_parts.py`).
+  `GEMINI_API_KEY` secret Luna uses) with Grounding with Google Search looks for citable nutrition data, in this order:
+  the brand or restaurant's own nutrition information; MyFCD and other national food tables for local foods; university,
+  hospital or dietitian pages; reputable nutrition sites. It applies the changes and returns the parts (weight, kcal,
+  protein, carbohydrate, fat), the portion used, a note, its confidence, **the name of the source each part came from
+  and the arithmetic behind it** ("per 100 g: 180 kcal, x 250 g"; "estimate" when it found no source, which the card
+  shows as "No source found: his own estimate"). The web pages it used come back from `groundingMetadata` and are
+  listed as "Where he found it" (links open in a new tab); Google's search suggestions are shown in a sandboxed frame,
+  as Google asks for grounded answers. If a model rejects the search tool (400) the function asks once without it and the
+  card says the answer is from the model's own knowledge. JWT checked twice; 40 searches per player per hour per
+  instance; the words are never logged. Tests: `supabase/tests/food-guess.test.ts` (8 Deno tests).
+- **Checks the function makes on every answer** (so "solid" is tested, not assumed): each part's kcal against
+  4 × protein + 4 × carbohydrate + 9 × fat (the Atwater general factors, FAO Food and Nutrition Paper 77 chapter 3, source
+  `fao77`), flagged when more than 25 kcal and 25 % off; confidence is forced to "low" when at least half the parts name no
+  source, when any part is flagged, or when the search found no web page, and capped at "medium" when some part has no
+  source. Worked example: 8 g protein + 70 g carbohydrate + 15 g fat = 32 + 280 + 135 = 447 kcal, so 450 passes and 900
+  is flagged.
+- **The card:** total kcal and macros (the app sums the parts), each part with − and + (half steps, 0 to 4×), its source
+  and arithmetic, a "Check this one" line for a flagged part, the note, and "AI estimate by Google Gemini from web
+  sources, not a measurement. How sure: …". Nothing is saved before LOG IT. Not right? Change the words and search again.
+- **Signed out, offline, or the search failing:** he can only look at the Kolej MARA Kulim canteen menu already in the
+  app (kcal per stated portion; macros `estMac`, labelled), with a note to sign in for the web search.
+- **Saved entry:** a custom food with `db: 'est'`, `how: 'web' | 'ai'`, `g`, `p`, `c`, `f`, `parts` [label, g, kcal, source]
+  and `refs` (up to five source links); no schema change. The log shows "Wizard's estimate" and its macros count as
+  estimated (EST), not "YOURS". Entries saved by the earlier USDA version (`db: 'fdc'`) still show, as "Database entry".
+- **Removed:** the question-by-question guesser, its offline parts table, and every USDA piece (`food-search`, sources
+  `fdc`/`fndds`/`gbfpd`, vault entry `foodportion`). `tests/67-addfood.test.mjs` checks that no USDA reference remains.
+  **Owner:** the deployed `food-search` Edge Function can be deleted in the Supabase dashboard, and the `FDC_API_KEY`
+  secret removed.
 - **Art:** the scene is 3:2 and he stands at 97 % of its height.
-- **Flags:** web estimates can be wrong; the card shows the sources so the player can check. Test harness: the seed
-  scripts now run only in the top frame (Playwright runs init scripts in every frame, including the sandboxed one).
+- **Flags:** web estimates can be wrong and the card says so; the sources are shown so the player can check. The model
+  chooses its own sources, so a source named in a part is what Gemini reports, not something HealthWiz opened (the pages
+  in "Where he found it" are the ones Google's grounding returned). Test harness: the seed scripts now run only in the top
+  frame (Playwright runs init scripts in every frame, including the sandboxed one).
 
 ### Campus Observatory follow-up (owner: "user can move the screen; auto locate to the nearest stair")
 
