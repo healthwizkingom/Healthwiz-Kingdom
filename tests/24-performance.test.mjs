@@ -182,9 +182,11 @@ test('no leaks: 60 navigations leave listeners, DOM nodes and timers flat', asyn
 // ≈ 11 KB): moves.webp alone may reach 180 KB, every other image stays within 100 KB, and the total is 680 KB.
 // On 2026-10-13 the owner raised the total to 740 KB for Luna from their character sheet (luna-faces.webp ≈ 15 KB,
 // at first luna-full.webp ≈ 4 KB, since replaced by her nine poses in luna-poses.webp ≈ 24 KB) and the Science Laboratory background from their concept sheet (lab-scene.webp ≈ 29 KB).
-// On 2026-10-13 the owner raised it again, to 880 KB, for the Wannabe Wizard of Add More Food (his poses, expressions and
+// On 2026-10-13 the owner raised it again, to 880 KB, for Luke (the Wannabe Wizard) of Add More Food (his poses, expressions and
 // room) and Luna's room behind Talk with Luna, all from the owner's own sheets. On 2026-10-14 the Laboratory's larger Luna
-// (luna-lab.webp ≈ 24 KB, cut from the reference sheet) joined them within the same 880 KB.
+// (luna-lab.webp ≈ 24 KB, cut from the reference sheet) joined them within the same 880 KB; and Luke's art was recut from his
+// reference sheet at 1.5 times the size with his props and portrait (luke-poses 28 KB, luke-faces 14 KB, luke-props 4 KB, luke-room
+// 38 KB; total 892,883 of 901,120 bytes).
 const SHEET_CAP = { 'exercise/moves.webp': 180 * 1024 };
 test('assets stay lean: the art is lossless WebP, no image over 100 KB (the moves sheet 180 KB), all images ≤ 880 KB together', () => {
   const dir = path.join(root, 'assets', 'img'), files = fs.readdirSync(dir, { recursive: true }).filter(f => fs.statSync(path.join(dir, f)).isFile());

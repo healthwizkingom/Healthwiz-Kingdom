@@ -133,7 +133,7 @@ function talkError(e){const k=e&&e.code;
   return{signin:'Sign in to talk with Luna.',offline:'You are offline, so Luna cannot reach her spellbook. Try again when you are back online.',
     busy:'Many adventurers are talking with Luna right now. Please try again in a few minutes.',
     nokey:'Luna\'s spellbook is not set up on the server yet, so she cannot answer here.'}[k]||'Luna could not find an answer just now. Try again in a moment.'}
-// Talk with Luna happens in her room (assets/img/luna-room.webp, from the owner's scene, tools/art/make_apprentice.py):
+// Talk with Luna happens in her room (assets/img/luna-room.webp, from the owner's scene, tools/art/make_luke.py):
 // her full figure stands in it, and her pose and face follow the chat
 const MOODPOSE={curious:'wave',thoughtful:'think',cheerful:'happy',apologetic:'confused'};
 function room(mood){return '<div class="v6lroom" data-face="'+mood+'"><img src="'+ROOM+'" alt="" width="336" height="189" class="v6lrbg">'+full({pose:MOODPOSE[mood]||'idle'})+'</div>'}

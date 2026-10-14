@@ -1548,10 +1548,10 @@ Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel
 - **Tests:** `tests/66-campus.test.mjs` (points and grouping, warnings, the door order, a marker and the list, GPS granted,
   far and denied, the weather point's distance, 360 px layout, zoom, reduced motion, no name clashes).
 
-## Master prompt Stage 5: Add More Food with the Wannabe Wizard (`js/v6-addfood.js`, `supabase/functions/food-guess`)
+## Master prompt Stage 5: Add More Food with Luke, the Wannabe Wizard (`js/v6-addfood.js`, `supabase/functions/food-guess`)
 
-- **Art** (owner's request): the Wannabe Wizard's six poses, seven expressions and his room, from the owner's sheet
-  (`tools/art/make_apprentice.py`); the owner raised the image budget to 880 KB for these and Luna's room.
+- **Art** (owner's request; renamed Luke on 2026-10-14, see below): his six poses, seven expressions and his room, from the owner's sheet
+  (`tools/art/make_luke.py`); the owner raised the image budget to 880 KB for these and Luna's room.
 - **History:** Stage 5 first searched the canteen menu and USDA FoodData Central (`food-search`). At the owner's request
   (2026-10-14) USDA was removed completely: the function, its tests, its sources and Evidence Vault entry, and the USDA
   key (`FDC_API_KEY`) are no longer used. The Wizard is now the web search described below.
@@ -1609,5 +1609,28 @@ Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel
   `luna-poses.webp` is byte-for-byte unchanged. The image total is 874,787 bytes of the 880 KB (901,120) budget.
 - `HWLuna.mount(el, { kind: 'full', cycle: 1, sheet: 'lab' })` draws her from that sheet with her own slow loop (idle, staff,
   pointing, thinking). In the Laboratory she stands at the scene's lower right at 80 % of the scene's height (a percentage,
-  so she keeps filling most of the scene at any width, as the Wannabe Wizard does). `tests/62-lab.test.mjs` checks the sheet in use and her size
+  so she keeps filling most of the scene at any width, as Luke does). `tests/62-lab.test.mjs` checks the sheet in use and her size
   (at least 60 % of the scene's height, at least 180 px); `tests/59-luna.test.mjs` lists the new file.
+
+### Luke (owner, 2026-10-14: "change his name to Luke, crop it from the reference sheet and animate him based on response and expression; use every reference, every angle, every expression sheet, and maximise all of them")
+
+- **Renamed** from the Wannabe Wizard to **Luke** in the app (his speech-bubble label is LUKE, his portrait says "Luke",
+  the saved source reads "Luke web search"), the `food-guess` instructions and the docs. The sheet's own title is unchanged.
+- **Recut from the reference sheet** with `tools/art/make_luke.py` (renamed from `make_apprentice.py`; the images are renamed
+  `apprentice-*` to `luke-*`, and `sw.js` follows): `luke-poses.webp` (720 × 180, ≈ 28 KB) all six angles at 120 × 180, 1.5
+  times the old size; `luke-faces.webp` (448 × 64) all seven expressions; **new** `luke-props.webp` (280 × 40, ≈ 4 KB) the
+  six PROPS & ITEMS (books, notes, wand, backpack, scrolls, potion) and the COMPACT PORTRAIT; `luke-room.webp` (his room) and
+  `luna-room.webp` are byte-identical to before. Total 892,883 of 901,120 bytes. The KEY DETAILS panel (hat, wand, glasses,
+  backpack close-ups) is not used: its pictures are already his poses and props.
+- **Animation** (`director()` in `js/v6-addfood.js`; CSS only, `patch()` updates his scene without touching the input, so
+  typing keeps its cursor): waiting, front/happy; as you type, three-quarter with notes, surprised then determined; stopped
+  typing for a moment, back to waiting; 30 s of nothing, front/tired swaying; searching, he **turns all the way round**
+  (walking, three-quarter, side, back, side, three-quarter, front, 6 s loop) determined, the books circling; a high-confidence
+  answer, casting/excited hopping with the potion; medium, front/surprised with notes; low, side/nervous swaying with the
+  backpack; a part whose numbers do not add up, three-quarter/confused tilting with the scrolls; not a food, confused; an
+  error, side/nervous shaking; nothing on the canteen menu, back turned and nervous; − and +, determined with a wand flick;
+  logged, casting/excited hopping. Under reduced motion or the Performance mode nothing moves: he holds the angle ("back" while
+  searching), the expression and the item.
+- **Tests:** `tests/67-addfood.test.mjs` (10): the name; every state's angle, expression and item; that all six angles' poses
+  that can occur (front, three-quarter, side, back, casting; walking is in the searching loop), all seven expressions and all
+  six props appear; the turning loop and the circling books while searching; the four sheets' sizes.

@@ -23,7 +23,7 @@ const PRECACHE = [
   'assets/img/avatar-kg.webp', 'assets/img/avatar-kgf.webp', 'assets/img/avatar-kn.webp', 'assets/img/avatar-knf.webp',
   'assets/img/avatar-sk.webp', 'assets/img/avatar-wz.webp', 'assets/img/avatar-wzf.webp', 'assets/img/bedimg.jpg', 'assets/img/bedroom.webp', 'assets/img/sleeper-react.webp',
   'assets/img/kn.webp', 'assets/img/knight-kbd.webp', 'assets/img/knight-kcp.webp', 'assets/img/knight-khr.webp',
-  'assets/img/orb-scene.webp', 'assets/img/luna-faces.webp', 'assets/img/luna-poses.webp', 'assets/img/luna-lab.webp', 'assets/img/luna-room.webp', 'assets/img/apprentice-poses.webp', 'assets/img/apprentice-faces.webp', 'assets/img/apprentice-room.webp', 'assets/img/lab-scene.webp', 'assets/img/orc.webp', 'assets/img/study.jpg', 'assets/img/wiz.webp', 'assets/img/medius-reactions.webp',
+  'assets/img/orb-scene.webp', 'assets/img/luna-faces.webp', 'assets/img/luna-poses.webp', 'assets/img/luna-lab.webp', 'assets/img/luna-room.webp', 'assets/img/luke-poses.webp', 'assets/img/luke-faces.webp', 'assets/img/luke-props.webp', 'assets/img/luke-room.webp', 'assets/img/lab-scene.webp', 'assets/img/orc.webp', 'assets/img/study.jpg', 'assets/img/wiz.webp', 'assets/img/medius-reactions.webp',
   'assets/img/exercise/moves.webp', 'assets/img/exercise/muscles.webp',
   'assets/audio/home-theme.mp3',
   'assets/icons/icon-32.png', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png',

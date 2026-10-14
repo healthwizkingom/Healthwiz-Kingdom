@@ -1,11 +1,23 @@
-/* v6: Add More Food, guided by the Wannabe Wizard, an apprentice new to the job. Not part of the original.
+/* v6: Add More Food, guided by Luke, the apprentice (first called the Wannabe Wizard; the owner renamed him Luke on
+   2026-10-14). Not part of the original.
    Master prompt "Nutrition modification", reworked at the owner's request (2026-10-14): a search engine that knows the
    calories and macros of any food, any portion, any add-on or removal, from solid, cited references.
    ADD MORE FOOD on the Nutrition page opens the wizard above the original custom-food form, which stays as it was (type
    it yourself; one SAVE CUSTOM FOOD click still saves).
-   * Art, from the owner's "The Wannabe Wizard" sheet and his room (tools/art/make_apprentice.py): six poses
-     (apprentice-poses.webp), seven expressions (apprentice-faces.webp) and his room (apprentice-room.webp). He fills most
-     of the scene's height. CSS only; still under reduced motion or the Performance mode.
+   * Luke, from the owner's "The Wannabe Wizard" reference sheet (tools/art/make_luke.py), every part of it used:
+     all six angles (luke-poses.webp, 120 x 180: front, three-quarter, side, back, walking, casting), all seven
+     expressions (luke-faces.webp: happy, confused, nervous, determined, surprised, tired, excited), the six PROPS &
+     ITEMS and the COMPACT PORTRAIT (luke-props.webp: books, notes, wand, backpack, scrolls, potion, portrait) and his room
+     (luke-room.webp). He reacts to what happens (director() below), in CSS only:
+       - waiting: front and happy; after 30 s of no input he is tired; as you type he turns three-quarter to listen
+         (surprised, then determined once you give detail) with his notes out;
+       - searching: he turns all the way round through the angles (walking, three-quarter, side, back, and back again)
+         with the books circling, determined;
+       - a good, cited answer: casting, excited, hopping, potion; a middling one: front, surprised, notes; a low-confidence
+         one: side, nervous, swaying, backpack; one with a part whose numbers do not add up: three-quarter, confused,
+         tilting, scrolls; not a food: confused; an error or nothing found: nervous, backpack;
+       - the − and + buttons: determined, a flick of the wand; logged: casting, excited, hopping, potion.
+     Still under reduced motion or the Performance mode (he holds the pose and the expression, nothing moves).
    * 1. One box: what you ate, in your words, with the portion and anything extra or left out ("nasi lemak, big plate,
      extra fried chicken, no sambal").
    * 2. Signed in, he searches the web: Google Gemini with Grounding with Google Search, through the food-guess Edge
@@ -22,16 +34,17 @@
      estimate" and its macros count as estimated (EST). */
 const HWAddFood=(()=>{
 const D=document,ico=(n,s)=>HWPixel.icon(n,s||1);
-const POSE='assets/img/apprentice-poses.webp',FACE='assets/img/apprentice-faces.webp',ROOM='assets/img/apprentice-room.webp';
+const POSE='assets/img/luke-poses.webp',FACE='assets/img/luke-faces.webp',PROPS='assets/img/luke-props.webp',ROOM='assets/img/luke-room.webp';
+const PROPN=['books','notes','wand','backpack','scrolls','potion','portrait'];   // luke-props.webp, 40 x 40 tiles
 const POSES=['front','three','side','back','walk','cast'],FACES=['happy','confused','nervous','determined','surprised','tired','excited'];
 const pat=(L,k)=>(L.indexOf(k)/(L.length-1)*100).toFixed(4)+'%';
 const r1=v=>Math.round(v*10)/10,fmt=v=>v==null?'–':(Math.round(v*10)/10).toLocaleString(undefined,{maximumFractionDigits:1});
 
 /* ---------- the wizard's state, for this visit only ---------- */
 // step: ask (what did you eat?) | guess (his web estimate) | pick, portion (the canteen menu) | done
-const W0=()=>({step:'ask',food:'',res:null,items:[],unknown:0,note2:'',
+const W0=()=>({fx:null,tired:0,sk:'',step:'ask',food:'',res:null,items:[],unknown:0,note2:'',
   q:'',busy:0,err:'',menu:[],sel:null,n:1,name:'',meal:'',done:null});
-const W=W0(),reset=()=>Object.assign(W,W0());
+const W=W0(),reset=()=>{clearTimeout(tt);clearTimeout(ft);Object.assign(W,W0())};
 const CL=()=>typeof HWCloud!=='undefined'?HWCloud:null,signed=()=>{const c=CL();return!!(c&&c.who())};
 
 /* ---------- 1. his search: Gemini with Google Search, through the food-guess Edge Function ---------- */
@@ -84,20 +97,48 @@ function portionStep(){const s=W.sel;
     +'<div class="row"><button type="button" data-a="awsave"'+(calc()?'':' disabled')+'>CONFIRM AND LOG</button><button type="button" class="g" data-a="awback">CHOOSE ANOTHER</button></div>'
     +'<small class="mut">Nothing is saved until you confirm. You can change the name and meal first.</small>'}
 
-/* ---------- him ---------- */
-function mood(){if(W.step==='done')return['cast','excited'];if(W.busy)return['walk','determined'];if(W.err||W.unknown)return['side','confused'];
-  if(W.step==='guess')return['front','surprised'];
-  if(W.step==='pick')return W.menu.length?['three','surprised']:['back','nervous'];if(W.step==='portion')return['front','determined'];return['front','happy']}
+/* ---------- him: Luke ---------- */
+let tt=0,ft=0;   // timers: tired after 30 s of no input; the typing and wand reactions last a moment
+/** What he does for what just happened: an angle (pose), an expression (face), a motion (fx, CSS) and an item he has out. */
+function director(){const bad=W.step==='guess'&&W.items.some(i=>i.v&&i.v.chk),conf=(W.res&&W.res.confidence)||'low',fx=W.fx&&W.fx.k;
+  if(W.step==='done')return{pose:'cast',face:'excited',fx:'hop',prop:'potion'};
+  if(W.busy)return{pose:'back',face:'determined',fx:'turn',prop:'books'};            // turns all the way round; 'back' is his still pose
+  if(W.err)return{pose:'side',face:'nervous',fx:'shake',prop:'backpack'};
+  if(W.unknown)return{pose:'three',face:'confused',fx:'tilt',prop:'notes'};
+  if(W.step==='guess'){if(fx==='adj')return{pose:'front',face:'determined',fx:'hop',prop:'wand'};
+    if(bad)return{pose:'three',face:'confused',fx:'tilt',prop:'scrolls'};
+    if(conf==='high')return{pose:'cast',face:'excited',fx:'hop',prop:'potion'};
+    if(conf==='medium')return{pose:'front',face:'surprised',fx:'bob',prop:'notes'};
+    return{pose:'side',face:'nervous',fx:'sway',prop:'backpack'}}
+  if(W.step==='pick')return W.menu.length?{pose:'three',face:'surprised',fx:'bob',prop:'books'}:{pose:'back',face:'nervous',fx:'sway',prop:'backpack'};
+  if(W.step==='portion')return{pose:'front',face:'determined',fx:'bob',prop:'notes'};
+  if(fx==='type')return{pose:'three',face:W.q.length<12?'surprised':'determined',fx:'lean',prop:'notes'};
+  if(W.tired)return{pose:'front',face:'tired',fx:'sway',prop:''};
+  return{pose:'front',face:'happy',fx:'bob',prop:''}}
+const mood=()=>{const m=director();return[m.pose,m.face]};
 function say(){if(W.step==='done')return'Whoa, it worked! I mean... of course it worked. Your food is logged.';
-  if(W.busy)return'Searching the great web of knowledge...';
+  if(W.busy)return'Searching the great web of knowledge... one moment!';
   if(W.err)return W.err;if(W.unknown)return'Hmm... that does not sound like a food or a drink to me. Try again?';
-  if(W.step==='guess')return'Found it! About '+totals().kcal+' kcal. Check my sources below!';
-  if(W.step==='pick')return W.menu.length?'I found these on the canteen menu! Which one did you eat?':'Hmm... nothing like that on the canteen menu. Sign in so I can search the web, or type it yourself below.';
+  if(W.step==='guess'){const m=director();
+    if(W.fx&&W.fx.k==='adj')return'Changing the amount... about '+totals().kcal+' kcal now!';
+    if(m.face==='confused')return'Hmm, some numbers do not add up. Check the marked parts!';
+    if(m.face==='nervous')return'Not so sure... about '+totals().kcal+' kcal. Check my sources!';
+    if(m.face==='surprised')return'About '+totals().kcal+' kcal! I think that is close. Check my sources!';
+    return'Found it, with sources! About '+totals().kcal+' kcal. Check them below!'}
+  if(W.step==='pick')return W.menu.length?'I found these on the canteen menu! Which one did you eat?':'Nothing like that on the menu. Sign in so I can search the web!';
   if(W.step==='portion')return'How much did you have? Pick the closest amount.';
-  return'Tell me what you ate, how much, and anything extra or left out. I will search for the calories... probably!'}
-function scene(){const[p,f]=mood();
-  return '<div class="awscene"><img class="awroom" src="'+ROOM+'" alt="" width="336" height="189"><span class="awfig'+(W.step==='done'?' cast':W.busy?' walk':'')+'" aria-hidden="true" data-pose="'+p+'" style="background-position:'+pat(POSES,p)+' 0"></span>'
-    +'<div class="awsay" role="status"><span class="awface" role="img" aria-label="The Wannabe Wizard, '+f+'" data-face="'+f+'" style="background-position:'+pat(FACES,f)+' 0"></span><p><b>THE WANNABE WIZARD</b>'+esc(say())+'</p></div></div>'}
+  if(W.fx&&W.fx.k==='type')return W.q.length<12?'Ooh, go on... I am listening!':'Ah, I am taking notes. Press search when you are ready!';
+  if(W.tired)return'Yaaawn... still here! Tell me what you ate whenever you are ready.';
+  return'Hi, I am Luke! Tell me what you ate, how much, and any extras. I will find the calories... probably!'}
+function scene(){const m=director(),p=m.pose,f=m.face,pr=m.prop;
+  return '<div class="awscene"><img class="awroom" src="'+ROOM+'" alt="" width="336" height="189"><span class="awfig '+m.fx+'" aria-hidden="true" data-pose="'+p+'" data-fx="'+m.fx+'" style="background-position:'+pat(POSES,p)+' 0"></span>'
+    +(pr?'<span class="awprop '+(pr==='books'&&W.busy?'orbit':pr==='wand'?'flick':'')+'" aria-hidden="true" data-prop="'+pr+'" style="background-position:'+(-PROPN.indexOf(pr)*40)+'px 0"></span>':'')
+    +'<div class="awsay" role="status"><span class="awface" role="img" aria-label="Luke, '+f+'" data-face="'+f+'" style="background-position:'+pat(FACES,f)+' 0"></span><p><b>LUKE</b>'+esc(say())+'</p></div></div>'}
+/** Updates only his scene (not the inputs, so typing keeps its cursor) when what he does or says has changed. */
+function patch(){const key=JSON.stringify(director())+say();if(key===W.sk)return;W.sk=key;const el=D.querySelector('#awiz .awscene');if(el)el.outerHTML=scene()}
+/** After 30 s with nothing happening he gets tired. */
+function rest(){clearTimeout(tt);if(W.step==='ask'&&!W.busy&&!W.tired)tt=setTimeout(()=>{if(W.step==='ask'&&!W.busy&&D.getElementById('awiz')){W.tired=1;if(!(W.fx&&W.fx.k==='type'))patch()}},30000)}
+const fxFor=(k,ms)=>{W.fx={k};clearTimeout(ft);ft=setTimeout(()=>{if(W.fx&&W.fx.k===k){W.fx=null;patch()}},ms)};
 
 /* ---------- the steps ---------- */
 function askBox(){const on=signed();
@@ -135,19 +176,19 @@ function guessStep(){return askBox()+guessCard()
 function doneStep(){return(W.done&&W.done.est?guessCard():card())+'<div class="row"><button type="button" data-a="awmore">ADD ANOTHER FOOD</button><button type="button" class="g" data-a="awclose">DONE</button></div>'}
 
 function body(){if(W.step==='done')return doneStep();if(W.step==='portion')return portionStep();if(W.step==='guess')return guessStep();return askStep()}
-function wizard(){return '<div class="card awcardo" id="awiz"><h3>'+ico('food')+' ADD MORE FOOD</h3>'+scene()+'<div id="awbody">'+body()+'</div></div>'}
-function draw(){const el=D.getElementById('awiz');if(!el)return;const f=D.activeElement&&D.activeElement.id;el.outerHTML=wizard();const n=f&&D.getElementById(f);if(n)n.focus()}
+function wizard(){return '<div class="card awcardo" id="awiz"><h3 class="awh"><span>'+ico('food')+' ADD MORE FOOD</span><span class="awav" role="img" aria-label="Luke"></span></h3>'+scene()+'<div id="awbody">'+body()+'</div></div>'}
+function draw(){const el=D.getElementById('awiz');if(!el)return;const f=D.activeElement&&D.activeElement.id;W.sk=JSON.stringify(director())+say();el.outerHTML=wizard();const n=f&&D.getElementById(f);if(n)n.focus();rest()}
 
 /* ---------- actions ---------- */
 const keepName=()=>{const n=D.getElementById('awname'),m=D.getElementById('awmeal');if(n)W.name=n.value;if(m)W.meal=m.value};
 acts.awgo=()=>{const i=D.getElementById('awq');W.q=i?i.value:W.q;const f=String(W.q||'').trim().slice(0,200);
   if(!f){W.err='Tell me what you ate first, for example: nasi lemak, big plate, no sambal.';draw();return}
   W.food=f;W.err='';W.note2='';if(signed())webSearch();else{W.note2='Sign in so I can search the web for any food. Here is the canteen menu.';search()}};
-acts.awadj=d=>{keepName();const it=W.items[+d.i];if(!it)return;it.x=Math.max(0,Math.min(4,r1(it.x+(+d.d)*.5)));draw()};
+acts.awadj=d=>{keepName();const it=W.items[+d.i];if(!it)return;it.x=Math.max(0,Math.min(4,r1(it.x+(+d.d)*.5)));fxFor('adj',1500);draw()};
 acts.awlog=()=>{keepName();const t=totals(),r=W.res;if(!r||!W.items.some(i=>i.x))return;const name=String(W.name||r.name||W.food).trim().slice(0,60)||W.food,meal=W.meal||S.meal;
   const w=HWWhen.stamp({sig:'aw'+name+t.kcal});if(!w)return;
   const parts=W.items.filter(i=>i.x).map(i=>{const v=itemVal(i);return[i.label,v.g==null?null:r1(v.g),Math.round(v.kcal),i.v.src||'']});
-  add('food',t.kcal,{name,por:r.portion||'Wizard\'s web estimate',qty:1,meal,src:'Wannabe Wizard web search (Google Gemini)',custom:1,db:'est',how:r.searched===false?'ai':'web',g:t.g,
+  add('food',t.kcal,{name,por:r.portion||'Wizard\'s web estimate',qty:1,meal,src:'Luke web search (Google Gemini)',custom:1,db:'est',how:r.searched===false?'ai':'web',g:t.g,
     p:t.miss?'':t.p,c:t.miss?'':t.c,f:t.miss?'':t.f,fb:'',parts,refs:(r.sources||[]).slice(0,5).map(s=>s.url)},'',w.d,w.t,10,'Food logged');
   HWWhen.saved(w,'Food');W.step='done';W.done={est:1};const y=window.scrollY;render();window.scrollTo(0,y)};
 // the canteen menu
@@ -164,8 +205,9 @@ acts.awsave=()=>{keepName();const c=calc();if(!c)return;const name=String(W.name
 acts.awmore=()=>{reset();draw();const i=D.getElementById('awq');if(i)i.focus()};
 acts.awclose=()=>{reset();S.cf=0;render()};
 D.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target&&e.target.id==='awq'){e.preventDefault();acts.awgo()}});
-D.addEventListener('input',e=>{const t=e.target;if(!t)return;if(t.id==='awq')W.q=t.value;else if(t.id==='awname')W.name=t.value});
+D.addEventListener('input',e=>{const t=e.target;if(!t)return;if(t.id==='awq'){W.q=t.value;W.tired=0;if(W.step==='ask'&&!W.busy){if(t.value.trim())fxFor('type',1800);else{W.fx=null;clearTimeout(ft)}patch()}rest()}else if(t.id==='awname')W.name=t.value});
 {const o=acts.cf;acts.cf=function(){if(!S.cf)reset();return o.apply(this,arguments)}}
+HWEvents.on('data:reset',()=>{clearTimeout(tt);clearTimeout(ft)});
 /* ---------- on the Nutrition page: above the original custom form, while ADD MORE FOOD is open ---------- */
 {const p=pages.food;pages.food=function(){const h=p.apply(this,arguments);if(!S.cf)return h;const k=h.indexOf('<div class="card"><h3>CUSTOM FOOD</h3>');
   return k<0?h:h.slice(0,k)+wizard()+h.slice(k).replace('<h3>CUSTOM FOOD</h3>','<h3>CUSTOM FOOD</h3><p class="mut awor">Already know the numbers? Type them yourself:</p>')}}
@@ -179,10 +221,19 @@ D.addEventListener('input',e=>{const t=e.target;if(!t)return;if(t.id==='awq')W.q
 HWUI.css('addfood',`
 .awscene{position:relative;line-height:0;border-radius:14px;overflow:hidden;border:1px solid var(--edge,var(--ln));margin:4px 0 10px;box-shadow:0 0 18px rgba(139,92,240,.3)}
 .awscene{aspect-ratio:3/2}.awroom{display:block;width:100%;height:100%;object-fit:cover;image-rendering:pixelated;image-rendering:crisp-edges}
-.awfig{position:absolute;left:1%;bottom:1%;height:97%;aspect-ratio:2/3;background:url(${POSE}) no-repeat;background-size:600% 100%;image-rendering:pixelated;image-rendering:crisp-edges;
-  filter:drop-shadow(0 0 6px rgba(255,226,122,.45));animation:awbob 1.6s steps(2) infinite alternate}
-.awfig.walk{animation:awwalk .5s steps(2) infinite alternate}.awfig.cast{animation:awcast .6s steps(3) 3}
-@keyframes awbob{to{translate:0 -2px}}@keyframes awwalk{to{translate:6px -2px}}@keyframes awcast{50%{filter:drop-shadow(0 0 16px #63e6dc)}to{filter:drop-shadow(0 0 4px #fff0a8)}}
+.awfig{position:absolute;left:1%;bottom:1%;height:97%;aspect-ratio:2/3;background:url(${POSE}) no-repeat;background-size:600% 100%;image-rendering:pixelated;image-rendering:crisp-edges;transform-origin:50% 100%;
+  filter:drop-shadow(0 0 6px rgba(255,226,122,.45))}
+.awfig.bob{animation:awbob 1.6s steps(2) infinite alternate}.awfig.hop{animation:awhop .7s steps(3) infinite}.awfig.shake{animation:awshake .3s steps(2) 6}
+.awfig.tilt{animation:awtilt 1.4s steps(2) infinite alternate}.awfig.sway{animation:awsway 2.6s steps(3) infinite alternate}.awfig.lean{animation:awlean 1s steps(2) infinite alternate}
+.awfig.turn{animation:awturn 6s steps(1) infinite}   /* turns all the way round: walking, three-quarter, side, back, side, three-quarter, front */
+@keyframes awbob{to{translate:0 -2px}}@keyframes awhop{50%{translate:0 -7%}}@keyframes awshake{25%{translate:-3px 0}75%{translate:3px 0}}
+@keyframes awtilt{from{rotate:-3deg}to{rotate:3deg}}@keyframes awsway{to{rotate:1.5deg}}@keyframes awlean{to{translate:2% 0}}
+@keyframes awturn{0%{background-position:80% 0}12.5%{background-position:20% 0}25%{background-position:40% 0}37.5%{background-position:60% 0}62.5%{background-position:40% 0}75%{background-position:20% 0}87.5%{background-position:0% 0}100%{background-position:80% 0}}
+.awprop{position:absolute;left:38%;bottom:2%;z-index:1;width:40px;height:40px;background:url(${PROPS}) no-repeat;background-size:280px 40px;image-rendering:pixelated;image-rendering:crisp-edges;transform:scale(1.25);transform-origin:0 100%;
+  filter:drop-shadow(0 0 6px rgba(246,201,79,.7));animation:awfloat 1.8s steps(2) infinite alternate}
+.awprop.orbit{animation:aworbit 2s steps(8) infinite}.awprop.flick{animation:awflick .35s steps(2) 5 alternate}
+@keyframes awfloat{to{translate:0 -5px}}@keyframes aworbit{0%{translate:0 -4px}25%{translate:12px 0}50%{translate:0 8px}75%{translate:-12px 0}100%{translate:0 -4px}}@keyframes awflick{from{rotate:-25deg}to{rotate:25deg}}
+.awh{display:flex;align-items:center;justify-content:space-between;gap:8px}.awav{flex:0 0 auto;width:28px;height:28px;background:url(${PROPS}) no-repeat;background-size:196px 28px;background-position:-168px 0;image-rendering:pixelated;image-rendering:crisp-edges}
 .awsay{position:absolute;right:3%;top:5%;max-width:56%;display:flex;gap:6px;align-items:flex-start;line-height:1.35}
 .awface{flex:0 0 auto;width:44px;height:44px;background:url(${FACE}) no-repeat;background-size:308px 44px;image-rendering:pixelated;border:2px solid #f6c94f;border-radius:8px;background-color:#1b1745}
 .awsay p{margin:0;background:rgba(18,15,51,.88);color:#fff6dc;border:1px solid #f6c94f;border-radius:10px;padding:6px 8px;font-size:13px}.awsay p b{display:block;font:7px/1.6 var(--fh);color:#f6c94f}
@@ -201,7 +252,7 @@ HWUI.css('addfood',`
 .awpic{flex:0 0 auto;image-rendering:pixelated;shape-rendering:crispEdges}.awns .chip{flex:1 1 0;min-height:44px}
 .awtab{width:100%;border-collapse:collapse;margin:6px 0}.awtab th,.awtab td{text-align:left;padding:4px;border-top:1px solid var(--edge,var(--ln))}.awsrc{overflow-wrap:anywhere}
 .awor{margin:0 0 6px}#awiz label{display:block;margin:6px 0}#awiz select,#awiz input{width:100%}#awiz .awq input{width:auto}
-html.hw-rm .awfig,html.hw-rm .awcard.reveal,html.hw-q-performance .awfig,html.hw-q-performance .awcard.reveal{animation:none}
-@media(prefers-reduced-motion:reduce){.awfig,.awcard.reveal{animation:none}}
+html.hw-rm .awfig,html.hw-rm .awprop,html.hw-rm .awcard.reveal,html.hw-q-performance .awfig,html.hw-q-performance .awprop,html.hw-q-performance .awcard.reveal{animation:none!important}
+@media(prefers-reduced-motion:reduce){.awfig,.awprop,.awcard.reveal{animation:none!important}}
 `);
 return{menuMatches,calc,totals,get state(){return JSON.parse(JSON.stringify(W))},POSES,FACES}})();

@@ -17,7 +17,7 @@ const stamp = () => new Date(clock += 1000).toISOString().replace('Z', '+00:00')
 
 export function fakeSupabase() {
   const S = { users: {}, rows: {}, board: {}, noBoard: false, sent: [], down: false, calls: [], race: 0, n: 0, mail: [], google: true, codes: {},
-    ai: [], aiReply: null, aiDelay: 0, aiStatus: 200, aiBody: null, ask: [], luna: [], lunaReply: null, lunaStatus: 200, lunaBody: null, guess: [], guessReplies: [], guessStatus: 200, guessBody: null };
+    ai: [], aiReply: null, aiDelay: 0, aiStatus: 200, aiBody: null, ask: [], luna: [], lunaReply: null, lunaStatus: 200, lunaBody: null, guess: [], guessReplies: [], guessStatus: 200, guessBody: null, guessDelay: 0 };
   const session = u => ({ access_token: tok({ sub: u.id, email: u.email, role: 'authenticated', exp: 9e9 }), refresh_token: 'r-' + u.id, expires_in: 3600, user: { id: u.id, email: u.email } });
   const user = email => S.users[email] || (S.users[email] = { id: 'u' + (++S.n) + '-0000', email });
   S.handle = async route => {
@@ -163,8 +163,9 @@ function board(S, u, m, sub, body, send) {
 
 // food-guess: the same contract as supabase/functions/food-guess. Replies are taken in order from S.guessReplies
 // ({ ask } | { guess } | { unknown }); the requests are kept in S.guess.
-function guess(S, body, send) {
+async function guess(S, body, send) {
   S.guess.push(body);
+  if (S.guessDelay) await new Promise(r => setTimeout(r, S.guessDelay));
   if (S.guessStatus !== 200) return send(S.guessStatus, S.guessBody || { error: 'ai' });
   return send(200, S.guessReplies.length ? S.guessReplies.shift() : { unknown: true });
 }
