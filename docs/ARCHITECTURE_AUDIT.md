@@ -1548,59 +1548,51 @@ Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel
 - **Tests:** `tests/66-campus.test.mjs` (points and grouping, warnings, the door order, a marker and the list, GPS granted,
   far and denied, the weather point's distance, 360 px layout, zoom, reduced motion, no name clashes).
 
-## Master prompt Stage 5: Add More Food with the Wannabe Wizard (`js/v6-addfood.js`, `supabase/functions/food-search`)
+## Master prompt Stage 5: Add More Food with Luke, the Wannabe Wizard (`js/v6-addfood.js`, `supabase/functions/food-guess`)
 
-- **Art** (owner's request): the Wannabe Wizard's six poses, seven expressions and his room, from the owner's sheet
-  (`tools/art/make_apprentice.py`); the owner raised the image budget to 880 KB for these and Luna's room.
-- **Flow:** ADD MORE FOOD opens the wizard above the original custom form, which is unchanged (one SAVE CUSTOM FOOD click
-  still saves). 1) "What did you eat?" searches the Kolej MARA Kulim canteen menu (offline, signed out) and, signed in, USDA
-  FoodData Central through the `food-search` Edge Function; each match says where it is from; the player picks. 2) The
-  portion is food-specific: a menu dish's own portion × ½ to 2; a database food's household measures with gram weights,
-  or a packaged food's label serving, each with a small picture of the kind of measure; grams only when the database
-  has no measure. 3) The card updates at once with kcal, protein, carbohydrate and fat, the method line, the source (FDC ID,
-  data type, CC0) and its limits. 4) Nothing is saved before CONFIRM AND LOG; the name and meal can be changed; the entry
-  records `src`, `db: 'fdc'`, `fdc`, `fdt`, `g`, `u`, `p`, `c`, `f` and is back-dated like any food. The log shows a
-  "USDA FoodData Central" badge instead of "Custom Food".
-- **He reacts:** front and happy when asking, walking and determined while searching, surprised with results, back
-  turned and nervous with none, confused on an error, determined while choosing, casting (with the card's reveal) when
-  logged. CSS only; still under reduced motion.
-- **Backend:** `food-search` (signed-in only, JWT checked twice, 60 searches per player per hour per instance, key in the
-  `FDC_API_KEY` secret, search words never logged). Deployed (version 1). **Needs the owner:** a free data.gov key
-  (https://fdc.nal.usda.gov/api-key-signup) saved as `FDC_API_KEY`; until then the wizard says the archive is not set
-  up, and the canteen menu and typing it yourself still work.
-- **Sources** (opened 2026-10-13): `fdc` (API guide + OpenAPI spec), `fndds` (FNDDS 2021–2023 documentation: values per
-  100 g edible portion; portion weights are estimations), `gbfpd` (branded foods: per 100 g / 100 ml from the label,
-  rounding, missing is not zero). Evidence Vault entry `foodportion`.
-- **Not done / flags:** no Malaysian food-composition database (MyFCD) is searched: it has no public API; the canteen
-  menu is the Malaysian source in the app. No AI estimates are used. A nutrient missing from the database counts as 0 in
-  the day's macro total after logging (the existing custom-food rule).
-- **Tests:** `tests/67-addfood.test.mjs` and `supabase/tests/food-search.test.ts` (6 Deno tests).
+- **Art** (owner's request; renamed Luke on 2026-10-14, see below): his six poses, seven expressions and his room, from the owner's sheet
+  (`tools/art/make_luke.py`); the owner raised the image budget to 880 KB for these and Luna's room.
+- **History:** Stage 5 first searched the canteen menu and USDA FoodData Central (`food-search`). At the owner's request
+  (2026-10-14) USDA was removed completely: the function, its tests, its sources and Evidence Vault entry, and the USDA
+  key (`FDC_API_KEY`) are no longer used. The Wizard is now the web search described below.
 
-### Stage 5 follow-up: the Wizard is a food search engine (owner: "make the wizard a search engine where he searches for the best calorie and macros based on the food and portion, and any add-ons or removed things the user typed; use the Gemini API key so it can search the best estimate or real data")
+### Stage 5 follow-up: the Wizard is a food search engine (owner: "automatically know the macros and calories of any food, any portion, any add-on, any removal; a search engine that finds the best matches with correct, solid references; I don't want it to use USDA")
 
 - **Flow:** one box: the food, the portion and any changes in the player's words ("nasi lemak, big plate, extra fried
   chicken, no sambal"). Signed in, SEARCH asks `supabase/functions/food-guess`: Gemini (`gemini-3.5-flash-lite`, the
-  `GEMINI_API_KEY` secret Luna uses) with Grounding with Google Search looks up nutrition data (prompted to prefer MyFCD,
-  USDA FoodData Central, Singapore HPB and other databases, then labels), applies the changes and returns the parts
-  (weight, kcal, protein, carbohydrate, fat), the portion used, a note and its confidence. The web pages it used come
-  back from `groundingMetadata` and are listed as "Where he found it" (links open in a new tab); Google's search
-  suggestions (`searchEntryPoint.renderedContent`) are shown in a sandboxed frame, as Google asks for grounded answers.
-  If a model rejects the search tool (400) the function asks once without it and the card says the answer is from the
-  model's own knowledge. JWT checked twice; 40 searches per player per hour per instance; the words are never logged.
-  Deployed. Tests: `supabase/tests/food-guess.test.ts` (6 Deno tests).
-- **The card:** total kcal and macros (the app sums the parts), each part with − and + (half steps, 0 to 4×), the
-  portion, the note, "AI estimate by Google Gemini from web sources, not a measurement. How sure: …". Nothing is saved
-  before LOG IT. Not right? Change the words and search again.
-- **Signed out, offline, or the search failing:** he searches his books instead: the canteen menu and, signed in, USDA
-  FoodData Central through `food-search`, with food-specific portions, as before (SEARCH MY BOOKS INSTEAD when signed in).
-- **Saved entry:** a custom food with `db: 'est'`, `how: 'web' | 'ai'`, `g`, `p`, `c`, `f`, `parts` [label, g, kcal] and
-  `refs` (up to five source links); no schema change. The log shows "Wizard's estimate" and its macros count as
-  estimated (EST), not "YOURS". USDA book entries no longer show "kcal by you".
-- **Removed** (replaced by the search, at the owner's request): the question-by-question guesser and its offline parts
-  table (`js/v6-foodparts.js`, `tools/food/make_food_parts.py`).
+  `GEMINI_API_KEY` secret Luna uses) with Grounding with Google Search looks for citable nutrition data, in this order:
+  the brand or restaurant's own nutrition information; MyFCD and other national food tables for local foods; university,
+  hospital or dietitian pages; reputable nutrition sites. It applies the changes and returns the parts (weight, kcal,
+  protein, carbohydrate, fat), the portion used, a note, its confidence, **the name of the source each part came from
+  and the arithmetic behind it** ("per 100 g: 180 kcal, x 250 g"; "estimate" when it found no source, which the card
+  shows as "No source found: his own estimate"). The web pages it used come back from `groundingMetadata` and are
+  listed as "Where he found it" (links open in a new tab); Google's search suggestions are shown in a sandboxed frame,
+  as Google asks for grounded answers. If a model rejects the search tool (400) the function asks once without it and the
+  card says the answer is from the model's own knowledge. JWT checked twice; 40 searches per player per hour per
+  instance; the words are never logged. Tests: `supabase/tests/food-guess.test.ts` (8 Deno tests).
+- **Checks the function makes on every answer** (so "solid" is tested, not assumed): each part's kcal against
+  4 × protein + 4 × carbohydrate + 9 × fat (the Atwater general factors, FAO Food and Nutrition Paper 77 chapter 3, source
+  `fao77`), flagged when more than 25 kcal and 25 % off; confidence is forced to "low" when at least half the parts name no
+  source, when any part is flagged, or when the search found no web page, and capped at "medium" when some part has no
+  source. Worked example: 8 g protein + 70 g carbohydrate + 15 g fat = 32 + 280 + 135 = 447 kcal, so 450 passes and 900
+  is flagged.
+- **The card:** total kcal and macros (the app sums the parts), each part with − and + (half steps, 0 to 4×), its source
+  and arithmetic, a "Check this one" line for a flagged part, the note, and "AI estimate by Google Gemini from web
+  sources, not a measurement. How sure: …". Nothing is saved before LOG IT. Not right? Change the words and search again.
+- **Signed out, offline, or the search failing:** he can only look at the Kolej MARA Kulim canteen menu already in the
+  app (kcal per stated portion; macros `estMac`, labelled), with a note to sign in for the web search.
+- **Saved entry:** a custom food with `db: 'est'`, `how: 'web' | 'ai'`, `g`, `p`, `c`, `f`, `parts` [label, g, kcal, source]
+  and `refs` (up to five source links); no schema change. The log shows "Wizard's estimate" and its macros count as
+  estimated (EST), not "YOURS". Entries saved by the earlier USDA version (`db: 'fdc'`) still show, as "Database entry".
+- **Removed:** the question-by-question guesser, its offline parts table, and every USDA piece (`food-search`, sources
+  `fdc`/`fndds`/`gbfpd`, vault entry `foodportion`). `tests/67-addfood.test.mjs` checks that no USDA reference remains.
+  **Owner:** the deployed `food-search` Edge Function can be deleted in the Supabase dashboard, and the `FDC_API_KEY`
+  secret removed.
 - **Art:** the scene is 3:2 and he stands at 97 % of its height.
-- **Flags:** web estimates can be wrong; the card shows the sources so the player can check. Test harness: the seed
-  scripts now run only in the top frame (Playwright runs init scripts in every frame, including the sandboxed one).
+- **Flags:** web estimates can be wrong and the card says so; the sources are shown so the player can check. The model
+  chooses its own sources, so a source named in a part is what Gemini reports, not something HealthWiz opened (the pages
+  in "Where he found it" are the ones Google's grounding returned). Test harness: the seed scripts now run only in the top
+  frame (Playwright runs init scripts in every frame, including the sandboxed one).
 
 ### Campus Observatory follow-up (owner: "user can move the screen; auto locate to the nearest stair")
 
@@ -1608,3 +1600,37 @@ Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel
   the view's centre. Opening the Observatory asks for one position by itself: on campus the nearest mapped stairway is
   selected, the map zooms in and centres on it, and its details open; if location is off or far away a quiet note says
   so. The position is still never saved or sent. Tests: `tests/66-campus.test.mjs` (8).
+
+### Science Laboratory: a larger Luna (owner, 2026-10-14: "apply the previous format of cropping to the Science Laboratory section, enlarge Luna, crop it using the reference sheet")
+
+- `tools/art/make_luna_poses.py` now also cuts, from the same boxes on the 1536 × 1024 character reference sheet, a larger
+  set for the Laboratory: `assets/img/luna-lab.webp` (480 × 180, ≈ 24 KB), four 120 × 180 frames (idle, staff, point,
+  think: 1.5 times the old 80 × 120 figure), the same background removal and hard alpha, one 56-colour palette, no dithering.
+  `luna-poses.webp` is byte-for-byte unchanged. The image total is 874,787 bytes of the 880 KB (901,120) budget.
+- `HWLuna.mount(el, { kind: 'full', cycle: 1, sheet: 'lab' })` draws her from that sheet with her own slow loop (idle, staff,
+  pointing, thinking). In the Laboratory she stands at the scene's lower right at 80 % of the scene's height (a percentage,
+  so she keeps filling most of the scene at any width, as Luke does). `tests/62-lab.test.mjs` checks the sheet in use and her size
+  (at least 60 % of the scene's height, at least 180 px); `tests/59-luna.test.mjs` lists the new file.
+
+### Luke (owner, 2026-10-14: "change his name to Luke, crop it from the reference sheet and animate him based on response and expression; use every reference, every angle, every expression sheet, and maximise all of them")
+
+- **Renamed** from the Wannabe Wizard to **Luke** in the app (his speech-bubble label is LUKE, his portrait says "Luke",
+  the saved source reads "Luke web search"), the `food-guess` instructions and the docs. The sheet's own title is unchanged.
+- **Recut from the reference sheet** with `tools/art/make_luke.py` (renamed from `make_apprentice.py`; the images are renamed
+  `apprentice-*` to `luke-*`, and `sw.js` follows): `luke-poses.webp` (720 × 180, ≈ 28 KB) all six angles at 120 × 180, 1.5
+  times the old size; `luke-faces.webp` (448 × 64) all seven expressions; **new** `luke-props.webp` (280 × 40, ≈ 4 KB) the
+  six PROPS & ITEMS (books, notes, wand, backpack, scrolls, potion) and the COMPACT PORTRAIT; `luke-room.webp` (his room) and
+  `luna-room.webp` are byte-identical to before. Total 892,883 of 901,120 bytes. The KEY DETAILS panel (hat, wand, glasses,
+  backpack close-ups) is not used: its pictures are already his poses and props.
+- **Animation** (`director()` in `js/v6-addfood.js`; CSS only, `patch()` updates his scene without touching the input, so
+  typing keeps its cursor): waiting, front/happy; as you type, three-quarter with notes, surprised then determined; stopped
+  typing for a moment, back to waiting; 30 s of nothing, front/tired swaying; searching, he **turns all the way round**
+  (walking, three-quarter, side, back, side, three-quarter, front, 6 s loop) determined, the books circling; a high-confidence
+  answer, casting/excited hopping with the potion; medium, front/surprised with notes; low, side/nervous swaying with the
+  backpack; a part whose numbers do not add up, three-quarter/confused tilting with the scrolls; not a food, confused; an
+  error, side/nervous shaking; nothing on the canteen menu, back turned and nervous; − and +, determined with a wand flick;
+  logged, casting/excited hopping. Under reduced motion or the Performance mode nothing moves: he holds the angle ("back" while
+  searching), the expression and the item.
+- **Tests:** `tests/67-addfood.test.mjs` (10): the name; every state's angle, expression and item; that all six angles' poses
+  that can occur (front, three-quarter, side, back, casting; walking is in the searching loop), all seven expressions and all
+  six props appear; the turning loop and the circling books while searching; the four sheets' sizes.

@@ -8,9 +8,6 @@ verify_jwt = true
 [functions.luna-chat]
 verify_jwt = true
 
-# food-search answers signed-in players only, same as medius-chat.
-[functions.food-search]
-verify_jwt = true
 
 # food-guess answers signed-in players only, same as medius-chat.
 [functions.food-guess]

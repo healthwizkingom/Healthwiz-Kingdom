@@ -9,7 +9,10 @@ are dropped, and her own props (cards, the spirit cat, sparkles) stay. Each figu
 pixels high, the alpha is made hard (0 or 255), and all figures share one palette of COLORS colours without dithering, so
 the app draws them as crisp pixel art at whole-number scales (docs/PIXEL_STYLE.md, rule 5).
 Output: assets/img/luna-poses.webp, one row of frames, each FW wide (figure centred, bottom-aligned), in POSES order.
-js/v6-luna.js reads the same order (POSES there). Budget: tests/24-performance.test.mjs.
+js/v6-luna.js reads the same order (POSES there). A second, larger set is cut from the same boxes for the Science
+Laboratory (owner, 2026-10-14: "enlarge Luna, crop it using the reference sheet"): assets/img/luna-lab.webp, 120 x 180 frames
+(1.5 times the size) of the four poses the Laboratory's loop uses (LAB_POSES: idle, staff, point, think), in that order.
+Budget: tests/24-performance.test.mjs.
 """
 import os
 import sys
@@ -28,7 +31,10 @@ POSES = [
     ('confused', (1134, 170, 1272, 488)),  # 8 confused (data missing)
     ('wave',     (1272, 170, 1412, 488)),  # 9 greeting (wave)
 ]
-BG, TOL, H, COLORS, FW = (230, 229, 245), 52, 120, 48, 80
+BG, TOL = (230, 229, 245), 52
+LAB_POSES = ['idle', 'staff', 'point', 'think']
+# file, poses, frame height, frame width, palette size
+SETS = [('luna-poses.webp', [n for n, _ in POSES], 120, 80, 48), ('luna-lab.webp', LAB_POSES, 180, 120, 56)]
 
 def cut(im, box):
     c = im.crop(box).convert('RGBA')
@@ -70,13 +76,10 @@ def cut(im, box):
                 px[p] = (0, 0, 0, 0)
     return c.crop(c.getbbox())
 
-def main(src, out):
-    im = Image.open(src).convert('RGB')
-    if im.size != (1536, 1024):
-        sys.exit('expected the 1536 x 1024 reference sheet, got %s x %s' % im.size)
+def build(im, cuts, out, name, poses, H, FW, COLORS):
     frames = []
-    for name, box in POSES:
-        f = cut(im, box)
+    for n in poses:
+        f = cuts[n]
         s = f.resize((max(1, round(f.size[0] * H / f.size[1])), H), Image.BOX)
         if s.size[0] > FW:                                 # a wide pose (a card or a cat) is scaled to fit the frame
             s = f.resize((FW, max(1, round(f.size[1] * FW / f.size[0]))), Image.BOX)
@@ -87,9 +90,17 @@ def main(src, out):
     a = strip.split()[3].point(lambda v: 255 if v > 140 else 0)
     rgb = strip.convert('RGB').quantize(colors=COLORS, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert('RGBA')
     rgb.putalpha(a)
-    dst = os.path.join(out, 'luna-poses.webp')
+    dst = os.path.join(out, name)
     rgb.save(dst, lossless=True, quality=100, method=6)
     print(os.path.normpath(dst), rgb.size, os.path.getsize(dst), 'bytes')
+
+def main(src, out):
+    im = Image.open(src).convert('RGB')
+    if im.size != (1536, 1024):
+        sys.exit('expected the 1536 x 1024 reference sheet, got %s x %s' % im.size)
+    cuts = {name: cut(im, box) for name, box in POSES}
+    for name, poses, H, FW, COLORS in SETS:
+        build(im, cuts, out, name, poses, H, FW, COLORS)
 
 if __name__ == '__main__':
     if len(sys.argv) not in (2, 3):

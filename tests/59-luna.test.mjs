@@ -21,7 +21,7 @@ test('art from the owner\'s sheet only: the nine poses (80 x 120 each) and the s
   assert.deepEqual(r.exprs, ['cheerful', 'curious', 'focused', 'thoughtful', 'surprised', 'encouraging', 'apologetic'], 'the seven from the reference sheet');
   assert.equal(r.canvas, 'undefined', 'the code-drawn sprite is gone: the owner asked for the Luna of their sheet');
   // only these two Luna pictures, made from the sheet by tools/art/make_luna_faces.py and make_luna_lab.py
-  assert.deepEqual(fs.readdirSync(new URL('../assets/img/', import.meta.url)).filter(f => /luna/i.test(f)).sort(), ['luna-faces.webp', 'luna-poses.webp', 'luna-room.webp'], 'her faces, her poses and her room, all from the owner\'s images');
+  assert.deepEqual(fs.readdirSync(new URL('../assets/img/', import.meta.url)).filter(f => /luna/i.test(f)).sort(), ['luna-faces.webp', 'luna-lab.webp', 'luna-poses.webp', 'luna-room.webp'], 'her faces, her poses, her larger laboratory figure and her room, all from the owner\'s images');
   assert.deepEqual(errors, []); await ctx.close();
 });
 

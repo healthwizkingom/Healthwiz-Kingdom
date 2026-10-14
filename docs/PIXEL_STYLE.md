@@ -164,7 +164,7 @@ opacity only, and every scene stops off screen, in a hidden tab and for reduced 
   seven expression portraits (`assets/img/luna-faces.webp`, 64 × 64 each, `tools/art/make_luna_faces.py`) and all nine
   full-body poses of the sheet (`assets/img/luna-poses.webp`, 80 × 120 frames, transparent, one shared 48-colour palette,
   `tools/art/make_luna_poses.py`), drawn at whole-number scales. Her movement is the sheet's own drawings: each moment
-  picks a pose, a bubble walks in with the walking pose, the Laboratory cycles idle, staff, pointing and thinking (CSS
+  picks a pose, a bubble walks in with the walking pose, the Laboratory cycles idle, staff, pointing and thinking with a larger Luna (`assets/img/luna-lab.webp`, 120 × 180 frames cut from the same sheet by the same tool, drawn at 80 % of the scene's height) (CSS
   `steps()` on the frame position); her float and sparkles are CSS. All still with reduced motion. (An earlier code-drawn sprite
   was replaced at the owner's request.)
 * Science Laboratory (`js/v6-lab.js`): the laboratory from the owner's concept sheet (`assets/img/lab-scene.webp`,

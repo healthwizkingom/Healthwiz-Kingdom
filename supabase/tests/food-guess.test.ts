@@ -18,7 +18,8 @@ async function token(claims: Record<string, unknown>) {
 const good = (sub = 'user-1') => token({ sub, role: 'authenticated', iss: SB + '/auth/v1', exp: Math.floor(Date.now() / 1000) + 3600 });
 
 let reply: unknown = { kind: 'food', name: 'Nasi lemak', portion: 'one big plate', note: 'MyFCD values for coconut rice; extra chicken added, no sambal.', confidence: 'medium',
-  items: [{ label: 'Coconut rice', grams: 250, kcal: 450, protein: 8, carbs: 70, fat: 15 }, { label: 'Fried chicken (extra)', grams: 120, kcal: 330, protein: 25, carbs: 8, fat: 22 }] };
+  items: [{ label: 'Coconut rice', grams: 250, kcal: 450, protein: 8, carbs: 70, fat: 15, source: 'MyFCD', basis: 'per 100 g: 180 kcal, x 250 g' },
+    { label: 'Fried chicken (extra)', grams: 120, kcal: 330, protein: 25, carbs: 8, fat: 22, source: 'KFC Malaysia nutrition guide', basis: 'label: 330 kcal per piece' }] };
 let status = 200, firstStatus = 0, grounding: unknown = { groundingChunks: [{ web: { uri: 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/abc', title: 'myfcd.moh.gov.my' } },
   { web: { uri: 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/abc', title: 'dup' } }, { web: { uri: 'javascript:alert(1)', title: 'bad' } }],
   searchEntryPoint: { renderedContent: '<div class="chips">nasi lemak calories</div>' } };
@@ -53,7 +54,9 @@ Deno.test('a search: Google Search grounding is on, the key stays on the server,
   calls.length = 0; logs.length = 0;
   const r = await ask({ food: 'nasi lemak <big plate>, extra ayam goreng, no sambal' }, await good());
   assertEquals(r.status, 200);
-  assertEquals(r.json.result.items, [{ label: 'Coconut rice', g: 250, kcal: 450, p: 8, c: 70, f: 15 }, { label: 'Fried chicken (extra)', g: 120, kcal: 330, p: 25, c: 8, f: 22 }]);
+  assertEquals(r.json.result.items, [
+    { label: 'Coconut rice', g: 250, kcal: 450, p: 8, c: 70, f: 15, src: 'MyFCD', basis: 'per 100 g: 180 kcal, x 250 g', chk: false },
+    { label: 'Fried chicken (extra)', g: 120, kcal: 330, p: 25, c: 8, f: 22, src: 'KFC Malaysia nutrition guide', basis: 'label: 330 kcal per piece', chk: false }]);
   assertEquals([r.json.result.name, r.json.result.portion, r.json.result.confidence, r.json.result.searched], ['Nasi lemak', 'one big plate', 'medium', true]);
   assertEquals(r.json.result.sources, [{ title: 'myfcd.moh.gov.my', url: 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/abc' }], 'deduplicated, https only');
   assertEquals(r.json.result.suggest, '<div class="chips">nasi lemak calories</div>');
@@ -62,19 +65,38 @@ Deno.test('a search: Google Search grounding is on, the key stays on the server,
   const sent = JSON.parse(c.init!.body as string);
   assertEquals(sent.tools, [{ google_search: {} }]);
   assert(sent.contents[0].parts[0].text.includes('The player ate: nasi lemak big plate , extra ayam goreng, no sambal'), 'angle brackets are cleaned');
-  assert(sent.systemInstruction.parts[0].text.includes('Apply every change the player typed'));
+  const sys = sent.systemInstruction.parts[0].text;
+  assert(sys.includes('Apply every change the player typed') && sys.includes('Never invent a source'));
+  assert(!/usda/i.test(sys), 'USDA is not named in the instructions');
   assert(!JSON.stringify(r.json).includes('gem-test-key'));
   assert(!logs.join('\n').includes('lemak') && !logs.join('\n').includes('sambal'), 'the player\'s words are never logged');
 });
 
-Deno.test('the answer is checked: JSON inside a fence or sentence is found; negative or missing energy is dropped; weights are clamped', async () => {
+Deno.test('the answer is checked: JSON inside a fence is found; bad parts are dropped; weights are clamped; "estimate" is no source', async () => {
   reply = 'Here you go:\n```json\n' + JSON.stringify({ kind: 'food', name: 'Roti canai', portion: '2 pieces', note: '', confidence: 'sure!', items: [
-    { label: 'Roti canai', grams: 99999, kcal: 600, protein: 12, carbs: 80, fat: 25 }, { label: 'Dal', grams: 50, kcal: -5 }, { label: '', grams: 10, kcal: 10 }] }) + '\n```';
+    { label: 'Roti canai', grams: 99999, kcal: 600, protein: 12, carbs: 80, fat: 25, source: 'estimate', basis: '' }, { label: 'Dal', grams: 50, kcal: -5 }, { label: '', grams: 10, kcal: 10 }] }) + '\n```';
   const r = await ask({ food: 'roti canai 2' }, await good());
   assertEquals(r.status, 200);
-  assertEquals(r.json.result.items, [{ label: 'Roti canai', g: 3000, kcal: 600, p: 12, c: 80, f: 25 }]);
-  assertEquals(r.json.result.confidence, 'low');
+  assertEquals(r.json.result.items, [{ label: 'Roti canai', g: 3000, kcal: 600, p: 12, c: 80, f: 25, src: '', basis: '', chk: false }]);
+  assertEquals(r.json.result.confidence, 'low', 'an unsourced answer never reads as sure');
   assertEquals(mod.parse('no json here'), null);
+});
+
+Deno.test('the calories are checked against the macros: 4 x protein + 4 x carbohydrate + 9 x fat', async () => {
+  // 8 g protein + 70 g carbohydrate + 15 g fat = 32 + 280 + 135 = 447 kcal: 450 is fine, 900 is flagged
+  assertEquals([mod.atwaterOff(450, 8, 70, 15), mod.atwaterOff(900, 8, 70, 15), mod.atwaterOff(60, 8, 70, 15)], [false, true, true]);
+  assertEquals([mod.atwaterOff(120, 5, 20, 2), mod.atwaterOff(null, 1, 1, 1), mod.atwaterOff(100, null, 1, 1)], [false, false, false], 'a small gap, or a missing macro, is not flagged');
+  reply = { kind: 'food', name: 'X', portion: 'p', confidence: 'high', items: [{ label: 'Rice', grams: 200, kcal: 900, protein: 8, carbs: 70, fat: 15, source: 'MyFCD', basis: 'x' }] };
+  const r = await ask({ food: 'rice' }, await good());
+  assertEquals([r.json.result.items[0].chk, r.json.result.confidence], [true, 'low']);
+});
+
+Deno.test('with the search on but no web page found, the answer is not "sure"', async () => {
+  reply = { kind: 'food', name: 'X', portion: 'p', confidence: 'high', items: [{ label: 'Rice', grams: 200, kcal: 447, protein: 8, carbs: 70, fat: 15, source: 'MyFCD', basis: 'x' }] };
+  const saved = grounding; grounding = {};
+  const r = await ask({ food: 'rice' }, await good());
+  grounding = saved;
+  assertEquals([r.json.result.sources, r.json.result.confidence], [[], 'low']);
 });
 
 Deno.test('a model without search grounding (400) is asked again without it, and the result says it was not searched', async () => {

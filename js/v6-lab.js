@@ -184,7 +184,7 @@ acts.labgo=()=>go('lab');
 
 /* ---------- the laboratory scene: the owner's concept-sheet laboratory (assets/img/lab-scene.webp, tools/art/make_luna_lab.py)
    with Luna in front; the orb's glow and a few motes are CSS (transform and opacity only), still with reduced motion ---------- */
-function startScene(){const lu=document.getElementById('labluna');if(lu&&!lu.firstChild)HWLuna.mount(lu,{kind:'full',cycle:1})}
+function startScene(){const lu=document.getElementById('labluna');if(lu&&!lu.firstChild)HWLuna.mount(lu,{kind:'full',cycle:1,sheet:'lab'})}
 
 /* ---------- registration: route, banner, doorways ---------- */
 pages.lab=()=>page();
@@ -208,7 +208,8 @@ HWUI.css('lab',`
 .labmotes i:nth-child(1){left:12%}.labmotes i:nth-child(2){left:28%;animation-delay:1s}.labmotes i:nth-child(3){left:44%;animation-delay:2.2s;background:#fff0a8}
 .labmotes i:nth-child(4){left:60%;animation-delay:3.1s}.labmotes i:nth-child(5){left:20%;animation-delay:4s;background:#efe8ff}.labmotes i:nth-child(6){left:52%;animation-delay:5s}
 @keyframes labmote{10%{opacity:1}100%{opacity:0;transform:translateY(-140px)}}
-.labluna{position:absolute;right:3%;bottom:3%;z-index:2;line-height:0}
+.labluna{position:absolute;right:1%;bottom:1%;height:80%;aspect-ratio:2/3;z-index:2;line-height:0}   /* the larger Luna fills most of the scene's height at any width */
+.labluna .v6lfull{display:block;width:100%!important;height:100%!important}
 .labcap{position:absolute;left:12px;bottom:10px;z-index:2;margin:0;max-width:60%;font:13px/1.45 var(--fb);color:#efe8ff;text-shadow:0 1px 2px #0a0628}
 .labcap b{display:block;font:9px/1.8 var(--fh);color:#fff0a8;letter-spacing:.5px;text-shadow:0 0 8px rgba(246,201,79,.7)}
 @media(prefers-reduced-motion:reduce){.labglow,.labmotes i{animation:none}.labmotes{display:none}}html.hw-q-performance .labmotes{display:none}
