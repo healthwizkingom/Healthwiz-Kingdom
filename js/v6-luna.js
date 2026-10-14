@@ -6,6 +6,8 @@
                                    cheerful, curious, focused, thoughtful, surprised, encouraging, apologetic
        assets/img/luna-poses.webp  her nine full-body poses, 80 x 120 frames, transparent (tools/art/make_luna_poses.py):
                                    idle, staff, walk, cast, point, think, happy, confused, wave (the sheet's poses 1 to 9)
+       assets/img/luna-lab.webp    the Science Laboratory's larger Luna: idle, staff, point, think, 120 x 180 frames (1.5 times the size,
+                                   cut from the same reference sheet by the same tool); drawn at 80 % of the scene's height
      Where: the full figure in the bubble (full size) and in the Science Laboratory; the portrait for the moment's
      expression in the compact bubble, Ask Luna and Talk with Luna; the middle of a portrait (44 x 44) on the header button.
    * Motion is CSS only, from the sheet's own drawings: each moment picks a pose (POSEOF: a greeting waves, good news is
@@ -29,7 +31,8 @@
      Missing keys mean the defaults, so older saves need no migration. RESET puts all three back. */
 const HWLuna=(()=>{
 const NAMES=['cheerful','curious','focused','thoughtful','surprised','encouraging','apologetic'];
-const FACES='assets/img/luna-faces.webp',POSE_IMG='assets/img/luna-poses.webp',ROOM='assets/img/luna-room.webp',FS=64,PW=80,PH=120;
+const FACES='assets/img/luna-faces.webp',POSE_IMG='assets/img/luna-poses.webp',LAB_IMG='assets/img/luna-lab.webp',ROOM='assets/img/luna-room.webp',FS=64,PW=80,PH=120,LW=120,LH=180;
+const LABP=['idle','staff','point','think'];   // the Laboratory's larger sheet (luna-lab.webp, 120 x 180 frames), in this order
 const POSES=['idle','staff','walk','cast','point','think','happy','confused','wave'];   // the sheet's poses 1 to 9, in luna-poses.webp
 const POSEOF={idle:'idle',greet:'wave',cheerful:'happy',curious:'point',focused:'staff',thoughtful:'think',surprised:'cast',encouraging:'happy',apologetic:'confused'};
 const poseOf=(p,expr)=>POSES.includes(p)?p:POSEOF[expr]||'idle';
@@ -46,6 +49,9 @@ function mini(expr){const n=faceOf(expr),i=NAMES.indexOf(n);
     o.cast adds a sparkle burst; o.enter walks her in first (the walking pose, then the chosen one); o.cycle is the
     Laboratory's slow loop of idle, staff, pointing and thinking. */
 function full(o){o=o||{};const s=o.scale||1,p=poseOf(o.pose,o.expr);
+  if(o.sheet==='lab'){const q=LABP.includes(p)?p:'idle',x=(LABP.indexOf(q)/(LABP.length-1)*100).toFixed(4)+'%';   // the larger Laboratory figure (1.5 times the size)
+    return '<span class="v6lfull lab'+(o.cycle?' cycle':'')+'" aria-hidden="true" data-pose="'+q+'" style="width:'+LW*s+'px;height:'+LH*s+'px"><span class="v6lfi" style="background-size:'+LABP.length*100+'% 100%;background-position:'+x+' 0"></span>'
+      +'<i class="v6ls s1"></i><i class="v6ls s2"></i><i class="v6ls s3"></i><i class="v6ls s4"></i></span>'}
   return '<span class="v6lfull'+(o.cast?' cast':'')+(o.enter?' enter':'')+(o.cycle?' cycle':'')+'" aria-hidden="true" data-pose="'+p+'" style="width:'+PW*s+'px;height:'+PH*s+'px">'
     +'<span class="v6lfi" style="background-size:'+PW*s*POSES.length+'px '+PH*s+'px;background-position:'+at(p)+' 0;--px:'+at(p)+'"></span>'
     +'<i class="v6ls s1"></i><i class="v6ls s2"></i><i class="v6ls s3"></i><i class="v6ls s4"></i></span>'}
@@ -193,6 +199,9 @@ HWUI.css('luna',`
 @keyframes v6lwalk{0%{background-position:${at('walk')} 0;transform:translateX(18px)}33%{background-position:${at('walk')} 0;transform:translateX(9px)}66%{background-position:${at('walk')} 0;transform:translateX(0)}100%{background-position:var(--px) 0}}
 .v6lfull.cycle .v6lfi{animation:v6lcyc 16s steps(1) infinite}
 @keyframes v6lcyc{0%,45%{background-position:${at('idle')} 0}45.01%,60%{background-position:${at('staff')} 0}60.01%,75%{background-position:${at('point')} 0}75.01%,90%{background-position:${at('think')} 0}90.01%,100%{background-position:${at('idle')} 0}}
+.v6lfull.lab .v6lfi{background-image:url(${LAB_IMG})}
+.v6lfull.lab.cycle .v6lfi{animation:v6lcycl 16s steps(1) infinite}
+@keyframes v6lcycl{0%,45%{background-position:0% 0}45.01%,60%{background-position:33.3333% 0}60.01%,75%{background-position:66.6667% 0}75.01%,90%{background-position:100% 0}90.01%,100%{background-position:0% 0}}
 html.hw-rm .v6lfull .v6lfi,html.hw-q-performance .v6lfull .v6lfi{animation:none!important}
 @media(prefers-reduced-motion:reduce){.v6lfull .v6lfi{animation:none!important}}
 .v6ls{position:absolute;width:4px;height:4px;background:#fff0a8;box-shadow:0 0 6px 2px rgba(255,240,168,.8);opacity:0;animation:v6ltw 2.4s steps(3) infinite}

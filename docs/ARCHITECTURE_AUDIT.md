@@ -1600,3 +1600,14 @@ Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel
   the view's centre. Opening the Observatory asks for one position by itself: on campus the nearest mapped stairway is
   selected, the map zooms in and centres on it, and its details open; if location is off or far away a quiet note says
   so. The position is still never saved or sent. Tests: `tests/66-campus.test.mjs` (8).
+
+### Science Laboratory: a larger Luna (owner, 2026-10-14: "apply the previous format of cropping to the Science Laboratory section, enlarge Luna, crop it using the reference sheet")
+
+- `tools/art/make_luna_poses.py` now also cuts, from the same boxes on the 1536 × 1024 character reference sheet, a larger
+  set for the Laboratory: `assets/img/luna-lab.webp` (480 × 180, ≈ 24 KB), four 120 × 180 frames (idle, staff, point,
+  think: 1.5 times the old 80 × 120 figure), the same background removal and hard alpha, one 56-colour palette, no dithering.
+  `luna-poses.webp` is byte-for-byte unchanged. The image total is 874,787 bytes of the 880 KB (901,120) budget.
+- `HWLuna.mount(el, { kind: 'full', cycle: 1, sheet: 'lab' })` draws her from that sheet with her own slow loop (idle, staff,
+  pointing, thinking). In the Laboratory she stands at the scene's lower right at 80 % of the scene's height (a percentage,
+  so she keeps filling most of the scene at any width, as the Wannabe Wizard does). `tests/62-lab.test.mjs` checks the sheet in use and her size
+  (at least 60 % of the scene's height, at least 180 px); `tests/59-luna.test.mjs` lists the new file.

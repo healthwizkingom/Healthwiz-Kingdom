@@ -20,7 +20,12 @@ test('reachable: a doorway at the end of the Health Hall, its own banner, back t
   assert.match(await txt(page, '#main'), /Science Laboratory[\s\S]*Experiment[\s\S]*Evidence Trial[\s\S]*Evidence Vault[\s\S]*Uncertainty/);
   assert.equal(await page.getAttribute('[data-a="labtab"][data-k="exp"]', 'aria-selected'), 'true');
   assert.equal(await page.$eval('#labsc .labbg', i => i.complete && i.naturalWidth), 290, 'the laboratory scene from the owner\'s concept sheet');
-  assert.ok(await page.$('#labluna .v6lfull.cycle .v6lfi'), 'Luna from the owner\'s sheet is in the laboratory, cycling her poses');
+  assert.ok(await page.$('#labluna .v6lfull.lab.cycle .v6lfi'), 'Luna from the owner\'s sheet is in the laboratory, cycling her poses');
+  // she is the larger sheet (120 x 180, cut from the reference sheet), and fills most of the scene's height
+  const big = await page.evaluate(() => { const f = document.querySelector('#labluna .v6lfull').getBoundingClientRect(), s = document.querySelector('#labsc').getBoundingClientRect(), i = document.querySelector('#labluna .v6lfi');
+    return { f: f.height, s: s.height, w: f.width, img: getComputedStyle(i).backgroundImage, size: getComputedStyle(i).backgroundSize }; });
+  assert.match(big.img, /luna-lab\.webp/);
+  assert.ok(big.f >= 180 && big.f >= 0.6 * big.s, 'Luna is large: ' + big.f + ' of the scene\'s ' + big.s + ' px');
   const nav = await page.evaluate(() => [...document.querySelectorAll('#nav button')].map(b => b.dataset.v));
   assert.deepEqual(nav, ['home', 'health', 'quests', 'kingdom', 'set'], 'navigation order unchanged');
   await page.evaluate(() => HWLuna.open('laboratory'));
