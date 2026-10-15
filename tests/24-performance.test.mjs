@@ -191,8 +191,8 @@ test('no leaks: 60 navigations leave listeners, DOM nodes and timers flat', asyn
 // room (lab-scene 640 x 358, 99 KB). The same day the owner replaced the sheet with four larger design sheets (21 figures, 12 heads, her
 // things: luna-poses 44 KB, luna-lab 160 x 240 frames 44 KB, luna-faces 28 KB, luna-props 3 KB) and told the session to increase the
 // budget: the total is now 1 MB (1,048,576 bytes; the art totals 1,019,329). Later that day Luke's art was replaced from the owner's own
-// design sheets (luke-poses 22 figures 82 KB, luke-faces 12 heads 23 KB, luke-props 4 KB, luke-room 640 x 358 93 KB) and the total rose to
-// 1.125 MB (1,179,648 bytes; the art totals 1,137,357).
+// design sheets (luke-poses 22 figures 72 KB, luke-faces 12 heads 23 KB, luke-props 4 KB, luke-room 640 x 358 93 KB) and the total rose to
+// 1.125 MB (1,179,648 bytes; the art totals 1,127,453).
 const SHEET_CAP = { 'exercise/moves.webp': 180 * 1024 };
 test('assets stay lean: the art is lossless WebP, no image over 100 KB (the moves sheet 180 KB), all images ≤ 1,152 KB (1.125 MB) together', () => {
   const dir = path.join(root, 'assets', 'img'), files = fs.readdirSync(dir, { recursive: true }).filter(f => fs.statSync(path.join(dir, f)).isFile());

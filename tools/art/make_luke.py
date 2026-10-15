@@ -2,9 +2,6 @@
 
     python3 tools/art/make_luke.py TURNAROUND ACTIONS EXPRESSIONS_1 EXPRESSIONS_2 PROPS ROOM [OUT_DIR]   # default OUT_DIR: assets/img
 
-TURNAROUND may be "-": the four views then keep the first four frames (front, three-quarter, side, back) of the luke-poses.webp
-already in OUT_DIR, as a stand-in until the turnaround sheet is supplied.
-
 Input: five 1024 x 572 "LUKE" sheets (made with Gemini from briefs written in the session) and his painted room:
   TURNAROUND    front, three-quarter (with his wand), side, back
   ACTIONS       walking, casting a spell, reading his spellbook, inspecting a potion, waving hello, resting
@@ -30,12 +27,12 @@ from PIL import Image
 sys.path.insert(0, os.path.dirname(__file__))
 import make_luna_poses as M   # the same cutting code; the sheets' background is within its tolerance
 
-# name: the sheet's figures left to right, the x between neighbours (the turnaround's are read off the sheet; the
-# expression sheets' are the quietest columns near the gaps: their hats overlap a little)
+# name: the sheet's figures left to right, the x between neighbours (the turnaround's are the empty columns between its
+# figures; the expression sheets' are the quietest columns near the gaps: their hats overlap a little)
 # the last number is the bottom edge: the turnaround has no captions; on the expression sheets the feet end above the
 # sheet's ground line (y 542) and the captions are under it
 ROWS = [
-    ('turn', ['front', 'three', 'side', 'back'], [258, 546, 770], 572),
+    ('turn', ['front', 'three', 'side', 'back'], [258, 544, 770], 572),
     ('expr1', ['happy', 'confused', 'nervous', 'determined', 'surprised', 'tired'], [215, 376, 523, 679, 843], 541),
     ('expr2', ['excited', 'curious', 'think', 'laugh', 'sad', 'annoyed'], [224, 383, 539, 711, 858], 541),
 ]
@@ -84,10 +81,6 @@ def quantize(img, colors):
     return img.quantize(colors=colors, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
 
 def main(turn, actions, expr1, expr2, props, room, out):
-    old = None
-    if turn == '-':
-        old = Image.open(os.path.join(out, 'luke-poses.webp')).convert('RGBA')
-        turn = expr1                                    # any sheet: its four cuts are replaced below
     sheets = {'turn': clean(Image.open(turn).convert('RGB')), 'expr1': clean(Image.open(expr1).convert('RGB')),
               'expr2': clean(Image.open(expr2).convert('RGB'))}
     acts = clean(Image.open(actions).convert('RGB'))
@@ -102,15 +95,6 @@ def main(turn, actions, expr1, expr2, props, room, out):
     for n, box in ACTIONS.items():
         cuts[n] = M.cut(acts, box, 3)
     M.build(cuts, out, 'luke-poses.webp', POSES, H, FW, BODY, PCOLORS)
-    if old is not None:
-        dst = os.path.join(out, 'luke-poses.webp')
-        strip = Image.open(dst).convert('RGBA')
-        for i in range(4):
-            slot = (i * FW, 0, i * FW + FW, H)
-            strip.paste(Image.new('RGBA', (FW, H), (0, 0, 0, 0)), slot[:2])
-            strip.alpha_composite(old.crop(slot), slot[:2])
-        strip.save(dst, lossless=True, quality=100, method=6)
-        print('the four views are the previous art (stand-in until the turnaround sheet is supplied):', os.path.getsize(dst), 'bytes')
     strip = Image.new('RGB', (FS * len(FACES), FS))
     for i, (_, pose) in enumerate(FACES):
         im, box = heads[pose]

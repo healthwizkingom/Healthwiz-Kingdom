@@ -179,5 +179,4 @@ opacity only, and every scene stops off screen, in a hidden tab and for reduced 
   expressions; the reading, inspecting and waving figures are drawn waist-up on the sheet and are close-ups), the twelve
   expression heads (`luke-faces.webp`, 64 × 64), his things and round portrait (`luke-props.webp`, 40 × 40 tiles) and his
   painted room (`luke-room.webp`, 640 × 358, 128 colours, drawn smoothed like the Laboratory's, the same exception to
-  rule 5). Meet Luke (Settings) steps through every figure. Until the turnaround sheet is supplied his four views are the
-  previous art.
+  rule 5). Meet Luke (Settings) steps through every figure.

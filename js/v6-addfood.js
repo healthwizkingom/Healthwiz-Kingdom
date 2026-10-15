@@ -9,8 +9,7 @@
      resting and the twelve expressions), the twelve expression heads (luke-faces.webp: happy, confused, nervous,
      determined, surprised, tired, excited, curious, thinking, laughing, sad, annoyed), the PROPS and the ROUND PORTRAIT
      (luke-props.webp: books, notes, wand, backpack, scrolls, potion, portrait) and his painted room (luke-room.webp).
-     Meet Luke (Settings) steps through every figure and shows his things. The waiting pose is happy; the four views are
-     the previous art until the turnaround sheet is supplied. He reacts to what happens (director() below), in CSS only:
+     Meet Luke (Settings) steps through every figure and shows his things. The waiting pose is happy. He reacts to what happens (director() below), in CSS only:
        - waiting: happy; after 30 s of no input he is resting, tired; as you type he turns three-quarter to listen
          (surprised, then determined once you give detail) with his notes out;
        - searching: he turns all the way round through the angles (walking, three-quarter, side, back, and back again)
