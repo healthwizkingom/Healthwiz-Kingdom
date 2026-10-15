@@ -21,13 +21,13 @@ test('signed in, he searches the web: food, portion and changes in one box; the 
   const { page, errors } = await device(S, { viewport: { width: 360, height: 800 }, context: { isMobile: true, hasTouch: true } });
   await signIn(page, S); await synced(page);
   await openWizard(page);
-  assert.deepEqual(await fig(page), ['front', 'happy']);
+  assert.deepEqual(await fig(page), ['happy', 'happy']);
   assert.match(await page.textContent('#awiz'), /LUKEHi, I am Luke! Tell me what you ate, how much, and any extras[\s\S]*He searches the web with Google Gemini for real nutrition data/);
   assert.equal(await page.locator('#cn').count(), 1, 'the original form is still there, below');
   await page.fill('#awq', 'nasi lemak, big plate, extra fried chicken, no sambal'); await page.press('#awq', 'Enter');
   await page.waitForSelector('#awcard');
   assert.deepEqual(S.guess, [{ food: 'nasi lemak, big plate, extra fried chicken, no sambal' }], 'one search with the words as typed');
-  assert.deepEqual(await fig(page), ['front', 'surprised']);
+  assert.deepEqual(await fig(page), ['inspect', 'surprised']);
   // 450 + 330 = 780 kcal; protein 8 + 25 = 33 g; carbohydrate 70 + 8 = 78 g; fat 15 + 22 = 37 g
   const card = await page.textContent('#awcard');
   assert.match(card, /Nasi lemak · one big plate, extra fried chicken, no sambalabout 780 kcalProtein33 gCarbohydrate78 gFat37 g/);
@@ -85,7 +85,7 @@ test('no web search on the server: he says so and offers the canteen menu; not a
   S.guessStatus = 200; S.guessReplies = [{ unknown: true }, { result: { ...RESULT, searched: false, sources: [], suggest: '' } }];
   await page.fill('#awq', 'my homework'); await page.click('[data-a="awgo"]');
   await page.waitForFunction(() => !HWAddFood.state.busy && HWAddFood.state.unknown);
-  assert.deepEqual(await fig(page), ['three', 'confused']);
+  assert.deepEqual(await fig(page), ['curious', 'curious']);
   assert.match(await page.textContent('.awsay'), /that does not sound like a food or a drink/);
   await page.fill('#awq', 'nasi lemak'); await page.click('[data-a="awgo"]');
   await page.waitForSelector('#awcard');
@@ -141,24 +141,24 @@ test('Luke is Luke, and he reacts: every angle, every expression and every prop 
   assert.equal(await page.$eval('.awface', e => e.getAttribute('aria-label')), 'Luke, happy');
   assert.equal(await page.$eval('.awav', e => e.getAttribute('aria-label')), 'Luke', 'his compact portrait is in the title');
   const seen = new Set(), see = async want => { const l = await look(page); assert.equal(l, want); seen.add(l); };
-  await see('front happy - bob');                                                                  // waiting
+  await see('happy happy - bob');                                                                  // waiting
   await page.fill('#awq', 'na');           await see('three surprised notes lean');               // listens, taking notes
   await page.fill('#awq', 'nasi lemak, big plate, extra chicken'); await see('three determined notes lean');
-  await page.clock.fastForward(2000);       await see('front happy - bob');                       // stops typing
-  await page.fill('#awq', '');              await page.clock.fastForward(31000); await see('front tired - sway');   // nothing for 30 s
+  await page.clock.fastForward(2000);       await see('happy happy - bob');                       // stops typing
+  await page.fill('#awq', '');              await page.clock.fastForward(31000); await see('rest tired - sway');   // nothing for 30 s
   await page.fill('#awq', 'nasi lemak');
   S.guessReplies = [{ result: RESULT }];
   await page.press('#awq', 'Enter');
   await page.waitForSelector('#awcard');
-  await see('front surprised notes bob');                                                           // a middling, cited answer
+  await see('inspect surprised notes bob');                                                           // a middling, cited answer
   // the wand flick when he changes an amount
   await page.click('[data-a="awadj"][data-i="0"][data-d="1"]');
-  await see('front determined wand hop');
-  await page.clock.fastForward(2000);       await see('front surprised notes bob');
+  await see('determined determined wand hop');
+  await page.clock.fastForward(2000);       await see('inspect surprised notes bob');
   for (const [conf, items, want] of [
-    ['high', [part('Rice', 150, 'MyFCD')], 'cast excited potion hop'],
-    ['low', [part('Rice', 150, ''), part('Egg', 100, '')], 'side nervous backpack sway'],
-    ['medium', [part('Rice', 150, 'MyFCD', true)], 'three confused scrolls tilt']]) {
+    ['high', [part('Rice', 150, 'MyFCD')], 'excited excited potion hop'],
+    ['low', [part('Rice', 150, ''), part('Egg', 100, '')], 'nervous nervous backpack sway'],
+    ['medium', [part('Rice', 150, 'MyFCD', true)], 'confused confused scrolls tilt']]) {
     S.guessReplies = [reply(conf, items)];
     await page.fill('#awq', 'again ' + conf); await page.press('#awq', 'Enter');
     await page.waitForFunction(c => HWAddFood.state.res && HWAddFood.state.res.confidence === c || HWAddFood.state.items.some(i => i.v.chk), conf);
@@ -170,18 +170,18 @@ test('Luke is Luke, and he reacts: every angle, every expression and every prop 
   S.guessReplies = [{ unknown: true }];
   await page.fill('#awq', 'my homework'); await page.press('#awq', 'Enter');
   await page.waitForFunction(() => HWAddFood.state.unknown);
-  await see('three confused notes tilt');
+  await see('curious curious notes tilt');
   S.guessStatus = 503; S.guessBody = { error: 'nokey' };
   await page.fill('#awq', 'roti'); await page.press('#awq', 'Enter');
   await page.waitForSelector('[data-a="awpick"]');
-  await see('three surprised books bob');                                                            // found on the menu
+  await see('read surprised books bob');                                                            // found on the menu
   await page.fill('#awq', 'zzzz'); await page.press('#awq', 'Enter');
   await page.waitForFunction(() => !HWAddFood.state.busy && HWAddFood.state.step === 'pick' && !HWAddFood.state.menu.length);
   await see('back nervous backpack sway');                                                           // nothing found
-  // all six angles, all seven expressions and all six props have appeared
+  // the poses, expressions and props these states use have appeared
   const poses = new Set([...seen].map(x => x.split(' ')[0])), faces = new Set([...seen].map(x => x.split(' ')[1])), props = new Set([...seen].map(x => x.split(' ')[2]));
-  for (const p of ['front', 'three', 'side', 'back', 'cast']) assert.ok(poses.has(p), 'pose ' + p);
-  for (const f of ['happy', 'confused', 'nervous', 'determined', 'surprised', 'tired', 'excited']) assert.ok(faces.has(f), 'expression ' + f);
+  for (const p of ['happy', 'three', 'rest', 'inspect', 'determined', 'excited', 'nervous', 'confused', 'cast', 'curious', 'read', 'back']) assert.ok(poses.has(p), 'pose ' + p);
+  for (const f of ['happy', 'confused', 'nervous', 'determined', 'surprised', 'tired', 'excited', 'curious']) assert.ok(faces.has(f), 'expression ' + f);
   for (const p of ['books', 'notes', 'wand', 'backpack', 'scrolls', 'potion']) assert.ok(props.has(p), 'prop ' + p);
   assert.deepEqual(errors.filter(e => !/status of 503/.test(e)), []);
 });
@@ -196,7 +196,7 @@ test('searching: he turns all the way round (walking, three-quarter, side, back)
   const r = await page.evaluate(() => { const f = document.querySelector('.awfig'), p = document.querySelector('.awprop'); return { fx: f.dataset.fx, pose: f.dataset.pose, anim: getComputedStyle(f).animationName, prop: p.dataset.prop, orbit: getComputedStyle(p).animationName, face: document.querySelector('.awface').dataset.face }; });
   assert.deepEqual(r, { fx: 'turn', pose: 'back', anim: 'awturn', prop: 'books', orbit: 'aworbit', face: 'determined' });
   const sizes = await page.evaluate(async () => Promise.all(['luke-poses', 'luke-faces', 'luke-props', 'luke-room'].map(n => new Promise(res => { const i = new Image(); i.onload = () => res([n, i.naturalWidth, i.naturalHeight]); i.onerror = () => res([n, 0, 0]); i.src = 'assets/img/' + n + '.webp'; }))));
-  assert.deepEqual(sizes, [['luke-poses', 720, 180], ['luke-faces', 448, 64], ['luke-props', 280, 40], ['luke-room', 336, 189]], 'six angles at 120 x 180, seven expressions, seven 40 x 40 tiles, his room');
+  assert.deepEqual(sizes, [['luke-poses', 2640, 180], ['luke-faces', 768, 64], ['luke-props', 280, 40], ['luke-room', 640, 358]], 'twenty-two figures at 120 x 180, twelve expressions, seven 40 x 40 tiles, his painted room');
   assert.deepEqual(errors, []);
 });
 
@@ -217,7 +217,7 @@ test('phone: no sideways scroll, large controls; he stands still under reduced m
   assert.ok(r.doc <= 360, 'no sideways scroll: ' + r.doc);
   assert.equal(r.anim, 'none');
   for (const h of r.h) assert.ok(h >= 44, 'button height ' + h);
-  assert.equal(r.img, 336, 'his room from the owner\'s scene');
+  assert.equal(r.img, 640, 'his painted room from the owner\'s sheet');
   assert.deepEqual(errors, []);
 });
 
@@ -234,4 +234,24 @@ test('no USDA anywhere: not in the Wizard, its server function, its instructions
   for (const f of ['js/v6-addfood.js', 'supabase/functions/food-guess/index.ts', 'js/v6-sources.js', 'js/v6-vault.js', 'sw.js', 'index.html'])
     assert.doesNotMatch(fs.readFileSync(new URL(f, root), 'utf8'), /USDA|FoodData|food-search|FDC_API_KEY|foodparts/i, f);
   assert.equal(fs.existsSync(new URL('supabase/functions/food-search', root)), false);
+});
+
+test('every figure, expression and prop of his design sheets is used: by his reactions, the turn, or Meet Luke (Settings), which steps through them one at a time', async () => {
+  const S = fakeSupabase();
+  const { page, errors } = await device(S, { viewport: { width: 360, height: 800 }, context: { isMobile: true, hasTouch: true } });
+  await go(page, 'set');
+  const all = await page.evaluate(() => ({ poses: HWAddFood.POSES, faces: HWAddFood.FACES }));
+  assert.equal(all.poses.length, 22); assert.equal(all.faces.length, 12);
+  const seen = [await page.getAttribute('#awmeet .awmfig', 'data-pose')];
+  for (let i = 1; i < all.poses.length; i++) { await page.click('#awmeet [data-a="awmeet"][data-d="1"]'); seen.push(await page.getAttribute('#awmeet .awmfig', 'data-pose')); }
+  assert.deepEqual(seen, all.poses, 'NEXT walks through all twenty-two figures, the four views included');
+  assert.match(await page.textContent('#awmeet .awmcap'), /Annoyed\s*22 of 22/);
+  await page.click('#awmeet [data-a="awmeet"][data-d="1"]');
+  assert.equal(await page.getAttribute('#awmeet .awmfig', 'data-pose'), 'front', 'NEXT wraps around');
+  await page.click('#awmeet [data-a="awmeet"][data-d="-1"]');
+  assert.equal(await page.getAttribute('#awmeet .awmfig', 'data-pose'), 'annoyed', 'PREV wraps the other way');
+  const props = await page.$$eval('#awmeet .awmprop', es => es.map(e => [e.dataset.prop, e.getAttribute('aria-label'), e.getBoundingClientRect().width]));
+  assert.deepEqual(props, [['books', 'Spellbooks', 80], ['notes', 'Magical notes', 80], ['wand', 'Wand', 80], ['backpack', 'Backpack', 80], ['scrolls', 'Scrolls', 80], ['potion', 'Potion', 80], ['portrait', 'Round portrait', 80]]);
+  assert.equal(await page.$eval('#awmeet .awmfig', e => getComputedStyle(e).imageRendering), 'pixelated', 'drawn as crisp pixel art');
+  assert.deepEqual(errors, []);
 });

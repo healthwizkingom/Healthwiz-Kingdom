@@ -1659,3 +1659,25 @@ Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel
 - **Not used:** the palette swatches (information, not art).
 - **Tests:** `tests/59-luna.test.mjs` (the 21 poses, 12 portraits and the props load; every pose is used; Meet Luna steps
   through all twenty-one, wraps, and shows five things; a sleep log rests), `tests/62-lab.test.mjs` (the 640 px scene).
+
+### Luke's new design sheets and painted room (owner, 2026-10-15: the images, after the prompt for Luke)
+
+- **Art source:** the owner's "LUKE" sheets (1024 × 572: expressions parts 1 and 2, the action poses, props and palette, and
+  a turnaround) and a painted night study, made with Gemini from the prompt written in the session. The turnaround arrived
+  as an attachment mid-task and was not saved to disk, so it could not be cut: the four views (front, three-quarter,
+  side, back) are **still the previous art** until the sheet is supplied again (`make_luke.py -` keeps them).
+- **Recut:** `tools/art/make_luke.py` (rewritten for these sheets; it shares the cutting code of `make_luna_poses.py`) →
+  `luke-poses.webp` (2640 × 180, ≈ 82 KB, **22** figures at 120 × 180, 64 colours), `luke-faces.webp` (768 × 64, ≈ 23 KB,
+  **12** heads), `luke-props.webp` (280 × 40, ≈ 4 KB, seven tiles), `luke-room.webp` (640 × 358, ≈ 93 KB, 128 colours,
+  drawn smoothed). `luna-room.webp` is no longer made by this tool and is unchanged.
+- **Code:** `js/v6-addfood.js` has 22 poses and 12 expressions; his reactions now use the new figures (waiting is happy,
+  tired is resting, a middling answer inspects the potion, the menu is read from the spellbook, the portion question is
+  thinking, a high-confidence answer is excited, numbers that do not add up are confused, not a food is curious, an error
+  is sad). The turn (walking, three-quarter, side, back, ...) is generated from the pose order. **Meet Luke** (Settings)
+  steps through all 22 figures and shows his seven things, like Luna's.
+- **Budget:** the images total 1,137,357 bytes: the owner's 1 MB limit could not hold this art, so
+  `tests/24-performance` now allows 1.125 MB (1,179,648 bytes); no image is over 100 KB. This raise follows the owner's
+  earlier instruction to increase the budget for Luna; it should be confirmed.
+- **Tests:** `tests/67-addfood.test.mjs` updated to the new poses, expressions and sizes, with a new test that Meet Luke
+  steps through all 22 figures and shows seven things. Its "Luke is Luke" test also fails on `main` when the whole file runs
+  (a console error from a sandboxed iframe) and passes on its own.

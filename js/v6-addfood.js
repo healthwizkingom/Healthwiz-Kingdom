@@ -4,18 +4,21 @@
    calories and macros of any food, any portion, any add-on or removal, from solid, cited references.
    ADD MORE FOOD on the Nutrition page opens the wizard above the original custom-food form, which stays as it was (type
    it yourself; one SAVE CUSTOM FOOD click still saves).
-   * Luke, from the owner's "The Wannabe Wizard" reference sheet (tools/art/make_luke.py), every part of it used:
-     all six angles (luke-poses.webp, 120 x 180: front, three-quarter, side, back, walking, casting), all seven
-     expressions (luke-faces.webp: happy, confused, nervous, determined, surprised, tired, excited), the six PROPS &
-     ITEMS and the COMPACT PORTRAIT (luke-props.webp: books, notes, wand, backpack, scrolls, potion, portrait) and his room
-     (luke-room.webp). He reacts to what happens (director() below), in CSS only:
-       - waiting: front and happy; after 30 s of no input he is tired; as you type he turns three-quarter to listen
+   * Luke, from the owner's character design sheets of 2026-10-15 (tools/art/make_luke.py), every part of them used:
+     all 22 figures (luke-poses.webp, 120 x 180: the four views, walking, casting, reading, inspecting a potion, waving,
+     resting and the twelve expressions), the twelve expression heads (luke-faces.webp: happy, confused, nervous,
+     determined, surprised, tired, excited, curious, thinking, laughing, sad, annoyed), the PROPS and the ROUND PORTRAIT
+     (luke-props.webp: books, notes, wand, backpack, scrolls, potion, portrait) and his painted room (luke-room.webp).
+     Meet Luke (Settings) steps through every figure and shows his things. The waiting pose is happy; the four views are
+     the previous art until the turnaround sheet is supplied. He reacts to what happens (director() below), in CSS only:
+       - waiting: happy; after 30 s of no input he is resting, tired; as you type he turns three-quarter to listen
          (surprised, then determined once you give detail) with his notes out;
        - searching: he turns all the way round through the angles (walking, three-quarter, side, back, and back again)
          with the books circling, determined;
-       - a good, cited answer: casting, excited, hopping, potion; a middling one: front, surprised, notes; a low-confidence
-         one: side, nervous, swaying, backpack; one with a part whose numbers do not add up: three-quarter, confused,
-         tilting, scrolls; not a food: confused; an error or nothing found: nervous, backpack;
+       - a good, cited answer: excited (casting once it is logged), hopping, potion; a middling one: inspecting the
+         potion, surprised, notes; a low-confidence one: nervous, swaying, backpack; one with a part whose numbers do
+         not add up: confused, tilting, scrolls; not a food: curious; an error: sad, backpack; nothing found: back turned,
+         nervous; found on the canteen menu: reading his spellbook; asking the portion: thinking;
        - the − and + buttons: determined, a flick of the wand; logged: casting, excited, hopping, potion.
      Still under reduced motion or the Performance mode (he holds the pose and the expression, nothing moves).
    * 1. One box: what you ate, in your words, with the portion and anything extra or left out ("nasi lemak, big plate,
@@ -36,7 +39,10 @@ const HWAddFood=(()=>{
 const D=document,ico=(n,s)=>HWPixel.icon(n,s||1);
 const POSE='assets/img/luke-poses.webp',FACE='assets/img/luke-faces.webp',PROPS='assets/img/luke-props.webp',ROOM='assets/img/luke-room.webp';
 const PROPN=['books','notes','wand','backpack','scrolls','potion','portrait'];   // luke-props.webp, 40 x 40 tiles
-const POSES=['front','three','side','back','walk','cast'],FACES=['happy','confused','nervous','determined','surprised','tired','excited'];
+const PROPNAME={books:'Spellbooks',notes:'Magical notes',wand:'Wand',backpack:'Backpack',scrolls:'Scrolls',potion:'Potion',portrait:'Round portrait'};
+const POSES=['front','three','side','back','walk','cast','read','inspect','wave','rest','happy','confused','nervous','determined','surprised','tired','excited','curious','think','laugh','sad','annoyed'];   // luke-poses.webp, in this order
+const FACES=['happy','confused','nervous','determined','surprised','tired','excited','curious','thinking','laughing','sad','annoyed'];   // luke-faces.webp, in this order
+const POSENAME={front:'Front view',three:'Three-quarter view',side:'Side view',back:'Back view',walk:'Walking',cast:'Casting a spell',read:'Reading his spellbook',inspect:'Inspecting a potion',wave:'Waving hello',rest:'Resting',happy:'Happy',confused:'Confused',nervous:'Nervous',determined:'Determined',surprised:'Surprised',tired:'Tired',excited:'Excited',curious:'Curious',think:'Thinking',laugh:'Laughing',sad:'Sad',annoyed:'Annoyed'};
 const pat=(L,k)=>(L.indexOf(k)/(L.length-1)*100).toFixed(4)+'%';
 const r1=v=>Math.round(v*10)/10,fmt=v=>v==null?'–':(Math.round(v*10)/10).toLocaleString(undefined,{maximumFractionDigits:1});
 
@@ -103,18 +109,18 @@ let tt=0,ft=0;   // timers: tired after 30 s of no input; the typing and wand re
 function director(){const bad=W.step==='guess'&&W.items.some(i=>i.v&&i.v.chk),conf=(W.res&&W.res.confidence)||'low',fx=W.fx&&W.fx.k;
   if(W.step==='done')return{pose:'cast',face:'excited',fx:'hop',prop:'potion'};
   if(W.busy)return{pose:'back',face:'determined',fx:'turn',prop:'books'};            // turns all the way round; 'back' is his still pose
-  if(W.err)return{pose:'side',face:'nervous',fx:'shake',prop:'backpack'};
-  if(W.unknown)return{pose:'three',face:'confused',fx:'tilt',prop:'notes'};
-  if(W.step==='guess'){if(fx==='adj')return{pose:'front',face:'determined',fx:'hop',prop:'wand'};
-    if(bad)return{pose:'three',face:'confused',fx:'tilt',prop:'scrolls'};
-    if(conf==='high')return{pose:'cast',face:'excited',fx:'hop',prop:'potion'};
-    if(conf==='medium')return{pose:'front',face:'surprised',fx:'bob',prop:'notes'};
-    return{pose:'side',face:'nervous',fx:'sway',prop:'backpack'}}
-  if(W.step==='pick')return W.menu.length?{pose:'three',face:'surprised',fx:'bob',prop:'books'}:{pose:'back',face:'nervous',fx:'sway',prop:'backpack'};
-  if(W.step==='portion')return{pose:'front',face:'determined',fx:'bob',prop:'notes'};
+  if(W.err)return{pose:'sad',face:'sad',fx:'sway',prop:'backpack'};
+  if(W.unknown)return{pose:'curious',face:'curious',fx:'tilt',prop:'notes'};
+  if(W.step==='guess'){if(fx==='adj')return{pose:'determined',face:'determined',fx:'hop',prop:'wand'};
+    if(bad)return{pose:'confused',face:'confused',fx:'tilt',prop:'scrolls'};
+    if(conf==='high')return{pose:'excited',face:'excited',fx:'hop',prop:'potion'};
+    if(conf==='medium')return{pose:'inspect',face:'surprised',fx:'bob',prop:'notes'};
+    return{pose:'nervous',face:'nervous',fx:'sway',prop:'backpack'}}
+  if(W.step==='pick')return W.menu.length?{pose:'read',face:'surprised',fx:'bob',prop:'books'}:{pose:'back',face:'nervous',fx:'sway',prop:'backpack'};
+  if(W.step==='portion')return{pose:'think',face:'thinking',fx:'bob',prop:'notes'};
   if(fx==='type')return{pose:'three',face:W.q.length<12?'surprised':'determined',fx:'lean',prop:'notes'};
-  if(W.tired)return{pose:'front',face:'tired',fx:'sway',prop:''};
-  return{pose:'front',face:'happy',fx:'bob',prop:''}}
+  if(W.tired)return{pose:'rest',face:'tired',fx:'sway',prop:''};
+  return{pose:'happy',face:'happy',fx:'bob',prop:''}}
 const mood=()=>{const m=director();return[m.pose,m.face]};
 function say(){if(W.step==='done')return'Whoa, it worked! I mean... of course it worked. Your food is logged.';
   if(W.busy)return'Searching the great web of knowledge... one moment!';
@@ -131,11 +137,22 @@ function say(){if(W.step==='done')return'Whoa, it worked! I mean... of course it
   if(W.tired)return'Yaaawn... still here! Tell me what you ate whenever you are ready.';
   return'Hi, I am Luke! Tell me what you ate, how much, and any extras. I will find the calories... probably!'}
 function scene(){const m=director(),p=m.pose,f=m.face,pr=m.prop;
-  return '<div class="awscene"><img class="awroom" src="'+ROOM+'" alt="" width="336" height="189"><span class="awfig '+m.fx+'" aria-hidden="true" data-pose="'+p+'" data-fx="'+m.fx+'" style="background-position:'+pat(POSES,p)+' 0"></span>'
+  return '<div class="awscene"><img class="awroom" src="'+ROOM+'" alt="" width="640" height="358"><span class="awfig '+m.fx+'" aria-hidden="true" data-pose="'+p+'" data-fx="'+m.fx+'" style="background-position:'+pat(POSES,p)+' 0"></span>'
     +(pr?'<span class="awprop '+(pr==='books'&&W.busy?'orbit':pr==='wand'?'flick':'')+'" aria-hidden="true" data-prop="'+pr+'" style="background-position:'+(-PROPN.indexOf(pr)*40)+'px 0"></span>':'')
     +'<div class="awsay" role="status"><span class="awface" role="img" aria-label="Luke, '+f+'" data-face="'+f+'" style="background-position:'+pat(FACES,f)+' 0"></span><p><b>LUKE</b>'+esc(say())+'</p></div></div>'}
 /** Updates only his scene (not the inputs, so typing keeps its cursor) when what he does or says has changed. */
 function patch(){const key=JSON.stringify(director())+say();if(key===W.sk)return;W.sk=key;const el=D.querySelector('#awiz .awscene');if(el)el.outerHTML=scene()}
+/* ---------- Meet Luke (Settings): the design sheets' figures one at a time, the four views included, and his things ---------- */
+const MEET={i:0};
+const meetCap=p=>'<b>'+POSENAME[p]+'</b> <span class="mut">'+(POSES.indexOf(p)+1)+' of '+POSES.length+'</span>';
+const meet=()=>{const p=POSES[MEET.i];
+  return '<div class="card" id="awmeet"><h3>MEET LUKE</h3><p class="mut">Every pose from his design sheets. Luke guides Add More Food on the Nutrition page.</p>'
+    +'<div class="awmst"><span class="awmfig" role="img" aria-label="Luke" data-pose="'+p+'" style="background-position:'+pat(POSES,p)+' 0"></span></div>'
+    +'<p class="awmcap" aria-live="polite">'+meetCap(p)+'</p>'
+    +'<div class="row"><button type="button" class="sm" data-a="awmeet" data-d="-1" aria-label="Previous pose">PREV</button><button type="button" class="sm" data-a="awmeet" data-d="1" aria-label="Next pose">NEXT</button></div>'
+    +'<p class="mut awmt">His things</p><ul class="awprops">'+PROPN.map((n,i)=>'<li><span class="awmprop" role="img" aria-label="'+PROPNAME[n]+'" data-prop="'+n+'" style="background-position:'+(-i*80)+'px 0"></span><small>'+PROPNAME[n]+'</small></li>').join('')+'</ul></div>'};
+acts.awmeet=d=>{MEET.i=(MEET.i+(+d.d)+POSES.length)%POSES.length;const m=D.getElementById('awmeet');if(!m)return;const p=POSES[MEET.i],f=m.querySelector('.awmfig');f.dataset.pose=p;f.style.backgroundPosition=pat(POSES,p)+' 0';m.querySelector('.awmcap').innerHTML=meetCap(p)};
+{const o=pages.set;pages.set=(...a)=>{const h=o(...a),k='<h2>⚙️ SETTINGS</h2>';return h.indexOf(k)>=0?h.replace(k,k+meet()):h+meet()}}
 /** After 30 s with nothing happening he gets tired. */
 function rest(){clearTimeout(tt);if(W.step==='ask'&&!W.busy&&!W.tired)tt=setTimeout(()=>{if(W.step==='ask'&&!W.busy&&D.getElementById('awiz')){W.tired=1;if(!(W.fx&&W.fx.k==='type'))patch()}},30000)}
 const fxFor=(k,ms)=>{W.fx={k};clearTimeout(ft);ft=setTimeout(()=>{if(W.fx&&W.fx.k===k){W.fx=null;patch()}},ms)};
@@ -220,24 +237,29 @@ HWEvents.on('data:reset',()=>{clearTimeout(tt);clearTimeout(ft)});
 
 HWUI.css('addfood',`
 .awscene{position:relative;line-height:0;border-radius:14px;overflow:hidden;border:1px solid var(--edge,var(--ln));margin:4px 0 10px;box-shadow:0 0 18px rgba(139,92,240,.3)}
-.awscene{aspect-ratio:3/2}.awroom{display:block;width:100%;height:100%;object-fit:cover;image-rendering:pixelated;image-rendering:crisp-edges}
-.awfig{position:absolute;left:1%;bottom:1%;height:97%;aspect-ratio:2/3;background:url(${POSE}) no-repeat;background-size:600% 100%;image-rendering:pixelated;image-rendering:crisp-edges;transform-origin:50% 100%;
+.awscene{aspect-ratio:3/2}.awroom{display:block;width:100%;height:100%;object-fit:cover;image-rendering:auto}   /* his room is a painting, drawn smoothed */
+.awfig{position:absolute;left:1%;bottom:1%;height:97%;aspect-ratio:2/3;background:url(${POSE}) no-repeat;background-size:${POSES.length*100}% 100%;image-rendering:pixelated;image-rendering:crisp-edges;transform-origin:50% 100%;
   filter:drop-shadow(0 0 6px rgba(255,226,122,.45))}
 .awfig.bob{animation:awbob 1.6s steps(2) infinite alternate}.awfig.hop{animation:awhop .7s steps(3) infinite}.awfig.shake{animation:awshake .3s steps(2) 6}
 .awfig.tilt{animation:awtilt 1.4s steps(2) infinite alternate}.awfig.sway{animation:awsway 2.6s steps(3) infinite alternate}.awfig.lean{animation:awlean 1s steps(2) infinite alternate}
 .awfig.turn{animation:awturn 6s steps(1) infinite}   /* turns all the way round: walking, three-quarter, side, back, side, three-quarter, front */
 @keyframes awbob{to{translate:0 -2px}}@keyframes awhop{50%{translate:0 -7%}}@keyframes awshake{25%{translate:-3px 0}75%{translate:3px 0}}
 @keyframes awtilt{from{rotate:-3deg}to{rotate:3deg}}@keyframes awsway{to{rotate:1.5deg}}@keyframes awlean{to{translate:2% 0}}
-@keyframes awturn{0%{background-position:80% 0}12.5%{background-position:20% 0}25%{background-position:40% 0}37.5%{background-position:60% 0}62.5%{background-position:40% 0}75%{background-position:20% 0}87.5%{background-position:0% 0}100%{background-position:80% 0}}
+@keyframes awturn{0%{background-position:${pat(POSES,'walk')} 0}12.5%{background-position:${pat(POSES,'three')} 0}25%{background-position:${pat(POSES,'side')} 0}37.5%{background-position:${pat(POSES,'back')} 0}62.5%{background-position:${pat(POSES,'side')} 0}75%{background-position:${pat(POSES,'three')} 0}87.5%{background-position:${pat(POSES,'front')} 0}100%{background-position:${pat(POSES,'walk')} 0}}
 .awprop{position:absolute;left:38%;bottom:2%;z-index:1;width:40px;height:40px;background:url(${PROPS}) no-repeat;background-size:280px 40px;image-rendering:pixelated;image-rendering:crisp-edges;transform:scale(1.25);transform-origin:0 100%;
   filter:drop-shadow(0 0 6px rgba(246,201,79,.7));animation:awfloat 1.8s steps(2) infinite alternate}
 .awprop.orbit{animation:aworbit 2s steps(8) infinite}.awprop.flick{animation:awflick .35s steps(2) 5 alternate}
 @keyframes awfloat{to{translate:0 -5px}}@keyframes aworbit{0%{translate:0 -4px}25%{translate:12px 0}50%{translate:0 8px}75%{translate:-12px 0}100%{translate:0 -4px}}@keyframes awflick{from{rotate:-25deg}to{rotate:25deg}}
 .awh{display:flex;align-items:center;justify-content:space-between;gap:8px}.awav{flex:0 0 auto;width:28px;height:28px;background:url(${PROPS}) no-repeat;background-size:196px 28px;background-position:-168px 0;image-rendering:pixelated;image-rendering:crisp-edges}
+.awmst{display:flex;justify-content:center;padding:10px 8px 4px;border:2px solid var(--ln);border-radius:10px;background:var(--p2)}
+.awmfig{display:block;width:240px;height:360px;max-width:100%;background:url(${POSE}) no-repeat;background-size:${POSES.length*100}% 100%;image-rendering:pixelated;image-rendering:crisp-edges;filter:drop-shadow(0 0 6px rgba(255,226,122,.45))}
+.awmcap{margin:6px 0;text-align:center}#awmeet .row{justify-content:center}.awmt{margin:10px 0 4px}
+.awprops{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:8px;list-style:none;padding:0;margin:0 0 4px}.awprops li{display:flex;flex-direction:column;align-items:center;gap:2px}
+.awmprop{display:block;width:80px;height:80px;background:url(${PROPS}) 0 0/${PROPN.length*80}px 80px no-repeat;image-rendering:pixelated;image-rendering:crisp-edges}.awprops small{font-size:12px;color:var(--mut)}
 .awsay{position:absolute;right:3%;top:5%;max-width:56%;display:flex;gap:6px;align-items:flex-start;line-height:1.35}
-.awface{flex:0 0 auto;width:44px;height:44px;background:url(${FACE}) no-repeat;background-size:308px 44px;image-rendering:pixelated;border:2px solid #f6c94f;border-radius:8px;background-color:#1b1745}
+.awface{flex:0 0 auto;width:44px;height:44px;background:url(${FACE}) no-repeat;background-size:${FACES.length*44}px 44px;image-rendering:pixelated;border:2px solid #f6c94f;border-radius:8px;background-color:#1b1745}
 .awsay p{margin:0;background:rgba(18,15,51,.88);color:#fff6dc;border:1px solid #f6c94f;border-radius:10px;padding:6px 8px;font-size:13px}.awsay p b{display:block;font:7px/1.6 var(--fh);color:#f6c94f}
-@media(max-width:420px){.awsay{flex-direction:column;align-items:flex-end}.awface{width:36px;height:36px;background-size:252px 36px}.awsay p{font-size:12px}}
+@media(max-width:420px){.awsay{flex-direction:column;align-items:flex-end}.awface{width:36px;height:36px;background-size:${FACES.length*36}px 36px}.awsay p{font-size:12px}}
 .awq{flex-wrap:nowrap}.awq input{flex:1 1 auto;min-width:0;margin:0}.awq button{flex:0 0 auto}
 .awq+small,label[for="awq"] small{display:block}.awsrcs{margin:4px 0 6px;padding-left:18px;overflow-wrap:anywhere}.awsrcs li{margin:6px 0}.awsrcs a{display:inline-block;min-height:28px;line-height:28px;color:#fff0a8;text-decoration:underline}
 .awsugg{display:block;width:100%;height:76px;border:0;border-radius:10px;background:#fff;margin-top:6px}.awhow{margin-top:8px}.awref{color:var(--text,inherit);opacity:.9}.awwarn{color:var(--red,#ff8a7e);font-weight:bold}

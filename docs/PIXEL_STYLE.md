@@ -173,3 +173,11 @@ opacity only, and every scene stops off screen, in a hidden tab and for reduced 
   640 × 358, 128 colours, `tools/art/make_luna_lab.py`) with Luna in front, a CSS glow on the lanterns, fireplace and
   candle, and a few motes. This is an HD painting, so it is drawn smoothed (`image-rendering: auto`), the one exception to
   rule 5: the owner asked for it.
+* Luke, the apprentice of Add More Food (`js/v6-addfood.js`): only the owner's character design sheets (2026-10-15), turned into
+  pixel art by `tools/art/make_luke.py`: all twenty-two figures (`assets/img/luke-poses.webp`, 120 × 180 frames, one shared
+  64-colour palette: the four views, walking, casting, reading, inspecting a potion, waving, resting and the twelve
+  expressions; the reading, inspecting and waving figures are drawn waist-up on the sheet and are close-ups), the twelve
+  expression heads (`luke-faces.webp`, 64 × 64), his things and round portrait (`luke-props.webp`, 40 × 40 tiles) and his
+  painted room (`luke-room.webp`, 640 × 358, 128 colours, drawn smoothed like the Laboratory's, the same exception to
+  rule 5). Meet Luke (Settings) steps through every figure. Until the turnaround sheet is supplied his four views are the
+  previous art.

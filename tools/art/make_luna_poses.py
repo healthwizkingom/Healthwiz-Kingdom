@@ -64,9 +64,13 @@ def trim_caption(c, px):
         return c.crop((0, 0, w, start))       # that run is the caption
     return c
 
-def cut(im, box):
+def cut(im, box, repeat=1):
     c = im.crop(box).convert('RGBA')
-    c = trim_caption(c, c.load())
+    for _ in range(repeat):                   # `repeat` > 1 also drops a guide line or a second caption under the first
+        t = trim_caption(c, c.load())
+        if t.size == c.size:
+            break
+        c = t
     w, h = c.size
     px = c.load()
     seen, q = set(), deque([(x, y) for x in range(w) for y in (0, h - 1)] + [(x, y) for y in range(h) for x in (0, w - 1)])
