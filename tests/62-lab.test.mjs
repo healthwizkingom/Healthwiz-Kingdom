@@ -19,7 +19,7 @@ test('reachable: a doorway at the end of the Health Hall, its own banner, back t
   assert.equal(await page.evaluate(() => S.v), 'lab');
   assert.match(await txt(page, '#main'), /Science Laboratory[\s\S]*Experiment[\s\S]*Evidence Trial[\s\S]*Evidence Vault[\s\S]*Uncertainty/);
   assert.equal(await page.getAttribute('[data-a="labtab"][data-k="exp"]', 'aria-selected'), 'true');
-  assert.equal(await page.$eval('#labsc .labbg', i => i.complete && i.naturalWidth), 290, 'the laboratory scene from the owner\'s concept sheet');
+  assert.equal(await page.$eval('#labsc .labbg', i => i.complete && i.naturalWidth), 640, 'the laboratory scene: Luna\'s study from the owner\'s painted room');
   assert.ok(await page.$('#labluna .v6lfull.lab.cycle .v6lfi'), 'Luna from the owner\'s sheet is in the laboratory, cycling her poses');
   // she is the larger sheet (120 x 180, cut from the reference sheet), and fills most of the scene's height
   const big = await page.evaluate(() => { const f = document.querySelector('#labluna .v6lfull').getBoundingClientRect(), s = document.querySelector('#labsc').getBoundingClientRect(), i = document.querySelector('#labluna .v6lfi');

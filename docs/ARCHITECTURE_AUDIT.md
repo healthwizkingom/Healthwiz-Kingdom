@@ -1634,3 +1634,28 @@ Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel
 - **Tests:** `tests/67-addfood.test.mjs` (10): the name; every state's angle, expression and item; that all six angles' poses
   that can occur (front, three-quarter, side, back, casting; walking is in the searching loop), all seven expressions and all
   six props appear; the turning loop and the circling books while searching; the four sheets' sizes.
+
+### Luna's new design sheets and the Laboratory's painted room (owner, 2026-10-15: "replace it with these ... make sure to use all of them", then "increase budget")
+
+- **Art source:** the owner's "LUNA - CHARACTER DESIGN" sheets (five 1024 × 572 images: the four views, the action poses,
+  the props and palette, and two rows of six expressions) and a painted room (1024 × 572), all made with Gemini from
+  briefs written in the session. The Zapier "Generate Image" action could not be used (its model list is out of date and
+  the key had no image quota), so the owner generated them in Google AI Studio and supplied the images. A first,
+  smaller 18-figure sheet was used for a few hours and is replaced by these.
+- **Recut:** `tools/art/make_luna_poses.py` (measured cut positions, caption trimming, enclosed-background removal, scaling
+  by body height) → `luna-poses.webp` (1680 × 120, ≈ 44 KB, all **21** figures, 96 colours) and `luna-lab.webp`
+  (960 × 240, ≈ 44 KB, six poses at 160 × 240, twice the size of a bubble's figure); `tools/art/make_luna_faces.py` →
+  `luna-faces.webp` (768 × 64, ≈ 28 KB, **12** heads); **new** `tools/art/make_luna_props.py` → `luna-props.webp`
+  (240 × 48, ≈ 3 KB: staff, satchel, spirit cat sitting and curled up, potion flasks); `tools/art/make_luna_lab.py` →
+  `lab-scene.webp` (640 × 358, 128 colours, ≈ 99 KB). `luna-room.webp` is unchanged. The sheets are not stored in the repo.
+- **Code:** `js/v6-luna.js` has 21 poses and 12 expressions (the old seven keep their names; laughing, shocked, sad,
+  annoyed and neutral are new; focused and thoughtful now have their own figures, so the old `staff`, `think` and
+  `confused` poses were replaced by `focused`, `think` and `apologetic`). A badge is a spell (`cast`), an insight points at
+  the chart (`point`), a sleep log shows her resting with the spirit cat. **Meet Luna** (Settings) steps through all
+  twenty-one poses, the four design views included, and shows her five things. The Laboratory's orb, vapour and caustics
+  effects belonged to the old laboratory and were replaced by a glow on the new room's lanterns, fireplace and candle.
+- **Budget:** the images total 1,019,329 bytes. The owner's 880 KB limit could not hold the new art, and the owner said to
+  increase it: `tests/24-performance` now allows 1 MB (1,048,576 bytes); no image is over 100 KB.
+- **Not used:** the palette swatches (information, not art).
+- **Tests:** `tests/59-luna.test.mjs` (the 21 poses, 12 portraits and the props load; every pose is used; Meet Luna steps
+  through all twenty-one, wraps, and shows five things; a sleep log rests), `tests/62-lab.test.mjs` (the 640 px scene).

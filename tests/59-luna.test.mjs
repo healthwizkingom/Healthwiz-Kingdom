@@ -10,18 +10,18 @@ const quietMd = { last: { greet: Date.now() }, day: {}, seen: {}, ms: {}, log: [
 const seed = (s = {}) => ({ ...RETURNING, md: quietMd, s: { ...RETURNING.s, med: 2, ...s } });
 const PHONE = { viewport: { width: 360, height: 760 }, context: { isMobile: true, hasTouch: true } };
 
-test('art from the owner\'s sheet only: the nine poses (80 x 120 each) and the seven portraits load; nothing else is drawn for her', async () => {
+test('art from the owner\'s design sheet only: all twenty-one poses (80 x 120 each), the twelve portraits and her things load; nothing else is drawn for her', async () => {
   const { page, ctx, errors } = await openApp({ seed: seed() });
   const r = await page.evaluate(async () => {
     const load = async src => { const i = new Image(); i.src = src; await i.decode(); return [i.naturalWidth, i.naturalHeight]; };
     return { full: await load(HWLuna.POSE_IMG), faces: await load(HWLuna.FACES), exprs: HWLuna.expressions, poses: HWLuna.poses, canvas: typeof HWLuna.grid };
   });
-  assert.deepEqual(r.full, [720, 120]); assert.deepEqual(r.faces, [448, 64]);
-  assert.deepEqual(r.poses, ['idle', 'staff', 'walk', 'cast', 'point', 'think', 'happy', 'confused', 'wave'], 'the sheet\'s poses 1 to 9');
-  assert.deepEqual(r.exprs, ['cheerful', 'curious', 'focused', 'thoughtful', 'surprised', 'encouraging', 'apologetic'], 'the seven from the reference sheet');
+  assert.deepEqual(r.full, [1680, 120]); assert.deepEqual(r.faces, [768, 64]);
+  assert.deepEqual(r.poses, ['idle', 'happy', 'laugh', 'excited', 'curious', 'think', 'focused', 'surprised', 'shocked', 'sad', 'apologetic', 'annoyed', 'cast', 'walk', 'point', 'wave', 'rest', 'front', 'side', 'back', 'three'], 'every figure on the design sheets');
+  assert.deepEqual(r.exprs, ['cheerful', 'curious', 'focused', 'thoughtful', 'surprised', 'encouraging', 'apologetic', 'laughing', 'shocked', 'sad', 'annoyed', 'neutral'], 'the twelve expression heads of the design sheets');
   assert.equal(r.canvas, 'undefined', 'the code-drawn sprite is gone: the owner asked for the Luna of their sheet');
   // only these two Luna pictures, made from the sheet by tools/art/make_luna_faces.py and make_luna_lab.py
-  assert.deepEqual(fs.readdirSync(new URL('../assets/img/', import.meta.url)).filter(f => /luna/i.test(f)).sort(), ['luna-faces.webp', 'luna-lab.webp', 'luna-poses.webp', 'luna-room.webp'], 'her faces, her poses, her larger laboratory figure and her room, all from the owner\'s images');
+  assert.deepEqual(fs.readdirSync(new URL('../assets/img/', import.meta.url)).filter(f => /luna/i.test(f)).sort(), ['luna-faces.webp', 'luna-lab.webp', 'luna-poses.webp', 'luna-props.webp', 'luna-room.webp'], 'her faces, her poses, her larger laboratory figure, her things and her room, all from the owner\'s images');
   assert.deepEqual(errors, []); await ctx.close();
 });
 
@@ -33,29 +33,29 @@ test('Luna speaks the bubbles: her full figure, LUNA label; compact shows the po
   assert.match(await page.textContent('#v6md'), /^LUNAOoh, a new badge: First Sip/);
   assert.equal(await page.locator('#v6md img[src*="wiz"]').count(), 0, 'no Medius picture in the bubble');
   const size = await page.$eval('#v6md .v6lfull', f => { const i = f.querySelector('.v6lfi'), b = i.getBoundingClientRect(); return [f.dataset.pose, Math.round(b.width), Math.round(b.height), getComputedStyle(i).imageRendering, getComputedStyle(i).backgroundSize]; });
-  assert.deepEqual(size, ['cast', 80, 120, 'pixelated', '720px 120px'], 'a badge: the casting pose, at 1x');
+  assert.deepEqual(size, ['cast', 80, 120, 'pixelated', '1680px 120px'], 'a badge: the casting pose, at 1x');
   await page.evaluate(() => { document.getElementById('v6md').remove(); HWMedius.hush(); });
   await go(page, 'set');
   await page.click('#v6lunaset [data-a="lunasz"][data-m="1"]');
   assert.equal((await state(page)).s.lsz, 1);
   await page.evaluate(() => { const M = st.md; M.last = {}; M.seen = {}; HWMedius.say('level', { level: 4, name: 'Pathfinder' }); });
   await page.waitForSelector('#v6md.cp .v6lpf');
-  // compact: the level-up face (cheerful) from the reference-sheet portraits, 64 x 64 at 1x: the first of seven
+  // compact: the level-up face (cheerful) from the design-sheet portraits, 64 x 64 at 1x: the first of twelve
   assert.deepEqual(await page.$eval('#v6md .v6lpf', e => { const s = getComputedStyle(e); return [e.dataset.face, s.width, s.height, s.backgroundPosition, s.imageRendering]; }), ['cheerful', '64px', '64px', '0px 0px', 'pixelated']);
   assert.equal(await page.locator('#v6md .v6lfull').count(), 0, 'the portrait replaces the full figure when compact');
   assert.deepEqual(errors, []); await ctx.close();
 });
 
-test('portraits: the strip from the reference sheet loads (7 faces of 64 px), each expression picks its own face', async () => {
+test('portraits: the strip from the design sheet loads (12 faces of 64 px), each expression picks its own face', async () => {
   const { page, ctx, errors } = await openApp({ seed: seed() });
   const r = await page.evaluate(async () => {
     const img = new Image(); img.src = 'assets/img/luna-faces.webp'; await img.decode();
     const d = document.createElement('div'); d.innerHTML = ['cheerful', 'apologetic', 'idle', 'greet'].map(e => HWLuna.portrait(e, 2)).join(''); document.body.appendChild(d);
     return { w: img.naturalWidth, h: img.naturalHeight, faces: [...d.children].map(e => [e.dataset.face, e.style.backgroundPosition, e.style.width, e.getAttribute('aria-label')]) };
   });
-  assert.deepEqual([r.w, r.h], [448, 64]);
-  // at 2x a face is 128 px wide: apologetic is the 7th (index 6) → −768 px; idle uses the calm "focused" face (index 2) → −256 px
-  assert.deepEqual(r.faces, [['cheerful', '0px 0px', '128px', 'Luna, cheerful'], ['apologetic', '-768px 0px', '128px', 'Luna, apologetic'], ['focused', '-256px 0px', '128px', 'Luna, focused'], ['cheerful', '0px 0px', '128px', 'Luna, cheerful']]);
+  assert.deepEqual([r.w, r.h], [768, 64]);
+  // at 2x a face is 128 px wide: apologetic is the 7th (index 6) → −768 px; idle uses the calm "neutral" face (index 11) → −1408 px
+  assert.deepEqual(r.faces, [['cheerful', '0px 0px', '128px', 'Luna, cheerful'], ['apologetic', '-768px 0px', '128px', 'Luna, apologetic'], ['neutral', '-1408px 0px', '128px', 'Luna, neutral'], ['cheerful', '0px 0px', '128px', 'Luna, cheerful']]);
   await go(page, 'home'); await page.click('.hbar .v6lb');
   assert.equal(await page.getAttribute('#mo .v6lpic .v6lpf', 'data-face'), 'cheerful', 'Ask Luna shows her portrait');
   assert.deepEqual(errors, []); await ctx.close();
@@ -163,16 +163,50 @@ test('phone: the launcher keeps a 44 px tap target, the bubble and Ask Luna stay
 
 test('her movements come from the sheet\'s poses: every pose is used; a bubble walks in, then strikes the pose for the moment', async () => {
   const { page, ctx, errors } = await openApp({ seed: seed() });
-  const m = await page.evaluate(() => ({ map: HWLuna.POSEOF, poses: HWLuna.poses, exprs: HWLuna.expressions }));
+  const m = await page.evaluate(() => ({ map: HWLuna.POSEOF, poses: HWLuna.poses, exprs: HWLuna.expressions, turn: HWLuna.turnaround }));
   for (const e of m.exprs) assert.ok(m.poses.includes(m.map[e]), e + ' has a pose');
-  const used = new Set([...Object.values(m.map), 'walk']); // walk: every bubble's entrance
-  assert.deepEqual(m.poses.filter(p => !used.has(p)), [], 'all nine poses from the sheet are used');
+  const used = new Set([...Object.values(m.map), 'walk', ...m.turn]); // walk: every bubble's entrance; front, side, back: Meet Luna in Settings
+  assert.deepEqual(m.poses.filter(p => !used.has(p)), [], 'all twenty-one poses from the sheets are used');
   await go(page, 'home');
   await page.evaluate(() => HWMedius.say('greet', {}));
   await page.waitForSelector('#v6md .v6lfull');
   const r = await page.$eval('#v6md .v6lfull', f => [f.dataset.pose, f.classList.contains('enter'), getComputedStyle(f.querySelector('.v6lfi')).animationName]);
   assert.deepEqual(r, ['wave', true, 'v6lwalk'], 'a greeting walks in and waves');
   // a mounted figure can change pose
-  assert.equal(await page.evaluate(() => { const f = document.querySelector('#v6md .v6lfull'); HWLuna.pose(f, 'think'); return f.dataset.pose + ' ' + f.querySelector('.v6lfi').style.backgroundPosition; }), 'think 62.5% 0px');
+  assert.equal(await page.evaluate(() => { const f = document.querySelector('#v6md .v6lfull'); HWLuna.pose(f, 'curious'); return f.dataset.pose + ' ' + f.querySelector('.v6lfi').style.backgroundPosition; }), 'curious 20% 0px');
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('Meet Luna (Settings): every pose from the design sheets, the four views included, one at a time, and her things', async () => {
+  const { page, ctx, errors } = await openApp({ seed: seed() });
+  await go(page, 'set');
+  const poses = await page.evaluate(() => HWLuna.poses);
+  const seen = [await page.getAttribute('#v6lmeet .v6lfull', 'data-pose')];
+  for (let i = 1; i < poses.length; i++) { await page.click('#v6lmeet [data-a="lunameet"][data-d="1"]'); seen.push(await page.getAttribute('#v6lmeet .v6lfull', 'data-pose')); }
+  assert.deepEqual(seen, poses, 'NEXT walks through all twenty-one poses in order');
+  assert.match(await page.textContent('#v6lmeet .v6lmcap'), /Three-quarter view\s*21 of 21/);
+  await page.click('#v6lmeet [data-a="lunameet"][data-d="1"]');
+  assert.equal(await page.getAttribute('#v6lmeet .v6lfull', 'data-pose'), 'idle', 'NEXT wraps around');
+  await page.click('#v6lmeet [data-a="lunameet"][data-d="-1"]');
+  assert.equal(await page.getAttribute('#v6lmeet .v6lfull', 'data-pose'), 'three', 'PREV wraps the other way');
+  const bar = await page.$$eval('#v6lmeet button', bs => bs.map(b => [b.getAttribute('aria-label'), b.getBoundingClientRect().height >= 36]));
+  assert.deepEqual(bar, [['Previous pose', true], ['Next pose', true]]);
+  const props = await page.$$eval('#v6lmeet .v6lprop', es => es.map(e => [e.dataset.prop, e.getAttribute('aria-label'), e.getBoundingClientRect().width]));
+  assert.deepEqual(props, [['staff', 'Wooden staff', 96], ['satchel', 'Leather satchel', 96], ['cat', 'Spirit cat, sitting', 96], ['curled', 'Spirit cat, curled up', 96], ['flasks', 'Potion flasks', 96]], 'her five things from the props sheet, drawn at 2x');
+  assert.deepEqual(await page.evaluate(() => HWLuna.props), props.map(p => p[0]));
+  assert.deepEqual(await page.$eval('#v6lmeet .v6lprop', e => { const s = getComputedStyle(e); return [s.backgroundImage.includes('luna-props.webp'), s.backgroundSize, s.imageRendering]; }), [true, '480px 96px', 'pixelated']);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('a sleep log shows Luna resting; other logs keep their pose', async () => {
+  const { page, ctx, errors } = await openApp({ seed: { ...seed(), md: quietMd, s: { ...RETURNING.s, med: 2 } } });
+  await go(page, 'home');
+  await page.evaluate(() => HWMedius.say('log', { c: 'sleep' }));
+  await page.waitForSelector('#v6md .v6lfull');
+  assert.equal(await page.$eval('#v6md .v6lfull', f => f.dataset.pose), 'rest', 'a sleep log: resting with the spirit cat');
+  await page.evaluate(() => { document.getElementById('v6md').remove(); HWMedius.hush(); const M = st.md; M.last = {}; M.seen = {}; M.day = {}; });
+  await page.evaluate(() => HWMedius.say('log', { c: 'water' }));
+  await page.waitForSelector('#v6md .v6lfull');
+  assert.equal(await page.$eval('#v6md .v6lfull', f => f.dataset.pose), 'idle');
   assert.deepEqual(errors, []); await ctx.close();
 });

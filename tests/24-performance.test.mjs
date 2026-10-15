@@ -186,9 +186,13 @@ test('no leaks: 60 navigations leave listeners, DOM nodes and timers flat', asyn
 // room) and Luna's room behind Talk with Luna, all from the owner's own sheets. On 2026-10-14 the Laboratory's larger Luna
 // (luna-lab.webp ≈ 24 KB, cut from the reference sheet) joined them within the same 880 KB; and Luke's art was recut from his
 // reference sheet at 1.5 times the size with his props and portrait (luke-poses 28 KB, luke-faces 14 KB, luke-props 4 KB, luke-room
-// 38 KB; total 892,883 of 901,120 bytes).
+// 38 KB; total 892,883 of 901,120 bytes). On 2026-10-15 the owner replaced Luna's art with their new character design sheet (all 18 figures:
+// luna-poses 39 KB, luna-lab 27 KB for six poses, luna-faces 22 KB for eleven heads) and the Laboratory's background with their painted
+// room (lab-scene 640 x 358, 99 KB). The same day the owner replaced the sheet with four larger design sheets (21 figures, 12 heads, her
+// things: luna-poses 44 KB, luna-lab 160 x 240 frames 44 KB, luna-faces 28 KB, luna-props 3 KB) and told the session to increase the
+// budget: the total is now 1 MB (1,048,576 bytes; the art totals 1,019,329).
 const SHEET_CAP = { 'exercise/moves.webp': 180 * 1024 };
-test('assets stay lean: the art is lossless WebP, no image over 100 KB (the moves sheet 180 KB), all images ≤ 880 KB together', () => {
+test('assets stay lean: the art is lossless WebP, no image over 100 KB (the moves sheet 180 KB), all images ≤ 1,024 KB (1 MB) together', () => {
   const dir = path.join(root, 'assets', 'img'), files = fs.readdirSync(dir, { recursive: true }).filter(f => fs.statSync(path.join(dir, f)).isFile());
   assert.deepEqual(files.filter(f => f.endsWith('.png')), [], 'PNG art was re-encoded as lossless WebP');
   for (const n of ['wiz', 'kn', 'knight-kbd', 'knight-kcp', 'knight-khr', 'orc']) {
@@ -197,6 +201,6 @@ test('assets stay lean: the art is lossless WebP, no image over 100 KB (the move
   }
   let total = 0;
   for (const f of files) { const s = fs.statSync(path.join(dir, f)).size; total += s; assert.ok(s <= (SHEET_CAP[f.split(path.sep).join('/')] || 100 * 1024), f + ' is ' + s + ' bytes'); }
-  assert.ok(total <= 880 * 1024, 'images total ' + total + ' bytes');
+  assert.ok(total <= 1024 * 1024, 'images total ' + total + ' bytes');
   for (const f of files.filter(f => f.startsWith('exercise'))) { const b = fs.readFileSync(path.join(dir, f)); assert.equal(b.toString('ascii', 8, 16), 'WEBPVP8L', f + ' is lossless'); }
 });
