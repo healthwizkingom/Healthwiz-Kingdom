@@ -84,8 +84,9 @@ HWUI.css('title',`
 .wl .tt p{font-size:clamp(9px,min(2.2vw,3.4vh),14px);margin-top:min(14px,2.5vh)}.wl .tt p.by{font-size:clamp(10px,min(2.8vw,4.2vh),18px);margin-top:min(18px,3vh)}}`);
 
 const REACT={castle:['🏰 The castle bells ring for you!','🏰 A guard waves from the ramparts.'],tower:['⚡ The dark tower rumbles… restored regions keep it at bay.','⚡ Its red eye flickers, then dims.'],
-  village:['🏘️ Villagers wave hello!','🏘️ Someone is baking bread. It smells wonderful.'],falls:['💧 The waterfall sparkles.','💧 Cool spray drifts across the meadow.']};
-const HOT=[['castle',150,8,70,34],['tower',14,6,72,86],['falls',140,38,20,62],['village',0,100,124,44]];
+  village:['🏘️ Villagers wave hello!','🏘️ Someone is baking bread. It smells wonderful.'],falls:['💧 The waterfall sparkles.','💧 Cool spray drifts across the meadow.'],
+  camp:['🔥 The campfire crackles warm and bright. Ready for adventure!','⚔️ "My sword and shield are ready," says the knight.']};
+const HOT=[['castle',150,8,70,34],['tower',14,6,72,86],['falls',140,38,20,62],['village',0,100,124,44],['camp',120,74,44,26]];
 function lanterns(n){return Array.from({length:n},(_,i)=>{const x=14+i*12,y=104-(i%2)*3;return '<g class="v6lan"><rect x="'+x+'" y="'+(y-6)+'" width=".6" height="6" fill="#3a2a1a"/><rect x="'+(x-1)+'" y="'+(y-8)+'" width="2.6" height="2.6" fill="#ffd76a" class="zpl"/><circle cx="'+(x+.3)+'" cy="'+(y-6.7)+'" r="3.2" fill="#ffcf6a" opacity=".22"/></g>'}).join('')}
 // High quality only (§66): a small flock of birds crossing the sky and two butterflies by the meadow.
 // Reuses the original drift (zd), wing-flap (zw) and firefly-float (zff) animations.
@@ -121,7 +122,7 @@ function restyle(){const w=document.querySelector('.wl');if(!w)return;const wx=s
 /* tap reactions */
 acts.tspot=(d,t,e)=>{const r=REACT[d.k];if(!r)return;const w=document.querySelector('.wl');if(!w)return;const b=w.getBoundingClientRect(),el=document.createElement('div');el.className='v6pop';el.textContent=r[Math.floor(Math.random()*r.length)];
   const x=e&&e.clientX!=null?e.clientX:b.left+b.width/2,y=e&&e.clientY!=null?e.clientY:b.top+b.height/2;el.style.left=Math.min(b.width-90,Math.max(90,x-b.left))+'px';el.style.top=(y-b.top)+'px';w.appendChild(el);setTimeout(()=>el.remove(),1900);
-  if(typeof sfx==='function')sfx({castle:784,tower:196,village:523,falls:659}[d.k],.12);HWEvents.emit('title:interact',{k:d.k})};
+  if(typeof sfx==='function')sfx({castle:784,tower:196,village:523,falls:659,camp:660}[d.k],.12);HWEvents.emit('title:interact',{k:d.k})};
 
 /* parallax (pointer only, gentle) */
 // If reduced motion is switched on mid-session, any parallax already applied is dropped.

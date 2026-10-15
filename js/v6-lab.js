@@ -110,8 +110,8 @@ function bars(vals,labels,unit,what){const ok=vals.filter(v=>v!=null),mx=Math.ma
 /* ---------- the page ---------- */
 const tabs=()=>'<div class="labtabs" role="tablist" aria-label="Laboratory sections">'+SEC.map(s=>'<button type="button" role="tab" class="chip'+(Z.tab===s.k?' on':'')+'" aria-selected="'+(Z.tab===s.k)+'" data-a="labtab" data-k="'+s.k+'">'+ico(s.icon)+' '+s.name+'</button>').join('')+'</div>';
 function page(){const s=SEC.find(x=>x.k===Z.tab)||SEC[0];
-  return '<div class="labhd" id="labsc"><img class="labbg" src="assets/img/lab-scene.webp" alt="" width="290" height="210"><span class="labglow" aria-hidden="true"></span>'
-    +'<span class="labmotes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="labluna" id="labluna"></span>'
+  return '<div class="labhd" id="labsc"><img class="labbg" src="assets/img/lab-scene.webp" alt="Science Laboratory" width="290" height="210"><span class="labcaustics" aria-hidden="true"></span><span class="labvapor" aria-hidden="true"></span><span class="labglow" aria-hidden="true"></span>'
+    +'<span class="labmotes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="labluna" id="labluna" data-a="labluna" role="button" tabindex="0" title="Talk with Luna" aria-label="Luna, apprentice witch"></span>'
     +'<p class="labcap"><b>THE SCIENCE LABORATORY</b>Real data and real methods. Every number says where it came from.</p></div>'+tabs()
     +'<div class="labsec" role="tabpanel" aria-label="'+esc(s?s.name:'')+'">'+(s?s.render():'')+'</div>'}
 
@@ -185,6 +185,13 @@ acts.labgo=()=>go('lab');
 /* ---------- the laboratory scene: the owner's concept-sheet laboratory (assets/img/lab-scene.webp, tools/art/make_luna_lab.py)
    with Luna in front; the orb's glow and a few motes are CSS (transform and opacity only), still with reduced motion ---------- */
 function startScene(){const lu=document.getElementById('labluna');if(lu&&!lu.firstChild)HWLuna.mount(lu,{kind:'full',cycle:1,sheet:'lab'})}
+acts.labluna=()=>{
+  if(typeof sfx==='function')sfx(880,.12);
+  const lu=document.getElementById('labluna');
+  if(lu){lu.classList.add('v6lhop');setTimeout(()=>lu.classList.remove('v6lhop'),500)}
+  const tips=['✨ "Science and magic work best together!"','🔮 "Every piece of data tells a story!"','✨ "Keep up the great habits, adventurer!"','🧪 "The formulas here are all verified and true!"'];
+  toast(tips[Math.floor(Math.random()*tips.length)]);
+};
 
 /* ---------- registration: route, banner, doorways ---------- */
 pages.lab=()=>page();
@@ -198,21 +205,48 @@ HWEvents.on('data:reset',()=>{Z=Z0()});HWEvents.on('data:imported',()=>{Z.from=n
 
 HWUI.css('lab',`
 .labhd{position:relative;margin:0 0 14px;border-radius:14px;overflow:hidden;line-height:0;background:#141033;
-  box-shadow:0 0 0 2px rgba(196,166,255,.55),0 0 24px rgba(139,92,240,.45),0 10px 28px rgba(10,6,40,.45)}
-.labbg{display:block;width:100%;height:auto;aspect-ratio:290/210;image-rendering:pixelated;image-rendering:crisp-edges}
+  box-shadow:0 0 0 2px rgba(196,166,255,.6),inset 0 0 24px rgba(99,230,220,.22),0 0 32px rgba(139,92,240,.5),0 14px 36px rgba(10,6,40,.6);transition:box-shadow .3s ease}
+.labhd:hover{box-shadow:0 0 0 2px rgba(246,201,79,.75),inset 0 0 28px rgba(99,230,220,.3),0 0 38px rgba(139,92,240,.65),0 16px 40px rgba(10,6,40,.7)}
+.labbg{display:block;width:100%;height:auto;aspect-ratio:290/210;image-rendering:auto;image-rendering:-webkit-optimize-contrast;
+  filter:contrast(1.08) saturate(1.18) brightness(1.03);transform-origin:center center;
+  animation:labSceneHd 10s ease-in-out infinite alternate;transition:filter .4s ease}
+#labsc:hover .labbg{filter:contrast(1.14) saturate(1.25) brightness(1.07)}
+@keyframes labSceneHd{
+  0%{transform:scale(1) translate(0,0);filter:contrast(1.06) saturate(1.14) brightness(1.02)}
+  50%{transform:scale(1.028) translate(-0.4%,-0.6%);filter:contrast(1.12) saturate(1.22) brightness(1.06)}
+  100%{transform:scale(1.045) translate(0.4%,-1%);filter:contrast(1.09) saturate(1.16) brightness(1.03)}
+}
 .labhd:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,16,51,0) 45%,rgba(20,16,51,.85) 100%);pointer-events:none}
+.labcaustics{position:absolute;inset:0;background:radial-gradient(circle at 47% 36%,rgba(99,230,220,.38) 0%,rgba(139,92,240,.22) 36%,transparent 66%),radial-gradient(circle at 74% 58%,rgba(246,201,79,.28) 0%,transparent 45%);mix-blend-mode:screen;pointer-events:none;animation:labCaustics 5s ease-in-out infinite alternate}
+@keyframes labCaustics{0%{opacity:.55;transform:scale(1) rotate(0deg)}50%{opacity:.92;transform:scale(1.06) rotate(1.2deg)}100%{opacity:.68;transform:scale(1.02) rotate(-0.8deg)}}
+.labvapor{position:absolute;left:45%;top:28%;width:48px;height:70px;background:radial-gradient(ellipse at 50% 80%,rgba(160,255,240,.45),rgba(139,92,240,.18) 40%,transparent 70%);filter:blur(3px);mix-blend-mode:screen;pointer-events:none;animation:labVapor 4s ease-in-out infinite alternate}
+@keyframes labVapor{0%{transform:translateY(0) scaleX(.8);opacity:.35}50%{transform:translateY(-14px) scaleX(1.25);opacity:.75}100%{transform:translateY(-26px) scaleX(1.6);opacity:0}}
 .labglow{position:absolute;left:46%;top:24%;width:36%;aspect-ratio:1;transform:translate(-50%,0);border-radius:50%;
-  background:radial-gradient(circle,rgba(143,227,255,.55),rgba(139,92,240,.18) 55%,transparent 70%);mix-blend-mode:screen;animation:labglow 3s ease-in-out infinite alternate}
-@keyframes labglow{to{opacity:.45;transform:translate(-50%,0) scale(1.12)}}
-.labmotes i{position:absolute;bottom:10%;width:3px;height:3px;border-radius:50%;background:#c4fff7;box-shadow:0 0 8px 2px rgba(99,230,220,.8);opacity:0;animation:labmote 6s linear infinite}
-.labmotes i:nth-child(1){left:12%}.labmotes i:nth-child(2){left:28%;animation-delay:1s}.labmotes i:nth-child(3){left:44%;animation-delay:2.2s;background:#fff0a8}
-.labmotes i:nth-child(4){left:60%;animation-delay:3.1s}.labmotes i:nth-child(5){left:20%;animation-delay:4s;background:#efe8ff}.labmotes i:nth-child(6){left:52%;animation-delay:5s}
-@keyframes labmote{10%{opacity:1}100%{opacity:0;transform:translateY(-140px)}}
-.labluna{position:absolute;right:1%;bottom:1%;height:80%;aspect-ratio:2/3;z-index:2;line-height:0}   /* the larger Luna fills most of the scene's height at any width */
+  background:radial-gradient(circle,rgba(160,255,240,.75),rgba(143,227,255,.55) 30%,rgba(139,92,240,.32) 58%,transparent 72%);mix-blend-mode:screen;animation:labglow 2.8s ease-in-out infinite alternate}
+@keyframes labglow{0%{opacity:.45;transform:translate(-50%,0) scale(1)}50%{opacity:.85;transform:translate(-50%,-2px) scale(1.15);filter:hue-rotate(15deg)}100%{opacity:.55;transform:translate(-50%,0) scale(1.05)}}
+.labmotes i{position:absolute;bottom:10%;width:3px;height:3px;border-radius:50%;background:#c4fff7;box-shadow:0 0 10px 2px rgba(99,230,220,.9);opacity:0;animation:labmote 5s cubic-bezier(.25,.46,.45,.94) infinite}
+.labmotes i:nth-child(1){left:12%;animation-duration:5.5s}
+.labmotes i:nth-child(2){left:26%;animation-delay:.8s;animation-duration:6.2s;background:#fff0a8;box-shadow:0 0 10px 2px rgba(246,201,79,.9)}
+.labmotes i:nth-child(3){left:42%;animation-delay:1.6s;animation-duration:4.8s}
+.labmotes i:nth-child(4){left:56%;animation-delay:2.4s;animation-duration:5.8s;background:#efe8ff;box-shadow:0 0 10px 2px rgba(139,92,240,.9)}
+.labmotes i:nth-child(5){left:20%;animation-delay:3.2s;animation-duration:6.5s}
+.labmotes i:nth-child(6){left:50%;animation-delay:4s;animation-duration:5.2s;background:#fff0a8}
+.labmotes i:nth-child(7){left:34%;animation-delay:.4s;animation-duration:5s;width:2px;height:2px}
+.labmotes i:nth-child(8){left:64%;animation-delay:1.2s;animation-duration:6s;background:#8ff0ff}
+.labmotes i:nth-child(9){left:16%;animation-delay:2.8s;animation-duration:5.4s}
+.labmotes i:nth-child(10){left:48%;animation-delay:3.6s;animation-duration:4.6s;background:#efe8ff}
+.labmotes i:nth-child(11){left:72%;animation-delay:2.1s;animation-duration:6.8s}
+.labmotes i:nth-child(12){left:30%;animation-delay:4.4s;animation-duration:5.7s;background:#c4fff7}
+@keyframes labmote{0%{opacity:0;transform:translateY(0) scale(.6)}15%{opacity:1;transform:translateY(-20px) scale(1.1)}85%{opacity:.85}100%{opacity:0;transform:translateY(-155px) scale(.4)}}
+.labluna{position:absolute;right:2%;bottom:1%;height:84%;aspect-ratio:2/3;z-index:2;line-height:0;cursor:pointer;transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
+.labluna:hover{transform:scale(1.05) translateY(-3px)}
+.labluna:hover .v6lfi{filter:contrast(1.12) saturate(1.3) brightness(1.06) drop-shadow(0 0 16px rgba(168,85,247,.9)) drop-shadow(0 0 6px rgba(246,201,79,.7))}
+.labluna.v6lhop{animation:animeJoyHop .45s cubic-bezier(.34,1.56,.64,1)}
+@keyframes animeJoyHop{0%,100%{transform:scale(1) translateY(0)}50%{transform:scale(1.08) translateY(-14px)}}
 .labluna .v6lfull{display:block;width:100%!important;height:100%!important}
 .labcap{position:absolute;left:12px;bottom:10px;z-index:2;margin:0;max-width:60%;font:13px/1.45 var(--fb);color:#efe8ff;text-shadow:0 1px 2px #0a0628}
 .labcap b{display:block;font:9px/1.8 var(--fh);color:#fff0a8;letter-spacing:.5px;text-shadow:0 0 8px rgba(246,201,79,.7)}
-@media(prefers-reduced-motion:reduce){.labglow,.labmotes i{animation:none}.labmotes{display:none}}html.hw-q-performance .labmotes{display:none}
+@media(prefers-reduced-motion:reduce){.labbg,.labglow,.labmotes i,.labcaustics,.labvapor{animation:none!important}.labmotes{display:none}}html.hw-q-performance .labmotes{display:none}
 .labtabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}.labtabs .chip{min-height:44px;display:inline-flex;align-items:center;gap:6px}
 .labsteps{display:flex;flex-wrap:wrap;gap:4px 10px;list-style:none;padding:0;margin:0 0 10px;font:8px/1.8 var(--fh);color:var(--mut)}.labsteps .on{color:var(--ink);text-decoration:underline}.labsteps .done{color:var(--grn)}
 .labpick{display:grid;gap:8px}.labq{display:flex;gap:10px;align-items:center;text-align:left;min-height:56px;width:100%;padding:8px 10px}

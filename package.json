@@ -2,15 +2,27 @@
   "name": "healthwiz-kingdom",
   "private": true,
   "version": "5.4.3-v6.1",
-  "description": "HealthWiz Kingdom \u2014 single-file gamified wellness tracker",
+  "description": "HealthWiz Kingdom — single-file gamified wellness tracker",
   "type": "module",
   "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 3000",
     "build": "node tools/build-standalone.mjs",
-    "import": "node tools/import-original.mjs legacy/HealthWiz_Kingdom_5-4-3.html",
-    "test": "node tools/build-standalone.mjs && node --test --test-concurrency=1 --test-timeout=90000 tests/*.test.mjs"
+    "preview": "vite preview"
   },
   "devDependencies": {
+    "@types/canvas-confetti": "^1.9.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
     "acorn": "^8.14.0",
-    "playwright": "^1.56.1"
+    "playwright": "^1.56.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4"
+  },
+  "dependencies": {
+    "canvas-confetti": "^1.9.4",
+    "lucide-react": "^1.57.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   }
 }

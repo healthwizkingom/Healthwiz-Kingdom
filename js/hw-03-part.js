@@ -238,7 +238,8 @@ G('',G('zdw',wingP('#7a2a3e'),'animation-delay:-.25s'),'','translate(-5 -1)')
 +G('zdw',wingP(MB,DK2))
 +R(19,4,3,3,'#d9453d',' class="zc" style="--a:-2px;--d:.4s"')+SP(KN,KP,21,-1)
 +PG('28,4 44,-9 44.8,-8 28.8,5','#cfd6e4')+PG('44,-9 47,-12 45,-8',CR)+G('zdp',PG('39,-4.9 39.4,-1.5 33,-3.6','#d9453d')))))+'</g>';
-o+=cf+KNIGHT+DRG+FF(34,0,236,90,152)+FF(10,116,200,60,98)
+const camp='<g class="v6camp" data-a="tspot" data-k="camp" style="cursor:pointer">'+CI(152,89,12,"#ffaa44",' opacity=".28" class="zpl"')+R(147,89,10,2.5,"#5b3a1e")+R(149,87.5,6,2,"#7a4c22")+G("zc",PG("149,89 152,81 155,89","#d9453d")+PG("150,89 152,83 154,89","#f2c14e")+CI(152,84.5,1.2,"#fffbe0"),"--a:1.2px;--d:.35s")+pk(6,k=>CI(150+P(0,5),81-k*2.4,0.9,["#ffe27a","#ff7a3b","#fff"][k%3],' class="zk" style="--u:-18px;--l:-'+(k*0.4).toFixed(1)+'s"'))+'</g>';
+o+=cf+hero+camp+KNIGHT+DRG+FF(34,0,236,90,152)+FF(10,116,200,60,98)
 +pk(14,i=>R(0,P(30,140),1,1,['#ffb3c7','#fff','#ffd9a0'][i%3],' class="zv" style="--d:'+P(10,22)+'s;animation-delay:-'+P(0,20)+'s"'))
 +pk(6,i=>R(0,P(30,130),P(10,20),1,'#fff',' opacity=".25" class="zd" style="--d:'+(6+i)+'s;animation-delay:-'+i+'s"'))
 +R(-700,150,1640,30,'#1c3a22')+R(-700,149,1640,1,'#2f8a3a')+pk(7,i=>PG((i*18)+',170 '+(i*18+4)+','+(142+i%3*4)+' '+(i*18+9)+',170','#14301a'));

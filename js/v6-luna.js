@@ -50,11 +50,14 @@ function mini(expr){const n=faceOf(expr),i=NAMES.indexOf(n);
     Laboratory's slow loop of idle, staff, pointing and thinking. */
 function full(o){o=o||{};const s=o.scale||1,p=poseOf(o.pose,o.expr);
   if(o.sheet==='lab'){const q=LABP.includes(p)?p:'idle',x=(LABP.indexOf(q)/(LABP.length-1)*100).toFixed(4)+'%';   // the larger Laboratory figure (1.5 times the size)
-    return '<span class="v6lfull lab'+(o.cycle?' cycle':'')+'" aria-hidden="true" data-pose="'+q+'" style="width:'+LW*s+'px;height:'+LH*s+'px"><span class="v6lfi" style="background-size:'+LABP.length*100+'% 100%;background-position:'+x+' 0"></span>'
-      +'<i class="v6ls s1"></i><i class="v6ls s2"></i><i class="v6ls s3"></i><i class="v6ls s4"></i></span>'}
+    return '<span class="v6lfull lab'+(o.cycle?' cycle':'')+'" aria-hidden="true" data-pose="'+q+'" style="width:'+LW*s+'px;height:'+LH*s+'px">'
+      +'<span class="v6laura" aria-hidden="true"></span><span class="v6lrune" aria-hidden="true"></span>'
+      +'<span class="v6lfi" style="background-size:'+LABP.length*100+'% 100%;background-position:'+x+' 0"></span>'
+      +'<i class="v6ls s1"></i><i class="v6ls s2"></i><i class="v6ls s3"></i><i class="v6ls s4"></i><i class="v6ls s5"></i></span>'}
   return '<span class="v6lfull'+(o.cast?' cast':'')+(o.enter?' enter':'')+(o.cycle?' cycle':'')+'" aria-hidden="true" data-pose="'+p+'" style="width:'+PW*s+'px;height:'+PH*s+'px">'
+    +'<span class="v6laura" aria-hidden="true"></span>'
     +'<span class="v6lfi" style="background-size:'+PW*s*POSES.length+'px '+PH*s+'px;background-position:'+at(p)+' 0;--px:'+at(p)+'"></span>'
-    +'<i class="v6ls s1"></i><i class="v6ls s2"></i><i class="v6ls s3"></i><i class="v6ls s4"></i></span>'}
+    +'<i class="v6ls s1"></i><i class="v6ls s2"></i><i class="v6ls s3"></i><i class="v6ls s4"></i><i class="v6ls s5"></i></span>'}
 /** Changes a mounted figure's pose (el: the .v6lfull element). */
 function pose(el,p){if(!el||!POSES.includes(p))return;el.dataset.pose=p;const i=el.querySelector('.v6lfi');if(i){i.style.backgroundPosition=at(p)+' 0';i.style.setProperty('--px',at(p))}}
 /** Puts Luna in `host`: o.kind 'full' (default), 'face' (portrait) or 'mini'; o.expr picks the portrait. Returns the element. */
@@ -190,27 +193,68 @@ function launcher(){if(S.v==='welcome'||S.v==='onb')return;const m=$('#main');if
 {const r=render;render=function(){const x=r.apply(this,arguments);try{launcher()}catch(e){}return x}}
 
 HWUI.css('luna',`
-.v6lpf,.v6lmini{display:block;background-image:url(${FACES});background-repeat:no-repeat;image-rendering:pixelated;image-rendering:crisp-edges}
-.v6lmini{width:44px;height:44px;background-size:${FS*7}px ${FS}px}
-.v6lfull{position:relative;display:inline-block;line-height:0;animation:v6lfl 3.2s steps(4) infinite alternate}
-.v6lfull .v6lfi{display:block;width:100%;height:100%;background-image:url(${POSE_IMG});background-repeat:no-repeat;image-rendering:pixelated;image-rendering:crisp-edges;filter:drop-shadow(0 0 6px rgba(196,166,255,.6)) drop-shadow(0 0 2px rgba(99,230,220,.5))}
-@keyframes v6lfl{to{transform:translateY(-2px)}}
+.v6lpf,.v6lmini{display:block;background-image:url(${FACES});background-repeat:no-repeat;image-rendering:auto;image-rendering:-webkit-optimize-contrast}
+.v6lmini{width:44px;height:44px;background-size:${FS*7}px ${FS}px;transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
+.v6lfull{position:relative;display:inline-block;line-height:0;transform-origin:bottom center;animation:animeLunaIdle 3.8s ease-in-out infinite}
+@keyframes animeLunaIdle{
+  0%{transform:translateY(0) scale(1,1) rotate(0deg)}
+  32%{transform:translateY(-3.5px) scale(1.02,1.028) rotate(0.6deg)}
+  68%{transform:translateY(-1.2px) scale(0.992,1.012) rotate(-0.5deg)}
+  100%{transform:translateY(0) scale(1,1) rotate(0deg)}
+}
+.v6lfull .v6lfi{display:block;width:100%;height:100%;background-image:url(${POSE_IMG});background-repeat:no-repeat;image-rendering:auto;image-rendering:-webkit-optimize-contrast;
+  filter:contrast(1.08) saturate(1.22) brightness(1.03) drop-shadow(0 0 10px rgba(168,85,247,.7)) drop-shadow(0 0 3px rgba(56,189,248,.6));transition:filter .3s ease}
 .v6lfull.enter .v6lfi{animation:v6lwalk .9s steps(1) both}
 @keyframes v6lwalk{0%{background-position:${at('walk')} 0;transform:translateX(18px)}33%{background-position:${at('walk')} 0;transform:translateX(9px)}66%{background-position:${at('walk')} 0;transform:translateX(0)}100%{background-position:var(--px) 0}}
 .v6lfull.cycle .v6lfi{animation:v6lcyc 16s steps(1) infinite}
-@keyframes v6lcyc{0%,45%{background-position:${at('idle')} 0}45.01%,60%{background-position:${at('staff')} 0}60.01%,75%{background-position:${at('point')} 0}75.01%,90%{background-position:${at('think')} 0}90.01%,100%{background-position:${at('idle')} 0}}
+@keyframes v6lcyc{
+  0%,43%{background-position:${at('idle')} 0}
+  44%{transform:scale(0.97,0.96) translateY(2px)}
+  45.01%,58%{background-position:${at('staff')} 0;transform:scale(1.02,1.03) translateY(-2px)}
+  59%{transform:scale(0.97,0.96) translateY(2px)}
+  60.01%,73%{background-position:${at('point')} 0;transform:scale(1.02,1.03) translateY(-2px)}
+  74%{transform:scale(0.97,0.96) translateY(2px)}
+  75.01%,88%{background-position:${at('think')} 0;transform:scale(1.02,1.03) translateY(-2px)}
+  89%{transform:scale(0.97,0.96) translateY(2px)}
+  90.01%,100%{background-position:${at('idle')} 0}
+}
 .v6lfull.lab .v6lfi{background-image:url(${LAB_IMG})}
 .v6lfull.lab.cycle .v6lfi{animation:v6lcycl 16s steps(1) infinite}
-@keyframes v6lcycl{0%,45%{background-position:0% 0}45.01%,60%{background-position:33.3333% 0}60.01%,75%{background-position:66.6667% 0}75.01%,90%{background-position:100% 0}90.01%,100%{background-position:0% 0}}
-html.hw-rm .v6lfull .v6lfi,html.hw-q-performance .v6lfull .v6lfi{animation:none!important}
-@media(prefers-reduced-motion:reduce){.v6lfull .v6lfi{animation:none!important}}
-.v6ls{position:absolute;width:4px;height:4px;background:#fff0a8;box-shadow:0 0 6px 2px rgba(255,240,168,.8);opacity:0;animation:v6ltw 2.4s steps(3) infinite}
-.v6ls.s1{left:8%;top:6%}.v6ls.s2{left:2%;top:18%;animation-delay:.8s}.v6ls.s3{left:30%;top:2%;animation-delay:1.5s}.v6ls.s4{right:6%;top:30%;animation-delay:2s;background:#c4fff7;box-shadow:0 0 6px 2px rgba(99,230,220,.8)}
-@keyframes v6ltw{50%{opacity:1}}
-.v6lfull.cast .v6ls{animation:v6lcast .5s steps(2) 6 alternate}@keyframes v6lcast{to{opacity:1;transform:scale(1.8)}}
-html.hw-rm .v6lfull,html.hw-rm .v6ls{animation:none!important}html.hw-rm .v6ls{opacity:0}
-@media(prefers-reduced-motion:reduce){.v6lfull,.v6ls{animation:none!important}.v6ls{opacity:0}}html.hw-q-performance .v6ls{display:none}
-.v6lb{display:inline-grid;place-items:center;width:44px;height:44px;min-height:44px;padding:0;margin-left:auto;flex:0 0 auto;overflow:hidden}
+@keyframes v6lcycl{
+  0%,43%{background-position:0% 0}
+  44%{transform:scale(0.97,0.96) translateY(2px)}
+  45.01%,58%{background-position:33.3333% 0;transform:scale(1.02,1.03) translateY(-2px)}
+  59%{transform:scale(0.97,0.96) translateY(2px)}
+  60.01%,73%{background-position:66.6667% 0;transform:scale(1.02,1.03) translateY(-2px)}
+  74%{transform:scale(0.97,0.96) translateY(2px)}
+  75.01%,88%{background-position:100% 0;transform:scale(1.02,1.03) translateY(-2px)}
+  89%{transform:scale(0.97,0.96) translateY(2px)}
+  90.01%,100%{background-position:0% 0}
+}
+/* Anime magical witch halo */
+.v6laura{position:absolute;left:50%;top:22%;width:120px;height:120px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,.45) 0%,rgba(56,189,248,.2) 48%,transparent 70%);mix-blend-mode:screen;pointer-events:none;animation:animeAuraPulse 4.5s ease-in-out infinite alternate}
+@keyframes animeAuraPulse{0%{opacity:.5;transform:translate(-50%,-50%) scale(.92) rotate(0deg)}100%{opacity:.95;transform:translate(-50%,-50%) scale(1.16) rotate(180deg)}}
+/* Rotating alchemical magic circle on the floor */
+.v6lrune{position:absolute;left:50%;bottom:-2px;width:96px;height:22px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse at 50% 50%,rgba(56,189,248,.5) 0%,rgba(168,85,247,.3) 50%,transparent 75%);border:1px dashed rgba(246,201,79,.75);box-shadow:0 0 14px 2px rgba(56,189,248,.45);pointer-events:none;animation:animeRuneSpin 10s linear infinite}
+@keyframes animeRuneSpin{0%{transform:translateX(-50%) rotate(0deg)}100%{transform:translateX(-50%) rotate(360deg)}}
+/* Detailed 4-point anime star glints */
+.v6ls{position:absolute;width:8px;height:8px;background:#fff;clip-path:polygon(50% 0%,63% 37%,100% 50%,63% 63%,50% 100%,37% 63%,0% 50%,37% 37%);box-shadow:0 0 8px #ffe066,0 0 4px #fff;opacity:0;z-index:3;animation:animeStarGlint 2.8s ease-in-out infinite}
+.v6ls.s1{left:10%;top:8%;animation-delay:0s;transform:scale(1.1)}
+.v6ls.s2{left:4%;top:22%;animation-delay:.9s;background:#c4fff7;box-shadow:0 0 8px #63e6dc;transform:scale(.9)}
+.v6ls.s3{left:32%;top:4%;animation-delay:1.7s;transform:scale(1.2)}
+.v6ls.s4{right:8%;top:32%;animation-delay:2.3s;background:#ffd76a;transform:scale(1)}
+.v6ls.s5{right:18%;top:12%;animation-delay:1.2s;background:#e0c8ff;box-shadow:0 0 8px #a855f7;transform:scale(.85)}
+@keyframes animeStarGlint{0%,100%{opacity:0;transform:scale(.3) rotate(0deg)}50%{opacity:1;transform:scale(1.3) rotate(90deg)}}
+.v6lfull.cast .v6ls{animation:v6lcast .5s steps(2) 6 alternate}
+@keyframes v6lcast{to{opacity:1;transform:scale(2)}}
+html.hw-rm .v6lfull,html.hw-rm .v6ls,html.hw-rm .v6laura,html.hw-rm .v6lrune{animation:none!important}
+@media(prefers-reduced-motion:reduce){.v6lfull,.v6ls,.v6laura,.v6lrune,.v6lfull .v6lfi{animation:none!important}}
+/* Anime avatar header button with golden magic circle */
+.v6lb{display:inline-grid;place-items:center;width:44px;height:44px;min-height:44px;padding:0;margin-left:auto;flex:0 0 auto;border-radius:50%!important;border:2px solid var(--gold)!important;background:radial-gradient(circle,#3d2c6a 0%,#150c28 100%)!important;box-shadow:0 0 0 1px rgba(0,0,0,.5),0 0 14px rgba(246,201,79,.55),inset 0 1px 0 rgba(255,255,255,.4)!important;overflow:hidden;transition:all .25s cubic-bezier(.34,1.56,.64,1);animation:animeAvatarPulse 4s ease-in-out infinite alternate}
+@keyframes animeAvatarPulse{0%{box-shadow:0 0 0 1px rgba(0,0,0,.5),0 0 10px rgba(246,201,79,.4)}100%{box-shadow:0 0 0 1px rgba(0,0,0,.5),0 0 18px rgba(246,201,79,.75),0 0 8px rgba(168,85,247,.5)}}
+.v6lb:hover{transform:scale(1.1) translateY(-2px);box-shadow:0 0 0 2px var(--gold),0 0 24px rgba(246,201,79,.85),inset 0 1px 0 #fff!important}
+.v6lb:hover .v6lmini{transform:scale(1.1) rotate(3deg)}
+.v6lb:active{transform:scale(.95) translateY(1px)}
 header .v6lb{margin-right:56px;align-self:flex-start}.hbar .v6lb{margin:0 0 0 auto}@media(min-width:360px){.hbar>button[data-v=quests]{white-space:nowrap;flex:0 0 auto}}
 .hbar>div{min-width:0}.hbar small{overflow-wrap:anywhere} /* a long name wraps instead of widening the page */
 .v6lp{width:min(460px,100%)}.v6lph{display:flex;gap:10px;align-items:center;margin-bottom:8px}.v6lph h3{margin:0 0 4px}

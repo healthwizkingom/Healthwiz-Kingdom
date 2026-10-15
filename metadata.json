@@ -1,0 +1,9 @@
+{
+  "name": "HealthWiz Kingdom",
+  "description": "A gamified pixel-art fantasy RPG health and wellness dashboard tracking water, meals, sleep, stairs, exercise, heart rate, and stress with Medius the Wizard King.",
+  "version": "1.0.0",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ],
+  "permissions": []
+}
