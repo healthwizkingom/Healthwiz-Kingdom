@@ -193,7 +193,7 @@ function launcher(){if(S.v==='welcome'||S.v==='onb')return;const m=$('#main');if
 {const r=render;render=function(){const x=r.apply(this,arguments);try{launcher()}catch(e){}return x}}
 
 HWUI.css('luna',`
-.v6lpf,.v6lmini{display:block;background-image:url(${FACES});background-repeat:no-repeat;image-rendering:auto;image-rendering:-webkit-optimize-contrast}
+.v6lpf,.v6lmini{display:block;background-image:url(${FACES});background-repeat:no-repeat;image-rendering:pixelated;image-rendering:crisp-edges}
 .v6lmini{width:44px;height:44px;background-size:${FS*7}px ${FS}px;transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
 .v6lfull{position:relative;display:inline-block;line-height:0;transform-origin:bottom center;animation:animeLunaIdle 3.8s ease-in-out infinite}
 @keyframes animeLunaIdle{
@@ -202,8 +202,8 @@ HWUI.css('luna',`
   68%{transform:translateY(-1.2px) scale(0.992,1.012) rotate(-0.5deg)}
   100%{transform:translateY(0) scale(1,1) rotate(0deg)}
 }
-.v6lfull .v6lfi{display:block;width:100%;height:100%;background-image:url(${POSE_IMG});background-repeat:no-repeat;image-rendering:auto;image-rendering:-webkit-optimize-contrast;
-  filter:contrast(1.08) saturate(1.22) brightness(1.03) drop-shadow(0 0 10px rgba(168,85,247,.7)) drop-shadow(0 0 3px rgba(56,189,248,.6));transition:filter .3s ease}
+.v6lfull .v6lfi{display:block;width:100%;height:100%;background-image:url(${POSE_IMG});background-repeat:no-repeat;image-rendering:pixelated;image-rendering:crisp-edges;
+  filter:drop-shadow(0 0 8px rgba(168,85,247,.65)) drop-shadow(0 0 2px rgba(56,189,248,.55));transition:filter .3s ease}   /* the palette stays the artist's: only a glow is added */
 .v6lfull.enter .v6lfi{animation:v6lwalk .9s steps(1) both}
 @keyframes v6lwalk{0%{background-position:${at('walk')} 0;transform:translateX(18px)}33%{background-position:${at('walk')} 0;transform:translateX(9px)}66%{background-position:${at('walk')} 0;transform:translateX(0)}100%{background-position:var(--px) 0}}
 .v6lfull.cycle .v6lfi{animation:v6lcyc 16s steps(1) infinite}
@@ -247,8 +247,8 @@ HWUI.css('luna',`
 @keyframes animeStarGlint{0%,100%{opacity:0;transform:scale(.3) rotate(0deg)}50%{opacity:1;transform:scale(1.3) rotate(90deg)}}
 .v6lfull.cast .v6ls{animation:v6lcast .5s steps(2) 6 alternate}
 @keyframes v6lcast{to{opacity:1;transform:scale(2)}}
-html.hw-rm .v6lfull,html.hw-rm .v6ls,html.hw-rm .v6laura,html.hw-rm .v6lrune{animation:none!important}
-@media(prefers-reduced-motion:reduce){.v6lfull,.v6ls,.v6laura,.v6lrune,.v6lfull .v6lfi{animation:none!important}}
+html.hw-rm .v6lfull,html.hw-rm .v6lfull .v6lfi,html.hw-rm .v6ls,html.hw-rm .v6laura,html.hw-rm .v6lrune,html.hw-rm .v6lb,html.hw-q-performance .v6lfull,html.hw-q-performance .v6lfull .v6lfi,html.hw-q-performance .v6laura,html.hw-q-performance .v6lrune,html.hw-q-performance .v6lb{animation:none!important}html.hw-rm .v6ls{opacity:0}html.hw-q-performance .v6ls,html.hw-q-performance .v6laura,html.hw-q-performance .v6lrune{display:none}
+@media(prefers-reduced-motion:reduce){.v6lfull,.v6ls,.v6laura,.v6lrune,.v6lfull .v6lfi,.v6lb{animation:none!important}.v6ls{opacity:0}}
 /* Anime avatar header button with golden magic circle */
 .v6lb{display:inline-grid;place-items:center;width:44px;height:44px;min-height:44px;padding:0;margin-left:auto;flex:0 0 auto;border-radius:50%!important;border:2px solid var(--gold)!important;background:radial-gradient(circle,#3d2c6a 0%,#150c28 100%)!important;box-shadow:0 0 0 1px rgba(0,0,0,.5),0 0 14px rgba(246,201,79,.55),inset 0 1px 0 rgba(255,255,255,.4)!important;overflow:hidden;transition:all .25s cubic-bezier(.34,1.56,.64,1);animation:animeAvatarPulse 4s ease-in-out infinite alternate}
 @keyframes animeAvatarPulse{0%{box-shadow:0 0 0 1px rgba(0,0,0,.5),0 0 10px rgba(246,201,79,.4)}100%{box-shadow:0 0 0 1px rgba(0,0,0,.5),0 0 18px rgba(246,201,79,.75),0 0 8px rgba(168,85,247,.5)}}

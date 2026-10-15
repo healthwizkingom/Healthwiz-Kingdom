@@ -111,7 +111,7 @@ function bars(vals,labels,unit,what){const ok=vals.filter(v=>v!=null),mx=Math.ma
 const tabs=()=>'<div class="labtabs" role="tablist" aria-label="Laboratory sections">'+SEC.map(s=>'<button type="button" role="tab" class="chip'+(Z.tab===s.k?' on':'')+'" aria-selected="'+(Z.tab===s.k)+'" data-a="labtab" data-k="'+s.k+'">'+ico(s.icon)+' '+s.name+'</button>').join('')+'</div>';
 function page(){const s=SEC.find(x=>x.k===Z.tab)||SEC[0];
   return '<div class="labhd" id="labsc"><img class="labbg" src="assets/img/lab-scene.webp" alt="Science Laboratory" width="290" height="210"><span class="labcaustics" aria-hidden="true"></span><span class="labvapor" aria-hidden="true"></span><span class="labglow" aria-hidden="true"></span>'
-    +'<span class="labmotes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="labluna" id="labluna" data-a="labluna" role="button" tabindex="0" title="Talk with Luna" aria-label="Luna, apprentice witch"></span>'
+    +'<span class="labmotes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="labluna" id="labluna" data-a="labluna" role="button" tabindex="0" title="Luna, the apprentice witch" aria-label="Luna, the apprentice witch: tap for a tip"></span>'
     +'<p class="labcap"><b>THE SCIENCE LABORATORY</b>Real data and real methods. Every number says where it came from.</p></div>'+tabs()
     +'<div class="labsec" role="tabpanel" aria-label="'+esc(s?s.name:'')+'">'+(s?s.render():'')+'</div>'}
 
@@ -189,9 +189,11 @@ acts.labluna=()=>{
   if(typeof sfx==='function')sfx(880,.12);
   const lu=document.getElementById('labluna');
   if(lu){lu.classList.add('v6lhop');setTimeout(()=>lu.classList.remove('v6lhop'),500)}
-  const tips=['✨ "Science and magic work best together!"','🔮 "Every piece of data tells a story!"','✨ "Keep up the great habits, adventurer!"','🧪 "The formulas here are all verified and true!"'];
+  // Encouragement only: no claim about data. What is measured, estimated or unverified is said on each section itself.
+  const tips=['"Science and magic work best together!"','"Every number here says where it came from."','"Keep up the great habits, adventurer!"','"Check the method before you trust the result."'];
   toast(tips[Math.floor(Math.random()*tips.length)]);
 };
+document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target&&e.target.id==='labluna'){e.preventDefault();acts.labluna()}});
 
 /* ---------- registration: route, banner, doorways ---------- */
 pages.lab=()=>page();
@@ -207,15 +209,9 @@ HWUI.css('lab',`
 .labhd{position:relative;margin:0 0 14px;border-radius:14px;overflow:hidden;line-height:0;background:#141033;
   box-shadow:0 0 0 2px rgba(196,166,255,.6),inset 0 0 24px rgba(99,230,220,.22),0 0 32px rgba(139,92,240,.5),0 14px 36px rgba(10,6,40,.6);transition:box-shadow .3s ease}
 .labhd:hover{box-shadow:0 0 0 2px rgba(246,201,79,.75),inset 0 0 28px rgba(99,230,220,.3),0 0 38px rgba(139,92,240,.65),0 16px 40px rgba(10,6,40,.7)}
-.labbg{display:block;width:100%;height:auto;aspect-ratio:290/210;image-rendering:auto;image-rendering:-webkit-optimize-contrast;
-  filter:contrast(1.08) saturate(1.18) brightness(1.03);transform-origin:center center;
-  animation:labSceneHd 10s ease-in-out infinite alternate;transition:filter .4s ease}
-#labsc:hover .labbg{filter:contrast(1.14) saturate(1.25) brightness(1.07)}
-@keyframes labSceneHd{
-  0%{transform:scale(1) translate(0,0);filter:contrast(1.06) saturate(1.14) brightness(1.02)}
-  50%{transform:scale(1.028) translate(-0.4%,-0.6%);filter:contrast(1.12) saturate(1.22) brightness(1.06)}
-  100%{transform:scale(1.045) translate(0.4%,-1%);filter:contrast(1.09) saturate(1.16) brightness(1.03)}
-}
+.labbg{display:block;width:100%;height:auto;aspect-ratio:290/210;image-rendering:pixelated;image-rendering:crisp-edges;transform-origin:center center;
+  animation:labSceneHd 10s ease-in-out infinite alternate}
+@keyframes labSceneHd{0%{transform:scale(1)}100%{transform:scale(1.03)}}
 .labhd:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,16,51,0) 45%,rgba(20,16,51,.85) 100%);pointer-events:none}
 .labcaustics{position:absolute;inset:0;background:radial-gradient(circle at 47% 36%,rgba(99,230,220,.38) 0%,rgba(139,92,240,.22) 36%,transparent 66%),radial-gradient(circle at 74% 58%,rgba(246,201,79,.28) 0%,transparent 45%);mix-blend-mode:screen;pointer-events:none;animation:labCaustics 5s ease-in-out infinite alternate}
 @keyframes labCaustics{0%{opacity:.55;transform:scale(1) rotate(0deg)}50%{opacity:.92;transform:scale(1.06) rotate(1.2deg)}100%{opacity:.68;transform:scale(1.02) rotate(-0.8deg)}}
@@ -247,6 +243,8 @@ HWUI.css('lab',`
 .labcap{position:absolute;left:12px;bottom:10px;z-index:2;margin:0;max-width:60%;font:13px/1.45 var(--fb);color:#efe8ff;text-shadow:0 1px 2px #0a0628}
 .labcap b{display:block;font:9px/1.8 var(--fh);color:#fff0a8;letter-spacing:.5px;text-shadow:0 0 8px rgba(246,201,79,.7)}
 @media(prefers-reduced-motion:reduce){.labbg,.labglow,.labmotes i,.labcaustics,.labvapor{animation:none!important}.labmotes{display:none}}html.hw-q-performance .labmotes{display:none}
+html.hw-rm .labbg,html.hw-rm .labglow,html.hw-rm .labcaustics,html.hw-rm .labvapor,html.hw-q-performance .labbg,html.hw-q-performance .labglow,html.hw-q-performance .labcaustics,html.hw-q-performance .labvapor{animation:none!important}html.hw-q-performance .labvapor{display:none}
+.labluna:focus-visible{outline:2px solid var(--gold,#f6c94f);outline-offset:2px;border-radius:8px}
 .labtabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}.labtabs .chip{min-height:44px;display:inline-flex;align-items:center;gap:6px}
 .labsteps{display:flex;flex-wrap:wrap;gap:4px 10px;list-style:none;padding:0;margin:0 0 10px;font:8px/1.8 var(--fh);color:var(--mut)}.labsteps .on{color:var(--ink);text-decoration:underline}.labsteps .done{color:var(--grn)}
 .labpick{display:grid;gap:8px}.labq{display:flex;gap:10px;align-items:center;text-align:left;min-height:56px;width:100%;padding:8px 10px}
