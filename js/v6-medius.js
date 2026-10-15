@@ -32,7 +32,7 @@ const R={
 'greet':{p:30,cd:0,line:()=>{const h=new Date().getHours();return h<5?'Still awake, '+name()+'? The stars and I will keep you company. Rest soon.':h<12?'Good morning, '+name()+'! A fresh page for today.':h<18?'Good afternoon, '+name()+'. How is your day going?':'Good evening, '+name()+'. A nice time to note down the day.'}},
 'log':{p:15,cd:1200e3,line:e=>pick(({water:['Splash! Water logged.','Noted! The Water Valley ripples.'],food:['Meal logged. Thanks for noting it!','Added to your food log.'],sleep:['Rest logged. Even witches need their sleep.','The Dream Realm thanks you for the report.'],stair:['Up the mountain! Go at your own pace.','Step by step, the summit gets closer.'],stress:['Thanks for checking in with yourself.','The Mind Forest is listening. Good on you for pausing.'],pulse:['Heart rate logged. Thank you!','Pulse noted in Heartstone Hall.'],bmi:['Noted at Balance Tower.']})[e.c]||['Noted!'])}};
 // Luna's face for each kind of bubble (js/v6-luna.js); `cast` makes her staff sparkle
-const FACE={level:['cheerful',1],'quests-all':['cheerful',1],'quest-big':['encouraging'],comeback:['greet'],milestone:['encouraging',1],badge:['surprised',1],
+const FACE={level:['cheerful',1],'quests-all':['cheerful',1],'quest-big':['encouraging'],comeback:['greet'],milestone:['encouraging',1],badge:['badge',1],
   kingdom:['cheerful'],insight:['thoughtful'],first:['curious'],restored:['focused'],cloud:['focused'],'quest-daily':['encouraging'],greet:['greet'],log:['idle'],game:['cheerful'],offline:['apologetic']};
 
 let showing=null,pending=null,lastShown=0;
@@ -40,7 +40,7 @@ const quiet=()=>S.v==='welcome'||S.v==='onb'||!!document.getElementById('tut')||
 function say(type,e){const r=R[type];if(!r||!mode())return false;if(pending&&pending.type===type)return false;if(mode()===1&&r.p<CALM)return false;
   const M=md(),now=Date.now(),d=today();if(r.cd&&M.last[type]&&now-M.last[type]<r.cd)return false;if((M.day[d]||0)>=DAILY&&r.p<90)return false;
   let text;try{text=r.line(e||{})}catch(err){return false}if(!text)return false;const key=type+':'+text;if(M.seen[key]===d)return false;
-  const item={type,text,p:r.p,key};if(showing||quiet()||now-lastShown<GAP&&r.p<70){if(!pending||item.p>pending.p)pending=item;schedule();return true}
+  const item={type,text,p:r.p,key,c:e&&e.c};if(showing||quiet()||now-lastShown<GAP&&r.p<70){if(!pending||item.p>pending.p)pending=item;schedule();return true}
   show(item);return true}
 let tm=null;function schedule(){clearTimeout(tm);tm=setTimeout(()=>{if(!pending)return;if(showing||quiet()){schedule();return}const it=pending;pending=null;show(it)},Math.max(1200,GAP-(Date.now()-lastShown)))}
 HWUI.css('medius',`.v6md{position:fixed;right:10px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:66;display:flex;align-items:flex-end;gap:6px;max-width:min(340px,calc(100vw - 20px));cursor:pointer;animation:v6in .3s steps(3)}
@@ -50,7 +50,7 @@ HWUI.css('medius',`.v6md{position:fixed;right:10px;bottom:calc(14px + env(safe-a
 .v6md.out{opacity:0;transition:opacity .3s}@media(max-width:760px){.v6md{bottom:calc(84px + env(safe-area-inset-bottom,0px))}}@media(prefers-reduced-motion:reduce){.v6md{animation:none}}`);
 function show(it){const M=md(),d=today();M.last[it.type]=Date.now();M.day[d]=(M.day[d]||0)+1;M.seen[it.key]=d;M.log.push({t:it.text,at:new Date().toISOString(),type:it.type,who:'L'});if(M.log.length>20)M.log.shift();
   Object.keys(M.day).forEach(k=>{if(k<rng(7)[0])delete M.day[k]});Object.keys(M.seen).forEach(k=>{if(M.seen[k]<rng(7)[0])delete M.seen[k]});save();
-  const el=document.createElement('div');el.className='v6md';el.id='v6md';el.setAttribute('role','status');const f=FACE[it.type]||['idle'],cp=HWLuna.compact();if(cp)el.classList.add('cp');
+  const el=document.createElement('div');el.className='v6md';el.id='v6md';el.setAttribute('role','status');const f=it.type==='log'&&it.c==='sleep'?['rest']:FACE[it.type]||['idle'],cp=HWLuna.compact();if(cp)el.classList.add('cp');
   el.innerHTML='<button type="button" class="v6lav" aria-label="Ask Luna for help"></button><p><b>LUNA</b>'+esc(it.text)+'</p>';if(cp){el.firstChild.innerHTML=HWLuna.portrait(f[0]);el.firstChild.classList.add('pf')}else HWLuna.mount(el.firstChild,{expr:f[0],cast:f[1],enter:1}); // compact: her portrait from the reference sheet
   showing=el;lastShown=Date.now();let gone=0;const close=()=>{if(gone)return;gone=1;el.classList.add('out');setTimeout(()=>{el.remove();if(showing===el)showing=null;if(pending)schedule()},300)};el.onclick=e=>{hush();close();if(e.target.closest('.v6lav'))HWLuna.open()};setTimeout(close,6500);document.body.appendChild(el);
   HWEvents.emit('medius:said',{kind:it.type,text:it.text})}
@@ -95,6 +95,7 @@ const lunaCard=()=>'<div class="card" id="v6lunaset"><h3>✨ LUNA COMPANION</h3>
   '<p class="mut">How often Luna talks</p><div class="row">'+chips([[2,'Chatty'],[1,'Calm'],[0,'Off']],mode(),'medm')+'</div>'+
   '<p class="mut">Size</p><div class="row">'+chips([[0,'Full'],[1,'Compact']],HWLuna.compact()?1:0,'lunasz')+'</div>'+
   '<p class="mut">Help style in Ask Luna</p><div class="row">'+chips([['q','Quick'],['g','Guided'],['e','Explore']],HWLuna.style(),'lunast')+'</div>'+
+  '<p class="mut">Meet Luna: every pose from her design sheet</p>'+HWLuna.meet()+
   '<div class="row"><button class="sm" data-a="luna">ASK LUNA</button><button class="g sm" data-a="lunarst">RESET LUNA\'S PREFERENCES</button></div>'+
   '<small class="mut">Calm shows only important moments (level-ups, quests, milestones). Luna never scolds. She remembers only these three choices, saved with your other settings (and in your cloud save if you sign in); nothing is sent anywhere.</small></div>';
 const setCard=()=>lunaCard()+'<div class="card" id="v6medset"><h3>🧙 MEDIUS\'S VOICE</h3><div class="row">'+(canPlay()?chips([[1,'Voice on'],[0,'Voice off']],vOn()?1:0,'medv'):'<small class="mut">Voice is not available in this browser.</small>')+'</div>'+'<small class="mut">Medius, the Wizard King, narrates the tutorial and the Traveller\'s Registry.</small></div>';

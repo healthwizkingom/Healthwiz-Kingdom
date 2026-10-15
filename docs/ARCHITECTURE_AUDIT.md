@@ -1634,3 +1634,24 @@ Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel
 - **Tests:** `tests/67-addfood.test.mjs` (10): the name; every state's angle, expression and item; that all six angles' poses
   that can occur (front, three-quarter, side, back, casting; walking is in the searching loop), all seven expressions and all
   six props appear; the turning loop and the circling books while searching; the four sheets' sizes.
+
+### Luna's new design sheet and the Laboratory's painted room (owner, 2026-10-15: "replace it with these ... make sure to use all of them")
+
+- **Art source:** the owner's "LUNA - CHARACTER DESIGN" sheet (1024 × 572) and a painted room (1024 × 572), both made with
+  Gemini from briefs written in the session. The Zapier "Generate Image" action could not be used (its model list is out of
+  date and the key had no image quota), so the owner generated them in Google AI Studio and supplied the images.
+- **Recut:** `tools/art/make_luna_poses.py` (new boxes, caption trimming, enclosed-background removal, scaling by body
+  height) → `luna-poses.webp` (1440 × 120, ≈ 39 KB, all **18** figures) and `luna-lab.webp` (720 × 180, ≈ 27 KB, six poses);
+  `tools/art/make_luna_faces.py` → `luna-faces.webp` (704 × 64, ≈ 22 KB, **11** heads); `tools/art/make_luna_lab.py` →
+  `lab-scene.webp` (640 × 358, 128 colours, ≈ 99 KB). `luna-room.webp` is unchanged. The sheet is not stored in the repo.
+- **Code:** `js/v6-luna.js` has 18 poses and 11 expressions (the old seven keep their names; laughing, shocked, sad and
+  annoyed are new). Old `staff`, `think` and `confused` are gone: focused is neutral, an insight points at the chart,
+  an apology is apologetic, a thought while a reply is on its way reads her spellbook. A badge is a spell (`cast`); a
+  sleep log shows her resting with the spirit cat. **Meet Luna** (Settings) steps through all eighteen, so the front,
+  side and back views are used too. The Laboratory's orb, vapour and caustics effects belonged to the old laboratory and
+  were replaced by a glow on the new room's lanterns, fireplace and candle.
+- **Budget:** the images total 988,417 bytes. The owner's 880 KB limit could not hold the new art, so `tests/24-performance`
+  now allows 980 KB (1,003,520 bytes); no image is over 100 KB.
+- **Not used:** the sheet's separate staff, satchel and two spirit-cat props (the cat appears in the resting pose).
+- **Tests:** `tests/59-luna.test.mjs` (the 18 poses and 11 portraits load; every pose is used; Meet Luna steps through all
+  eighteen and wraps; a sleep log rests), `tests/62-lab.test.mjs` (the 640 px scene).

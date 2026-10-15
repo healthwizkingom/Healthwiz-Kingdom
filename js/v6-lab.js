@@ -110,7 +110,7 @@ function bars(vals,labels,unit,what){const ok=vals.filter(v=>v!=null),mx=Math.ma
 /* ---------- the page ---------- */
 const tabs=()=>'<div class="labtabs" role="tablist" aria-label="Laboratory sections">'+SEC.map(s=>'<button type="button" role="tab" class="chip'+(Z.tab===s.k?' on':'')+'" aria-selected="'+(Z.tab===s.k)+'" data-a="labtab" data-k="'+s.k+'">'+ico(s.icon)+' '+s.name+'</button>').join('')+'</div>';
 function page(){const s=SEC.find(x=>x.k===Z.tab)||SEC[0];
-  return '<div class="labhd" id="labsc"><img class="labbg" src="assets/img/lab-scene.webp" alt="Science Laboratory" width="290" height="210"><span class="labcaustics" aria-hidden="true"></span><span class="labvapor" aria-hidden="true"></span><span class="labglow" aria-hidden="true"></span>'
+  return '<div class="labhd" id="labsc"><img class="labbg" src="assets/img/lab-scene.webp" alt="Luna\'s cosy study" width="640" height="358"><span class="labglow" aria-hidden="true"></span>'
     +'<span class="labmotes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="labluna" id="labluna" data-a="labluna" role="button" tabindex="0" title="Luna, the apprentice witch" aria-label="Luna, the apprentice witch: tap for a tip"></span>'
     +'<p class="labcap"><b>THE SCIENCE LABORATORY</b>Real data and real methods. Every number says where it came from.</p></div>'+tabs()
     +'<div class="labsec" role="tabpanel" aria-label="'+esc(s?s.name:'')+'">'+(s?s.render():'')+'</div>'}
@@ -182,8 +182,8 @@ acts.labcopy=()=>{const t=report(Z.t).map(p=>p[0]+': '+p[1]).join('\n\n');const 
 document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.in==='labctrl'&&Z.ctrl){Z.ctrl[+t.dataset.i]=t.checked?1:0}});
 acts.labgo=()=>go('lab');
 
-/* ---------- the laboratory scene: the owner's concept-sheet laboratory (assets/img/lab-scene.webp, tools/art/make_luna_lab.py)
-   with Luna in front; the orb's glow and a few motes are CSS (transform and opacity only), still with reduced motion ---------- */
+/* ---------- the laboratory scene: Luna's cosy study, the owner's painted room (assets/img/lab-scene.webp, tools/art/make_luna_lab.py)
+   with Luna in front; the lanterns', candle's and fireplace's glow and a few motes are CSS (opacity and transform only), still with reduced motion ---------- */
 function startScene(){const lu=document.getElementById('labluna');if(lu&&!lu.firstChild)HWLuna.mount(lu,{kind:'full',cycle:1,sheet:'lab'})}
 acts.labluna=()=>{
   if(typeof sfx==='function')sfx(880,.12);
@@ -209,17 +209,17 @@ HWUI.css('lab',`
 .labhd{position:relative;margin:0 0 14px;border-radius:14px;overflow:hidden;line-height:0;background:#141033;
   box-shadow:0 0 0 2px rgba(196,166,255,.6),inset 0 0 24px rgba(99,230,220,.22),0 0 32px rgba(139,92,240,.5),0 14px 36px rgba(10,6,40,.6);transition:box-shadow .3s ease}
 .labhd:hover{box-shadow:0 0 0 2px rgba(246,201,79,.75),inset 0 0 28px rgba(99,230,220,.3),0 0 38px rgba(139,92,240,.65),0 16px 40px rgba(10,6,40,.7)}
-.labbg{display:block;width:100%;height:auto;aspect-ratio:290/210;image-rendering:pixelated;image-rendering:crisp-edges;transform-origin:center center;
-  animation:labSceneHd 10s ease-in-out infinite alternate}
+.labbg{display:block;width:100%;height:auto;aspect-ratio:640/358;image-rendering:auto;transform-origin:center center;
+  animation:labSceneHd 12s ease-in-out infinite alternate}   /* the HD painting, not pixel art: drawn smoothed */
 @keyframes labSceneHd{0%{transform:scale(1)}100%{transform:scale(1.03)}}
 .labhd:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,16,51,0) 45%,rgba(20,16,51,.85) 100%);pointer-events:none}
-.labcaustics{position:absolute;inset:0;background:radial-gradient(circle at 47% 36%,rgba(99,230,220,.38) 0%,rgba(139,92,240,.22) 36%,transparent 66%),radial-gradient(circle at 74% 58%,rgba(246,201,79,.28) 0%,transparent 45%);mix-blend-mode:screen;pointer-events:none;animation:labCaustics 5s ease-in-out infinite alternate}
-@keyframes labCaustics{0%{opacity:.55;transform:scale(1) rotate(0deg)}50%{opacity:.92;transform:scale(1.06) rotate(1.2deg)}100%{opacity:.68;transform:scale(1.02) rotate(-0.8deg)}}
-.labvapor{position:absolute;left:45%;top:28%;width:48px;height:70px;background:radial-gradient(ellipse at 50% 80%,rgba(160,255,240,.45),rgba(139,92,240,.18) 40%,transparent 70%);filter:blur(3px);mix-blend-mode:screen;pointer-events:none;animation:labVapor 4s ease-in-out infinite alternate}
-@keyframes labVapor{0%{transform:translateY(0) scaleX(.8);opacity:.35}50%{transform:translateY(-14px) scaleX(1.25);opacity:.75}100%{transform:translateY(-26px) scaleX(1.6);opacity:0}}
-.labglow{position:absolute;left:46%;top:24%;width:36%;aspect-ratio:1;transform:translate(-50%,0);border-radius:50%;
-  background:radial-gradient(circle,rgba(160,255,240,.75),rgba(143,227,255,.55) 30%,rgba(139,92,240,.32) 58%,transparent 72%);mix-blend-mode:screen;animation:labglow 2.8s ease-in-out infinite alternate}
-@keyframes labglow{0%{opacity:.45;transform:translate(-50%,0) scale(1)}50%{opacity:.85;transform:translate(-50%,-2px) scale(1.15);filter:hue-rotate(15deg)}100%{opacity:.55;transform:translate(-50%,0) scale(1.05)}}
+.labglow{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;
+  background:radial-gradient(circle at 36% 26%,rgba(255,196,96,.55),rgba(255,160,60,.22) 8%,transparent 16%),
+    radial-gradient(circle at 65% 21%,rgba(255,196,96,.55),rgba(255,160,60,.22) 8%,transparent 16%),
+    radial-gradient(circle at 87% 71%,rgba(255,140,50,.5),rgba(255,110,40,.2) 10%,transparent 20%),
+    radial-gradient(circle at 10% 66%,rgba(255,214,128,.5),rgba(255,180,80,.18) 6%,transparent 13%);
+  animation:labglow 3.2s ease-in-out infinite alternate}   /* two lanterns, the fireplace and the desk candle */
+@keyframes labglow{0%{opacity:.5}45%{opacity:.95}100%{opacity:.65}}
 .labmotes i{position:absolute;bottom:10%;width:3px;height:3px;border-radius:50%;background:#c4fff7;box-shadow:0 0 10px 2px rgba(99,230,220,.9);opacity:0;animation:labmote 5s cubic-bezier(.25,.46,.45,.94) infinite}
 .labmotes i:nth-child(1){left:12%;animation-duration:5.5s}
 .labmotes i:nth-child(2){left:26%;animation-delay:.8s;animation-duration:6.2s;background:#fff0a8;box-shadow:0 0 10px 2px rgba(246,201,79,.9)}
@@ -242,8 +242,8 @@ HWUI.css('lab',`
 .labluna .v6lfull{display:block;width:100%!important;height:100%!important}
 .labcap{position:absolute;left:12px;bottom:10px;z-index:2;margin:0;max-width:60%;font:13px/1.45 var(--fb);color:#efe8ff;text-shadow:0 1px 2px #0a0628}
 .labcap b{display:block;font:9px/1.8 var(--fh);color:#fff0a8;letter-spacing:.5px;text-shadow:0 0 8px rgba(246,201,79,.7)}
-@media(prefers-reduced-motion:reduce){.labbg,.labglow,.labmotes i,.labcaustics,.labvapor{animation:none!important}.labmotes{display:none}}html.hw-q-performance .labmotes{display:none}
-html.hw-rm .labbg,html.hw-rm .labglow,html.hw-rm .labcaustics,html.hw-rm .labvapor,html.hw-q-performance .labbg,html.hw-q-performance .labglow,html.hw-q-performance .labcaustics,html.hw-q-performance .labvapor{animation:none!important}html.hw-q-performance .labvapor{display:none}
+@media(prefers-reduced-motion:reduce){.labbg,.labglow,.labmotes i{animation:none!important}.labmotes{display:none}}html.hw-q-performance .labmotes{display:none}
+html.hw-rm .labbg,html.hw-rm .labglow,html.hw-q-performance .labbg,html.hw-q-performance .labglow{animation:none!important}
 .labluna:focus-visible{outline:2px solid var(--gold,#f6c94f);outline-offset:2px;border-radius:8px}
 .labtabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}.labtabs .chip{min-height:44px;display:inline-flex;align-items:center;gap:6px}
 .labsteps{display:flex;flex-wrap:wrap;gap:4px 10px;list-style:none;padding:0;margin:0 0 10px;font:8px/1.8 var(--fh);color:var(--mut)}.labsteps .on{color:var(--ink);text-decoration:underline}.labsteps .done{color:var(--grn)}
