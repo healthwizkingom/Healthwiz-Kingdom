@@ -160,12 +160,13 @@ opacity only, and every scene stops off screen, in a hidden tab and for reduced 
   layered canvases; moving details are a few CSS-animated SVG shapes with `shape-rendering: crispEdges`.
 * Wizard's Counsel (`js/v6-counsel.js`): Medius's expressions are small patches in the study picture's own style
   (`assets/img/medius-reactions.webp`); his hands are never redrawn.
-* Luna, the apprentice witch (`js/v6-luna.js`): only the owner's character design sheet (2026-10-15), turned into pixel art. The
-  eleven expression portraits (`assets/img/luna-faces.webp`, 64 × 64 each, the heads of the sheet's expression figures,
-  `tools/art/make_luna_faces.py`) and all eighteen full-body figures of the sheet (`assets/img/luna-poses.webp`, 80 × 120
-  frames, transparent, one shared 64-colour palette, each scaled by its body height so she keeps one size,
-  `tools/art/make_luna_poses.py`), drawn at whole-number scales. Her movement is the sheet's own drawings: each moment
-  picks a pose, a bubble walks in with the walking pose, Meet Luna (Settings) steps through all eighteen, the Laboratory cycles idle, pointing, casting, reading, curious and waving with a larger Luna (`assets/img/luna-lab.webp`, 120 × 180 frames cut from the same sheet by the same tool, drawn at 84 % of the scene's height) (CSS
+* Luna, the apprentice witch (`js/v6-luna.js`): only the owner's character design sheets (2026-10-15), turned into pixel art. The
+  twelve expression portraits (`assets/img/luna-faces.webp`, 64 × 64 each, the heads of the sheets' expression figures,
+  `tools/art/make_luna_faces.py`), all twenty-one full-body figures (`assets/img/luna-poses.webp`, 80 × 120
+  frames, transparent, one shared 96-colour palette, each scaled by its body height so she keeps one size,
+  `tools/art/make_luna_poses.py`) and her things (`assets/img/luna-props.webp`, five 48 × 48 tiles,
+  `tools/art/make_luna_props.py`), drawn at whole-number scales. Her movement is the sheets' own drawings: each moment
+  picks a pose, a bubble walks in with the walking pose, Meet Luna (Settings) steps through all twenty-one and shows her things, the Laboratory cycles idle, pointing, casting, reading, curious and waving with a larger Luna (`assets/img/luna-lab.webp`, 160 × 240 frames cut from the same sheets by the same tool, drawn at 84 % of the scene's height) (CSS
   `steps()` on the frame position); her float and sparkles are CSS. All still with reduced motion. (An earlier code-drawn sprite
   was replaced at the owner's request.)
 * Science Laboratory (`js/v6-lab.js`): Luna's cosy study from the owner's painted room (`assets/img/lab-scene.webp`,

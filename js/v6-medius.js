@@ -33,7 +33,7 @@ const R={
 'log':{p:15,cd:1200e3,line:e=>pick(({water:['Splash! Water logged.','Noted! The Water Valley ripples.'],food:['Meal logged. Thanks for noting it!','Added to your food log.'],sleep:['Rest logged. Even witches need their sleep.','The Dream Realm thanks you for the report.'],stair:['Up the mountain! Go at your own pace.','Step by step, the summit gets closer.'],stress:['Thanks for checking in with yourself.','The Mind Forest is listening. Good on you for pausing.'],pulse:['Heart rate logged. Thank you!','Pulse noted in Heartstone Hall.'],bmi:['Noted at Balance Tower.']})[e.c]||['Noted!'])}};
 // Luna's face for each kind of bubble (js/v6-luna.js); `cast` makes her staff sparkle
 const FACE={level:['cheerful',1],'quests-all':['cheerful',1],'quest-big':['encouraging'],comeback:['greet'],milestone:['encouraging',1],badge:['badge',1],
-  kingdom:['cheerful'],insight:['thoughtful'],first:['curious'],restored:['focused'],cloud:['focused'],'quest-daily':['encouraging'],greet:['greet'],log:['idle'],game:['cheerful'],offline:['apologetic']};
+  kingdom:['cheerful'],insight:['insight'],first:['curious'],restored:['focused'],cloud:['focused'],'quest-daily':['encouraging'],greet:['greet'],log:['idle'],game:['cheerful'],offline:['apologetic']};
 
 let showing=null,pending=null,lastShown=0;
 const quiet=()=>S.v==='welcome'||S.v==='onb'||!!document.getElementById('tut')||!!document.querySelector('.v6g')||!(document.getElementById('mo')||{hidden:true}).hidden; // never over an open dialog

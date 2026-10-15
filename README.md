@@ -51,8 +51,8 @@ js/v6-quests.js            adaptive daily focus quest + weekly quests
 js/v6-streaks.js           current + gentle streaks, week view, new achievements
 js/v6-xp.js                fair XP: daily logging allowance, exploration reward
 js/v6-kingdom.js           five region states (incl. Flourishing) and region detail panel
-js/v6-luna.js              Luna, the apprentice witch, from the owner's character design sheet: 11 expression portraits (luna-faces.webp) and
-                           her 18 poses (luna-poses.webp): each moment picks a pose, bubbles walk in, CSS motion, Meet Luna in Settings,
+js/v6-luna.js              Luna, the apprentice witch, from the owner's character design sheet: 12 expression portraits (luna-faces.webp) and
+                           her 21 poses (luna-poses.webp): each moment picks a pose, bubbles walk in, CSS motion, Meet Luna in Settings (all poses and her things),
                            Talk with Luna (luna-chat, Gemini) with a portrait that follows the chat,
                            Ask Luna (find a feature, open the page's "?" explanations; no AI), her preferences (st.s.lst, st.s.lsz)
 js/v6-medius.js            the companion reacts to events (speech bubbles with cooldowns), spoken by Luna; Medius keeps the tutorial voice
@@ -110,7 +110,7 @@ tools/import-original.mjs  one-time import of the original (re-running it overwr
 tools/build-standalone.mjs bundles everything back into one HTML file
 tools/make-icons.mjs       redraws the app icons
 tools/art/                 Python scripts that made assets/img/bedroom.webp, sleeper-react.webp, medius-reactions.webp, luna-faces.webp,
-                           luna-poses.webp and luna-lab.webp (make_luna_poses.py) and lab-scene.webp
+                           luna-poses.webp, luna-lab.webp (make_luna_poses.py), luna-props.webp (make_luna_props.py) and lab-scene.webp
 tests/                     browser tests (Playwright + node:test): fidelity, every feature, performance budgets, device matrix
 docs/                      architecture audit and plan, event catalog, testing guide (docs/TESTING.md), pixel-art standard (docs/PIXEL_STYLE.md)
 ```

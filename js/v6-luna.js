@@ -2,15 +2,18 @@
    Luna speaks the event bubbles that Medius used to (js/v6-medius.js keeps the rules, cooldowns and limits). Medius
    stays the Wizard King: the tutorial, the Traveller's Registry, the Wizard's Counsel and the Health Orb are his.
    * Art: only from the owner's character design sheet (2026-10-15), turned into pixel art (drawn at whole-number scales):
-       assets/img/luna-faces.webp  the eleven expression portraits, 64 x 64 each (tools/art/make_luna_faces.py), the heads of
-                                   the sheet's expression figures: cheerful, curious, focused, thoughtful, surprised,
-                                   encouraging, apologetic, laughing, shocked, sad, annoyed
-       assets/img/luna-poses.webp  all eighteen full-body figures, 80 x 120 frames, transparent (tools/art/make_luna_poses.py):
-                                   idle (neutral), happy, laugh, excited, curious, surprised, shocked, sad, apologetic, annoyed,
-                                   cast, walk (reading), point, wave, rest, and the design views front, side, back
-       assets/img/luna-lab.webp    the Science Laboratory's larger Luna: idle, point, cast, walk, curious, wave, 120 x 180 frames
-                                   (1.5 times the size, cut from the same sheet by the same tool); drawn at 84 % of the scene's height
-     The front, side and back views appear in Meet Luna (Settings), which steps through all eighteen poses.
+       assets/img/luna-faces.webp  the twelve expression portraits, 64 x 64 each (tools/art/make_luna_faces.py), the heads of
+                                   the sheets' expression figures: cheerful, curious, focused, thoughtful, surprised,
+                                   encouraging, apologetic, laughing, shocked, sad, annoyed, neutral
+       assets/img/luna-poses.webp  all twenty-one full-body figures, 80 x 120 frames, transparent (tools/art/make_luna_poses.py):
+                                   idle (neutral), happy, laugh, excited, curious, think, focused, surprised, shocked, sad,
+                                   apologetic, annoyed, cast, walk (reading), point, wave, rest, and the design views
+                                   front, side, back, three (three-quarter)
+       assets/img/luna-lab.webp    the Science Laboratory's larger Luna: idle, point, cast, walk, curious, wave, 160 x 240 frames
+                                   (twice the size, cut from the same sheets by the same tool); drawn at 84 % of the scene's height
+       assets/img/luna-props.webp  her things, five 48 x 48 tiles (tools/art/make_luna_props.py): staff, satchel, spirit cat
+                                   sitting, spirit cat curled up, potion flasks
+     The four views and her things appear in Meet Luna (Settings), which steps through all twenty-one poses.
      Where: the full figure in the bubble (full size) and in the Science Laboratory; the portrait for the moment's
      expression in the compact bubble, Ask Luna and Talk with Luna; the middle of a portrait (44 x 44) on the header button.
    * Motion is CSS only, from the sheet's own drawings: each moment picks a pose (POSEOF: a greeting waves, good news is
@@ -33,19 +36,22 @@
      (0 full · 1 compact portrait) and how often she talks (st.s.med, unchanged: 2 Chatty · 1 Calm · 0 Off).
      Missing keys mean the defaults, so older saves need no migration. RESET puts all three back. */
 const HWLuna=(()=>{
-const NAMES=['cheerful','curious','focused','thoughtful','surprised','encouraging','apologetic','laughing','shocked','sad','annoyed'];   // luna-faces.webp, in this order
-const FACES='assets/img/luna-faces.webp',POSE_IMG='assets/img/luna-poses.webp',LAB_IMG='assets/img/luna-lab.webp',ROOM='assets/img/luna-room.webp',FS=64,PW=80,PH=120,LW=120,LH=180;
+const NAMES=['cheerful','curious','focused','thoughtful','surprised','encouraging','apologetic','laughing','shocked','sad','annoyed','neutral'];   // luna-faces.webp, in this order
+const FACES='assets/img/luna-faces.webp',POSE_IMG='assets/img/luna-poses.webp',LAB_IMG='assets/img/luna-lab.webp',ROOM='assets/img/luna-room.webp',PROPS_IMG='assets/img/luna-props.webp',FS=64,PW=80,PH=120,LW=160,LH=240;
 const LABP=['idle','point','cast','walk','curious','wave'];   // the Laboratory's larger sheet (luna-lab.webp, 120 x 180 frames), in this order
-const POSES=['idle','happy','laugh','excited','curious','surprised','shocked','sad','apologetic','annoyed','cast','walk','point','wave','rest','front','side','back'];   // every figure on the design sheet, in luna-poses.webp
-const TURN=['front','side','back'];   // the design views: shown only in Meet Luna (Settings)
-const POSENAME={idle:'Neutral',happy:'Happy',laugh:'Laughing',excited:'Excited',curious:'Curious',surprised:'Surprised',shocked:'Shocked',sad:'Sad',apologetic:'Apologetic',annoyed:'Annoyed',cast:'Casting a spell',walk:'Walking and reading',point:'Pointing',wave:'Waving',rest:'Resting',front:'Front view',side:'Side view',back:'Back view'};
-// moment → pose: a greeting waves, good news is happy, a first step is curious, an insight points at the chart, a badge is a spell (cast),
-// a milestone is excited, an apology is apologetic, a sleep log is a rest; laughing, shocked, sad and annoyed are there for her moods
-const POSEOF={idle:'idle',greet:'wave',cheerful:'happy',curious:'curious',focused:'idle',thoughtful:'point',surprised:'surprised',encouraging:'excited',apologetic:'apologetic',laughing:'laugh',shocked:'shocked',sad:'sad',annoyed:'annoyed',badge:'cast',rest:'rest'};
+const POSES=['idle','happy','laugh','excited','curious','think','focused','surprised','shocked','sad','apologetic','annoyed','cast','walk','point','wave','rest','front','side','back','three'];   // every figure on the design sheets, in luna-poses.webp
+const TURN=['front','side','back','three'];   // the design views: shown only in Meet Luna (Settings)
+const POSENAME={idle:'Neutral',happy:'Happy',laugh:'Laughing',excited:'Excited',curious:'Curious',think:'Thinking',focused:'Focused',surprised:'Surprised',shocked:'Shocked',sad:'Sad',apologetic:'Apologetic',annoyed:'Annoyed',cast:'Casting a spell',walk:'Walking and reading',point:'Pointing',wave:'Waving',rest:'Resting',front:'Front view',side:'Side view',back:'Back view',three:'Three-quarter view'};
+// her things, from the props sheet (luna-props.webp: five 48 x 48 tiles, in this order)
+const PROPS=[['staff','Wooden staff'],['satchel','Leather satchel'],['cat','Spirit cat, sitting'],['curled','Spirit cat, curled up'],['flasks','Potion flasks']];
+// moment → pose: a greeting waves, good news is happy, a first step is curious, a thought is thinking, an insight points at the chart,
+// a badge is a spell (cast), a milestone is excited, an apology is apologetic, a sleep log is a rest, focus holds the staff;
+// laughing, shocked, sad and annoyed are there for her moods
+const POSEOF={idle:'idle',greet:'wave',cheerful:'happy',curious:'curious',focused:'focused',thoughtful:'think',surprised:'surprised',encouraging:'excited',apologetic:'apologetic',laughing:'laugh',shocked:'shocked',sad:'sad',annoyed:'annoyed',neutral:'idle',badge:'cast',insight:'point',rest:'rest'};
 const poseOf=(p,expr)=>POSES.includes(p)?p:POSEOF[expr]||'idle';
 const at=p=>(POSES.indexOf(p)/(POSES.length-1)*100).toFixed(4)+'%'; // the frame's background-position (the same at every scale)
-const FACEOF={idle:'focused',greet:'cheerful',badge:'surprised',rest:'focused'}; // moments without their own portrait use the nearest one
-const faceOf=e=>{const n=FACEOF[e]||e;return NAMES.includes(n)?n:'focused'};
+const FACEOF={idle:'neutral',greet:'cheerful',badge:'surprised',insight:'thoughtful',rest:'neutral'}; // moments without their own portrait use the nearest one
+const faceOf=e=>{const n=FACEOF[e]||e;return NAMES.includes(n)?n:'neutral'};
 /** A 64 x 64 portrait (whole-number scale s, default 1) with the expression's face from the reference sheet. */
 function portrait(expr,s){s=s||1;const n=faceOf(expr),i=NAMES.indexOf(n),w=FS*s;
   return '<span class="v6lpf" role="img" aria-label="Luna, '+n+'" style="width:'+w+'px;height:'+w+'px;background-size:'+(w*NAMES.length)+'px '+w+'px;background-position:'+(-i*w)+'px 0" data-face="'+n+'"></span>'}
@@ -76,11 +82,12 @@ const style=()=>['q','g','e'].includes(st.s.lst)?st.s.lst:'g';
 const compact=()=>+st.s.lsz===1;
 
 /* ---------- Meet Luna (Settings): the design sheet's figures one at a time, front, side and back views included ---------- */
-const MEET={i:0};
+const MEET={i:0},PROPS_N=PROPS.length;
 const meetCap=p=>'<b>'+POSENAME[p]+'</b> <span class="mut">'+(POSES.indexOf(p)+1)+' of '+POSES.length+'</span>';
 function meet(){const p=POSES[MEET.i];
   return '<div class="v6lmeet" id="v6lmeet"><div class="v6lmst">'+full({pose:p,scale:2})+'</div><p class="v6lmcap" aria-live="polite">'+meetCap(p)+'</p>'
-    +'<div class="row"><button type="button" class="sm" data-a="lunameet" data-d="-1" aria-label="Previous pose">PREV</button><button type="button" class="sm" data-a="lunameet" data-d="1" aria-label="Next pose">NEXT</button></div></div>'}
+    +'<div class="row"><button type="button" class="sm" data-a="lunameet" data-d="-1" aria-label="Previous pose">PREV</button><button type="button" class="sm" data-a="lunameet" data-d="1" aria-label="Next pose">NEXT</button></div>'
+    +'<p class="mut v6lpt2">Her things</p><ul class="v6lprops">'+PROPS.map((q,i)=>'<li><span class="v6lprop" role="img" aria-label="'+q[1]+'" data-prop="'+q[0]+'" style="background-position:'+(-i*96)+'px 0"></span><small>'+q[1]+'</small></li>').join('')+'</ul></div>'}
 acts.lunameet=d=>{MEET.i=(MEET.i+(+d.d)+POSES.length)%POSES.length;const m=$('#v6lmeet');if(!m)return;const p=POSES[MEET.i];pose(m.querySelector('.v6lfull'),p);m.querySelector('.v6lmcap').innerHTML=meetCap(p)};
 
 /* ---------- Ask Luna ---------- */
@@ -153,7 +160,7 @@ function talkError(e){const k=e&&e.code;
     nokey:'Luna\'s spellbook is not set up on the server yet, so she cannot answer here.'}[k]||'Luna could not find an answer just now. Try again in a moment.'}
 // Talk with Luna happens in her room (assets/img/luna-room.webp, from the owner's scene, tools/art/make_luke.py):
 // her full figure stands in it, and her pose and face follow the chat
-const MOODPOSE={curious:'wave',thoughtful:'walk',cheerful:'happy',apologetic:'apologetic'};   // waits and waves; reads her spellbook while a reply is on its way
+const MOODPOSE={curious:'wave',thoughtful:'think',cheerful:'happy',apologetic:'apologetic'};   // waits and waves; thinks while a reply is on its way
 function room(mood){return '<div class="v6lroom" data-face="'+mood+'"><img src="'+ROOM+'" alt="" width="336" height="189" class="v6lrbg">'+full({pose:MOODPOSE[mood]||'idle'})+'</div>'}
 function helpBox(){return typeof HWCounsel!=='undefined'?HWCounsel.help(true):''}
 function chat(){
@@ -285,6 +292,7 @@ header .v6lb{margin-right:56px;align-self:flex-start}.hbar .v6lb{margin:0 0 0 au
 .v6lrbg{display:block;width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges}
 .v6lroom .v6lfull{position:absolute;left:50%;bottom:4%;transform:translateX(-50%) scale(1);transform-origin:bottom center;animation:none}
 @media(min-width:400px){.v6lroom .v6lfull{transform:translateX(-50%) scale(1.25)}}
+.v6lprops{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px;list-style:none;padding:0;margin:0 0 4px}.v6lprops li{display:flex;flex-direction:column;align-items:center;gap:2px}.v6lprop{display:block;width:96px;height:96px;background:url(${PROPS_IMG}) 0 0/${48*PROPS_N*2}px 96px no-repeat;image-rendering:pixelated;image-rendering:crisp-edges}.v6lprops small{font-size:12px;color:var(--mut)}.v6lpt2{margin:10px 0 4px}
 .v6lmeet{margin:6px 0 10px;text-align:center}.v6lmst{display:flex;justify-content:center;padding:10px 8px 4px;border:2px solid var(--ln);border-radius:10px;background:var(--p2)}.v6lmcap{margin:6px 0}.v6lmeet .row{justify-content:center}
 .v6lcn{display:block;margin:0 0 6px}.v6lchd{display:flex;gap:10px;align-items:flex-start}.v6lchd .v6lpf{flex:0 0 auto;border:2px solid var(--ln);border-radius:10px;background-color:var(--p2)}.v6lchd .v6lcn{flex:1 1 auto;min-width:0}.v6lclog{max-height:240px;overflow-y:auto;border:2px solid var(--ln);background:var(--bg);padding:8px;margin:6px 0}
 .v6lcm{margin:0 0 8px}.v6lcm b{font:8px/1.6 var(--fh);display:block}.v6lcm span{display:block;white-space:pre-wrap;overflow-wrap:anywhere}
@@ -295,4 +303,4 @@ header .v6lb{margin-right:56px;align-self:flex-start}.hbar .v6lb{margin:0 0 0 au
 .hwh.v6lpt{outline:4px solid var(--gold);outline-offset:3px;animation:v6lpt .5s steps(2) infinite alternate}@keyframes v6lpt{to{outline-color:var(--vio)}}
 @media(prefers-reduced-motion:reduce){.hwh.v6lpt{animation:none}}
 `);
-return{mount,portrait,mini,full,pose,meet,open,close,style,compact,find,talk,talkError,get chat(){return CH},expressions:NAMES,poses:POSES,turnaround:TURN,POSEOF,POSE_IMG,FACES}})();
+return{mount,portrait,mini,full,pose,meet,open,close,style,compact,find,talk,talkError,get chat(){return CH},expressions:NAMES,poses:POSES,turnaround:TURN,props:PROPS.map(q=>q[0]),POSEOF,POSE_IMG,FACES,PROPS_IMG}})();
