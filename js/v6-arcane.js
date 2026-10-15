@@ -87,20 +87,20 @@ html .vno{border-radius:50%;border:1px solid rgba(43,26,5,.55);box-shadow:0 0 10
 
 /* Modern title screen portal & responsive positioning */
 html .wl .ct{position:absolute;left:0;right:0;bottom:clamp(16px,6vh,48px);display:flex;justify-content:center;align-items:center;gap:12px;z-index:50;padding:0 16px}
-html .wl .ct button[data-a="go"]{font-size:clamp(11px,2.8vw,14px);padding:14px 26px;border-radius:12px;background:linear-gradient(180deg,#ffe27a 0%,#f2c14e 65%,#c88f1e 100%);color:#2b1805;border:2px solid #2b1805;box-shadow:0 0 0 2px rgba(242,193,78,.6),0 8px 26px rgba(0,0,0,.65),inset 0 2px 0 rgba(255,255,255,.6);text-shadow:0 1px 0 rgba(255,255,255,.5);letter-spacing:.5px;transition:all .2s cubic-bezier(.34,1.56,.64,1)}
+html .wl .ct button[data-a="go"]{font-size:clamp(11px,2.8vw,14px);padding:14px 26px;border-radius:12px;background:linear-gradient(180deg,#ffe27a 0%,#f2c14e 65%,#c88f1e 100%);color:#2b1805;border:2px solid #2b1805;box-shadow:0 0 0 2px rgba(242,193,78,.6),0 8px 26px rgba(0,0,0,.65),inset 0 2px 0 rgba(255,255,255,.6);text-shadow:0 1px 0 rgba(255,255,255,.5);letter-spacing:.5px;transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s,background-color .2s,border-color .2s}
 html .wl .ct button[data-a="go"]:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 0 0 3px rgba(242,193,78,.85),0 12px 30px rgba(242,193,78,.45),inset 0 2px 0 #fff}
 html .wl .ct button[data-a="go"]:active{transform:translateY(2px) scale(0.98)}
-html .wl .ct .v6set{font-size:10px;padding:13px 18px;border-radius:12px;background:rgba(20,32,60,0.85);backdrop-filter:blur(8px);border:2px solid rgba(242,193,78,0.45);color:#f6edcf;box-shadow:0 4px 16px rgba(0,0,0,0.4);transition:all .2s ease}
+html .wl .ct .v6set{font-size:10px;padding:13px 18px;border-radius:12px;background:rgba(20,32,60,0.85);backdrop-filter:blur(8px);border:2px solid rgba(242,193,78,0.45);color:#f6edcf;box-shadow:0 4px 16px rgba(0,0,0,0.4);transition:transform .2s ease,box-shadow .2s ease,background-color .2s ease,border-color .2s ease}
 html .wl .ct .v6set:hover{background:rgba(30,48,85,0.95);border-color:#f2c14e;transform:translateY(-2px)}
 html .v6wxt{border-radius:12px;background:rgba(14,23,48,0.82);backdrop-filter:blur(8px);border:1.5px solid rgba(242,193,78,0.4);box-shadow:0 6px 20px rgba(0,0,0,0.35)}
 html .v6rib{border-radius:12px;background:rgba(14,23,48,0.82);backdrop-filter:blur(8px);border:1.5px solid rgba(242,193,78,0.6);box-shadow:0 6px 20px rgba(0,0,0,0.35),0 0 14px rgba(242,193,78,0.2)}
 
 /* Modern Header HUD & Navigation */
 html header{background:var(--pn);border:1px solid var(--edge);border-radius:var(--r-card);padding:12px 16px;margin-bottom:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 8px 24px var(--shade),0 0 20px var(--glow)}
-html .bar{border-radius:8px;overflow:hidden;border:1px solid var(--edge);box-shadow:inset 0 2px 4px rgba(0,0,0,0.25)}
+html .bar{border-radius:8px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--edge),inset 0 2px 4px rgba(0,0,0,0.25)}   /* an inset edge, not a border: bars stay borderless */
 html .bar i{border-radius:6px;box-shadow:0 0 10px var(--c)}
 html nav{gap:8px}
-html nav button{font-size:9px;padding:12px 10px;transition:all .2s ease}
+html nav button{font-size:9px;padding:12px 10px;transition:transform .2s ease,box-shadow .2s ease,background-color .2s ease,border-color .2s ease}
 html nav button:hover:not(.on){transform:translateX(3px);border-color:var(--gold)}
 @media(max-width:760px){
   html nav{backdrop-filter:blur(12px);background:rgba(20,32,58,0.94);border-top:1.5px solid var(--edge);padding:8px 6px calc(8px + env(safe-area-inset-bottom,0px))}
