@@ -110,7 +110,7 @@ tools/import-original.mjs  one-time import of the original (re-running it overwr
 tools/build-standalone.mjs bundles everything back into one HTML file
 tools/make-icons.mjs       redraws the app icons
 tools/art/                 Python scripts that made assets/img/bedroom.webp, sleeper-react.webp, medius-reactions.webp, luna-faces.webp,
-                           luna-poses.webp, luna-lab.webp (make_luna_poses.py), luna-props.webp (make_luna_props.py) and lab-scene.webp
+                           luna-poses.webp, luna-lab.webp (make_luna_poses.py), luna-props.webp (make_luna_props.py), lab-scene.webp and Luke's luke-*.webp (make_luke.py)
 tests/                     browser tests (Playwright + node:test): fidelity, every feature, performance budgets, device matrix
 docs/                      architecture audit and plan, event catalog, testing guide (docs/TESTING.md), pixel-art standard (docs/PIXEL_STYLE.md)
 ```

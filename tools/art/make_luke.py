@@ -1,144 +1,130 @@
-"""Luke (the apprentice of Add More Food, first called the Wannabe Wizard), his room, and Luna's room, from the owner's images.
+"""Luke (the apprentice of Add More Food) from the owner's character design sheets (2026-10-15), as pixel art.
 
-    python3 tools/art/make_luke.py SHEET.png HIS_ROOM.png LUNA_ROOM.png [OUT_DIR]   # default OUT_DIR: assets/img
+    python3 tools/art/make_luke.py TURNAROUND ACTIONS EXPRESSIONS_1 EXPRESSIONS_2 PROPS ROOM [OUT_DIR]   # default OUT_DIR: assets/img
 
-SHEET.png is the owner's 1536 x 1024 "The Wannabe Wizard" reference sheet; the rooms are their 1672 x 941 scenes.
-Everything on the sheet is used:
-  → luke-poses.webp  all six angles (front, three-quarter, side, back, walking, casting), 120 x 180 frames: each cut
-                     with the box in POSES, the light sheet background flood-filled away from the edges only (so his
-                     cream shirt stays), pieces of neighbours dropped, reduced with a box filter, hard alpha
-  → luke-faces.webp  all seven expressions (happy, confused, nervous, determined, surprised, tired, excited), 64 x 64
-                     each, the square inside each EXPRESSIONS card
-  → luke-props.webp  the six PROPS & ITEMS (books, notes, wand, backpack, scrolls, potion) and the COMPACT PORTRAIT
-                     (round), 40 x 40 each, in that order
-  → luke-room.webp   his room (WIZARD'S ROOM), 336 x 189
-  → luna-room.webp   Luna's room, 336 x 189
-Each set shares one palette, snapped without dithering, so the app draws crisp pixel art (docs/PIXEL_STYLE.md, rule 5).
-Budget: tests/24-performance.test.mjs (the owner raised it to 880 KB).
+Input: five 1024 x 572 "LUKE" sheets (made with Gemini from briefs written in the session) and his painted room:
+  TURNAROUND    front, three-quarter (with his wand), side, back
+  ACTIONS       walking, casting a spell, reading his spellbook, inspecting a potion, waving hello, resting
+  EXPRESSIONS_1 happy, confused, nervous, determined, surprised, tired
+  EXPRESSIONS_2 excited, curious, thinking, laughing, sad, annoyed
+  PROPS         portrait, wand, backpack, spellbooks, magical notes, scrolls, potion (and the colour palette, which is
+                information and not cut)
+  ROOM          his room, the painted night study
+Everything on the sheets is used, cut with the same code as Luna's (tools/art/make_luna_poses.py: the lavender background is
+flood-filled away from the edges only, so his cream hoodie stays; enclosed background is cleared; captions and the sheet's
+ground line are trimmed; pieces of neighbours are dropped; each figure is scaled by its body height; hard alpha; one shared
+palette without dithering), so the app draws crisp pixel art at whole-number scales (docs/PIXEL_STYLE.md, rule 5):
+  → luke-poses.webp  all 22 figures, 120 x 180 frames, in POSES order (js/v6-addfood.js reads the same order)
+  → luke-faces.webp  twelve expressions, 64 x 64, the heads of the expression figures, in FACES order
+  → luke-props.webp  seven 40 x 40 tiles, in PROPS order (the portrait is the round one)
+  → luke-room.webp   his room, 640 x 358, 128 colours: a painting, so the app draws it smoothed (image-rendering: auto)
+luna-room.webp (Luna's room) is not made here any more; it is unchanged. Budget: tests/24-performance.test.mjs.
 """
 import os
 import sys
-from collections import deque
-from PIL import Image, ImageDraw
+from PIL import Image
 
-POSES = [('front', (22, 150, 162, 500)), ('three', (171, 160, 300, 500)), ('side', (306, 160, 432, 500)),
-         ('back', (435, 160, 560, 500)), ('walk', (578, 175, 712, 500)), ('cast', (720, 160, 893, 505))]
-FACES = [('happy', 25), ('confused', 177), ('nervous', 327), ('determined', 479), ('surprised', 631), ('tired', 784), ('excited', 935)]
-FACE_TOP, FACE_SIZE = 614, 128
-H, FW, PCOL, FS, FCOL = 180, 120, 56, 64, 40
-# PROPS & ITEMS: (name, box on the sheet); then the COMPACT PORTRAIT (a circle) last
-PROPS = [('books', (872, 830, 944, 896)), ('notes', (966, 832, 1034, 896)), ('wand', (1040, 828, 1112, 896)),
-         ('backpack', (872, 904, 944, 968)), ('scrolls', (966, 908, 1034, 968)), ('potion', (1050, 904, 1108, 968))]
-PORTRAIT, PS, PCOLS = (1156, 818, 1310, 964), 40, 40
-ROOM, RCOL = (336, 189), 96
+sys.path.insert(0, os.path.dirname(__file__))
+import make_luna_poses as M   # the same cutting code; the sheets' background is within its tolerance
 
-def light(p):
-    r, g, b = p[:3]
-    return min(r, g, b) > 196 and max(r, g, b) - min(r, g, b) < 42
+# name: the sheet's figures left to right, the x between neighbours (the turnaround's are the empty columns between its
+# figures; the expression sheets' are the quietest columns near the gaps: their hats overlap a little)
+# the last number is the bottom edge: the turnaround has no captions; on the expression sheets the feet end above the
+# sheet's ground line (y 542) and the captions are under it
+ROWS = [
+    ('turn', ['front', 'three', 'side', 'back'], [258, 544, 770], 572),
+    ('expr1', ['happy', 'confused', 'nervous', 'determined', 'surprised', 'tired'], [215, 376, 523, 679, 843], 541),
+    ('expr2', ['excited', 'curious', 'think', 'laugh', 'sad', 'annoyed'], [224, 383, 539, 711, 858], 541),
+]
+# the actions sheet is two rows, so its boxes are explicit: (left, top, right, bottom)
+ACTIONS = {'walk': (0, 48, 240, 546), 'cast': (240, 48, 535, 546), 'read': (535, 48, 790, 278), 'inspect': (790, 48, 1024, 279),
+           'wave': (535, 300, 750, 546), 'rest': (750, 300, 1024, 549)}
+POSES = ['front', 'three', 'side', 'back', 'walk', 'cast', 'read', 'inspect', 'wave', 'rest', 'happy', 'confused', 'nervous',
+         'determined', 'surprised', 'tired', 'excited', 'curious', 'think', 'laugh', 'sad', 'annoyed']
+FACES = [('happy', 'happy'), ('confused', 'confused'), ('nervous', 'nervous'), ('determined', 'determined'), ('surprised', 'surprised'),
+         ('tired', 'tired'), ('excited', 'excited'), ('curious', 'curious'), ('thinking', 'think'), ('laughing', 'laugh'), ('sad', 'sad'),
+         ('annoyed', 'annoyed')]
+# the props sheet: (name, box); the portrait (a round picture) is last
+PROPS = [('books', (585, 80, 760, 248)), ('notes', (815, 78, 1000, 248)), ('wand', (225, 120, 300, 470)),
+         ('backpack', (22, 285, 218, 462)), ('scrolls', (578, 288, 780, 422)), ('potion', (858, 284, 962, 404)),
+         ('portrait', (35, 58, 215, 240))]
+H, FW, BODY, PCOLORS = 180, 120, 156, 64
+FS, FCOLORS, PS, PROPCOLORS = 64, 64, 40, 56
+ROOM_SIZE, ROOM_COLORS = (640, 358), 128
 
-def cut(im, box, only_big=False):
-    c = im.crop(box).convert('RGBA')
-    w, h = c.size
-    px = c.load()
-    seen, q = set(), deque([(x, y) for x in range(w) for y in (0, h - 1)] + [(x, y) for y in range(h) for x in (0, w - 1)])
-    while q:
-        x, y = q.popleft()
-        if (x, y) in seen or not (0 <= x < w and 0 <= y < h):
-            continue
-        seen.add((x, y))
-        if not light(px[x, y]):
-            continue
-        px[x, y] = (0, 0, 0, 0)
-        q.extend([(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)])
-    # enclosed holes of sheet background (between an arm and the body): only exact-ish sheet colour, at least 30 px,
-    # so his cream shirt (yellower: blue well below red) stays
-    sheet = lambda p: light(p) and p[2] >= p[0] - 14
-    hole, done = [], set()
-    for y in range(h):
-        for x in range(w):
-            if px[x, y][3] and (x, y) not in done and sheet(px[x, y]):
-                pts, qq = [], deque([(x, y)])
-                done.add((x, y))
-                while qq:
-                    a, b = qq.popleft()
-                    pts.append((a, b))
-                    for n in ((a + 1, b), (a - 1, b), (a, b + 1), (a, b - 1)):
-                        if 0 <= n[0] < w and 0 <= n[1] < h and n not in done and px[n][3] and sheet(px[n]):
-                            done.add(n)
-                            qq.append(n)
-                if len(pts) >= 30:
-                    hole.extend(pts)
-    for p in hole:
-        px[p] = (0, 0, 0, 0)
-    lab, comps = {}, []
-    for y in range(h):
-        for x in range(w):
-            if px[x, y][3] and (x, y) not in lab:
-                k, pts, qq = len(comps), [], deque([(x, y)])
-                lab[(x, y)] = k
-                while qq:
-                    a, b = qq.popleft()
-                    pts.append((a, b))
-                    for dx in (-1, 0, 1):
-                        for dy in (-1, 0, 1):
-                            n = (a + dx, b + dy)
-                            if 0 <= n[0] < w and 0 <= n[1] < h and n not in lab and px[n][3]:
-                                lab[n] = k
-                                qq.append(n)
-                comps.append(pts)
-    big = max(range(len(comps)), key=lambda i: len(comps[i]))
-    for i, pts in enumerate(comps):
-        if i != big and (only_big or any(x <= 1 or x >= w - 2 for x, _ in pts) or len(pts) < 12):
-            for p in pts:
-                px[p] = (0, 0, 0, 0)
-    return c.crop(c.getbbox())
+def clean(im):
+    """Paints out the sheet's ground line (a thin row of lavender-grey across the whole width)."""
+    px, w = im.load(), im.size[0]
+    for y in range(40, im.size[1]):
+        row = [sum(abs(a - b) for a, b in zip(px[x, y], M.BG)) for x in range(5, w - 5)]
+        if sum(1 for d in row if 25 < d < 110) > 0.6 * w:
+            for x in range(w):
+                if sum(abs(a - b) for a, b in zip(px[x, y], M.BG)) < 110:
+                    px[x, y] = M.BG
+    return im
 
-def quant(img, n):
-    a = img.split()[3].point(lambda v: 255 if v > 140 else 0) if img.mode == 'RGBA' else None
-    out = img.convert('RGB').quantize(colors=n, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert('RGBA' if a else 'RGB')
-    if a:
-        out.putalpha(a)
-    return out
+def head(im, box):
+    """The head square of the figure in `box`: (left, top, size)."""
+    l, t, r, b = box
+    px = im.load()
+    ink = lambda p: not M.near(p, 60)
+    cols = lambda y: [x for x in range(l, r) if ink(px[x, y])]
+    top = next(y for y in range(t + 2, b) if len(cols(y)) >= 8)
+    foot = max(y for y in range(t, min(b, 520)) if cols(y))
+    h = foot - top
+    xs = [x for y in range(top + int(h * 0.22), top + int(h * 0.34)) for x in cols(y)]   # hair and face
+    size = int(h * 0.34)
+    c = round(sum(xs) / len(xs))
+    return c - size // 2, top + int(h * 0.12), size
 
-def save(img, out, name):
-    dst = os.path.join(out, name)
-    img.save(dst, lossless=True, quality=100, method=6)
-    print(os.path.normpath(dst), img.size, os.path.getsize(dst), 'bytes')
+def quantize(img, colors):
+    return img.quantize(colors=colors, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
 
-def main(sheet, his, hers, out):
-    im = Image.open(sheet).convert('RGB')
-    if im.size != (1536, 1024):
-        sys.exit('expected the 1536 x 1024 Wannabe Wizard sheet, got %s x %s' % im.size)
-    strip = Image.new('RGBA', (FW * len(POSES), H), (0, 0, 0, 0))
-    for i, (_, box) in enumerate(POSES):
-        f = cut(im, box)
-        s = f.resize((max(1, round(f.size[0] * H / f.size[1])), H), Image.BOX)
-        if s.size[0] > FW:
-            s = f.resize((FW, max(1, round(f.size[1] * FW / f.size[0]))), Image.BOX)
-        strip.paste(s, (i * FW + (FW - s.size[0]) // 2, H - s.size[1]), s)
-    save(quant(strip, PCOL), out, 'luke-poses.webp')
-    faces = Image.new('RGB', (FS * len(FACES), FS))
-    for i, (_, x) in enumerate(FACES):
-        c = x + 68                                       # the card's centre
-        faces.paste(im.crop((c - FACE_SIZE // 2, FACE_TOP, c + FACE_SIZE // 2, FACE_TOP + FACE_SIZE)).resize((FS, FS), Image.BOX), (i * FS, 0))
-    save(quant(faces, FCOL), out, 'luke-faces.webp')
-    tiles = Image.new('RGBA', (PS * (len(PROPS) + 1), PS), (0, 0, 0, 0))
-    for i, (_, box) in enumerate(PROPS):
-        f = cut(im, box, True)       # only the object itself: its caption below is dropped
-        k = min((PS - 2) / f.size[0], (PS - 2) / f.size[1])
-        t = f.resize((max(1, round(f.size[0] * k)), max(1, round(f.size[1] * k))), Image.BOX)
-        tiles.paste(t, (i * PS + (PS - t.size[0]) // 2, PS - 1 - t.size[1]), t)
-    pt = im.crop(PORTRAIT).convert('RGBA').resize((PS, PS), Image.BOX)
-    mask = Image.new('L', (PS * 4, PS * 4), 0)
-    ImageDraw.Draw(mask).ellipse((0, 0, PS * 4 - 1, PS * 4 - 1), fill=255)
-    pt.putalpha(mask.resize((PS, PS), Image.BOX).point(lambda v: 255 if v > 128 else 0))
-    tiles.paste(pt, (len(PROPS) * PS, 0), pt)
-    save(quant(tiles, PCOLS), out, 'luke-props.webp')
-    for src, name in ((his, 'luke-room.webp'), (hers, 'luna-room.webp')):
-        r = Image.open(src).convert('RGB').resize(ROOM, Image.BOX)
-        save(quant(r, RCOL), out, name)
+def main(turn, actions, expr1, expr2, props, room, out):
+    sheets = {'turn': clean(Image.open(turn).convert('RGB')), 'expr1': clean(Image.open(expr1).convert('RGB')),
+              'expr2': clean(Image.open(expr2).convert('RGB'))}
+    acts = clean(Image.open(actions).convert('RGB'))
+    cuts, heads = {}, {}
+    for key, names, splits, bottom in ROWS:
+        xs = [0] + splits + [1024]
+        for i, n in enumerate(names):
+            box = (xs[i], M.TITLE, xs[i + 1], bottom)
+            cuts[n] = M.cut(sheets[key], box, 3)
+            if key != 'turn':
+                heads[n] = (sheets[key], box)
+    for n, box in ACTIONS.items():
+        cuts[n] = M.cut(acts, box, 3)
+    M.build(cuts, out, 'luke-poses.webp', POSES, H, FW, BODY, PCOLORS)
+    strip = Image.new('RGB', (FS * len(FACES), FS))
+    for i, (_, pose) in enumerate(FACES):
+        im, box = heads[pose]
+        x, y, s = head(im, box)
+        strip.paste(im.crop((x, y, x + s, y + s)).resize((FS, FS), Image.BOX), (i * FS, 0))
+    dst = os.path.join(out, 'luke-faces.webp')
+    quantize(strip, FCOLORS).convert('RGB').save(dst, lossless=True, quality=100, method=6)
+    print(os.path.normpath(dst), strip.size, os.path.getsize(dst), 'bytes')
+    sheet = clean(Image.open(props).convert('RGB'))
+    tiles = Image.new('RGBA', (PS * len(PROPS), PS), (0, 0, 0, 0))
+    for i, (name, box) in enumerate(PROPS):
+        f = M.cut(sheet, box, 3)
+        k = min(PS / f.size[0], PS / f.size[1])
+        s = f.resize((max(1, round(f.size[0] * k)), max(1, round(f.size[1] * k))), Image.BOX)
+        tiles.paste(s, (i * PS + (PS - s.size[0]) // 2, (PS - s.size[1]) // 2), s)
+    a = tiles.split()[3].point(lambda v: 255 if v > 140 else 0)
+    rgba = quantize(tiles.convert('RGB'), PROPCOLORS).convert('RGBA')
+    rgba.putalpha(a)
+    dst = os.path.join(out, 'luke-props.webp')
+    rgba.save(dst, lossless=True, quality=100, method=6)
+    print(os.path.normpath(dst), rgba.size, os.path.getsize(dst), 'bytes')
+    r = Image.open(room).convert('RGB')
+    if r.size != (1024, 572):
+        sys.exit('expected the 1024 x 572 room painting, got %s x %s' % r.size)
+    r = quantize(r.resize(ROOM_SIZE, Image.LANCZOS), ROOM_COLORS).convert('RGB')
+    dst = os.path.join(out, 'luke-room.webp')
+    r.save(dst, lossless=True, quality=100, method=6)
+    print(os.path.normpath(dst), r.size, os.path.getsize(dst), 'bytes')
 
 if __name__ == '__main__':
-    if len(sys.argv) not in (4, 5):
+    if len(sys.argv) not in (7, 8):
         sys.exit(__doc__)
-    main(*sys.argv[1:4], sys.argv[4] if len(sys.argv) == 5 else os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'img'))
+    main(*sys.argv[1:7], sys.argv[7] if len(sys.argv) == 8 else os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'img'))
