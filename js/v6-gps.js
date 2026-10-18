@@ -50,8 +50,9 @@ function card(){const K=counts(),n=K.mapped,un=K.unmapped,found=K.found;
   let h='<h2>📍 GPS CHECK-IN</h2>';
   if(U.k==='idle'||U.k==='done'){
     if(U.k==='done')h+='<p role="status">✅ Checked in at <b>'+esc(U.name)+'</b>. Your stair log, quests and Stair Mountain are updated.</p>';
-    h+='<p>Standing at a stairway at '+CAMPUS+'? Find it by GPS and check in with one tap. '+n+' of '+K.total+' stairways are on the map'+(un?'; the other '+un+' can be logged by hand below':'')+'.</p>'
-      +'<p class="mut">Stairways discovered by GPS check-in: <b>'+found+' of '+n+'</b> on the map ('+K.total+' stairways in total).</p>'+btn('gpsfind','FIND STAIRS NEAR ME')
+    h+=btn('gpsfind','FIND STAIRS NEAR ME')   // the main action first, so it is on screen on a phone before the explanation
+      +'<p>Standing at a stairway at '+CAMPUS+'? Find it by GPS and check in with one tap. '+n+' of '+K.total+' stairways are on the map'+(un?'; the other '+un+' can be logged by hand below':'')+'.</p>'
+      +'<p class="mut">Stairways discovered by GPS check-in: <b>'+found+' of '+n+'</b> on the map ('+K.total+' stairways in total).</p>'
       +(gp().ok?'<p class="mut" style="margin-top:8px">Location is read only when you tap. '+btn('gpsoff','TURN OFF LOCATION','sm g')+'</p>':'');
     return h}
   if(U.k==='explain')return h+'<h3>WHY LOCATION?</h3><ul><li>To find the stairway you are standing at, so you can check in without searching the list.</li><li>Your position is read <b>once</b>, only when you tap. There is no tracking in the background.</li><li>Your position is never saved, shared or shown to anyone. Only the stairway you check in at is logged.</li><li>Your browser will ask for permission. You can say no and still log by hand.</li></ul><div class="row">'+btn('gpsok','ALLOW LOCATION')+btn('gpsno','NOT NOW','g')+'</div>';

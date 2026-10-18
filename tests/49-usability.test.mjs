@@ -202,7 +202,7 @@ test('trackers: the first input is on screen at 390 × 844, on a first visit and
   for (const seen of [false, true]) {
     const seed = JSON.parse(JSON.stringify(RETURNING)); if (seen) seed.ex.r = { food: '2026-10-01', water: '2026-10-01', sleep: '2026-10-01', stair: '2026-10-01', body: '2026-10-01' };
     const { page, ctx, errors } = await openApp({ ...M, seed });
-    for (const [v, sel] of [['food', '#fpick .chip'], ['water', '[data-a="wa"]'], ['sleep', '#slb'], ['stair', '#stman .chip'], ['body', '#bh']]) {
+    for (const [v, sel] of [['food', '#fpick .chip'], ['water', '[data-a="wa"]'], ['sleep', '#slb'], ['stair', '[data-a="gpsfind"]'] /* the Stairs page opens on the GPS check-in half; the first control is FIND STAIRS NEAR ME */, ['body', '#bh']]) {
       await go(page, v);
       const r = await page.evaluate(s => { const e = document.querySelector(s).getBoundingClientRect(); return { bottom: e.bottom, nav: document.querySelector('#nav').getBoundingClientRect().top }; }, sel);
       assert.ok(r.bottom <= r.nav, `${v} (${seen ? 'later' : 'first'} visit): input bottom ${Math.round(r.bottom)} above the bar at ${Math.round(r.nav)}`);
