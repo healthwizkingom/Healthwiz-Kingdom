@@ -22,7 +22,8 @@ test('every evidence id named in the code is a real Vault calculation (so a link
     for (const m of t.matchAll(/\bev:\s*(?:'([a-z0-9]+)'|\[([^\]]*)\])/g)) for (const id of m[1] ? [m[1]] : m[2].match(/'([a-z0-9]+)'/g).map(x => x.slice(1, -1))) used.add(id);
   }
   for (const m of fs.readFileSync(path.join(root, 'js/v6-help.js'), 'utf8').matchAll(/,'([a-z]+)'\);\n/g)) if (have.includes(m[1])) used.add(m[1]);
-  for (const id of ['bmi', 'energy', 'macro', 'water', 'peak', 'run', 'stairkcal', 'project', 'score', 'fv', 'gravity', 'sleep']) assert.ok(used.has(id), id + ' is linked from its "?"');
+  if (/,'ppg'\)\}/.test(fs.readFileSync(path.join(root, 'js/v6-ppg.js'), 'utf8'))) used.add('ppg');
+  for (const id of ['bmi', 'energy', 'macro', 'water', 'peak', 'run', 'stairkcal', 'project', 'score', 'fv', 'gravity', 'sleep', 'nutrients', 'ppg', 'recovery']) assert.ok(used.has(id), id + ' is linked from its "?"');
   for (const id of used) assert.ok(have.includes(id), 'not a Vault calculation: ' + id);
   assert.deepEqual(errors, []); await ctx.close();
 });
@@ -74,7 +75,8 @@ test('Stairs workout: the "?" offers the VO₂ (project method) and the energy e
 test('a calculation with no Vault entry says so instead of linking elsewhere', async () => {
   const { page, ctx, errors } = await openApp({ seed: ADULT });
   await go(page, 'food');
-  await openHelp(page, 'nutest');
+  await page.evaluate(() => document.querySelector('#main').insertAdjacentHTML('beforeend', HWHelp.btn('zz', 'A test note', '<p>x</p>', { ev: 'none' })));
+  await openHelp(page, 'zz');
   assert.match(await pop(page), /Evidence entry not yet available/);
   assert.equal(await page.locator('#hwh-pop .hwev a').count(), 0);
   assert.deepEqual(errors, []); await ctx.close();
@@ -103,5 +105,20 @@ test('Laboratory page: plain-language intro, what / why / next for every tab, no
     assert.match(await page.innerText('.labinfo'), /What it is[\s\S]*Why it matters[\s\S]*Do this first/, k);
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'no horizontal overflow on ' + k);
   }
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('sources added for the calculations that had none: real https records, linked from their "?", and the sleep ranges credit the right body', async () => {
+  const { page, ctx, errors } = await openApp({ seed: ADULT });
+  const r = await page.evaluate(() => ({ ids: HWSources.ids(), nsf: HWSources.get('nsf'), aasm: HWSources.get('aasm'), calc: Object.fromEntries(HWVault.CALCS.map(c => [c.id, c.src])) }));
+  for (const id of ['allen', 'cole', 'hall', 'faopal', 'nsf', 'myfcd', 'dgatab']) assert.ok(r.ids.includes(id), id);
+  assert.deepEqual(r.calc.ppg, ['allen']); assert.deepEqual(r.calc.recovery, ['cole']); assert.deepEqual(r.calc.nutrients, ['fao77', 'myfcd']);
+  assert.ok(r.calc.sleep.includes('nsf') && r.calc.energy.includes('faopal'));
+  assert.match(r.aasm.s, /7 or more hours/); assert.match(r.nsf.s, /7–9 hours/);
+  await go(page, 'sleep');
+  await openHelp(page, 'sleeprange');
+  assert.match(await pop(page), /National Sleep Foundation/);
+  assert.doesNotMatch(await pop(page), /CDC/);
+  assert.equal(await page.getAttribute('#hwh-pop .hwev a', 'href'), '#vault=sleep');
   assert.deepEqual(errors, []); await ctx.close();
 });

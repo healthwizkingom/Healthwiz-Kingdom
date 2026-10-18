@@ -71,7 +71,7 @@ if(typeof HWEvents!=='undefined')HWEvents.on('page:viewed',()=>close(false));
 
 /* ---------- the texts (moved here from inline notes; wording unchanged unless a short visible line replaced it) ---------- */
 reg('nutintro','Nutrition & calories','<p>Log your meals to see calories and nutrients, today and over the week.</p>');
-reg('nutest','Estimated nutrient values (EST)','<p><b>EST</b> means estimated. Macro values for menu foods are estimated from typical dish composition. Custom foods use the numbers you entered.</p>','none');
+reg('nutest','Estimated nutrient values (EST)','<p><b>EST</b> means estimated. Macro values for menu foods are estimated from typical dish composition. Custom foods use the numbers you entered.</p><p>Macro values are the menu list\'s calories split by an estimated share for the dish type, then divided by 4, 4 and 9 kcal per gram.</p>','nutrients');
 reg('sleepgame','Sleep visuals are a game','<p>Game visuals made from the sleep you logged. They are not a medical measurement.</p>');
 reg('sleepscore','HealthWiz Sleep Score','<p>HealthWiz Sleep Score is a game score from your logged sleep. It is <b>NOT</b> a medical measurement.</p>');
 reg('alarmwhy','Why the alarm can miss','<p>A web page cannot ring reliably when the browser is closed, the tab is in the background or the phone is locked, especially on iPhone.</p><p>For a sure alarm, also set your phone\'s Clock app.</p>');
@@ -86,7 +86,7 @@ reg('scorenote','About the Health Score','<p>A habit score from what you logged,
 reg('scorewt','About these weights','<p>These weights are the team\'s reasoned judgement from the sources above, not a validated clinical formula.</p><p class="mut"><small>For developers: edit WT in js/v6-score.js to change them.</small></p>'
   +(typeof HWSources!=='undefined'?'<b class="hwx-h">SOURCES CHECKED</b><ul class="hwx-src">'+['f21','whofv','whodiet','iomdri','mifflin','whopa','acsm','aasm','aasmkids','cdcbmi','cohen'].map(HWSources.cite).join('')+'</ul>'
     +'<b class="hwx-h">NOT YET CHECKED</b><ul class="hwx-l"><li>The AHA resting heart-rate range (60–100 BPM): the AHA page could not be opened for checking.</li></ul>':''),'score');
-reg('fvinfo','Fruit & vegetables','<p>1 portion = 80 g (dried fruit 30 g). Counted automatically from the fruit and vegetable dishes in your nutrition log.</p>','fv');
+reg('fvinfo','Fruit & vegetables','<p>1 portion = 80 g (dried fruit 30 g). Counted automatically from the fruit and vegetable dishes in your nutrition log.</p>'+(typeof HWSources!=='undefined'?'<b class="hwx-h">SOURCES</b><ul class="hwx-src">'+['whofv','whodiet'].map(HWSources.cite).join('')+'</ul>':''),'fv');
 
 HWUI.css('help',`
 .hwh{position:relative;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;box-sizing:border-box;min-width:26px;width:26px;min-height:26px;height:26px;padding:0;margin:0 0 0 6px;font:bold 11px/1 var(--fh);color:#fff;background:#1f6fb0;border:2px solid var(--ln);box-shadow:inset -2px -2px 0 rgba(0,0,0,.2),2px 2px 0 var(--ln);border-radius:0;-webkit-font-smoothing:none;text-transform:none;letter-spacing:0}

@@ -43,7 +43,7 @@ step, verified clickable sources, HealthWiz's own choices kept apart from the so
 Every "?" of a calculation that has an Evidence Vault entry ends with **View formula and evidence in the Evidence Vault**, a
 link to `#vault=<calculation id>` (the `id` of an entry in `HWVault.CALCS`, `js/v6-vault.js`). Set the id with `ev:'<id>'` in the
 `HWExplain.btn` spec, `{ev:'<id>'}` as the 4th argument of `HWHelp.btn`, or the 4th argument of `HWHelp.reg`; a list of ids gives
-one link each (the Stairs "?" holds two calculations). `ev:'none'` shows "Evidence entry not yet available" instead of a link.
+one link each (the Stairs "?" holds two calculations). `ev:'none'` (no longer used by any "?") shows "Evidence entry not yet available" instead of a link.
 `tests/68-evidence-links.test.mjs` fails if an id is not a Vault calculation.
 
 | Calculation "?" | Vault entry | | Calculation "?" | Vault entry |
@@ -54,11 +54,15 @@ one link each (the Stairs "?" holds two calculations). `ev:'none'` shows "Eviden
 | `xwater` | `water` | | `xpeak` | `peak` |
 | `xrun`, `xrun-<id>` | `run` | | `scorewt` | `score` |
 | `fvinfo` | `fv` | | `gvhelp` | `gravity` |
-| `sleeprange` | `sleep` | | `nutest`, `ppg` | none yet (said on screen) |
+| `sleeprange` | `sleep` | | `nutest` | `nutrients` |
+| `ppg` | `ppg` | | `strec` (1-minute drop) | `recovery` |
 
 Vault entries with **no "?" to link from**: `train` (Training Hall shows kcal with no "?"), `foodguess` (explained on its own
 card), `stairways`, `lab`. Calculations whose "?" is a game or simulation note (`sleepscore`, `bmigame`, `alhelp`, `whatif`, `statcmp`,
-`aqsrc`, `plan-why`, `pulseshm`, heart-rate recovery) have no Vault entry and no link.
+`aqsrc`, `plan-why`, `pulseshm`) have no Vault entry and no link.
+**Sources added 2026-10-18** (each opened and read first, see its `c` in `js/v6-sources.js`): `allen` (camera pulse principle), `cole` (1-minute heart-rate recovery), `hall` and `faopal` (energy goal), `nsf` (adult sleep ranges), `myfcd` (Malaysian food database, comparison only), `dgatab` (AMDR and fiber figures).
+**Corrected:** the sleep ranges 7–9 h (18–64) and 7–8 h (65+) were credited to AASM, whose adult statement says "7 or more hours" with no upper limit or older-adult range; they are the National Sleep Foundation's, now cited as such. The sleep "?" no longer says "AASM/CDC" (CDC was never checked).
+**Flagged, formulas not changed:** the activity factors 1.2–1.9 have no verified source and the lowest two sit below FAO/WHO/UNU's lowest adult PAL (1.40); the calorie surplus/deficit rules and 35 mL/kg water are HealthWiz's own (no source found); the protein g/kg values and the ACSM "≈ 1,000 kcal a week" and AHA 60–100 BPM figures are still unverified (the pages could not be opened as text).
 **Known duplication, not changed:** each `HWVault.CALCS` entry (`f`, `src`, `app`) is still written by hand next to the
 formula in its "?" panel; the two can drift. Differences seen: `fv` cites `whofv` + `whodiet` in the Vault and none in its "?"; `energy` cites
 `mifflin` in the Vault, `mifflin` + `cdcbmi` here.

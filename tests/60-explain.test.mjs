@@ -58,7 +58,7 @@ test('daily energy, macronutrient and water "?": Mifflin-St Jeor step by step, r
   // BMR = 10 × 70 + 6.25 × 172 − 5 × 30 + 5 = 700 + 1075 − 150 + 5 = 1630 kcal/day; TDEE = 1630 × 1.55 = 2526.5 → 2530 kcal/day
   assert.match(e, /BMR: 10 × 70 \+ 6\.25 × 172 − 5 × 30 \+ 5 = 1,630 kcal a day[\s\S]*TDEE: 1,630 × 1\.55 \(Moderately active\) = 2,526\.5[\s\S]*maintain = TDEE[\s\S]*Result: 2530 kcal a day/);
   assert.match(e, /A new predictive equation for resting energy expenditure/);
-  assert.match(e, /activity factors[\s\S]*not yet found a verified source/);
+  assert.match(e, /activity factors[\s\S]*no verified source[\s\S]*FAO\/WHO\/UNU/);
   assert.match(await page.textContent('#eout'), /2530/);
   await page.keyboard.press('Escape');
   const m = await open(page, 'xmacro');
