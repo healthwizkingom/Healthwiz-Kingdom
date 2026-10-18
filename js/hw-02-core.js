@@ -7,7 +7,7 @@ let RNc=null; // v6 (§92): the last-n-days lists are built once per synchronous
 const rng=n=>{if(!RNc){RNc=new Map();queueMicrotask(()=>{RNc=null})}let a=RNc.get(n);if(!a)RNc.set(n,a=Array.from({length:n},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(n-1-i));return ymd(d)}));return a.slice()};
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let mem=null;
-const DEF=()=>({sv:HWSchema.V,q6:{f:{},w:{}},ex:{p:{}},xl:{},md:{last:{},day:{},seen:{},ms:{},log:[]},mg:{xp:{},n:{},h:[],c:{}},b:{},e:[],s:{kcal:2200,water:2000,sound:1,set:0},p:{w:60,h:165,age:16,sex:'m',act:1.375,days:3,goal:'m'},xp:0,claimed:{}});
+const DEF=()=>({sv:HWSchema.V,q6:{f:{},w:{}},ex:{p:{}},xl:{},md:{last:{},day:{},seen:{},ms:{},log:[]},mg:{xp:{},n:{},h:[],c:{}},b:{},e:[],s:{kcal:2200,water:2000,sound:1,set:0},p:{w:60,h:165,age:16,sex:'m',act:1.55,days:3,goal:'m'},xp:0,claimed:{}});
 let st=HWSchema.load(DEF); // v6: versioned load with migrations (js/v6-schema.js)
 // v6 (§92): one action often saves several times (entry, XP, badge, quest…). SV still counts every save(), but storage
 // is written once, at the end of that synchronous run, before the browser handles anything else.

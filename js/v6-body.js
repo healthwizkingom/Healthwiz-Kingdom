@@ -65,8 +65,8 @@ function energyWhy(r,g){const N=HWExplain.num,m=r.sx==='m',an=(ACTN().find(x=>x[
     formula:'BMR  = 10 × W + 6.25 × H − 5 × A + 5 (male) or − 161 (female)\nTDEE = BMR × activity factor\ngoal = TDEE, or a surplus or deficit chosen from BMI, rounded to 10',
     vars:[['W','weight','kg'],['H','height','cm'],['A','age','years'],['BMR','energy used at rest','kcal/day'],['TDEE','total daily energy expenditure','kcal/day']],
     steps,result:g.kcal+' kcal a day',src:['mifflin','cdcbmi','faopal','hall'],
-    app:'The activity factors (1.2 sedentary to 1.9 extremely active) are a common convention with no verified source. For comparison, the FAO/WHO/UNU report gives adult lifestyle PAL values of 1.40 to 2.40, so the two lowest factors here are below its range (not changed; flagged for review). The surplus (+300 kcal, at most +15%) and deficit (−400 kcal, at most −20%, never below BMR or 1,500 / 1,200 kcal) are HealthWiz\'s own cautious rules, not values from a study.',
-    limits:['Mifflin-St Jeor predicts resting energy for groups of adults; one person can differ by a few hundred kcal.','It was derived in adults aged 19–78, so under 19 it is a rough guide only.','The activity factor is a broad guess about your whole day.']})}
+    app:'The activity factor is a physical activity level (PAL) from the FAO/WHO/UNU report: sedentary or light 1.40–1.69, active or moderately active 1.70–1.99, vigorous 2.00–2.40. HealthWiz uses the middle of each range (1.55, 1.85, 2.2); the report gives ranges, not one value, and the middle is HealthWiz\'s choice. The surplus (+300 kcal, at most +15%) and deficit (−400 kcal, at most −20%, never below BMR or 1,500 / 1,200 kcal) are HealthWiz\'s own cautious rules, not values from a study.',
+    limits:['Mifflin-St Jeor predicts resting energy for groups of adults; one person can differ by a few hundred kcal.','It was derived in adults aged 19–78, so under 19 it is a rough guide only.','The activity factor is a broad guess about your whole day.','FAO defines PAL against its own basal rate equations; HealthWiz multiplies it by the Mifflin-St Jeor resting rate, so the result is an estimate.']})}
 function macroWhy(r,g,R){const N=HWExplain.num,K=g.kcal,kid=r.a<19,cap=(kid?.30:.35)*K/4;
   return HWExplain.btn('xmacro','How your macronutrient goals are worked out',{ev:'macro',what:'Grams of protein, carbohydrate, fat and fiber that fit your daily energy goal.',
     inputs:[{n:'Daily energy goal',v:K,u:'kcal',o:'calc',d:0},{n:'Weight',v:r.w,u:'kg',o:'you',d:1},{n:'Age',v:r.a,u:'years',o:'you',d:0}],
@@ -77,10 +77,10 @@ function macroWhy(r,g,R){const N=HWExplain.num,K=g.kcal,kid=r.a<19,cap=(kid?.30:
     src:['iomdri','whodiet','dgatab'],
     app:'Protein per kg: 0.95 (under 14), 0.85 (14–18), 0.8 (adults), raised to 1.1 when the goal is a deficit (HealthWiz\'s own choice). Fat is set at 30% of energy, inside the 20–35% (adults) and 25–35% (under 19) ranges, and protein is capped at the AMDR upper limit (35% of energy from 19, 30% under 19). Carbohydrate takes the energy that is left.',
     limits:['These are population reference values, not your personal needs.','The AMDR and fiber figures were checked in a government table that uses them; the protein g/kg values are still to be checked against the IOM report (see the source note).']})}
-function waterWhy(r,g){const N=HWExplain.num,add=r.ac>=1.9?500:r.ac>=1.725?300:0,raw=r.w*35+add;
+function waterWhy(r,g){const N=HWExplain.num,add=r.ac>=2?500:r.ac>=1.7?300:0,raw=r.w*35+add;
   return HWExplain.btn('xwater','How your water goal is worked out',{ev:'water',what:'How much to drink in a day, as a simple guide.',
     inputs:[{n:'Weight',v:r.w,u:'kg',o:'you',d:1},{n:'Activity factor',v:r.ac,o:'you'}],
-    formula:'water = W × 35 + extra (300 mL for very active, 500 mL for extremely active)\nrounded to 50 mL, kept between 1,500 and 3,500 mL',
+    formula:'water = W × 35 + extra (300 mL when PAL is 1.7 or more, 500 mL when it is 2.0 or more)\nrounded to 50 mL, kept between 1,500 and 3,500 mL',
     vars:[['W','weight','kg'],['35','mL per kg (HealthWiz rule)','mL/kg']],
     steps:[N(r.w,1)+' × 35 + '+add+' = '+N(raw,0)+' mL','Rounded to 50 mL and kept within 1,500–3,500 = '+g.water+' mL'],result:g.water+' mL a day',src:['efsawater'],
     app:'35 mL per kg is HealthWiz\'s rule of thumb; no single verified source gives it. For comparison, EFSA\'s adequate intake is 2.0 L (women) or 2.5 L (men) of total water a day, which includes the water in food.',

@@ -116,7 +116,7 @@ test('stairways without coordinates are never GPS targets; distance and radius m
   assert.ok(r.d > 55 && r.d < 75, 'ST20 → ST19 is about 64 m: ' + r.d);
   assert.deepEqual(r.r, [35, 65, 100]);
   const s = await state(page);
-  assert.equal(s.sv, 9); assert.deepEqual(s.gp, { ok: 0, v: {} });
+  assert.equal(s.sv, 10); assert.deepEqual(s.gp, { ok: 0, v: {} });
   await find(page);
   await page.click('[data-a="gpsok"]');
   await page.waitForSelector('#v6gps .v6gpl');

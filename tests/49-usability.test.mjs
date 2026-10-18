@@ -119,7 +119,7 @@ test('quest start: the registry asks about conditions after activity; a knee pro
   await page.waitForSelector('.wl'); await page.tap('[data-a="go"][data-v="home"]'); await page.waitForSelector('#obt');
   const fill = async v => { await page.fill('#obi', String(v)); await page.tap('[data-a="obn"]'); };
   await fill('Aina'); await fill(19); await page.tap('[data-a="obsex"][data-v="f"]'); await fill(160); await fill(55);
-  await page.tap('[data-a="obact"][data-v="1.375"]');
+  await page.tap('[data-a="obact"][data-v="1.55"]');
   assert.equal(await page.evaluate(() => S.ob.i), 6.5, 'the conditions question comes after activity');
   assert.match(await page.textContent('#cdcard'), /Anything that affects your activity\?/);
   assert.match(await page.textContent('#cdcard'), /does not diagnose conditions\. Ask a doctor before changing your activity\./);

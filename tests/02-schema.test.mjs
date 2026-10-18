@@ -98,15 +98,16 @@ test('data from a newer app version is kept, not upgraded or overwritten', async
   await ctx.close();
 });
 
-test('v8 → v9: the Science Laboratory store is added; entries, badges and settings are untouched', async () => {
+test('v8 → v10: the Science Laboratory store is added and the activity factor moves to the FAO levels; entries, badges and settings are untouched', async () => {
   const v8 = { ...V1, sv: 8, b: { 'First Sip': '2026-08-30' }, md: { last: {}, day: {}, seen: {}, ms: {}, log: [] }, gp: { ok: 1, v: { ST20: '2026-09-02' } } };
   const { page, ctx, errors } = await openRaw(JSON.stringify(v8));
   const s = await state(page);
-  assert.equal(s.sv, 9);
+  assert.equal(s.sv, 10);
+  assert.equal(s.p.act, 1.55, 'old 1.375 (lightly active) becomes the sedentary or light level');
   assert.deepEqual(s.lab, { ex: {}, tr: {} });
   assert.deepEqual(s.e, v8.e, 'entries exactly as saved');
   assert.deepEqual([s.b, s.gp, s.s.kcal], [v8.b, v8.gp, 2200]);
-  assert.ok((await backups(page)).some(k => /pre-v9/.test(k)), 'pre-upgrade copy kept');
+  assert.ok((await backups(page)).some(k => /pre-v10/.test(k)), 'pre-upgrade copy kept');
   assert.deepEqual(errors, []);
   await ctx.close();
 });
@@ -160,4 +161,15 @@ test('renamed places appear in the UI', async () => {
   assert.match(await page.textContent('#mo'), /Heartstone Hall/);
   assert.deepEqual(errors, []);
   await ctx.close();
+});
+
+test('v9 → v10: every old activity factor maps to its FAO level once; other values and entries are untouched', async () => {
+  // old → new: 1.2, 1.375 → 1.55 (sedentary or light); 1.55, 1.725 → 1.85 (active or moderately active); 1.9 → 2.2 (vigorous)
+  const got = await Promise.all([1.2, 1.375, 1.55, 1.725, 1.9].map(async act => {
+    const { page, ctx, errors } = await openRaw(JSON.stringify({ ...V1, sv: 9, p: { ...V1.p, act } }));
+    const s = await state(page); assert.deepEqual(errors, []); await ctx.close(); return [s.sv, s.p.act, s.e.length];
+  }));
+  assert.deepEqual(got, [[10, 1.55, V1.e.length], [10, 1.55, V1.e.length], [10, 1.85, V1.e.length], [10, 1.85, V1.e.length], [10, 2.2, V1.e.length]]);
+  const { page, ctx } = await openRaw(JSON.stringify({ ...V1, sv: 10, p: { ...V1.p, act: 1.55 } }));
+  assert.equal((await state(page)).p.act, 1.55, 'data already at version 10 is not mapped again'); await ctx.close();
 });

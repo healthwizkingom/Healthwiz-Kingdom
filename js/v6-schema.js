@@ -13,12 +13,14 @@
      8  adds `gp` = {ok, v:{stairId:firstCheckInDate}} GPS check-in (js/v6-gps.js)
      9  adds `lab` = {ex:{id:experiment}, tr:{questionId:{ok,at}}} the Science Laboratory: saved investigations and Evidence
         Trial answers (js/v6-lab.js, js/v6-trial.js). Observations are never copied here: they stay the user's entries.
+    10  the activity factor st.p.act moves from the five-level 1.2–1.9 convention to the three FAO/WHO/UNU PAL categories (1.55, 1.85, 2.2):
+        1.2 and 1.375 → 1.55, 1.55 and 1.725 → 1.85, 1.9 → 2.2 (js/hw-03-part.js ACT). A value that is not a number is left alone.
 
    Rules: migrations only ever move or add data, never drop entries. Before upgrading,
    repairing or discarding anything, the raw stored text is copied to a
    `healthwiz_backup_<reason>_<time>` key, so nothing is lost. */
 const HWSchema=(()=>{
-const V=9,KEY='healthwiz',BK='healthwiz_backup_',KEEP=3;
+const V=10,KEY='healthwiz',BK='healthwiz_backup_',KEEP=3;
 const isObj=x=>!!x&&typeof x==='object'&&!Array.isArray(x);
 const MAPS=['b','claimed','en','xd','qx','qd','ck','q6','ex','xl','md','mg','gp','lab'];
 
@@ -51,7 +53,8 @@ const STEPS={
 5:d=>{if(!isObj(d.md))d.md={last:{},day:{},seen:{},ms:{},log:[]};return d},
 6:d=>{if(!isObj(d.mg))d.mg={xp:{},n:{},h:[],c:{}};return d},
 7:d=>{if(!isObj(d.gp))d.gp={ok:0,v:{}};return d},
-8:d=>{if(!isObj(d.lab))d.lab={ex:{},tr:{}};return d}};
+8:d=>{if(!isObj(d.lab))d.lab={ex:{},tr:{}};return d},
+9:d=>{const a=isObj(d.p)?+d.p.act:NaN;if(isFinite(a)&&a>0)d.p.act=a<1.5?1.55:a<1.8?1.85:2.2;return d}};
 
 /** → {data, from} on success, {err, from, data} when the data is from a newer app. Never mutates `d`. */
 function migrate(d){if(!isObj(d))return{data:null,from:0};
