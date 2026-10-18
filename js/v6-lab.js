@@ -109,10 +109,21 @@ function bars(vals,labels,unit,what){const ok=vals.filter(v=>v!=null),mx=Math.ma
 
 /* ---------- the page ---------- */
 const tabs=()=>'<div class="labtabs" role="tablist" aria-label="Laboratory sections">'+SEC.map(s=>'<button type="button" role="tab" class="chip'+(Z.tab===s.k?' on':'')+'" aria-selected="'+(Z.tab===s.k)+'" data-a="labtab" data-k="'+s.k+'">'+ico(s.icon)+' '+s.name+'</button>').join('')+'</div>';
+/* what each section is, why it matters and what to do first (plain language); the Vault's and the Uncertainty Engine's texts live here too so the page reads the same everywhere */
+const INFO={
+  exp:{what:'A guided mini-experiment: question, prediction, plan, results and a short report, using entries you already log.',why:'It shows the difference between a guess and evidence, and why a few days of data can only hint at an answer.',next:'Pick a question below. There is nothing extra to type.'},
+  trial:{what:'Short reasoning questions built from the Group 14 study and, if you have logged stair workouts, from your own data.',why:'It practises spotting when data is too thin, too mixed or too small to support a conclusion.',next:'Answer the first question. A wrong answer costs nothing and you can try again.'},
+  vault:{what:'The sources and calculations behind the numbers in HealthWiz: the formula the app runs, where it comes from and what it cannot tell you.',why:'So you can check where an estimate comes from instead of trusting it blindly.',next:'Search, open a calculation, or press the ? beside any result to land on its entry.'},
+  unc:{what:'Shows how an estimate moves when an assumption or an input changes. Your original value always stays visible.',why:'One number looks exact, but it depends on assumptions. This shows how much.',next:'Pick an estimate, then change one choice at a time.'}};
+const GLOSS=[['Observation','one saved entry used as evidence, such as one workout or one night of sleep.'],['Prediction','your guess about what you will find. A guess you can test.'],['Independent variable','the thing that changes (for example, stair steepness).'],['Dependent variable','the thing you measure to see the effect (for example, pulse rise in BPM).'],['Control','something you keep the same so it does not blur the result.'],['Mean','the average: the total divided by the number of observations.'],['n','how many observations are in a group.'],['Estimate','a number worked out from a formula and assumptions, not measured directly.']];
+const intro=()=>'<div class="card labintro"><p>Test health questions with your own logs, practise judging evidence, and see where every number in HealthWiz comes from. Results describe patterns in your entries. They are not diagnoses and not medical advice.</p>'
+  +'<details class="labgl"><summary>Words and labels used here</summary><dl class="labdl">'+GLOSS.map(g=>'<dt>'+g[0]+'</dt><dd>'+g[1]+'</dd>').join('')+'</dl>'
+  +'<p class="lableg"><span class="pxtag">ENTERED BY YOU</span> <span class="pxtag">MEASURED BY A DEVICE</span> <span class="pxtag">WORKED OUT</span> <span class="pxtag">ESTIMATE</span> <span class="pxtag">SAMPLE</span> Each number says which of these it is. Anything written by an AI is labelled as such where it appears.</p></details></div>';
+const info=k=>{const i=INFO[k];return i?'<dl class="labinfo"><div><dt>What it is</dt><dd>'+i.what+'</dd></div><div><dt>Why it matters</dt><dd>'+i.why+'</dd></div><div><dt>Do this first</dt><dd>'+i.next+'</dd></div></dl>':''};
 function page(){const s=SEC.find(x=>x.k===Z.tab)||SEC[0];
   return '<div class="labhd" id="labsc"><img class="labbg" src="assets/img/lab-scene.webp" alt="Luna\'s cosy study" width="640" height="358"><span class="labglow" aria-hidden="true"></span>'
     +'<span class="labmotes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="labluna" id="labluna" data-a="labluna" role="button" tabindex="0" title="Luna, the apprentice witch" aria-label="Luna, the apprentice witch: tap for a tip"></span>'
-    +'<p class="labcap"><b>THE SCIENCE LABORATORY</b>Real data and real methods. Every number says where it came from.</p></div>'+tabs()
+    +'<p class="labcap"><b>THE SCIENCE LABORATORY</b>Real data and real methods. Every number says where it came from.</p></div>'+intro()+tabs()+info(s?s.k:'')
     +'<div class="labsec" role="tabpanel" aria-label="'+esc(s?s.name:'')+'">'+(s?s.render():'')+'</div>'}
 
 /* ---------- Be Your Own Experiment ---------- */
@@ -258,6 +269,13 @@ html.hw-rm .labbg,html.hw-rm .labglow,html.hw-q-performance .labbg,html.hw-q-per
 .labrep h4{font:8px/1.6 var(--fh);color:var(--vio);margin:12px 0 2px}.labrep p{margin:0}.labrep .row{margin-top:12px}
 .labsv{display:flex;gap:8px;align-items:center;border-top:2px solid var(--ln);padding:8px 0}.labsv span{flex:1 1 auto;min-width:0}.labsv b,.labsv small{display:block}.labsv small{color:var(--mut)}
 .labdoor button{width:100%;min-height:44px}
+.labintro{padding:10px 12px}.labintro p{margin:0 0 4px;font-size:14px;line-height:1.45}.labgl summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:700}.labgl summary:focus-visible,.labtabs .chip:focus-visible{outline:3px solid var(--gold,#f6c94f);outline-offset:2px}
+.labgl dt{font:8px/1.6 var(--fh);color:var(--vio);margin-top:8px}.labgl dd{margin:2px 0 0}.lableg{margin-top:10px!important;font-size:13px}
+.labinfo{display:grid;gap:6px;margin:0 0 12px;padding:10px 12px;border:3px solid var(--ln);background:var(--p2)}
+.labinfo>div{display:grid;grid-template-columns:7.5em 1fr;gap:4px 10px}.labinfo dt{font:8px/1.8 var(--fh);color:var(--vio)}.labinfo dd{margin:0}
+.labtabs .chip{transition:transform .12s ease,box-shadow .12s ease}.labtabs .chip:active{transform:translate(1px,1px)}
+@media(max-width:480px){.labinfo>div{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.labtabs .chip{transition:none}}
 .lbars{display:flex;gap:8px;align-items:stretch;height:150px;margin:8px 0;padding:4px 0 0;border-bottom:3px solid var(--ln)}
 .lbar{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:stretch;text-align:center;outline-offset:2px}
 .lbv{font:700 13px var(--fb)}.lbt{flex:1 1 auto;display:flex;align-items:flex-end;justify-content:center}.lbt i{display:block;width:70%;max-width:56px;background:var(--vio);border:3px solid var(--ln);border-bottom:0;box-shadow:inset -4px 0 0 rgba(0,0,0,.18)}

@@ -16,7 +16,7 @@ const URL_ = 'http://127.0.0.1:' + srv.address().port + '/index.html';
 after(async () => { srv.close(); await closeBrowser(); });
 
 const hashOf = t => { let x = 5381; for (const c of t) x = ((x << 5) + x + c.charCodeAt(0)) >>> 0; return x.toString(36); };
-const NAME = { d: { name: 'Aina', age: 19, sex: 'f', h: 160, w: 52, act: 1.375 } };
+const NAME = { d: { name: 'Aina', age: 19, sex: 'f', h: 160, w: 52, act: 1.55 } };
 // the registry's places in the flow: six questions, the conditions question (6.5), the read-back, the plan, the account offer
 const STEPS = [0, 1, 2, 3, 4, 5, 6.5, 6, 7, 8];
 const spy = page => page.evaluate(() => { window.__aud = []; const A = window.Audio; window.Audio = function (s) { window.__aud.push(s); return new A(s); }; });

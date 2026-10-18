@@ -27,7 +27,9 @@ test('week vs week table fits its card and the 7-day chart labels do not touch',
   assert.ok(t.th.every(x => x <= 0), 'no header text spills out of its cell: ' + t.th);
   const g = await page.evaluate(() => [...document.querySelectorAll('.chl')].map(r => { const s = [...r.children].map(x => { const q = document.createRange(); q.selectNodeContents(x); return [q.getBoundingClientRect(), x.getBoundingClientRect()]; }); return s.every(([txt, box]) => txt.width <= box.width - 2); }));
   assert.ok(g.length >= 2 && g.every(Boolean), 'each day label has room in its column: ' + g);
-  assert.match(await page.textContent('.chl'), /^Su\s*Mo\s*Tu\s*We\s*Th\s*Fr\s*Sa$/);
+  // the 7-day chart shows the last seven days ending today, so the first label depends on today's weekday
+  const want = await page.evaluate(() => [6, 5, 4, 3, 2, 1, 0].map(i => ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'][new Date(Date.now() - i * 864e5).getDay()]));
+  assert.equal((await page.textContent('.chl')).replace(/\s+/g, ''), want.join(''));
   assert.deepEqual(errors, []); await ctx.close();
 });
 

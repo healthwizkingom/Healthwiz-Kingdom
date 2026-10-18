@@ -33,6 +33,7 @@ test('every moved explanation sits behind a "?" button and is gone from the page
   const { page, ctx, errors } = await boot(null, { seed });
   for (const [view, key, hidden, shown] of rows) {
     await go(page, view);
+    if (view === 'stair') await page.click('#stt-workout'); // the heart-rate picture is on the Workout half of the Stairs page
     if (view === 'stats') await page.evaluate(() => 0);
     const b = page.locator('.hwh[data-hwh="' + key + '"]').first();
     assert.equal(await b.count(), 1, view + ' has the ' + key + ' button');
@@ -271,6 +272,9 @@ test('stairs by hand: backdated climb; workout for yesterday; a workout with dev
   assert.equal(s.e.length, 1); assert.equal(s.e[0].d, daysAgo(1)); assert.equal(s.e[0].v, 30);
   assert.equal(await page.evaluate(() => sp(today())), 0, 'today\'s steps unchanged');
   // workout for yesterday
+  // GPS check-in has no date control (never backdated)
+  assert.equal(await page.locator('#v6gps .hww').count(), 0);
+  await page.click('#stt-workout'); // the workout is the other half of the Stairs page
   await page.selectOption('#wk-loc', { index: 1 });
   await page.fill('#wk-b', '70'); await page.fill('#wk-a', '120');
   await fillSteps(page, '#wk-s', '12'); await page.fill('#wk-c', '2'); await page.fill('#wk-d', '8');
@@ -281,8 +285,6 @@ test('stairs by hand: backdated climb; workout for yesterday; a workout with dev
   assert.deepEqual([w.d, w.t, w.m.hrB, w.m.hrA, w.m.src], [daysAgo(1), '17:30', 70, 120, 'manual']);
   assert.equal(await page.evaluate(() => rest(today())), null, 'today\'s resting heart rate unchanged');
   assert.equal(await page.evaluate(d => rest(d), daysAgo(1)), 70);
-  // GPS check-in has no date control (never backdated)
-  assert.equal(await page.locator('#v6gps .hww').count(), 0);
   assert.deepEqual(errors, []);
   await ctx.close();
 });

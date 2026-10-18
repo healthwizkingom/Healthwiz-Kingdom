@@ -127,7 +127,7 @@ test('Settings: one Luna card (talk, size, style, reset); Medius keeps his voice
   await page.click('#v6lunaset [data-a="lunarst"]');
   const s = (await state(page)).s;
   assert.deepEqual([s.lst, s.lsz, s.med], [undefined, undefined, 1]);
-  assert.equal((await state(page)).sv, 9, 'Luna adds no schema version of her own (9 is the Science Laboratory)');
+  assert.equal((await state(page)).sv, 10, 'Luna adds no schema version of her own (10 is the activity-factor change)');
   assert.deepEqual(errors, []); await ctx.close();
 });
 

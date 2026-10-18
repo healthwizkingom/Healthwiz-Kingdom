@@ -236,7 +236,7 @@ function runWhy(m,s,done,key){const N=HWExplain.num,stored=done&&done.kcal&&+don
   if(stored)steps.push('This run kept the MET and weight saved with it: '+M+' MET, '+N(w,1)+' kg');
   else steps.push(A.length===2?'Between '+pt(A[0])+' and '+pt(A[1])+': '+A[0][1]+' + ('+A[1][1]+' − '+A[0][1]+') × ('+N(kmh,2)+' − '+N(A[0][0],1)+') ÷ ('+N(A[1][0],1)+' − '+N(A[0][0],1)+') = '+N(M,1)+' MET':'Outside the table: '+pt(A[0])+' is used');
   steps.push('kcal = '+N(M,1)+' × '+N(w,1)+' kg × '+N(h,4)+' h = '+N(M*w*h,1)+', rounded');
-  return HWExplain.btn(key||'xrun','How your run\'s calories are worked out',{what:'An estimate of the energy this run used, from its average speed and your weight.',
+  return HWExplain.btn(key||'xrun','How your run\'s calories are worked out',{ev:'run',what:'An estimate of the energy this run used, from its average speed and your weight.',
     inputs:[{n:'Distance',v:m/1000,u:'km',o:'device',d:3},{n:'Moving time',v:s/60,u:'min',o:'device',d:1},{n:'Average speed',v:kmh,u:'km/h',o:'calc',d:2},{n:'Weight',v:w,u:'kg',o:'you',d:1}],
     formula:'speed (km/h) = distance ÷ moving time\nMET = straight line between the two Compendium points around that speed\nkcal = MET × weight (kg) × hours',
     vars:[['MET','metabolic equivalent: 1 MET ≈ 1 kcal per kg per hour at rest',''],['moving time','time with the tracker running, pauses removed','h']],

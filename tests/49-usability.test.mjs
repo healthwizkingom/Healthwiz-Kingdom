@@ -119,7 +119,7 @@ test('quest start: the registry asks about conditions after activity; a knee pro
   await page.waitForSelector('.wl'); await page.tap('[data-a="go"][data-v="home"]'); await page.waitForSelector('#obt');
   const fill = async v => { await page.fill('#obi', String(v)); await page.tap('[data-a="obn"]'); };
   await fill('Aina'); await fill(19); await page.tap('[data-a="obsex"][data-v="f"]'); await fill(160); await fill(55);
-  await page.tap('[data-a="obact"][data-v="1.375"]');
+  await page.tap('[data-a="obact"][data-v="1.55"]');
   assert.equal(await page.evaluate(() => S.ob.i), 6.5, 'the conditions question comes after activity');
   assert.match(await page.textContent('#cdcard'), /Anything that affects your activity\?/);
   assert.match(await page.textContent('#cdcard'), /does not diagnose conditions\. Ask a doctor before changing your activity\./);
@@ -202,7 +202,7 @@ test('trackers: the first input is on screen at 390 × 844, on a first visit and
   for (const seen of [false, true]) {
     const seed = JSON.parse(JSON.stringify(RETURNING)); if (seen) seed.ex.r = { food: '2026-10-01', water: '2026-10-01', sleep: '2026-10-01', stair: '2026-10-01', body: '2026-10-01' };
     const { page, ctx, errors } = await openApp({ ...M, seed });
-    for (const [v, sel] of [['food', '#fpick .chip'], ['water', '[data-a="wa"]'], ['sleep', '#slb'], ['stair', '#stman .chip'], ['body', '#bh']]) {
+    for (const [v, sel] of [['food', '#fpick .chip'], ['water', '[data-a="wa"]'], ['sleep', '#slb'], ['stair', '[data-a="gpsfind"]'] /* the Stairs page opens on the GPS check-in half; the first control is FIND STAIRS NEAR ME */, ['body', '#bh']]) {
       await go(page, v);
       const r = await page.evaluate(s => { const e = document.querySelector(s).getBoundingClientRect(); return { bottom: e.bottom, nav: document.querySelector('#nav').getBoundingClientRect().top }; }, sel);
       assert.ok(r.bottom <= r.nav, `${v} (${seen ? 'later' : 'first'} visit): input bottom ${Math.round(r.bottom)} above the bar at ${Math.round(r.nav)}`);

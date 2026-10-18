@@ -16,7 +16,7 @@ const MODEN={m:'Maintain',s:'Gentle surplus',d:'Moderate deficit'};
 function computeGoals(apply){const p=st.p,a=+p.age||16,w=+p.w||60,h=+p.h||165,b=+(w/Math.pow(h/100,2)).toFixed(1),minor=a<18,c=calc();
 const cat=minor?'u18':b<18.5?'under':b<25?'healthy':b<30?'over':'obese',mode=minor?'m':cat==='under'?'s':(cat==='over'||cat==='obese')?'d':'m';
 const kcal=Math.round((mode==='s'?c.sur:mode==='d'?c.def:c.t)/10)*10,pk0=a<14?.95:a<19?.85:.8,pk=mode==='d'?Math.max(pk0,1.1):pk0;
-let water=w*35+(p.act>=1.9?500:p.act>=1.725?300:0);water=Math.min(3500,Math.max(1500,Math.round(water/50)*50));
+let water=w*35+(p.act>=2?500:p.act>=1.7?300:0);water=Math.min(3500,Math.max(1500,Math.round(water/50)*50));
 st.g={b,cat,mode,minor,age:a,bmr:c.bmr,tdee:c.t,sur:c.sur,def:c.def,kcal,pk,fp:.30,water,sleep:SR(a),wr:[Math.round(18.5*Math.pow(h/100,2)),Math.round(24.9*Math.pow(h/100,2))],at:today()};
 if(apply){st.s.kcal=kcal;st.s.water=water;st.s.set=1}save();return st.g}
 const gOn=()=>st.g&&st.s.kcal===st.g.kcal&&st.s.water===st.g.water;
@@ -28,12 +28,12 @@ return '<div class="card" id="plan"><h3>📜 '+(st.p.name?nm().toUpperCase()+'\'
 +'<b>Profile:</b> '+P.age+' y · '+(P.sex==='f'?'female':'male')+' · '+P.h+' cm · '+P.w+' kg · '+an+'.<br>'
 +'<b>Calories:</b> Mifflin-St Jeor BMR '+r10(g.bmr)+' kcal × activity '+P.act+' = TDEE '+r10(g.tdee)+' kcal. '+(g.minor?'Under 18, so the goal stays at maintenance while you are growing.':g.mode==='d'?'BMI '+g.b+' is above 25, so about 400 kcal less (never more than 20% below TDEE, never below BMR).':g.mode==='s'?'BMI '+g.b+' is below 18.5, so about 300 kcal more.':'BMI '+g.b+' is in the healthy range, so maintain.')+'<br>'
 +'<b>Protein:</b> '+R.pk+' g/kg × '+P.w+' kg'+(g.mode==='d'?' (higher during a deficit to protect muscle)':'')+'. <b>Fat:</b> about 30% of calories. <b>Carbs:</b> the rest, within 45–65%. <b>Fiber:</b> 14 g per 1,000 kcal.<br>'
-+'<b>Water:</b> about 35 mL per kg'+(P.act>=1.725?' plus extra for high activity':'')+', kept between 1.5 and 3.5 L. Needs rise in heat or illness; with kidney or heart conditions, follow your doctor.<br>'
++'<b>Water:</b> about 35 mL per kg'+(P.act>=1.7?' plus extra for high activity':'')+', kept between 1.5 and 3.5 L. Needs rise in heat or illness; with kidney or heart conditions, follow your doctor.<br>'
 +'<b>Sleep:</b> AASM/CDC recommendation for age '+g.age+'.'+(g.minor?'<br><b>BMI:</b> adult cut-offs do not apply under 18; a doctor uses BMI-for-age percentiles.':'')+'</p></details>'
 +'<div class="row" style="margin-top:8px"><button class="g" data-a="go" data-v="calc">CHANGE MY DATA</button></div><small class="mut">General estimates for healthy people, not medical prescriptions. A doctor or dietitian can personalise them.</small></div>'}
 
 /* ---------- Onboarding: the Traveller's Registry ---------- */
-const ACTD=['mostly sitting: lectures, study, little exercise','light exercise 1–3 days a week, or walking a lot around campus','exercise 3–5 days a week','hard exercise 6–7 days a week','athlete training, or a physical job plus exercise'];
+const ACTD=['mostly sitting (lectures, study), with light exercise or walking now and then','regular exercise 3–5 days a week, or on your feet for much of the day','hard exercise most days, athlete training, or a physically demanding job'];
 const OBQ=[['name',"Hail, traveller! I am Medius, Wizard King of the HealthWiz Kingdom. Before thy journey begins, what name shall the Kingdom know thee by?"],
 ['age',"Well met, {name}! How many winters hast thou seen? Tell me thine age in years."],
 ['sex',"Thank thee, {name}. The ancient energy formula needeth thy body's sex. It shapeth only the calorie calculation."],

@@ -149,7 +149,7 @@ function helpReg(){HWHelp.reg('ppg','Pulse Wave Lab',
   '<p>Each heartbeat pushes a little blood into your fingertip. More blood absorbs more red light, so the red light reaching the camera dips once per beat. That is called photoplethysmography.</p>'
   +'<p>We average the red channel of every frame, remove slow drift, keep only 0.7–3.5 Hz (42–210 beats a minute) and count the peaks.</p>'
   +'<p><b>f</b> (Hz) = 1 ÷ T · <b>T</b> (s) is the time between two beats · <b>ω</b> (rad/s) = 2πf. The thin line is a sine wave with the same f fitted to your wave.</p>'
-  +'<p class="mut">It is an estimate, not a medical measurement, and it says nothing about your heart rhythm. It is less reliable right after exercise, if you move, or in poor light. If it looks wrong, count for 15 s and multiply by 4. Video never leaves your phone and nothing is recorded.</p>')}
+  +'<p class="mut">It is an estimate, not a medical measurement, and it says nothing about your heart rhythm. It is less reliable right after exercise, if you move, or in poor light. If it looks wrong, count for 15 s and multiply by 4. Video never leaves your phone and nothing is recorded.</p>','ppg')}
 function panel(){helpReg();Promise.resolve().then(draw);
   let h='<div class="ppg" id="hwppg">';
   if(!supported())return h+'<p class="mut">Your browser can\'t use the camera here; count your pulse for 15 s and multiply by 4.</p></div>';

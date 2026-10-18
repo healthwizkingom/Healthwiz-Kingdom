@@ -34,7 +34,7 @@ test('no broken references: handlers, page links, images and asset paths on ever
   await run('welcome');
   for (const v of PAGES) { await go(page, v); await run(v); }
   await go(page, 'onb');
-  for (let i = 0; i <= 7; i++) { await page.evaluate(i => { S.ob.d = { name: 'Aina', age: 19, sex: 'f', h: 160, w: 52, act: 1.375 }; S.ob.i = i; render(); }, i); await run('onboarding step ' + i); }
+  for (let i = 0; i <= 7; i++) { await page.evaluate(i => { S.ob.d = { name: 'Aina', age: 19, sex: 'f', h: 160, w: 52, act: 1.55 }; S.ob.i = i; render(); }, i); await run('onboarding step ' + i); }
   await go(page, 'pulse'); await page.click('[data-a="edit"]'); await run('edit dialog'); await page.keyboard.press('Escape');
   await go(page, 'kingdom'); await page.click('[data-a="kreg"]'); await run('region panel'); await page.keyboard.press('Escape');
   for (const id of await page.evaluate(() => HWGames.games.map(g => g.id))) {
