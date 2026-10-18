@@ -60,12 +60,12 @@ async function load(t,force){if(!me()||!B.on||!online())return;const c=rows[t];i
 
 /* ---------- card (Quest Board) ---------- */
 HWUI.css('board',`
-#v6lb .v6tabs{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0}#v6lb .v6tabs button{flex:1 1 auto;font-size:8px;padding:8px 6px;min-height:36px}
+#v6lb .v6tabs{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0}#v6lb .v6tabs button{flex:1 1 auto;font-size:12px;padding:8px 6px;min-height:36px}
 #v6lb .v6tabs button[aria-pressed="true"]{background:var(--gold);color:#1d1730;box-shadow:inset 0 -3px 0 rgba(0,0,0,.25)}
 #v6lb ol{list-style:none;margin:6px 0;padding:0}#v6lb li{display:flex;gap:8px;align-items:center;border:3px solid var(--ln);background:var(--p2);padding:6px 8px;margin:4px 0}
-#v6lb li .rk{font:9px/1 var(--fh);min-width:34px}#v6lb li .nm{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#v6lb li .vl{font:9px/1.4 var(--fh);text-align:right}
+#v6lb li .rk{font:12px/1 var(--fl);min-width:34px}#v6lb li .nm{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#v6lb li .vl{font:12px/1.4 var(--fl);text-align:right}
 #v6lb li.me{outline:3px solid var(--gold);outline-offset:-6px;background:var(--pn)}#v6lb li.gap{border:0;background:none;justify-content:center;padding:0}
-#v6lb li small{display:block;color:var(--mut);font-size:11px}#v6lb .row button{flex:1 1 140px}#v6lb details{margin-top:8px}#v6lb .warn,#v6lbs .warn{margin:8px 0}
+#v6lb li small{display:block;color:var(--mut);font-size:12px}#v6lb .row button{flex:1 1 140px}#v6lb details{margin-top:8px}#v6lb .warn,#v6lbs .warn{margin:8px 0}
 `);
 const lvName=x=>{let n=LV[0][0];LV.forEach(l=>{if(x>=l[1])n=l[0]});return n};
 const medal=r=>r===1?'🥇':r===2?'🥈':r===3?'🥉':'#'+r;

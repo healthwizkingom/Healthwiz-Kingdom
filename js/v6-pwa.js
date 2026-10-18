@@ -29,9 +29,9 @@ if(external&&served){const link=(rel,href,extra)=>{if(D.querySelector('link[rel=
   link('manifest','manifest.webmanifest');link('icon','assets/icons/icon-32.png',{type:'image/png'});link('apple-touch-icon','assets/icons/apple-touch-icon.png')}
 
 HWUI.css('pwa',`
-#v6net{position:fixed;left:10px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:65;background:var(--pn);color:var(--ink);border:3px solid var(--ln);box-shadow:3px 3px 0 var(--ln);padding:4px 10px;font:7px/1.8 var(--fh);white-space:nowrap;max-width:calc(100vw - 24px);overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+#v6net{position:fixed;left:10px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:65;background:var(--pn);color:var(--ink);border:3px solid var(--ln);box-shadow:3px 3px 0 var(--ln);padding:4px 10px;font:12px/1.8 var(--fl);white-space:nowrap;max-width:calc(100vw - 24px);overflow:hidden;text-overflow:ellipsis;pointer-events:none}
 #v6net span{font:12px/1.4 var(--fb);margin-left:6px}
-#v6pwa .v6pl{display:flex;gap:8px;align-items:baseline;margin:6px 0}#v6pwa .v6pl>.v6pk{flex:0 0 auto;font:7px/1.8 var(--fh);min-width:84px}
+#v6pwa .v6pl{display:flex;gap:8px;align-items:baseline;margin:6px 0}#v6pwa .v6pl>.v6pk{flex:0 0 auto;font:12px/1.8 var(--fl);min-width:84px}
 #v6pwa ol{margin:6px 0;padding-left:20px}#v6pwa li{margin:3px 0}
 @media(max-width:760px){#v6net{bottom:calc(84px + env(safe-area-inset-bottom,0px))}#v6net span{display:none}}
 `);

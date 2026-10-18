@@ -43,16 +43,16 @@ HWUI.css('grove',`
 .v6go .v6orip.go{animation:v6orip 1.6s steps(10) forwards}@keyframes v6orip{0%{opacity:.9;transform:translate(-50%,-50%) scale(.2)}100%{opacity:0;transform:translate(-50%,-50%) scale(2.6)}}
 .v6go .v6oorb{position:absolute;left:50%;top:71%;width:13%;aspect-ratio:1;margin:-6.5% 0 0 -6.5%;border-radius:50%;z-index:4;pointer-events:none;
   background:radial-gradient(circle,#fffbe0 0 22%,#cfe8ff 38%,rgba(159,227,240,.35) 62%,transparent 72%);transform:scale(.75);transition:transform 4s ease-in-out;display:flex;align-items:center;justify-content:center}
-.v6go .v6oorb b{font:clamp(8px,1.8vw,14px)/1 var(--fh);color:#26304f}
+.v6go .v6oorb b{font:12px/1 var(--fl);color:#26304f}
 .v6go .v6omist{position:absolute;inset:30% 0 0 0;background:linear-gradient(transparent,rgba(200,210,220,var(--m,.1)) 40%,rgba(200,210,220,var(--m,.1)));z-index:3;pointer-events:none}
 .v6go .v6omote{position:absolute;width:3px;height:3px;background:#fff6d0;opacity:.7;z-index:3;pointer-events:none;animation:v6omote var(--d,12s) linear infinite}
 @keyframes v6omote{0%{transform:translate(0,0);opacity:0}20%{opacity:.7}100%{transform:translate(var(--x,20px),-60px);opacity:0}}
 .v6go .v6wff{z-index:4}.v6go .v6wff.v6onew{animation-delay:0s}
 .v6go .v6osp.v6olily{animation:v6oin .6s steps(4)}@keyframes v6oin{from{transform:translate(-50%,-100%) scale(.2)}}
 .v6gctl .v6opick{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;width:100%}
-.v6gctl .v6opick span{font:7px/1.6 var(--fh);width:100%;text-align:center}
+.v6gctl .v6opick span{font:12px/1.6 var(--fl);width:100%;text-align:center}
 .v6gctl .v6opick button[aria-pressed="true"]{background:var(--gold);color:#2b2418}
-.v6gctl .v6ophase{font:9px/1.6 var(--fh);text-align:center;width:100%;margin:0}
+.v6gctl .v6ophase{font:12px/1.6 var(--fl);text-align:center;width:100%;margin:0}
 .v6gctl .v6ohint{font-size:12px;text-align:center;width:100%;margin:0}
 @media(prefers-reduced-motion:reduce){.v6go .v6oorb{transition:none!important}.v6go .v6orip.go,.v6go .v6omote,.v6go .v6osp.v6olily{animation:none!important}.v6go .v6omote,.v6go .v6orip{display:none}}
 html.hw-q-performance .v6go .v6omote:nth-child(2n){display:none}

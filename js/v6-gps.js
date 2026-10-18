@@ -36,7 +36,7 @@ const geo=()=>typeof navigator!=='undefined'&&navigator.geolocation;
 HWUI.css('gps',`
 #v6gps .v6gpl{border-top:2px dashed var(--p2);padding:8px 0;display:flex;gap:8px;align-items:center}#v6gps .v6gpl:first-of-type{border-top:0}
 #v6gps .v6gpl div{flex:1 1 auto;min-width:0}#v6gps .v6gpl b{display:block;font-size:14px;overflow-wrap:anywhere}#v6gps .v6gpl small{display:block;color:var(--mut)}
-#v6gps .v6gpl .ok{color:var(--grn);font:7px/1.6 var(--fh)}#v6gps .v6gpl button{flex:0 0 auto}
+#v6gps .v6gpl .ok{color:var(--grn);font:12px/1.6 var(--fl)}#v6gps .v6gpl button{flex:0 0 auto}
 #v6gps ul{margin:6px 0;padding-left:18px}#v6gps li{margin:3px 0}
 #v6gps .v6gpw{display:inline-block;width:14px;height:14px;background:var(--gold);border:2px solid var(--ln);margin-right:8px;vertical-align:-2px;animation:v6gpsp 1s steps(4) infinite}
 @keyframes v6gpsp{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){#v6gps .v6gpw{animation:none}}

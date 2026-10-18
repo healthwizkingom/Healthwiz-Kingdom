@@ -393,7 +393,10 @@ test('recovery line: a drop, no drop, and nothing when the minute-after number i
   await page.fill('#wk-r', '98');
   const t = await page.textContent('#st-rec');
   assert.match(t, /Your heart rate fell by 32 BPM in one minute \(from 130 to 98\)\./);
-  assert.match(t, NOTE);
+  assert.match(t, /If you feel dizzy, have chest pain or feel unwell, stop and see a health professional\./, 'the safety line stays visible');
+  await page.click('#st-rec .hwh'); await page.waitForSelector('#hwh-pop:not([hidden])');
+  assert.match(await page.textContent('#hwh-pop'), /A guide only\. It varies with fitness, caffeine, sleep and how hard you climbed\./, 'the caveat is in the "?" panel');
+  await page.keyboard.press('Escape');
   assert.doesNotMatch(t, /good|bad|diagnos[ie]s|healthy|unhealthy/i, 'no judgement');
   await page.fill('#wk-r', '131');
   assert.match(await page.textContent('#st-rec'), /Your heart rate did not fall in this minute\. Rest a little longer and count again\./);

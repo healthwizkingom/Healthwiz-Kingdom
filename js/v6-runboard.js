@@ -233,14 +233,14 @@ HWUI.css('runboard',`
 #v6rb h3{display:flex;align-items:center;gap:8px}
 #v6rb .v6tabs{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0}#v6rb .v6tabs button{flex:1 1 90px;min-height:44px}
 #v6rb button[aria-pressed="true"]{background:var(--gold);color:#1d1730;box-shadow:inset 0 -3px 0 rgba(0,0,0,.25)}
-.rbsort{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:0 0 8px}.rbsort small{font:var(--px-f1)/1.6 var(--fh);margin-right:4px}.rbsort button{flex:1 1 110px;min-height:44px}
+.rbsort{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:0 0 8px}.rbsort small{font:var(--px-f1)/1.6 var(--fl);margin-right:4px}.rbsort button{flex:1 1 110px;min-height:44px}
 .rbl{list-style:none;margin:6px 0;padding:0}.rbl li{display:flex;gap:8px;align-items:center;border:3px solid var(--ln);background:var(--p2);padding:6px 8px;margin:4px 0;min-height:48px}
-.rbl li.top{background:var(--pn)}.rbl li .rk{flex:0 0 36px;display:flex;justify-content:center}.rbn{font:var(--px-f1)/1 var(--fh)}
+.rbl li.top{background:var(--pn)}.rbl li .rk{flex:0 0 36px;display:flex;justify-content:center}.rbn{font:var(--px-f1)/1 var(--fl)}
 .rbl li .nm{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rbl li .nm small{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:2px}
-.rbl li .vl{flex:0 0 auto;text-align:right}.rbl li .vl b{display:block;font-size:15px}.rbl li .vl small{display:block;color:var(--mut);font-size:11px}
+.rbl li .vl{flex:0 0 auto;text-align:right}.rbl li .vl b{display:block;font-size:15px}.rbl li .vl small{display:block;color:var(--mut);font-size:12px}
 .rbl li.me{outline:3px solid var(--gold);outline-offset:-6px}.rbl li.gap{border:0;background:none;justify-content:center;min-height:0;padding:0}
-.rbpip{display:inline-flex;gap:1px}.rbst{font-size:7px}
-.rbyou,.rbjoin{margin:10px 0;padding:10px;border:var(--px-bw-c) dashed var(--ln);background:var(--p2)}.rbyou>b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fh)}
+.rbpip{display:inline-flex;gap:1px}.rbst{font-size:12px}
+.rbyou,.rbjoin{margin:10px 0;padding:10px;border:var(--px-bw-c) dashed var(--ln);background:var(--p2)}.rbyou>b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fl)}
 .rbyou p,.rbjoin p{margin:6px 0}.rbjoin button{width:100%;min-height:48px;display:flex;align-items:center;justify-content:center;gap:8px}
 #v6rb .row button{flex:1 1 130px;min-height:44px}#v6rb details{margin:8px 0}#v6rb .warn{margin:8px 0}
 `);

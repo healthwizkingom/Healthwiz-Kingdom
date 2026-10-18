@@ -76,6 +76,7 @@ function combine(I){let w=0,p=0,n=0;
 function compute(){return combine(indicators())}
 // the same score for a chosen list of days (the weekly report, js/v6-report.js); nothing on the page changes
 const computeFor=(D0,asOf)=>combine(indicators(D0,{asOf}));
+const stOf=s=>s>=60?'good':s>=40?'watch':'caution'; // the status set (word + shape + colour) for the score bands: Excellent/Good, Fair, Needs attention
 const band=s=>s>=80?['Excellent','var(--grn)']:s>=60?['Good','var(--gold)']:s>=40?['Fair','#e0a030']:['Needs attention','var(--red)'];
 
 // the latest stair workout with a heart rate before and after (for the exercise-level and heart advice)
@@ -144,9 +145,9 @@ const btn=(a,t,c,x)=>'<button class="'+(c||'')+'" data-a="'+a+'"'+(x||'')+'>'+t+
 const LBL={fv:'Fruit & veg',water:'Water',kcal:'Calorie intake',macro:'Macronutrients',stairs:'Stairs',burn:'Calories burned',hr:'Resting heart rate',sleep:'Sleep',bmi:'BMI',stress:'Stress'};
 function head(C){
   const s=C.score,b=s==null?null:band(s);
-  return '<div class="card"><div class="row" style="gap:6px">'+btn('scw','TODAY','chip'+(W==='day'?' on':''),' data-w="day"')+btn('scw','LAST 7 DAYS','chip'+(W==='week'?' on':''),' data-w="week"')+HWHelp.btn('scorenote')+'</div>'
+  return '<div class="pxp pxn"><div class="row" style="gap:6px">'+btn('scw','TODAY','chip'+(W==='day'?' on':''),' data-w="day"')+btn('scw','LAST 7 DAYS','chip'+(W==='week'?' on':''),' data-w="week"')+HWHelp.btn('scorenote')+'</div>'
   +(s==null?'<p class="mut">No data yet for this period. Log something and your Health Score appears here.</p>'
-  :'<div class="v6sc"><b class="v6scn" style="color:'+b[1]+'">'+s+'</b><span class="v6scd">/ 100</span><div><b>'+b[0]+'</b><small class="mut">'+C.covered+' of '+GROUP.length+' areas logged'+(C.covered<GROUP.length?' · missing ones are left out, not counted as zero':'')+'</small></div></div>'+bar(s,b[1]))
+  :'<div class="v6sc"><b class="v6scn" style="color:var(--st-'+stOf(s)+')">'+s+'</b><span class="v6scd">/ 100</span><div><b>'+b[0]+'</b> '+stt(stOf(s))+'<small class="mut">'+C.covered+' of '+GROUP.length+' areas logged'+(C.covered<GROUP.length?' · missing ones are left out, not counted as zero':'')+'</small></div></div>'+bar(s,'var(--st-'+stOf(s)+')'))
   +'</div>'}
 function fvCard(){
   const d=today(),L=fvFoods(d),t=fvOf(d);
@@ -163,7 +164,7 @@ function table(C){
 // The plain list of the six areas (recs() above). js/v6-orb.js shows the same advice as the orb reading and quest cards;
 // this list is what the page falls back to if that file is missing or fails, so the advice never disappears.
 function recList(C){
-  return C.score==null?'':'<div class="card"><h3>💡 RECOMMENDATIONS</h3>'+recs(C.I,C.score).map(r=>'<p><b>'+r[0]+' '+r[1]+'</b><br>'+r[2].map(esc).join(' ')+'</p>').join('')+'<small class="mut">General wellness guidance, not medical advice.</small></div>'}
+  return C.score==null?'':'<div class="card"><h3>💡 RECOMMENDATIONS '+HWHelp.btn('recnote','About these recommendations','<p>General wellness guidance, not medical advice.</p>')+'</h3>'+recs(C.I,C.score).map(r=>'<p><b>'+r[0]+' '+r[1]+'</b><br>'+r[2].map(esc).join(' ')+'</p>').join('')+'</div>'}
 function recCard(C){
   const plain=recList(C);
   if(typeof HWOrb==='undefined')return plain;
@@ -185,7 +186,7 @@ const whatIf=C=>{if(typeof HWWhatIf==='undefined')return '';try{return HWWhatIf.
 pages.score=()=>{
   const C=compute();
   return '<h2>🏆 HEALTH SCORE</h2><p class="mut">Your logged habits, weighed into one score, with advice for each area.</p>'+head(C)+whatIf(C)+table(C)+recCard(C)+whyCard()
-   +'<div class="card"><small class="mut">Supports UN Sustainable Development Goal 3: Good Health and Well-being. HealthWiz is a wellness tracker, not a medical device.</small></div>'};
+   +'<div class="card"><small class="mut">Supports UN Sustainable Development Goal 3: Good Health and Well-being.'+HWHelp.btn('sdgnote','About HealthWiz','<p>HealthWiz is a wellness tracker, not a medical device.</p>')+'</small></div>'};
 
 acts.scw=d=>{W=d.w==='week'?'week':'day';render()};
 
@@ -194,7 +195,7 @@ BN.score=['🏆','Health Score','Every habit, weighed into one number.','rgba(24
 DIS.score='A habit score from the numbers you logged, not a diagnosis. Weights are a team judgement from public guidance. Not a medical device.';
 HUB.push(['score','🏆','Health Score','Hall of Balance',()=>{const c=compute();return c.score==null?'log to see your score':c.score+' / 100 today'}]);
 HWUI.css('score',`
-.v6sc{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:10px 0 6px}.v6scn{font:var(--px-f3,28px)/1 var(--fh);font-size:44px}.v6scd{opacity:.7}
+.v6sc{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:10px 0 6px}.v6scn{font:700 48px/1 var(--fn);font-variant-numeric:tabular-nums}.v6scd{opacity:.7}
 .v6sc div{display:flex;flex-direction:column;margin-left:8px}.v6fv{align-items:center;gap:12px}.v6why{margin:6px 0 8px 18px}.v6why li{margin:4px 0}.v6fvl{margin:6px 0 8px 18px}.v6fvl li{margin:2px 0}
 `);
 // read-only access to the goals and helpers the recommendations use, for js/v6-orb.js

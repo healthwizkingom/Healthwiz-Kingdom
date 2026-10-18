@@ -32,6 +32,10 @@ function inventory(code) {
 // docs/ARCHITECTURE_AUDIT.md. Everything else must still match the original byte for byte.
 const EDITS = [
   ['.hs{margin-left:auto;display:flex;gap:2px}', ''], // §30: the region banner no longer shows decorative hearts
+  // October 2026 design pass (docs/PIXEL_STYLE.md, docs/ARCHITECTURE_AUDIT.md §50): bundled fonts instead of Google Fonts, the
+  // type scale, the Home header grid, the status colours and the title-screen sizes. The exact windows are in
+  // 00-fidelity.edits.json; each must apply to exactly one place in the original, and nothing else may differ.
+  ...JSON.parse(read('tests/00-fidelity.edits.json')),
 ];
 
 test('markup and stylesheet are byte-identical to the original, apart from the listed deliberate edits', () => {

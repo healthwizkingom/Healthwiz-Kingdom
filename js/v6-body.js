@@ -36,7 +36,7 @@ function bmiOut(r){const el=$i('bout'),av=$i('avt');if(!el)return;
     cat=age==null?'<span class="mut">Enter your age in the energy section below to see the category.</span>':adult?'<b>WHO adult category:</b> '+bcat(b):'Under 18: adult BMI categories do not apply. Doctors use BMI-for-age percentiles for you.',
     wr=adult?'<p>Healthy weight range for your height: <b>'+Math.round(18.5*Math.pow(r.h/100,2))+'–'+Math.round(24.9*Math.pow(r.h/100,2))+' kg</b> <span class="mut">(BMI 18.5–24.9). Slow, steady change is safest; there is no deadline.</span></p>':'';
   el.innerHTML='<div class="big">'+b+' '+bmiWhy(r,b)+'</div><p>'+cat+'</p>'+(adult?'<div class="sc"><div style="width:14%;background:#6aa0d0"></div><div style="width:26%;background:#5cc05a"></div><div style="width:20%;background:#e0b040"></div><div style="width:40%;background:#d08040"></div><u style="left:'+m+'%">▼</u></div><small>Under 18.5 · 18.5–24.9 · 25–29.9 · 30+ (adult ranges)</small><br><small>Asian cut-offs (WHO): 23+ increased risk, 27.5+ high risk.</small>':'')+wr
-    +'<p class="mut">BMI is an adult screening number worked out from what you typed. It is not a diagnosis and does not describe every aspect of health.</p>';
+    ;
   if(av){const f=r.sx==='f';av.innerHTML=avatar(7,b,f)+'<p><b>'+avName(b,f)+'</b>'+HWHelp.btn('bmigame')+'</p>'}}
 
 // the "?" beside the BMI: the exact sum this page ran, with the typed numbers (js/v6-sources.js)
@@ -47,7 +47,7 @@ function bmiWhy(r,b){const m=r.h/100,m2=m*m,N=HWExplain.num;
     steps:['Height in metres: '+N(r.h,1)+' ÷ 100 = '+N(m,3)+' m','Squared: '+N(m,3)+' × '+N(m,3)+' = '+N(m2,4)+' m²','BMI: '+N(r.w,1)+' ÷ '+N(m2,4)+' = '+N(r.w/m2,3)+', rounded to one decimal'],
     result:b+' kg/m²',src:['cdcbmi','asianbmi'],
     app:'HealthWiz shows the adult category from age 18 (CDC uses 20 and older) and no adult category under 18. The healthy weight range is 18.5 × height² to 24.9 × height². The Asian action points (23 and 27.5) are shown as extra information only; the category uses the international cut-offs.',
-    limits:['BMI cannot tell muscle from fat, or where fat is stored.','It does not diagnose any condition. Under 18, doctors use BMI-for-age percentiles instead.','The result is only as accurate as the height and weight you typed.']})}
+    limits:['BMI is an adult screening number worked out from what you typed. It is not a diagnosis and does not describe every aspect of health.','BMI cannot tell muscle from fat, or where fat is stored.','It does not diagnose any condition. Under 18, doctors use BMI-for-age percentiles instead.','The result is only as accurate as the height and weight you typed.']})}
 
 /* the "?" beside the daily energy goal, the macronutrients and the water goal: computeGoals() (js/hw-05) and mref() (js/hw-06),
    step by step with the typed profile. g is the preview's goals, so the numbers match the page. */
@@ -66,7 +66,7 @@ function energyWhy(r,g){const N=HWExplain.num,m=r.sx==='m',an=(ACTN().find(x=>x[
     vars:[['W','weight','kg'],['H','height','cm'],['A','age','years'],['BMR','energy used at rest','kcal/day'],['TDEE','total daily energy expenditure','kcal/day']],
     steps,result:g.kcal+' kcal a day',src:['mifflin','cdcbmi','faopal','hall'],
     app:'The activity factor is a physical activity level (PAL) from the FAO/WHO/UNU report: sedentary or light 1.40–1.69, active or moderately active 1.70–1.99, vigorous 2.00–2.40. HealthWiz uses the middle of each range (1.55, 1.85, 2.2); the report gives ranges, not one value, and the middle is HealthWiz\'s choice. The surplus (+300 kcal, at most +15%) and deficit (−400 kcal, at most −20%, never below BMR or 1,500 / 1,200 kcal) are HealthWiz\'s own cautious rules, not values from a study.',
-    limits:['Mifflin-St Jeor predicts resting energy for groups of adults; one person can differ by a few hundred kcal.','It was derived in adults aged 19–78, so under 19 it is a rough guide only.','The activity factor is a broad guess about your whole day.','FAO defines PAL against its own basal rate equations; HealthWiz multiplies it by the Mifflin-St Jeor resting rate, so the result is an estimate.']})}
+    limits:['These are estimates (Mifflin-St Jeor), not medical prescriptions.','Mifflin-St Jeor predicts resting energy for groups of adults; one person can differ by a few hundred kcal.','It was derived in adults aged 19–78, so under 19 it is a rough guide only.','The activity factor is a broad guess about your whole day.','FAO defines PAL against its own basal rate equations; HealthWiz multiplies it by the Mifflin-St Jeor resting rate, so the result is an estimate.']})}
 function macroWhy(r,g,R){const N=HWExplain.num,K=g.kcal,kid=r.a<19,cap=(kid?.30:.35)*K/4;
   return HWExplain.btn('xmacro','How your macronutrient goals are worked out',{ev:'macro',what:'Grams of protein, carbohydrate, fat and fiber that fit your daily energy goal.',
     inputs:[{n:'Daily energy goal',v:K,u:'kcal',o:'calc',d:0},{n:'Weight',v:r.w,u:'kg',o:'you',d:1},{n:'Age',v:r.a,u:'years',o:'you',d:0}],
@@ -96,7 +96,6 @@ function energyOut(r){const el=$i('eout');if(!el)return;
     +'<h3 style="margin-top:14px">DAILY ENERGY GOAL '+energyWhy(r,g)+'</h3>'+[['m','Maintain',g.tdee],['s','Surplus (≈ +300)',g.sur],['d','Deficit (≈ −400)',g.def]].map(x=>'<div class="kopt'+(x[0]===g.mode?' on':'')+'"><span>'+x[1]+(x[0]===g.mode?' <span class="tag m">RECOMMENDED</span>':'')+'</span><b class="num">'+(g.minor&&x[0]!=='m'?'not suggested under 18':r10(x[2])+' kcal/day')+'</b></div>').join('')
     +'<p>'+why+'</p>'
     +(g.minor?'<div class="warn">Under 18: you are still growing, so this adult formula may not fit. Please ask a doctor or dietitian before changing how much you eat.</div>':'')
-    +'<p class="mut">These are estimates (Mifflin-St Jeor), not medical prescriptions.</p>'
     +(on?'<p class="mut">✓ These goals are active across the Health Hall.</p>':'<div class="warn">Not saved yet. Press the button below to update every goal.</div>')
     +'<button data-a="usecal" style="width:100%">SAVE PROFILE & UPDATE ALL GOALS</button>'})}
 function macroOut(r){const el=$i('mout');if(!el)return;

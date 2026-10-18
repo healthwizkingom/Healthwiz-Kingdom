@@ -200,7 +200,7 @@ function drawFit(){const c=$('ppg-fit');if(!c||!R)return;const{x,W,H}=setup(c),w
   mx=Math.max(1e-6,...y.map(Math.abs)),X=t=>(t-tS)/span*W,Y=v=>H*.58-v/mx*H*.3;
   x.lineWidth=2;x.strokeStyle='#ff6b5e';x.beginPath();y.forEach((v,i)=>{const px=X(tS+i/FS);i?x.lineTo(px,Y(v)):x.moveTo(px,Y(v))});x.stroke();
   x.setLineDash([4,3]);x.strokeStyle='#f2c14e';x.lineWidth=1.5;x.beginPath();for(let i=0;i<=n;i++){const t=tS+i/FS,v=R.A*Math.cos(2*Math.PI*R.f*(t-R.tp));i?x.lineTo(X(t),Y(v)):x.moveTo(X(t),Y(v))}x.stroke();x.setLineDash([]);
-  const pk=R.peaks.filter(t=>t>=tS&&t<=tS+span);x.fillStyle='#fffbea';x.font='bold 11px ui-monospace,Menlo,Consolas,monospace';
+  const pk=R.peaks.filter(t=>t>=tS&&t<=tS+span);x.fillStyle='#fffbea';x.font='bold 11px system-ui,sans-serif';
   if(pk.length>=2){const a=pk[pk.length-2],b=pk[pk.length-1],ya=12;x.fillRect(Math.round(X(a)),ya,Math.max(1,Math.round(X(b)-X(a))),2);x.fillRect(Math.round(X(a)),ya-4,2,10);x.fillRect(Math.round(X(b))-2,ya-4,2,10);
     const m=HWStairs.pulseSHM(R.bpm),lab='T = '+m.T.toFixed(2)+' s',mid=(X(a)+X(b))/2;x.fillText(lab,Math.max(2,Math.min(W-x.measureText(lab).width-2,mid-x.measureText(lab).width/2)),ya+16)}}
 function draw(){drawLive();drawFit()}
@@ -228,11 +228,11 @@ addEventListener('pagehide',()=>{gen++;stopCam()});
 
 HWUI.css('ppg',`
 .ppg{margin:0 0 12px;padding:10px;border:var(--px-bw-c) solid var(--ln);background:var(--p2);box-shadow:var(--px-sh-c)}
-.ppgrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}.ppgrow>b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fh)}
+.ppgrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}.ppgrow>b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fl)}
 .ppgrow .ppgbtn{flex:1 1 auto}.ppg button{min-height:44px}.ppg .hwh{min-height:0}
 .ppgbtn{display:flex;align-items:center;justify-content:center;gap:8px}
 .ppgmsg{margin:8px 0}.ppgtgt{margin:6px 0;font-size:14px}.ppgc{width:100%;height:120px;display:block;border:3px solid var(--ln);image-rendering:pixelated;margin:8px 0}.ppgfit{height:110px}
-.ppgline{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px;margin:4px 0}.ppgbpm{font:var(--px-f3)/1.2 var(--fh)}.ppgleft{margin-left:auto;font-size:14px}
+.ppgline{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px;margin:4px 0}.ppgbpm{font:700 var(--px-f3)/1.2 var(--fn)}.ppgleft{margin-left:auto;font-size:14px}
 .ppgq{height:10px;border:2px solid var(--ln);background:var(--pn);margin:6px 0 2px}.ppgq i{display:block;height:100%;background:var(--grn)}
 .ppgres{display:block}.ppgres p{margin:6px 0;overflow-wrap:anywhere}.ppgbased{font-weight:600}
 .ppgbtns{margin:8px 0}.ppgbtns button{flex:1 1 120px;display:flex;align-items:center;justify-content:center;gap:6px}

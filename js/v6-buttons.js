@@ -28,7 +28,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 `);
 function jump(h,before,id,label){const i=h.indexOf(before);if(i<0)return h;
   return h.slice(0,i)+'<button type="button" class="hwjump" data-a="hwjump" data-t="'+id+'">'+label+' ↓</button>'+h.slice(i)}
-acts.hwjump=d=>{const el=document.getElementById(d.t),c=el&&(el.closest('.card')||el);if(!c)return;
+acts.hwjump=d=>{const el=document.getElementById(d.t),c=el&&(el.closest('.card,.pxp')||el);if(!c)return;
   c.scrollIntoView({block:'start',behavior:HWUI.reduced()?'auto':'smooth'});
   const f=c.querySelector('input,select,button:not(.hwwb)');if(f)try{f.focus({preventScroll:true})}catch(e){}};
 {const p=pages.sleep;pages.sleep=function(){return jump(p.apply(this,arguments),'<div class="card" id="dbatc">','slb','🛏️ LOG LAST NIGHT\'S SLEEP')}}

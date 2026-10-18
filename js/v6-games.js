@@ -29,9 +29,9 @@ HWUI.css('games',`
 .v6g.out{animation:v6gout .22s steps(4) forwards}
 @keyframes v6gin{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 0 0)}}@keyframes v6gout{to{clip-path:inset(100% 0 0 0)}}
 .v6ghud{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--pn);border-bottom:4px solid var(--ln);flex:0 0 auto}
-.v6ghud .ic{font-size:22px;line-height:1}.v6ghud b{font:9px/1.5 var(--fh);flex:1 1 auto;min-width:0}
+.v6ghud .ic{font-size:22px;line-height:1}.v6ghud b{font:12px/1.5 var(--fl);flex:1 1 auto;min-width:0}
 .v6ghud .v6gx{min-width:40px;min-height:40px;flex:0 0 auto} /* step 25 (§81, §94): the way out is a comfortable touch target */
-.v6gst{font:7px/1.6 var(--fh);color:var(--mut);text-align:right;max-width:46%}
+.v6gst{font:12px/1.6 var(--fl);color:var(--mut);text-align:right;max-width:46%}
 .v6gbody{flex:1 1 auto;overflow:auto;display:flex;flex-direction:column;align-items:center;padding:10px;gap:10px}
 .v6gs{position:relative;flex:0 0 auto;width:min(720px,100%,calc((100vh - 230px) * 1.45));min-width:min(280px,100%);aspect-ratio:3/2;border:4px solid var(--ln);box-shadow:4px 4px 0 var(--ln);overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:manipulation;background:#5c9e4a}
 .v6gs *{box-sizing:border-box}
@@ -47,11 +47,11 @@ HWUI.css('games',`
 .v6gch .pr{position:absolute;right:-30%;bottom:18%;width:40%;aspect-ratio:1;background:#8a5a2b;border:2px solid #2b2418;border-top-width:4px;display:none}
 .v6gch.carry .pr,.v6gch.full .pr{display:block}.v6gch.full .pr{background:linear-gradient(#5fb4ec 0 40%,#8a5a2b 40%)}
 @keyframes v6gbr{50%{transform:translateY(-4%)}}@keyframes v6gwk{50%{transform:translateY(-9%) rotate(-3deg)}}@keyframes v6gjp{50%{transform:translateY(-30%)}}
-.v6gbub{position:absolute;z-index:6;transform:translate(-50%,-100%);background:var(--pn);color:var(--ink);border:3px solid var(--ln);padding:4px 7px;font:7px/1.6 var(--fh);white-space:nowrap;pointer-events:none;animation:v6gpop .9s steps(4) forwards}
+.v6gbub{position:absolute;z-index:6;transform:translate(-50%,-100%);background:var(--pn);color:var(--ink);border:3px solid var(--ln);padding:4px 7px;font:12px/1.6 var(--fl);white-space:nowrap;pointer-events:none;animation:v6gpop .9s steps(4) forwards}
 @keyframes v6gpop{0%{opacity:0;margin-top:6px}20%{opacity:1;margin-top:0}80%{opacity:1}100%{opacity:0;margin-top:-10px}}
 .v6gdone{width:min(460px,100%);text-align:center;background:var(--pn);border:4px solid var(--ln);box-shadow:4px 4px 0 var(--ln);padding:14px;position:relative}
-.v6gdone .ic{font-size:40px;line-height:1.1}.v6gdone h3{font:10px/1.6 var(--fh);margin:6px 0}.v6gdone p{margin:6px 0}
-.v6gdone .xp{font:9px/1.6 var(--fh);color:var(--grn)}.v6gdone .fd{border:3px dashed var(--gold);padding:8px;margin:10px 0;text-align:left}
+.v6gdone .ic{font-size:40px;line-height:1.1}.v6gdone h3{font:16px/1.6 var(--fl);margin:6px 0}.v6gdone p{margin:6px 0}
+.v6gdone .xp{font:12px/1.6 var(--fl);color:var(--grn)}.v6gdone .fd{border:3px dashed var(--gold);padding:8px;margin:10px 0;text-align:left}
 .v6gdone .hero{width:48px;margin:0 auto;display:block;image-rendering:pixelated;animation:v6gjp .45s steps(3) 3}
 .v6gdone .row{justify-content:center;margin-top:10px}
 .v6glc .v6gli{font-size:30px;line-height:1}.v6glc .row{align-items:center;flex-wrap:nowrap}.v6glc button{margin-top:8px}
