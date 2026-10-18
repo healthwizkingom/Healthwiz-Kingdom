@@ -176,7 +176,7 @@ HWUI.css('alchemy',`
 .alres{margin:10px 0 0;padding:8px;border:3px solid var(--ln);background:var(--p2)}.alres p{margin:4px 0}.alnum{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.alnum b{font:700 16px var(--fb)}
 .alsaved{margin:8px 0 0;padding:6px 8px;border:2px dashed var(--ln);font-size:13px}
 .alcrs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:8px 0}@media(max-width:700px){.alcrs{grid-template-columns:minmax(0,1fr)}}
-.alcr{display:flex;gap:10px;padding:10px;border:3px solid var(--ln);background:var(--p2);min-width:0}.alcr>div{min-width:0}.alcr>div>b{display:block;font:8px/1.6 var(--fh)}.alwhat{display:block;font-size:12px;color:var(--mut);margin:2px 0 6px}
+.alcr{display:flex;gap:10px;padding:10px;border:3px solid var(--ln);background:var(--p2);min-width:0}.alcr>div{min-width:0}.alcr>div>b{display:block;font:12px/1.6 var(--fl)}.alwhat{display:block;font-size:12px;color:var(--mut);margin:2px 0 6px}
 .alg{flex:0 0 22px;height:28px;margin-top:2px;background:var(--c);clip-path:polygon(50% 0,100% 28%,100% 72%,50% 100%,0 72%,0 28%);box-shadow:inset -4px -4px 0 rgba(0,0,0,.25),inset 4px 4px 0 rgba(255,255,255,.3)}
 .alcr.f{--c:var(--gold)}.alcr.w{--c:var(--blue)}.alcr.m{--c:var(--vio)}.alas{display:block;font-size:12px;margin-top:4px}
 .alscale{margin-top:8px;padding:8px;border:3px solid var(--ln);background:var(--pn)}

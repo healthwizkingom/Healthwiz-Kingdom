@@ -1680,3 +1680,33 @@ Luna replaces Medius in the event speech bubbles; the art is a hand-placed pixel
 - **Tests:** `tests/67-addfood.test.mjs` updated to the new poses, expressions and sizes, with a new test that Meet Luke
   steps through all 22 figures and shows seven things. Its "Luke is Luke" test also fails on `main` when the whole file runs
   (a console error from a sandboxed iframe) and passes on its own.
+
+## October 2026 design pass: type, fonts, status colours, disclaimers behind "?" (§50)
+
+Owner brief: improve the visual design and typography without rebuilding anything; keep every feature, value and label.
+The system and the evidence for the font choice are in `docs/PIXEL_STYLE.md` ("Design system"); the disclaimer inventory is in
+`docs/DISCLAIMERS.md`; the five-second test script is `docs/FIVE_SECOND_TEST.md`.
+
+* **Fonts:** Press Start 2P (headings, 16 and 24 px) and Pixelify Sans (labels, buttons, tabs, 12 and 16 px), both SIL OFL 1.1,
+  bundled in `assets/fonts/` with their licence texts, `@font-face` in `index.html`, in the `sw.js` precache and embedded by
+  `tools/build-standalone.mjs`. The Google Fonts link and the service worker's font caching are gone. Health numbers and body
+  text use the system sans; the monospace voice is removed (`--fm` aliases `--fn`).
+* **Original stylesheet edits:** the original head of `index.html` is guarded byte for byte by `tests/00-fidelity.test.mjs`. The
+  design pass changes it in 28 places (the font link and `@font-face`, the pixel-font sizes moved onto the scale, the Home
+  header grid, the status tokens and `.stt` tag, the title-screen sizes, the footer spacing and the chart-label spacing). The
+  exact windows are listed in `tests/00-fidelity.edits.json`; each must still apply to exactly one place in the original and
+  nothing else may differ. Regenerate the file when the head changes again.
+* **Status set:** `stt()` and `progStatus()` in `js/hw-04-part.js` (Home tiles for water and calories) and `stOf()` in
+  `js/v6-score.js` (Health Score). No score formula, threshold or band word changed.
+* **Disclaimers:** every page footer is "Wellness tracker, not a medical device" plus a "?"; inline notes moved into their own "?".
+  Wording is unchanged; the printed report keeps its footer.
+* **Tests:** new `tests/69-disclaimers.test.mjs`; `29`, `49`, `51`, `64`, `68` now open the "?" to read the moved text;
+  `20-pwa` also checks that `assets/fonts/` is pre-cached; `00-fidelity` reads its edit list from `00-fidelity.edits.json`.
+* **Measured results (audit script, 63 page/size/theme runs, offline):** pixel-font items off the 8 px grid 2,646 before, 0 after
+  (the last one, the 12 px wordmark in the profile card, was moved to 16 px); monospace items 192 before, 0 after; clipped text
+  244 before, 0 after; font families in use 3 before, 2 pixel faces plus the system sans after. The remaining "tab labels touch"
+  reports are at 768 px wide, where the tabs are a vertical sidebar, not a row. `docs/screenshots/design-pass/` holds before and
+  after screenshots (Home, Stairs, Kingdom, Health Score, Water; 360 and 390 px; three themes) and an offline first-visit shot.
+* **Full `npm test`:** 489 tests, 484 pass, 3 skipped. The failing ones differ from run to run (the Luke guess-icon test, the
+  camera-mixed test, the water "one action, one write" test, a theme reload) and each passes when run alone; the Luke test also
+  fails intermittently on the untouched original.

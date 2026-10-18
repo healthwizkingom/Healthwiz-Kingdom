@@ -136,7 +136,7 @@ HWUI.css('storm',`
 @keyframes st6dt{0%{transform:translateX(0)}35%{transform:translateX(-1px)}70%{transform:translateX(1px)}}
 .stpo{position:absolute;left:8px;top:8px;z-index:7;width:96px;padding:0;background:#2b2418;border:3px solid var(--ln);box-shadow:3px 3px 0 rgba(0,0,0,.35),inset 0 0 0 2px var(--gold);line-height:0}
 .stpo svg{display:block;width:100%;height:auto;image-rendering:pixelated;background:linear-gradient(#34465f,#4d6683)}
-.stpo b{display:block;font:7px/1.6 var(--fh);color:#f6edcf;background:#2b2418;text-align:center;padding:2px 2px 1px;letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stpo b{display:block;font:12px/1.6 var(--fl);color:#f6edcf;background:#2b2418;text-align:center;padding:2px 2px 1px;letter-spacing:0;line-height:1.3;white-space:normal;overflow-wrap:anywhere}
 .stau{position:absolute;left:calc(50% - 80px);bottom:10%;width:160px;height:120px;z-index:3;pointer-events:none}
 .stau i{position:absolute;inset:0;border-radius:50%;transition:opacity .9s ease}
 .stau i:first-child{background:radial-gradient(closest-side,rgba(255,226,122,.55),rgba(255,226,122,0));opacity:calc(1 - var(--sv,0)*1.4)}
@@ -145,8 +145,8 @@ HWUI.css('storm',`
 .stfl:before{content:"";position:absolute;left:3px;bottom:0;width:2px;height:12px;background:#2f7a38}
 .stfl u{position:absolute;left:0;top:0;width:8px;height:6px;background:#f2c14e;box-shadow:inset 2px 0 #e86a5a,inset -2px 0 #e86a5a;filter:saturate(calc(1 - var(--sv,0)*.85)) brightness(calc(1 - var(--sv,0)*.3));transition:filter 1s ease;animation:st6fl 3.4s ease-in-out infinite alternate;animation-delay:calc(-1 * var(--fd,0s));transform-origin:50% 100%}
 @keyframes st6fl{to{transform:rotate(8deg)}}
-.st6w{font:8px/1.6 var(--fh);margin:-4px 0 8px}.st6w b{color:var(--vio)}
-@media(max-width:520px){.stpo{width:72px}.stpo b{font-size:6px}.qs.st6 .qh.stk{width:80px;left:calc(50% - 40px)}}
+.st6w{font:12px/1.6 var(--fl);margin:-4px 0 8px}.st6w b{color:var(--vio)}
+@media(max-width:520px){.stpo{width:72px}.stpo b{font-size:12px}.qs.st6 .qh.stk{width:80px;left:calc(50% - 40px)}}
 @media(prefers-reduced-motion:reduce){.stp,.stfl,.sf *{transition:none!important}}
 html.hw-q-performance .stfl u,html.hw-q-performance .st6hi .sf .sfd{animation:none}
 `);

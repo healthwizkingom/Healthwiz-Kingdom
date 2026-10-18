@@ -39,7 +39,8 @@ test('EXERCISE tile sits beside Stairs, shows today\'s minutes and kcal, and ope
   assert.equal(await page.evaluate(() => S.v), 'exercise');
   assert.equal(await page.textContent('main .bn b'), 'Training Hall');
   assert.equal((await state(page)).e.length, n, 'opening logs nothing');
-  assert.match(await page.textContent('.dis'), /not medical advice[\s\S]*estimates from MET values[\s\S]*chest pain, dizziness or faintness/);
+  await page.click('.dis .hwh'); // the footer note sits behind its "?"
+  assert.match(await page.evaluate(() => document.getElementById('hwh-pop').textContent), /not medical advice[\s\S]*estimates from MET values[\s\S]*chest pain, dizziness or faintness/); await page.keyboard.press('Escape');
   // the history row reads well
   assert.equal(await page.evaluate(() => UNIT.exercise), 'min');
   assert.match(await page.evaluate(() => desc(st.e[0])), /Training: Squat, 2 sets · 8\/8 reps/);
@@ -320,7 +321,8 @@ test('Running Road is on the Training Hall: the goal and muscle screens, not dur
   assert.match(await page.textContent('#xrun-s'), /RUNNING ROAD[\s\S]*DISTANCE[\s\S]*TIME[\s\S]*AVG PACE/);
   assert.equal(await page.locator('#v6run [data-a="runstart"]').count(), 1);
   assert.equal(await page.locator('#xrun-s').evaluate(e => !!e.closest('.xwrap')), false, 'outside the training steps');
-  assert.match(await page.textContent('.dis'), /Running: General exercise tracker/);
+  await page.click('.dis .hwh');
+  assert.match(await page.evaluate(() => document.getElementById('hwh-pop').textContent), /Running: General exercise tracker/); await page.keyboard.press('Escape');
   await page.click('[data-a="xgoal"][data-k="hyp"]'); await page.click('[data-a="xnext"]');
   assert.equal(await page.locator('#xrun-h').count(), 1, 'also under the muscle and move screen');
   await page.locator('.xlist summary').click(); await page.click('.xchips [data-a="xmus"][data-m="biceps"]'); await page.click('[data-a="xstart"]');

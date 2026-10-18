@@ -91,7 +91,7 @@ function dayRow(x){const t=today(),past=x.d<t,isT=x.d===t,p=x.plan;let state,act
   return '<li class="plrow'+(isT?' now':'')+'"><span class="pld">'+DAYS[x.day]+(isT?' <small>today</small>':'')+'</span><span class="pls">'+state+'</span><span class="pla">'+acts+'</span></li>'}
 function card(){const p=get();
   if(!p&&!edit)return '<div class="card plcard" id="plcard"><h3>'+ico('map')+' MY STAIR PLAN</h3><p>Plan a gentle week of stair sessions: you pick the days and the minutes, and rest days stay rest days.</p>'
-    +'<p class="mut">Optional. Not a medical prescription.</p><button type="button" data-a="plnew">MAKE A PLAN</button></div>';
+    +'<p class="mut">Optional. '+HWHelp.btn('plnote','About the stair plan','<p>Not a medical prescription.</p>')+'</p><button type="button" data-a="plnew">MAKE A PLAN</button></div>';
   if(edit)return '<div class="card plcard" id="plcard"><h3>'+ico('map')+' MY STAIR PLAN</h3>'+setup()+'</div>';
   const L=sessions(p),c=cond(),n=L.filter(x=>x.plan).length,d=L.filter(x=>x.plan&&x.done.length).length;
   HWHelp.reg('plan-why','How your stair plan is made',why(p));

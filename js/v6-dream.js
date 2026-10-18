@@ -283,10 +283,10 @@ HWUI.css('dream',`
 .db6 .db6sm i{position:absolute;width:40%;height:40%;background:#8a8494;border-radius:50%;opacity:0;animation:db6smk .9s ease-out forwards}
 .db6 .db6sm i:nth-child(2){left:40%;top:20%;animation-delay:.1s}.db6 .db6sm i:nth-child(3){left:10%;top:50%;animation-delay:.2s}.db6 .db6sm i:nth-child(4){left:60%;top:60%;animation-delay:.15s}
 @keyframes db6smk{0%{opacity:.9;transform:scale(.4)}100%{opacity:0;transform:scale(2.4) translateY(-40%)}}
-.db6 .db6z{position:absolute;left:58%;top:6%;font:12px var(--fh);color:#cfe0ff;z-index:6;animation:zk 3s linear infinite;animation-delay:var(--l,0s)}
+.db6 .db6z{position:absolute;left:58%;top:6%;font:16px var(--fl);color:#cfe0ff;z-index:6;animation:zk 3s linear infinite;animation-delay:var(--l,0s)}
 .db6 .db6fx{position:absolute;inset:0;z-index:9;pointer-events:none}
-.db6 .db6pop{position:absolute;font:12px/1 var(--fh);color:#fff;text-shadow:2px 2px 0 #2b1a10;animation:db6pp 1s steps(8) forwards;white-space:nowrap}
-.db6 .db6pop.d-big{font-size:16px;color:#ffe27a}.db6 .db6pop.d-dmg{color:#ff8a7a}.db6 .db6pop.d-blk{color:#8fd4ff;font-size:9px}
+.db6 .db6pop{position:absolute;font:16px/1 var(--fl);color:#fff;text-shadow:2px 2px 0 #2b1a10;animation:db6pp 1s steps(8) forwards;white-space:nowrap}
+.db6 .db6pop.d-big{font-size:16px;color:#ffe27a}.db6 .db6pop.d-dmg{color:#ff8a7a}.db6 .db6pop.d-blk{color:#8fd4ff;font-size:12px}
 @keyframes db6pp{0%{opacity:0;transform:translateY(6px) scale(.6)}20%{opacity:1;transform:translateY(0) scale(1.1)}100%{opacity:0;transform:translateY(-34px)}}
 .db6 .db6sl{position:absolute;left:52%;top:22%;width:16%;height:34%;border-right:5px solid #fff;border-radius:0 60% 60% 0;transform:rotate(25deg);opacity:0;animation:db6sl .4s ease-out forwards;filter:drop-shadow(0 0 4px #ffe27a)}
 .db6 .db6sl.d-big{width:22%;height:46%;border-right-width:8px;left:49%;top:16%}
@@ -299,24 +299,24 @@ HWUI.css('dream',`
 @keyframes wq6mo{0%,100%{transform:translate(0,0);opacity:0}30%{opacity:1}50%{transform:translate(14px,-18px)}80%{opacity:.6}}
 .db6hud{position:absolute;left:8px;right:8px;top:8px;z-index:12;display:flex;justify-content:space-between;gap:8px;pointer-events:none}
 .db6hud>div{background:rgba(10,8,18,.78);border:2px solid #fff;padding:4px 6px;color:#fff;min-width:0;width:min(40%,190px)}
-.db6hud .d-rd{white-space:nowrap;width:auto;background:none;border:0;font:8px/1.6 var(--fh);color:#ffe27a;align-self:center;padding:0}
-.db6hud b{display:block;font:7px/1.6 var(--fh);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.db6hud small{font:7px/1.6 var(--fh);color:#cfc8e0}
+.db6hud .d-rd{white-space:nowrap;width:auto;background:none;border:0;font:12px/1.6 var(--fl);color:#ffe27a;align-self:center;padding:0}
+.db6hud b{display:block;font:12px/1.6 var(--fl);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.db6hud small{font:12px/1.6 var(--fl);color:#cfc8e0}
 .db6bar{display:block;height:8px;border:2px solid #000;background:#2a2632;margin:2px 0}
 .db6bar i{display:block;height:100%;transition:width .5s steps(6)}
 .db6bar.d-en i{background:repeating-linear-gradient(90deg,#f2c14e 0 6px,#d9a02e 6px 8px)}.db6bar.d-hp i{background:repeating-linear-gradient(90deg,#e0483f 0 6px,#b0302a 6px 8px)}
-.db6 .db6lb{position:absolute;left:8px;bottom:8px;z-index:12;font:8px var(--fh);color:#fff;background:rgba(0,0,0,.6);border:2px solid #fff;padding:3px 6px}
+.db6 .db6lb{position:absolute;left:8px;bottom:8px;z-index:12;font:12px var(--fl);color:#fff;background:rgba(0,0,0,.6);border:2px solid #fff;padding:3px 6px}
 .db6.d-won .db6lb{border-color:#f2c14e;color:#f2c14e}.db6.d-lost .db6lb{border-color:#d9453d}
-.db6 .db6rw{position:absolute;right:8px;bottom:8px;z-index:12;display:flex;align-items:center;gap:6px;font:8px/1.4 var(--fh);color:#2b2418;background:#f2c14e;border:2px solid #2b2418;padding:3px 6px;animation:pgin .3s steps(4)}
+.db6 .db6rw{position:absolute;right:8px;bottom:8px;z-index:12;display:flex;align-items:center;gap:6px;font:12px/1.4 var(--fl);color:#2b2418;background:#f2c14e;border:2px solid #2b2418;padding:3px 6px;animation:pgin .3s steps(4)}
 #dbatc{position:relative}
-.db6skip{position:absolute;z-index:13;min-height:44px;min-width:44px;padding:6px 12px;font:8px/1.4 var(--fh);color:#fff;background:rgba(10,8,18,.82);border:2px solid #fff;cursor:pointer}
+.db6skip{position:absolute;z-index:13;min-height:44px;min-width:44px;padding:6px 12px;font:12px/1.4 var(--fl);color:#fff;background:rgba(10,8,18,.82);border:2px solid #fff;cursor:pointer}
 .db6skip:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .db6sc{position:relative;margin:14px 0 2px;height:14px}
 .db6sc .d-tr{display:flex;height:10px;border:2px solid var(--ln)}
 .db6sc .d-tr i{display:block;height:100%}.db6sc .d-z0{background:#7a2a3a}.db6sc .d-z1{background:#b0503a}.db6sc .d-z2{background:#d9a02e}.db6sc .d-z3{background:#5cc05a}.db6sc .d-z4{background:#f2c14e}
 .db6sc .d-mk{position:absolute;top:-4px;width:4px;height:20px;margin-left:-2px;background:var(--ink);box-shadow:0 0 0 2px var(--pn)}
-.db6sc .d-vt{position:absolute;top:-2px;height:16px;border-left:2px dashed var(--ink)}.db6sc .d-vt span{position:absolute;top:-12px;left:-10px;font:6px var(--fh)}
-.db6tl{display:flex;justify-content:space-between;font:6px/1.6 var(--fh);color:var(--mut);margin-bottom:6px;gap:2px}
-@media(max-width:420px){.db6hud b{font-size:6px}.db6hud>div{width:44%}}
+.db6sc .d-vt{position:absolute;top:-2px;height:16px;border-left:2px dashed var(--ink)}.db6sc .d-vt span{position:absolute;top:-12px;left:-10px;font:12px var(--fl)}
+.db6tl{display:flex;justify-content:space-between;font:12px/1.6 var(--fl);color:var(--mut);margin-bottom:6px;gap:2px}
+@media(max-width:420px){.db6hud b{font-size:12px}.db6hud>div{width:44%}}
 @media(prefers-reduced-motion:reduce){.db6 .db6moon,.db6 .db6pr .pa-dn,.db6 .db6pr.d-free,.db6 .db6tg,.db6 .db6fl i,.db6 .db6sd,.db6 .db6au,.db6 .db6z,.db6 .db6mo i,.db6 .db6mo u{animation:none!important}.db6 .db6ch,.db6 .db6gate{transition:none!important}.db6 .db6mo{display:none}}
 html.hw-q-performance .db6 .db6mo i:nth-child(2n),html.hw-q-performance .db6 .db6moon{display:none}html.hw-q-performance .db6 .db6sd,html.hw-q-performance .db6 .db6au{animation:none}
 `);

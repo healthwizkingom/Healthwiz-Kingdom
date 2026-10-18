@@ -107,7 +107,7 @@ function inner(C){
     +'<div class="wifsec"><h4>'+ico('chart')+' HOW EACH INDICATOR CONTRIBUTES</h4><div id="wif-tbl">'+table(C,S)+'</div>'
     +'<small class="mut">Points are each indicator\u2019s share of the score (weight \u00d7 sub-score \u00f7 total weight). Removing or adding an indicator changes the total weight, so every share moves.</small></div>'
     +'<div class="wifsec"><h4>'+ico('scroll')+' THE ARITHMETIC</h4><p id="wif-math">'+math(S)+'</p>'
-    +'<small class="mut">Same formula and weights as your real Health Score. A habit summary, not a medical diagnosis or a validated clinical risk score.</small></div></div></div>'}
+    +'<small class="mut">Same formula and weights as your real Health Score.</small></div></div></div>'}
 
 /* ---------- paint ---------- */
 let rafId=0,shown=null,lastD=null;
@@ -156,7 +156,7 @@ HWUI.css('whatif',`
 .wifring:before,.wifring:after{content:'';position:absolute;inset:0;border:3px dashed var(--c,#8fe9c8)}.wifring:after{transform:rotate(45deg) scale(.72)}
 .wifsp{position:relative;display:block;filter:drop-shadow(0 0 8px #8fe9c8)}.wifsp svg{display:block}
 .wifheart{position:absolute;right:-2px;bottom:4px}.wifheart svg{display:block;filter:drop-shadow(0 0 5px #ff6b5e)}
-.wiftx{position:relative;min-width:0;flex:1 1 auto}.wiftx h3{margin:0 0 6px;font-size:11px;line-height:1.7;color:#fff6c0;text-shadow:2px 2px 0 #06090d;display:flex;flex-wrap:wrap;align-items:center;gap:6px}.wiftx p{margin:0;font-size:13px;color:#d6def0}
+.wiftx{position:relative;min-width:0;flex:1 1 auto}.wiftx h3{margin:0 0 6px;font-size:12px;line-height:1.7;color:#fff6c0;text-shadow:2px 2px 0 #06090d;display:flex;flex-wrap:wrap;align-items:center;gap:6px}.wiftx p{margin:0;font-size:13px;color:#d6def0}
 .wifbody{padding:12px}
 .wifbody .mut,.wif .mut{color:#b9c3d6}
 .wifopen{width:100%;min-height:52px;margin:8px 0;display:flex;align-items:center;justify-content:center;gap:10px;font-size:13px;letter-spacing:.08em;box-shadow:3px 3px 0 #06090d,0 0 14px rgba(242,193,78,.55)}
@@ -173,14 +173,14 @@ HWUI.css('whatif',`
 .wiford.real .wiffill{opacity:.55}
 .wifin .v6scn{position:relative;z-index:1;font-size:26px;color:#fff;text-shadow:2px 2px 0 #06090d,-1px -1px 0 #06090d}.wiford.sim .v6scn{font-size:36px}
 .wiford .wifring{position:absolute;inset:0}.wiford .wifring:before,.wiford .wifring:after{border-color:var(--c);opacity:.7}
-.wiflab{font-size:12px;line-height:1.4}.wiflab b{font:9px/1.6 var(--fh)}.wiflab .v6scd{opacity:.7}.wiflab small{display:block;color:#b9c3d6;font-size:11px}
+.wiflab{font-size:12px;line-height:1.4}.wiflab b{font:12px/1.6 var(--fl)}.wiflab .v6scd{opacity:.7}.wiflab small{display:block;color:#b9c3d6;font-size:12px}
 .wifarrow svg{display:block;filter:drop-shadow(0 0 5px #f2c14e)}
 .wiford.flash .wifglass{animation:wifflash .5s steps(5)}@keyframes wifflash{30%{filter:drop-shadow(0 0 22px var(--c)) brightness(1.4)}}
-.wifdiff{grid-column:1/-1;text-align:center;font:9px/1.7 var(--fh);padding:7px;border:3px solid #06090d;background:#22306b;color:#f6edcf}.wifdiff.up{border-color:#5cc05a;color:#c8f5c4}.wifdiff.dn{border-color:#4db3ff;color:#cfe8ff}
+.wifdiff{grid-column:1/-1;text-align:center;font:12px/1.7 var(--fl);padding:7px;border:3px solid #06090d;background:#22306b;color:#f6edcf}.wifdiff.up{border-color:#5cc05a;color:#c8f5c4}.wifdiff.dn{border-color:#4db3ff;color:#cfe8ff}
 .wifnote{font-size:12px;color:#b9c3d6;margin:4px 0 8px}
 .wifbtns{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}.wifbtns button{flex:1 1 150px;min-height:44px}
 .wifg{border:3px solid var(--a);margin:0 0 14px;padding:8px 10px 10px;min-width:0;background:#0e1840;box-shadow:0 0 7px var(--a)}
-.wifg legend{font:8px/1.6 var(--fh);padding:0 6px;display:inline-flex;align-items:center;gap:6px;color:#fff6c0}.wifw{font:11px var(--fb);color:#b9c3d6}
+.wifg legend{font:12px/1.6 var(--fl);padding:0 6px;display:inline-flex;align-items:center;gap:6px;color:#fff6c0}.wifw{font:12px var(--fb);color:#b9c3d6}
 .wifmed{display:inline-grid;place-items:center;width:26px;height:26px;background:#06090d;border:2px solid var(--a)}.wifmed svg{display:block}
 .wifrow{margin:10px 0;border-top:2px dashed #22306b;padding-top:8px}.wifrow:first-of-type{border-top:0;padding-top:0}
 .wifh{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:14px}.wifreal{color:#b9c3d6;font-size:13px;overflow-wrap:anywhere}
@@ -192,9 +192,9 @@ HWUI.css('whatif',`
 .wifs input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radius:0;background:url("${HEARTURI}") center/28px 28px no-repeat}
 .wifs input[type=range]:focus-visible{outline:3px solid #8fe9c8;outline-offset:2px}
 .wifv{flex:0 1 auto;font:700 14px var(--fb);font-variant-numeric:tabular-nums;min-width:8ch;overflow-wrap:anywhere;color:var(--a)}
-.wifadd{min-height:44px}.wifx{font:9px var(--fh);min-height:32px;padding:2px 8px;margin-left:6px}
+.wifadd{min-height:44px}.wifx{font:12px var(--fl);min-height:32px;padding:2px 8px;margin-left:6px}
 .wifwhy summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-size:13px;color:#8fe9c8}.wifwhy p{margin:4px 0;font-size:13px;overflow-wrap:anywhere;color:#d6def0}
-.wifsec{margin:14px 0;padding:8px 10px;background:#0e1840;border:3px solid #06090d}.wifsec h4{margin:0 0 6px;display:flex;align-items:center;gap:6px;font:9px/1.6 var(--fh);color:#fff6c0}
+.wifsec{margin:14px 0;padding:8px 10px;background:#0e1840;border:3px solid #06090d}.wifsec h4{margin:0 0 6px;display:flex;align-items:center;gap:6px;font:12px/1.6 var(--fl);color:#fff6c0}
 .wiftbl{min-width:460px}.wiftbl th{white-space:normal}.wiftbl td{overflow-wrap:normal}.wiftbl td:nth-child(2),.wiftbl td:nth-child(3){min-width:92px}
 @media(max-width:420px){.wifhero{gap:8px}.wifmage{flex-basis:80px;height:80px}.wifmage .wifsp svg{width:48px;height:48px}.wifscore{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)}.wifarrow{display:none}.wiford.sim .wifglass{--s:104px}.wifglass{--s:76px}}
 @media(prefers-reduced-motion:no-preference){

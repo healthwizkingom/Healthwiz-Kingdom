@@ -118,15 +118,15 @@ HWEvents.on('data:reset',()=>{disconnect();P={};try{localStorage.removeItem(K)}c
 
 HWUI.css('hr',`
 .hrdev{margin:0 0 12px;padding:10px;border:var(--px-bw-c) solid var(--ln);background:var(--p2);box-shadow:var(--px-sh-c)}
-.hrdh{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:6px}.hrdh>b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fh)}
+.hrdh{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:6px}.hrdh>b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fl)}
 .hrdev button{min-height:44px}.hrcon{width:100%;display:flex;align-items:center;justify-content:center;gap:8px}
 .hrlive{display:flex;align-items:center;gap:12px}.hrht{flex:0 0 64px;width:64px;height:64px;display:flex;align-items:center;justify-content:center}
 .hrht[data-on="1"] .pxi{animation:hrbeat var(--beat,1s) infinite}
 @keyframes hrbeat{0%{transform:scale(1)}12%{transform:scale(1.3333)}28%{transform:scale(1)}}
 .hrht .pxi{animation-timing-function:steps(1,end)}
 @media(prefers-reduced-motion:reduce){.hrht .pxi{animation:none!important}}html.hw-rm .hrht .pxi,html.hw-still .hrht .pxi{animation:none!important}
-.hrbpm{font:var(--px-f3)/1.2 var(--fh)}.hrst{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;margin-top:4px}.hrst small{display:inline-flex;align-items:center;gap:4px}
-.hrchip{display:inline-block;border:2px solid var(--ln);padding:2px 6px;font:7px/1.6 var(--fh)}.hrchip.ok{background:var(--grn);color:#fff}.hrchip.lost{background:var(--gold);color:#2b2418}
+.hrbpm{font:700 var(--px-f3)/1.2 var(--fn)}.hrst{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;margin-top:4px}.hrst small{display:inline-flex;align-items:center;gap:4px}
+.hrchip{display:inline-block;border:2px solid var(--ln);padding:2px 6px;font:12px/1.6 var(--fl)}.hrchip.ok{background:var(--grn);color:#fff}.hrchip.lost{background:var(--gold);color:#2b2418}
 .hravg{margin:8px 0;min-height:1.4em}.hrbtns button{flex:1 1 120px;display:flex;align-items:center;justify-content:center;gap:6px}.hrbtns button:disabled{opacity:.45;cursor:not-allowed}
 .hrhelp ul{margin:4px 0 10px;padding-left:18px}.hrhelp li{margin:4px 0}.hrhelp h3{display:flex;align-items:center;gap:8px}
 .hrdev .warn{margin:8px 0 0}.hrtag{display:inline-flex;align-items:center;gap:4px}

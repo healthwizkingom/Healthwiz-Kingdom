@@ -42,7 +42,7 @@ HWUI.css('log',`
 .lgchips{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;margin:0 -2px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
 .lgchips .chip{flex:0 0 auto;min-height:44px;padding:6px 12px;scroll-snap-align:start;white-space:nowrap}.lgchips small{opacity:.8}
 .lgd{border-top:2px dashed var(--ln);padding:2px 0}.lgd>summary{display:flex;flex-direction:column;gap:2px;min-height:44px;justify-content:center;cursor:pointer;padding:6px 2px}
-.lgd>summary b{font:10px/1.6 var(--fh)}.lgd>summary span{font-size:13px;color:var(--mut);overflow-wrap:anywhere}
+.lgd>summary b{font:16px/1.6 var(--fl)}.lgd>summary span{font-size:13px;color:var(--mut);overflow-wrap:anywhere}
 .lgbody .empty{margin-top:6px}
 `);
 return{card,groups,totals}})();

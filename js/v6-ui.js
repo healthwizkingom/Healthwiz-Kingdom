@@ -8,14 +8,14 @@ function css(id,text){if(done.has(id))return;done.add(id);const s=document.creat
 const reduced=()=>{if(typeof HWMotion!=='undefined')return HWMotion.reduced();try{return matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){return false}};
 css('ui',`
 .v6cel{position:fixed;left:50%;top:calc(64px + env(safe-area-inset-top,0px));z-index:80;transform:translateX(-50%);width:min(340px,92vw);display:flex;gap:10px;align-items:center;background:var(--pn);color:var(--ink);border:4px solid var(--ln);box-shadow:4px 4px 0 var(--ln),0 0 0 3px var(--gold);padding:10px 12px;pointer-events:auto;cursor:pointer;animation:v6in .35s steps(4)}
-.v6cel.out{opacity:0;transition:opacity .3s}.v6cel .ic{font-size:30px;line-height:1}.v6cel b{display:block;font:9px/1.6 var(--fh);color:var(--vio)}.v6cel span{display:block;font-size:14px}.v6cel em{font:10px var(--fh);font-style:normal;color:var(--grn)}
+.v6cel.out{opacity:0;transition:opacity .3s}.v6cel .ic{font-size:30px;line-height:1}.v6cel b{display:block;font:12px/1.6 var(--fl);color:var(--vio)}.v6cel span{display:block;font-size:14px}.v6cel em{font:16px var(--fl);font-style:normal;color:var(--grn)}
 .v6cel u{position:absolute;left:30px;top:24px;width:5px;height:5px;background:var(--gold);opacity:0;animation:v6sp .8s ease-out forwards}
 @keyframes v6in{from{transform:translate(-50%,-14px);opacity:0}}@keyframes v6sp{0%{opacity:1;transform:translate(0,0)}100%{opacity:0;transform:translate(var(--x),var(--y))}}
 @media(prefers-reduced-motion:reduce){.v6cel,.v6cel u{animation:none!important}.v6cel u{display:none}}
 #mo{overflow-y:auto}#mo>.card{margin:auto}
 .er>span:nth-child(2){word-break:break-word;overflow-wrap:anywhere}
 .tsk:active{transform:translate(calc(-50% + 2px),2px)}
-.v6q .aq .an small.why{display:block;font-size:11px;color:var(--mut)}.v6q .tagk{display:inline-block;font:7px/1.6 var(--fh);border:2px solid var(--ln);padding:1px 4px;margin-left:4px;background:var(--p2);vertical-align:1px}
+.v6q .aq .an small.why{display:block;font-size:12px;color:var(--mut)}.v6q .tagk{display:inline-block;font:12px/1.6 var(--fl);border:2px solid var(--ln);padding:1px 4px;margin-left:4px;background:var(--p2);vertical-align:1px}
 `);
 // Short, tappable completion banner (§33/§85). Queued so several never stack.
 const Q=[];let busy=0;

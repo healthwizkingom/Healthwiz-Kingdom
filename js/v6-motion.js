@@ -50,7 +50,7 @@ html.hw-q-performance .wl .zh,html.hw-q-performance .wl .zr,html.hw-q-performanc
 html.hw-q-performance .wl .zl,html.hw-q-performance .wl .zff:not(:nth-of-type(4n)),html.hw-q-performance .wl .zv:nth-of-type(2n){display:none}
 html.hw-q-performance .fx u:nth-of-type(n+7),html.hw-q-performance .fx.done u:nth-of-type(n+13),html.hw-q-performance .fl2 u:nth-of-type(n+9),html.hw-q-performance .fl2 .flf:nth-of-type(n+2){display:none}
 html.hw-q-performance .wl.v6px .zsv,html.hw-q-performance .wl.v6px .tt{transform:none}
-#v6motion .v6mlab{font:8px/1.6 var(--fh);margin:12px 0 6px}`);
+#v6motion .v6mlab{font:12px/1.6 var(--fl);margin:12px 0 6px}`);
 
 let last='';
 function apply(quiet){const h=document.documentElement,L=level(),r=reduced(),off=!enabled();sync();

@@ -1,0 +1,94 @@
+# Disclaimers behind the "?" (owner request, 18 October 2026)
+
+Goal: less text on every screen. Every disclaimer, "not a medical device / not a diagnosis / not medical advice" note and
+estimate caveat sits behind a "?" button (`HWHelp`, `js/v6-help.js`), with the wording unchanged. Each page keeps one short
+visible pointer so a user always sees that the app is not medical. Tests: `tests/69-disclaimers.test.mjs`.
+
+## Page footer (all pages)
+
+Before: `<p class="dis">` with the page's whole `DIS` text and the tagline (`js/hw-04-part.js`, `render()`).
+After: "Wellness tracker, not a medical device" and a "?" (accessible name "About: Wellness tracker, not a medical device",
+44 x 44 px, tap, Enter, Space and Escape, focus returns to the button). The panel holds the page's full `DIS` text and "Turn Your
+Health Into an Adventure." The `DIS` entries themselves (`hw-02-core.js`, `hw-03-part.js`, `hw-04-part.js`, `v6-alchemy.js`,
+`v6-body.js`, `v6-exercise.js`, `v6-lab.js`, `v6-observatory.js`, `v6-provisions.js`, `v6-running.js`, `v6-score.js`,
+`v6-stairs.js`, `v6-time.js`) are untouched.
+
+Visible footer words per page, counted from the running app (before = `DIS` text plus tagline):
+
+| Page | Footer words before | Footer words after |
+|---|---:|---:|
+| food | 65 | 6 |
+| water | 65 | 6 |
+| sleep | 30 | 6 |
+| pulse | 68 | 6 |
+| stair | 68 | 6 |
+| stress | 41 | 6 |
+| bmi | 20 | 6 |
+| calc | 23 | 6 |
+| stats | 22 | 6 |
+| guide | 22 | 6 |
+| set | 17 | 6 |
+| health | 27 | 6 |
+| home | 41 | 6 |
+| quests | 24 | 6 |
+| kingdom | 16 | 6 |
+| badges | 21 | 6 |
+| alchemy | 37 | 6 |
+| run | 43 | 6 |
+| score | 29 | 6 |
+| body | 37 | 6 |
+| exercise | 88 | 6 |
+| lab | 38 | 6 |
+| time | 26 | 6 |
+| campus | 25 | 6 |
+
+Total over 24 pages: 893 -> 144
+
+
+## Inline notes moved into a card's "?"
+
+| Page and card | Wording (unchanged) | Was | Now in |
+|---|---|---|---|
+| Body, BMI result | "BMI is an adult screening number worked out from what you typed. It is not a diagnosis and does not describe every aspect of health." | `v6-body.js:39` paragraph | the BMI "?" (`xbmi`), first limit |
+| Body, daily energy goal | "These are estimates (Mifflin-St Jeor), not medical prescriptions." | `v6-body.js:99` paragraph | the energy goal "?" (`energyWhy`), first limit |
+| Health Hall, personal quest plan | "General estimates for healthy people, not medical prescriptions. A doctor or dietitian can personalise them." | `hw-05-v5-4-module.js:33` small | new "?" `plannote` in the card heading |
+| Health Hall, Safety Scroll | "Heart rate, BMI, sleep and stress tools are for tracking and learning only. They do not diagnose anything. If something worries you or you feel unwell, talk to a parent, teacher or healthcare professional." | `hw-04-part.js:38` paragraph | "?" `safetyscroll` in the card heading (the card is now just its heading and the "?") |
+| Health Score, recommendations (fallback list) | "General wellness guidance, not medical advice." | `v6-score.js:166` small | "?" `recnote` in the heading |
+| Health Score, SDG card | "HealthWiz is a wellness tracker, not a medical device." | `v6-score.js:188` small | "?" `sdgnote`; the SDG 3 sentence stays |
+| Health Score, what-if | "A habit summary, not a medical diagnosis or a validated clinical risk score." | `v6-whatif.js:110` small | the existing what-if "?" already says it ("The Health Score is a habit summary, not a medical diagnosis or a validated clinical risk score."), so the visible sentence was removed and not duplicated |
+| Health Score, Health Orb | "General wellness guidance based only on your logged entries. It does not promise any health result and is not medical advice. Concerning symptoms belong with a healthcare professional." | `v6-orb.js:163` small | "?" `orbnote` beside REPLAY ORB READING |
+| Laboratory intro | "They are not diagnoses and not medical advice." | `v6-lab.js:119` | "?" `labnote` at the end of the intro |
+| Stress meter | "A game visual, not a medical measurement." | `hw-03-part.js:6` small | "?" `stormnote` |
+| Older Pulse page, heart-rate picture | "Not a medical ECG." | `hw-02-core.js:210` | "?" `ecgnote` in the card heading |
+| Stair plan card | "Not a medical prescription." | `v6-plan.js:94` | "?" `plnote` (the "Optional." stays) |
+| Home, Guide: tomorrow's quest tag | "GENERAL WELLNESS IDEAS · NOT MEDICAL ADVICE" | `hw-04-part.js:29` tag | "?" `tqnote` (full tag text in the panel) |
+| Guide: observations tag | "OBSERVATIONS FROM YOUR OWN LOGS · NOT MEDICAL ADVICE" | `v6-insights.js:75` tag | "?" `obsnote` |
+| Quests: game quests tag | "🎮 GAME QUESTS · NOT MEDICAL ADVICE" | `v6-quests.js:71` tag | "?" `gqnote` |
+| Quest board (conditions) | "HealthWiz does not diagnose conditions. Ask a doctor before changing your activity." | `v6-conditions.js` quest card, "your quests" card, registry question | "?" `condnote`, `condnote2`, `condnote3` |
+| Stairs, heart-rate recovery | "A guide only. It varies with fitness, caffeine, sleep and how hard you climbed." | `v6-stairs.js:227` small | the existing recovery "?" (`strec`); the sentence "If you feel dizzy, have chest pain or feel unwell, stop and see a health professional." stays visible as a safety instruction |
+
+## Kept visible (safety instructions, labels, live warnings)
+
+* Stress page crisis and emergency numbers; the "I feel dizzy" and "Chest pain" stop buttons and post-stop message in the
+  Training Hall (`v6-exercise.js:227`); the "check with your doctor first" gate and the stairs note (`v6-conditions.js`, which
+  still ends with its disclaimer sentence); the stair planner's doctor-first warning; the "outside the usual resting range, see a
+  doctor" line (`v6-stairs.js:200`, `v6-score.js:130`, `hw-03-part.js:66`) and the unusual-value card (`hw-03-part.js:71`),
+  which show only when the user's own data triggers them; the stairs "Safety" paragraph (already behind the Stair Sense "?").
+* Labels, not disclaimers: every "measured / calculated / estimated / simulated / missing" label and every "GAME PROGRESS, NOT A
+  HEALTH MEASUREMENT" tag. The title screen's own line "Wellness tracker, not a medical device." (`hw-02-core.js:85`) stays: that
+  screen has no footer.
+* The printed and shared report (`v6-report.js`) keeps its "not a medical document" footer and privacy warning, because paper has
+  no "?".
+
+## Already behind a button, left as they were
+
+* The "Will my watch work?" sheet (`v6-hr.js:109`) and the camera pulse sheet (`v6-ppg.js:215`) open on demand and are help
+  sheets themselves; the pulse "?" (`v6-ppg.js:152`) already holds the same sentence.
+* The Health Orb's per-card notes (`v6-orb.js`) sit inside a collapsed "More detail" disclosure.
+* The Health Hall tile explanations (`v6-hall.js:39,43`) are the tile "?" panels.
+
+## Not done
+
+Other short estimate caveats that are not "not medical" sentences (for example "estimate" tags on single numbers) were left in
+place: they are the labels the brief says to keep next to a value. A line-by-line check of every `<small class="mut">` for
+more caveats was not done.

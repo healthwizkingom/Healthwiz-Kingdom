@@ -25,7 +25,9 @@ test('no plan yet: an optional MAKE A PLAN card on the Stairs page; making one s
   const { page, errors } = await openApp({ seed: RETURNING });
   await go(page, 'stair');
   let t = await card(page);
-  assert.match(t, /MY STAIR PLAN[\s\S]*you pick the days and the minutes[\s\S]*Not a medical prescription\.[\s\S]*MAKE A PLAN/);
+  assert.match(t, /MY STAIR PLAN[\s\S]*you pick the days and the minutes[\s\S]*Optional\.[\s\S]*MAKE A PLAN/);
+  await page.click('#plcard .hwh[data-hwh="plnote"]'); // the disclaimer sits behind the card's "?"
+  assert.match(await page.evaluate(() => document.getElementById('hwh-pop').textContent), /Not a medical prescription\./); await page.keyboard.press('Escape');
   const xp0 = (await state(page)).xp;
   await make(page, { goal: 'start', days: [1, 3], min: 15 });
   const s = await state(page);

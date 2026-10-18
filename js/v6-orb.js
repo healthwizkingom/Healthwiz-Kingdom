@@ -155,12 +155,12 @@ function section(C,plain){
     '<button type="button" data-a="orbgo">READ MY HEALTH ORB</button><button type="button" class="g" data-a="orbshow">SHOW RECOMMENDATIONS</button>');
   const when=HWScore.K.win()==='day'?'today':'the last 7 days',f=fresh;let i=0;
   const html='<section class="v6o'+(f?' fresh':'')+'" id="v6o" aria-labelledby="v6oh"><div class="v6oh"><h3 id="v6oh" tabindex="-1">'+HWPixel.icon('scroll')+' YOUR HEALTH QUESTS</h3>'
-    +'<button type="button" class="g" data-a="orbre">'+HWPixel.icon('sheep')+' REPLAY ORB READING</button></div>'
+    +'<button type="button" class="g" data-a="orbre">'+HWPixel.icon('sheep')+' REPLAY ORB READING</button>'+HWHelp.btn('orbnote','About these quests','<p>General wellness guidance based only on your logged entries. It does not promise any health result and is not medical advice. Concerning symptoms belong with a healthcare professional.</p>')+'</div>'
     +'<p class="v6osub">Read from what you logged '+when+'. The orb reads your score and its numbers above. Start with the first quest.</p>'
     +(R.main?card(R.main,i++,{main:1}):'')
     +(R.more.length?'<h4 class="v6osec">MORE QUESTS</h4><div class="v6og">'+R.more.map(c=>card(c,i++)).join('')+'</div>':'')
     +(R.miss.length?'<h4 class="v6osec">LOG TO UNLOCK</h4><p class="v6osub">These areas are not in your score yet. The orb cannot read what is not logged, so nothing is guessed.</p><div class="v6og">'+R.miss.map(c=>card(c,i++)).join('')+'</div>':'')
-    +'<small class="v6ofoot">General wellness guidance based only on your logged entries. It does not promise any health result and is not medical advice. Concerning symptoms belong with a healthcare professional.</small></section>';
+    +'</section>';
   fresh=false;return html}
 function empty(){
   return '<section class="v6o"><div class="card v6os v6oe"><h3>'+HWPixel.icon('wizard')+' THE ORB IS DARK</h3>'
@@ -297,8 +297,9 @@ HWUI.css('orb',`
 .v6o{--bg1:#0e1330;--tx:#f3ecd8;--mu:#b9c3d6;margin:0 0 14px}
 .v6oh{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin:4px 0}
 .v6oh h3{display:flex;align-items:center;gap:8px;font-size:12px;line-height:1.7;margin:0;outline-offset:4px}
+.v6oh{padding-right:9px}.v6oh .hwh{flex:0 0 auto}.v6oh>button.g{min-width:0;max-width:100%}
 .v6osub{font-size:14px;line-height:1.5;margin:6px 0 12px;opacity:.9}
-.v6osec{font:10px/1.7 var(--fh);margin:22px 0 8px;padding-left:10px;border-left:6px solid #4fe0c8;color:var(--ink);letter-spacing:.04em}
+.v6osec{font:16px/1.7 var(--fl);margin:22px 0 8px;padding-left:10px;border-left:6px solid #4fe0c8;color:var(--ink);letter-spacing:.04em}
 .v6og{display:grid;gap:14px;grid-template-columns:1fr}
 @media(min-width:760px){.v6og{grid-template-columns:1fr 1fr}}
 .v6oc{position:relative;background:linear-gradient(165deg,#161c45 0%,#10112f 60%,#1a1240 100%);color:#f3ecd8;border:4px solid #06090d;box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--ac) 45%,transparent),inset 0 4px 0 var(--ac),5px 5px 0 #06090d,0 0 22px color-mix(in srgb,var(--ac) 16%,transparent);padding:14px 14px 14px;display:flex;flex-direction:column;gap:10px;min-width:0;overflow:hidden}
@@ -308,14 +309,14 @@ HWUI.css('orb',`
 .v6oct{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .v6oi{display:flex;align-items:center;justify-content:center;padding:4px;background:#0a0c24;border:3px solid var(--ac);box-shadow:0 0 10px color-mix(in srgb,var(--ac) 40%,transparent)}
 .v6ocm{display:flex;flex-direction:column;gap:4px;flex:1 1 90px;min-width:0}
-.v6otag{align-self:flex-start;font:9px/1.5 var(--fh);padding:3px 6px;border:2px solid #06090d;color:#10112f;background:#9aa6c4}
+.v6otag{align-self:flex-start;font:12px/1.5 var(--fl);padding:3px 6px;border:2px solid #06090d;color:#10112f;background:#9aa6c4}
 .t-start{background:#ffd86b;box-shadow:0 0 8px rgba(255,216,107,.6)}.t-next{background:#7ff3ff}.t-keep{background:#4fe0c8}.t-info{background:#c9b8ff}
-.v6oar{font:9px/1.5 var(--fh);color:var(--ac);text-transform:uppercase}
+.v6oar{font:12px/1.5 var(--fl);color:var(--ac);text-transform:uppercase}
 .v6oef{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#f3ecd8;white-space:nowrap}
 .v6opp{display:inline-flex;gap:2px}.v6opp i{width:7px;height:7px;background:#2a2f5e;border:1px solid #06090d}.v6opp i.on{background:var(--ac)}
-.v6ot{font:12px/1.7 var(--fh);color:#fff;margin:0;overflow-wrap:anywhere}
+.v6ot{font:16px/1.7 var(--fl);color:#fff;margin:0;overflow-wrap:anywhere}
 .v6oy,.v6ow{font-size:15px;line-height:1.5;margin:0;color:#f3ecd8}
-.v6oy b,.v6ow b{display:block;font:9px/1.7 var(--fh);color:var(--ac);margin-bottom:3px;text-transform:uppercase}
+.v6oy b,.v6ow b{display:block;font:12px/1.7 var(--fl);color:var(--ac);margin-bottom:3px;text-transform:uppercase}
 .v6ow ul{margin:0;padding:0;list-style:none}.v6ow li{position:relative;padding:3px 0 3px 18px}
 .v6ow li:before{content:"";position:absolute;left:2px;top:.75em;width:7px;height:7px;background:var(--ac);box-shadow:0 0 6px var(--ac)}
 .v6ow{background:rgba(255,255,255,.05);border-left:4px solid var(--ac);padding:8px 10px}

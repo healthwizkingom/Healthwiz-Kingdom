@@ -99,7 +99,8 @@ test('direct load and refresh of #vault=<id> open the entry; an unknown id shows
 test('Laboratory page: plain-language intro, what / why / next for every tab, no horizontal overflow on a phone', async () => {
   const { page, ctx, errors } = await openApp({ seed: ADULT, viewport: { width: 360, height: 740 } });
   await go(page, 'lab');
-  assert.match(await page.innerText('.labintro'), /not medical advice/);
+  await page.click('.labintro .hwh[data-hwh="labnote"]'); // the disclaimer sits behind the intro's "?"
+  assert.match(await page.evaluate(() => document.getElementById('hwh-pop').textContent), /not medical advice/); await page.keyboard.press('Escape');
   for (const k of ['exp', 'trial', 'vault', 'unc']) {
     await page.click(`[data-a="labtab"][data-k="${k}"]`);
     assert.match(await page.innerText('.labinfo'), /What it is[\s\S]*Why it matters[\s\S]*Do this first/, k);

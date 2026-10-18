@@ -152,7 +152,7 @@ HWUI.css('counsel',`
 .cshelp ul{margin:6px 0;padding-left:20px}.cshelp li{margin:2px 0}.cshelp a{color:inherit;display:inline-flex;align-items:center;min-height:24px;min-width:24px}.cshelp b svg{vertical-align:-3px;margin-right:4px}
 .cshelp.on{border-color:var(--red);box-shadow:0 0 0 3px rgba(217,69,61,.35)}
 .csout{display:flex;gap:10px;align-items:flex-start;border:3px dashed var(--ln);background:var(--p2);padding:10px;margin:8px 0}.csout>svg{flex:0 0 auto}
-.csout b{font:8px/1.6 var(--fh);display:block}.csout p{margin:4px 0 8px;font-size:14px}.csout button{width:100%;display:flex;align-items:center;justify-content:center;gap:8px}
+.csout b{font:12px/1.6 var(--fl);display:block}.csout p{margin:4px 0 8px;font-size:14px}.csout button{width:100%;display:flex;align-items:center;justify-content:center;gap:8px}
 #counsel .csgem{display:block;margin-top:4px}#counsel h3 svg,#counsel button svg{vertical-align:-3px}
 .cssr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 `);

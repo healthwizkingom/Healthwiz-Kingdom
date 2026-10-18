@@ -111,6 +111,6 @@ HWUI.css('when',`
 .hwwp{margin-top:8px;padding:10px;background:var(--p2);border:3px solid var(--ln)}
 .hwwp .row{margin:0 0 8px}.hwwp label{flex:1 1 130px;min-width:0}.hwwp input{min-width:0}
 .hwwn{min-height:1.3em;margin:0 0 6px;font-size:12px;color:var(--red)}.hwwh{margin:0 0 8px;font-size:12px;color:var(--mut)}
-.hwwe{margin:0 0 8px}.hwwe>b{display:block;font:9px/1.6 var(--fh);margin-bottom:4px}
+.hwwe{margin:0 0 8px}.hwwe>b{display:block;font:12px/1.6 var(--fl);margin-bottom:4px}
 `);
 return{html,stamp,saved,custom,date,time,reset,label:lab,future}})();

@@ -257,7 +257,7 @@ HWUI.css('addfood',`
 .awmprop{display:block;width:80px;height:80px;background:url(${PROPS}) 0 0/${PROPN.length*80}px 80px no-repeat;image-rendering:pixelated;image-rendering:crisp-edges}.awprops small{font-size:12px;color:var(--mut)}
 .awsay{position:absolute;right:3%;top:5%;max-width:56%;display:flex;gap:6px;align-items:flex-start;line-height:1.35}
 .awface{flex:0 0 auto;width:44px;height:44px;background:url(${FACE}) no-repeat;background-size:${FACES.length*44}px 44px;image-rendering:pixelated;border:2px solid #f6c94f;border-radius:8px;background-color:#1b1745}
-.awsay p{margin:0;background:rgba(18,15,51,.88);color:#fff6dc;border:1px solid #f6c94f;border-radius:10px;padding:6px 8px;font-size:13px}.awsay p b{display:block;font:7px/1.6 var(--fh);color:#f6c94f}
+.awsay p{margin:0;background:rgba(18,15,51,.88);color:#fff6dc;border:1px solid #f6c94f;border-radius:10px;padding:6px 8px;font-size:13px}.awsay p b{display:block;font:12px/1.6 var(--fl);color:#f6c94f}
 @media(max-width:420px){.awsay{flex-direction:column;align-items:flex-end}.awface{width:36px;height:36px;background-size:${FACES.length*36}px 36px}.awsay p{font-size:12px}}
 .awq{flex-wrap:nowrap}.awq input{flex:1 1 auto;min-width:0;margin:0}.awq button{flex:0 0 auto}
 .awq+small,label[for="awq"] small{display:block}.awsrcs{margin:4px 0 6px;padding-left:18px;overflow-wrap:anywhere}.awsrcs li{margin:6px 0}.awsrcs a{display:inline-block;min-height:28px;line-height:28px;color:#fff0a8;text-decoration:underline}

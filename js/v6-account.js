@@ -85,7 +85,7 @@ HWEvents.on('cloud:signed-in',paint);
 /* ---------- Settings → ACCOUNT ---------- */
 HWUI.css('account',`
 #v6acct h3,.v6ac h3{display:flex;align-items:center;gap:8px}
-#v6acct .v6pl{display:flex;gap:8px;align-items:baseline;margin:6px 0}#v6acct .v6pl>.v6pk{flex:0 0 auto;font:7px/1.8 var(--fh);min-width:84px}
+#v6acct .v6pl{display:flex;gap:8px;align-items:baseline;margin:6px 0}#v6acct .v6pl>.v6pk{flex:0 0 auto;font:12px/1.8 var(--fl);min-width:84px}
 #v6acct .row button{flex:1 1 140px}#v6acct .warn{margin:8px 0}
 #v6acct .v6acdel{width:100%;margin-top:10px;background:var(--p2);color:var(--ink)}#v6acct .v6acdel.on{background:var(--red);color:#fff}
 #v6acct .v6acbox{border:3px solid var(--ln);padding:8px 10px;margin:8px 0;background:var(--bg)}
@@ -95,7 +95,7 @@ HWUI.css('account',`
 .v6ac .row button{flex:1 1 130px}.v6ac button svg{vertical-align:-3px}
 .v6ac .v6acg{width:100%;margin:6px 0;background:var(--pn);color:var(--ink)}
 .v6ac .v6acor{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mut);margin:6px 0}.v6ac .v6acor:before,.v6ac .v6acor:after{content:"";flex:1;border-top:2px dashed var(--p2)}
-.v6ac .v6acs{display:flex;gap:8px;align-items:baseline;justify-content:space-between;border:3px solid var(--ln);background:var(--p2);padding:8px;margin:6px 0}.v6ac .v6acs b{font:8px/1.6 var(--fh)}
+.v6ac .v6acs{display:flex;gap:8px;align-items:baseline;justify-content:space-between;border:3px solid var(--ln);background:var(--p2);padding:8px;margin:6px 0}.v6ac .v6acs b{font:12px/1.6 var(--fl)}
 .v6ac .v6acb{display:flex;flex-direction:column;gap:8px;margin:10px 0}.v6ac .v6acb button{width:100%}
 .v6aco .card h3{display:flex;align-items:center;gap:8px}
 `);

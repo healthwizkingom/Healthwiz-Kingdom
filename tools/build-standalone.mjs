@@ -1,6 +1,6 @@
 // Inlines every <script src="js/..."> into one self-contained HTML file:
 // dist/healthwiz-standalone.html (works offline, can be shared as a single file).
-// Images in assets/img/ are embedded back as data URIs, like the original single-file build.
+// Images in assets/img/ are embedded back as data URIs, like the original single-file build; so are the bundled fonts.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -20,7 +20,8 @@ const outAll = out.replace(/assets\/img\/([\w/-]+)\.(webp|png|jpg)/g, (_, n, e) 
   imgs++;
   return `data:${MIME[e]};base64,` + fs.readFileSync(path.join(root, 'assets', 'img', `${n}.${e}`)).toString('base64');
 });
+const outFonts = outAll.replace(/assets\/fonts\/([\w-]+)\.woff2/g, (_, n) => 'data:font/woff2;base64,' + fs.readFileSync(path.join(root, 'assets', 'fonts', `${n}.woff2`)).toString('base64'));
 fs.mkdirSync(path.join(root, 'dist'), { recursive: true });
 const dest = path.join(root, 'dist', 'healthwiz-standalone.html');
-fs.writeFileSync(dest, outAll);
-console.log(`Inlined ${n} scripts + ${imgs} images → ${path.relative(root, dest)} (${(outAll.length / 1024).toFixed(0)} KB)`);
+fs.writeFileSync(dest, outFonts);
+console.log(`Inlined ${n} scripts + ${imgs} images → ${path.relative(root, dest)} (${(outFonts.length / 1024).toFixed(0)} KB)`);

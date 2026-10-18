@@ -109,10 +109,10 @@ function html(s){s=s||{};const out=[];
   return '<div class="hwx">'+out.join('')+'</div>'}
 const btn=(key,title,spec)=>HWHelp.btn(key,title,html(spec),{ev:spec&&spec.ev});
 HWUI.css('explain',`
-.hwx{font-size:14px;line-height:1.5}.hwx p{margin:0 0 8px}.hwx-h{display:block;font:8px/1.6 var(--fh);color:var(--vio);margin:12px 0 4px}
+.hwx{font-size:14px;line-height:1.5}.hwx p{margin:0 0 8px}.hwx-h{display:block;font:12px/1.6 var(--fl);color:var(--vio);margin:12px 0 4px}
 .hwx ul,.hwx ol{margin:0;padding-left:18px}.hwx li{margin:2px 0}
 .hwx-in{list-style:none;padding:0!important}.hwx-in li{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;border-top:2px solid var(--ln);padding:4px 0}.hwx-in li>span:first-child{flex:1 1 8em}
-.hwx-f{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;background:var(--p2);border:2px solid var(--ln);padding:6px 8px;margin:0 0 4px}
+.hwx-f{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 var(--fn);background:var(--p2);border:2px solid var(--ln);padding:6px 8px;margin:0 0 4px}
 .hwhp.hwx-on{max-height:min(82vh,640px);width:min(520px,calc(100vw - 16px))} /* set by js/v6-help.js when the panel holds a worked explanation */
 .hwx-r{margin-top:6px}.hwx-src small{display:block}.hwx-src a{font-weight:700;overflow-wrap:anywhere}.hwsrc{margin-bottom:8px!important}
 `);

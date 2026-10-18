@@ -5,12 +5,12 @@
    build step that could stamp a version here). Every good response refreshes the offline copy. When the network
    fails, or takes longer than WAIT ms, the cached copy is used. Install pre-caches the whole app shell, so the app
    opens offline even if some pages were never visited.
-   Google Fonts: stale-while-revalidate (the app falls back to system fonts until the font has been cached once).
+   Fonts: Press Start 2P and Pixelify Sans are bundled in assets/fonts/ and pre-cached with the app, so nothing is fetched from Google Fonts.
    Everything else (the Wizard's Counsel AI request to the medius-chat Edge Function, the Supabase account and cloud sync, other sites) goes straight to the network and is never cached.
    Saved health data is in localStorage and never passes through here.
 
    Keep PRECACHE in sync with index.html and assets/: tests/20-pwa.test.mjs fails when a file is missing. */
-const CACHE = 'hwk-shell-v2', FONTS = 'hwk-fonts-v1', WAIT = 4000;
+const CACHE = 'hwk-shell-v2', WAIT = 4000;
 const PRECACHE = [
   './', 'index.html', 'manifest.webmanifest',
   'js/hw-01-menu-data.js', 'js/v6-schema.js', 'js/hw-02-core.js', 'js/hw-03-part.js', 'js/hw-04-part.js',
@@ -25,11 +25,12 @@ const PRECACHE = [
   'assets/img/kn.webp', 'assets/img/knight-kbd.webp', 'assets/img/knight-kcp.webp', 'assets/img/knight-khr.webp',
   'assets/img/orb-scene.webp', 'assets/img/luna-faces.webp', 'assets/img/luna-poses.webp', 'assets/img/luna-lab.webp', 'assets/img/luna-props.webp', 'assets/img/luna-room.webp', 'assets/img/luke-poses.webp', 'assets/img/luke-faces.webp', 'assets/img/luke-props.webp', 'assets/img/luke-room.webp', 'assets/img/lab-scene.webp', 'assets/img/orc.webp', 'assets/img/study.jpg', 'assets/img/wiz.webp', 'assets/img/medius-reactions.webp',
   'assets/img/exercise/moves.webp', 'assets/img/exercise/muscles.webp',
+  'assets/fonts/PressStart2P-Latin.woff2', 'assets/fonts/PixelifySans-Latin.woff2',
+  'assets/fonts/OFL-PressStart2P.txt', 'assets/fonts/OFL-PixelifySans.txt',
   'assets/audio/home-theme.mp3',
   'assets/icons/icon-32.png', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png',
   'assets/icons/icon-maskable-512.png', 'assets/icons/apple-touch-icon.png',
 ];
-const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 
 self.addEventListener('install', e => {
   // cache: 'reload' skips the HTTP cache, so the offline copy is the current deploy
@@ -38,7 +39,7 @@ self.addEventListener('install', e => {
 
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys()
-    .then(keys => Promise.all(keys.filter(k => k.startsWith('hwk-') && k !== CACHE && k !== FONTS).map(k => caches.delete(k))))
+    .then(keys => Promise.all(keys.filter(k => k.startsWith('hwk-') && k !== CACHE).map(k => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 
@@ -51,7 +52,6 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin === self.location.origin) return e.respondWith(networkFirst(req, e));
-  if (FONT_HOSTS.includes(url.hostname)) return e.respondWith(staleWhileRevalidate(req, e));
   // anything else: the browser handles it, never cached
 });
 
@@ -77,15 +77,6 @@ function networkFirst(req, e) {
     net.then(res => { clearTimeout(t); finish(res); })
       .catch(() => { clearTimeout(t); fallback().then(r => finish(r || offlinePage(req))); });
   });
-}
-
-async function staleWhileRevalidate(req, e) {
-  const c = await caches.open(FONTS);
-  const hit = await c.match(req);
-  const net = fetch(req).then(res => { if (res.ok || res.type === 'opaque') e.waitUntil(c.put(req, res.clone())); return res; });
-  if (hit) { e.waitUntil(net.catch(() => {})); return hit; }
-  // no copy yet and offline: an empty stylesheet/font, so the page falls back to its system fonts quietly
-  return net.catch(() => new Response('', { status: 200, headers: { 'Content-Type': req.destination === 'style' ? 'text/css' : 'application/octet-stream' } }));
 }
 
 function offlinePage(req) {
