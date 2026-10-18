@@ -111,7 +111,7 @@ test('Laboratory page: plain-language intro, what / why / next for every tab, no
 test('sources added for the calculations that had none: real https records, linked from their "?", and the sleep ranges credit the right body', async () => {
   const { page, ctx, errors } = await openApp({ seed: ADULT });
   const r = await page.evaluate(() => ({ ids: HWSources.ids(), nsf: HWSources.get('nsf'), aasm: HWSources.get('aasm'), calc: Object.fromEntries(HWVault.CALCS.map(c => [c.id, c.src])) }));
-  for (const id of ['allen', 'cole', 'hall', 'faopal', 'nsf', 'myfcd', 'dgatab']) assert.ok(r.ids.includes(id), id);
+  for (const id of ['allen', 'cole', 'hall', 'faopal', 'nsf', 'myfcd']) assert.ok(r.ids.includes(id), id);
   assert.deepEqual(r.calc.ppg, ['allen']); assert.deepEqual(r.calc.recovery, ['cole']); assert.deepEqual(r.calc.nutrients, ['fao77', 'myfcd']);
   assert.ok(r.calc.sleep.includes('nsf') && r.calc.energy.includes('faopal'));
   assert.match(r.aasm.s, /7 or more hours/); assert.match(r.nsf.s, /7–9 hours/);

@@ -74,9 +74,9 @@ function macroWhy(r,g,R){const N=HWExplain.num,K=g.kcal,kid=r.a<19,cap=(kid?.30:
     vars:[['p','protein per kg for your age (and goal)','g/kg'],['W','weight','kg'],['4, 4, 9','kcal per gram of protein, carbohydrate, fat','kcal/g']],
     steps:['Protein: the smaller of '+N(g.pk,2)+' × '+N(r.w,1)+' = '+N(g.pk*r.w,1)+' g and '+(kid?'0.30':'0.35')+' × '+K+' ÷ 4 = '+N(cap,1)+' g → '+R.pg+' g','Fat: '+K+' × 0.30 ÷ 9 = '+N(K*.3/9,1)+' → '+R.fg+' g',
       'Carbohydrate: ('+K+' − '+R.pg+' × 4 − '+R.fg+' × 9) ÷ 4 = '+N((K-R.pg*4-R.fg*9)/4,1)+' → '+R.cg+' g','Fiber: '+K+' × 14 ÷ 1000 = '+N(K*14/1000,1)+' → '+R.fb+' g'],
-    src:['iomdri','whodiet','dgatab'],
-    app:'Protein per kg: 0.95 (under 14), 0.85 (14–18), 0.8 (adults), raised to 1.1 when the goal is a deficit (HealthWiz\'s own choice). Fat is set at 30% of energy, inside the 20–35% (adults) and 25–35% (under 19) ranges, and protein is capped at the AMDR upper limit (35% of energy from 19, 30% under 19). Carbohydrate takes the energy that is left.',
-    limits:['These are population reference values, not your personal needs.','The AMDR and fiber figures were checked in a government table that uses them; the protein g/kg values are still to be checked against the IOM report (see the source note).']})}
+    src:['iomdri','whodiet'],
+    app:'Protein per kg: 0.95 (under 14), 0.85 (14–18), 0.8 (adults), raised to 1.1 when the goal is a deficit (HealthWiz\'s own choice). Fat is set at 30% of energy, and protein is capped at 35% of energy from 19 and 30% under 19. Carbohydrate takes the energy that is left.',
+    limits:['These are population reference values, not your personal needs.','The IOM table values are still to be checked against the report (see the source note).']})}
 function waterWhy(r,g){const N=HWExplain.num,add=r.ac>=2?500:r.ac>=1.7?300:0,raw=r.w*35+add;
   return HWExplain.btn('xwater','How your water goal is worked out',{ev:'water',what:'How much to drink in a day, as a simple guide.',
     inputs:[{n:'Weight',v:r.w,u:'kg',o:'you',d:1},{n:'Activity factor',v:r.ac,o:'you'}],
