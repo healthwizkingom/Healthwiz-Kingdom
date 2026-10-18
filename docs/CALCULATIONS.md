@@ -38,6 +38,31 @@ step, verified clickable sources, HealthWiz's own choices kept apart from the so
 | Air quality / weather | `js/v6-live.js` | text (`aqsrc`) | — | Retrieved from Open-Meteo; DOE APIMS linked for the official index. |
 | XP, levels, kingdom states, streaks | game modules | — | — | Game values, never health measurements. |
 
+## Evidence Vault links from the "?"
+
+Every "?" of a calculation that has an Evidence Vault entry ends with **View formula and evidence in the Evidence Vault**, a
+link to `#vault=<calculation id>` (the `id` of an entry in `HWVault.CALCS`, `js/v6-vault.js`). Set the id with `ev:'<id>'` in the
+`HWExplain.btn` spec, `{ev:'<id>'}` as the 4th argument of `HWHelp.btn`, or the 4th argument of `HWHelp.reg`; a list of ids gives
+one link each (the Stairs "?" holds two calculations). `ev:'none'` shows "Evidence entry not yet available" instead of a link.
+`tests/68-evidence-links.test.mjs` fails if an id is not a Vault calculation.
+
+| Calculation "?" | Vault entry | | Calculation "?" | Vault entry |
+|---|---|---|---|---|
+| `xbmi` | `bmi` | | `stkcal` (energy) | `stairkcal` |
+| `xenergy` | `energy` | | `stkcal` (VO₂, project method), `sp-<id>` | `project` |
+| `xmacro` | `macro` | | `sk-<id>` | `stairkcal` |
+| `xwater` | `water` | | `xpeak` | `peak` |
+| `xrun`, `xrun-<id>` | `run` | | `scorewt` | `score` |
+| `fvinfo` | `fv` | | `gvhelp` | `gravity` |
+| `sleeprange` | `sleep` | | `nutest`, `ppg` | none yet (said on screen) |
+
+Vault entries with **no "?" to link from**: `train` (Training Hall shows kcal with no "?"), `foodguess` (explained on its own
+card), `stairways`, `lab`. Calculations whose "?" is a game or simulation note (`sleepscore`, `bmigame`, `alhelp`, `whatif`, `statcmp`,
+`aqsrc`, `plan-why`, `pulseshm`, heart-rate recovery) have no Vault entry and no link.
+**Known duplication, not changed:** each `HWVault.CALCS` entry (`f`, `src`, `app`) is still written by hand next to the
+formula in its "?" panel; the two can drift. Differences seen: `fv` cites `whofv` + `whodiet` in the Vault and none in its "?"; `energy` cites
+`mifflin` in the Vault, `mifflin` + `cdcbmi` here.
+
 ## Rules for adding a "?"
 
 1. Read the code that computes the number; the formula in the panel must be the one that runs.

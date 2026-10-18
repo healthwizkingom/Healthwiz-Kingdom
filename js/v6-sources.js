@@ -11,7 +11,7 @@
    which part. No Wikipedia. Never add a record from memory: open the source first.
 
    HWExplain.html(spec) → the panel body; HWExplain.btn(key, title, spec) → a "?" button (js/v6-help.js) that opens it.
-   spec = {what, inputs:[{n, v, u, o}], formula, vars:[[symbol, meaning, unit]], steps:[text], result, src:[ids], app, limits:[text]}
+   spec = {ev (Evidence Vault calculation id), what, inputs:[{n, v, u, o}], formula, vars:[[symbol, meaning, unit]], steps:[text], result, src:[ids], app, limits:[text]}
    o (where an input comes from): 'you' entered by you · 'device' measured by a device · 'calc' worked out by HealthWiz
    · 'est' estimate · 'default' app default · 'service' from an online service · 'missing'. Numbers in steps are the actual
    inputs, so the worked example is the user's own calculation. Text in spec is trusted markup: escape anything user-typed. */
@@ -95,7 +95,7 @@ function html(s){s=s||{};const out=[];
   if(s.app)out.push('<b class="hwx-h">HEALTHWIZ\'S OWN CHOICES</b><p class="hwx-a">'+s.app+'</p>');
   if(s.limits&&s.limits.length)out.push('<b class="hwx-h">WHAT THIS CANNOT TELL YOU</b><ul class="hwx-l">'+s.limits.map(t=>'<li>'+t+'</li>').join('')+'</ul>');
   return '<div class="hwx">'+out.join('')+'</div>'}
-const btn=(key,title,spec)=>HWHelp.btn(key,title,html(spec));
+const btn=(key,title,spec)=>HWHelp.btn(key,title,html(spec),{ev:spec&&spec.ev});
 HWUI.css('explain',`
 .hwx{font-size:14px;line-height:1.5}.hwx p{margin:0 0 8px}.hwx-h{display:block;font:8px/1.6 var(--fh);color:var(--vio);margin:12px 0 4px}
 .hwx ul,.hwx ol{margin:0;padding-left:18px}.hwx li{margin:2px 0}

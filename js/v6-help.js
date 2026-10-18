@@ -7,7 +7,9 @@
 
      HWHelp.btn(key, title, html)   // HTML for the button; the text is kept under `key` until the button is used
      HWHelp.btn(key)                // same, for text registered once with HWHelp.reg(key, title, html)
-     HWHelp.reg(key, title, html)   // register text (html is trusted markup: escape anything user-typed with esc())
+     HWHelp.reg(key, title, html, ev)   // register text (html is trusted markup: escape anything user-typed with esc())
+     ev: the Evidence Vault calculation id(s) (HWVault.CALCS) the "?" links to, or 'none' for "Evidence entry not yet available";
+         given as the 4th argument of reg(), as o.ev of btn(), or as spec.ev of HWExplain.btn()
      HWHelp.open(key|button) · close() · isOpen()
 
    Texts are plain strings built at render time, so a page that re-renders just registers them again; an open panel
@@ -15,11 +17,15 @@
 const HWHelp=(()=>{
 const T={},esc2=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let pop=null,cur=null,trig=null,returnTo=null;
-function reg(key,title,html){T[key]={t:title,h:html};return key}
+function reg(key,title,html,ev){T[key]={t:title,h:html,ev:ev};return key}
 /** The button. `label` is spoken as "About <title>"; the visible glyph is "?" (or `o.text` for a labelled variant). */
-function btn(key,title,html,o){if(typeof html==='string')reg(key,title,html);
+function btn(key,title,html,o){if(typeof html==='string')reg(key,title,html,o&&o.ev);
   const t=(T[key]||{}).t||'this',txt=o&&o.text;
   return '<button type="button" class="hwh'+(txt?' hwhl':'')+'" data-hwh="'+esc2(key)+'" aria-haspopup="dialog" aria-expanded="false" aria-label="'+esc2((o&&o.label)||('About: '+t))+'">'+(txt?esc2(txt):'?')+'</button>'}
+/** The link to the Evidence Vault under a calculation's "?" (ev = a calculation id, a list of ids, or 'none' when the Vault has no entry yet). */
+function evBlock(ev){if(ev==null)return'';const V=typeof HWVault!=='undefined'?HWVault:null;
+  if(ev==='none')return '<p class="hwev hwev-none"><small><b>Evidence entry not yet available.</b> No source has been checked for this yet, so there is no Evidence Vault entry to link to.</small></p>';
+  return [].concat(ev).filter(id=>V&&V.has(id)).map((id,i,L)=>'<p class="hwev"><a href="#vault='+id+'" data-ev="'+id+'" aria-label="View formula and evidence in the Evidence Vault: '+esc2(V.name(id))+'">View formula and evidence in the Evidence Vault'+(L.length>1?': '+esc2(V.name(id)):'')+'</a></p>').join('')}
 function build(){if(pop)return pop;pop=document.createElement('div');pop.id='hwh-pop';pop.className='hwhp';pop.setAttribute('role','dialog');pop.tabIndex=-1;pop.hidden=true;
   pop.innerHTML='<b class="hwht" id="hwh-t"></b><div class="hwhb" id="hwh-b"></div><button type="button" class="hwhx g sm">CLOSE</button>';
   pop.setAttribute('aria-labelledby','hwh-t');pop.setAttribute('aria-describedby','hwh-b');document.body.appendChild(pop);return pop}
@@ -35,7 +41,7 @@ function mark(b,on){document.querySelectorAll('.hwh[aria-expanded="true"]').forE
 function open(k){const b=typeof k==='string'?find(k):k;if(!b)return;const key=b.dataset.hwh,t=T[key];if(!t)return;
   build();
   if(cur===key&&trig===b&&!pop.hidden){close(true);return}
-  trig=b;cur=key;returnTo=b;pop.querySelector('#hwh-t').textContent=t.t;pop.querySelector('#hwh-b').innerHTML=t.h;pop.classList.toggle('hwx-on',t.h.indexOf('class="hwx"')>=0);
+  trig=b;cur=key;returnTo=b;pop.querySelector('#hwh-t').textContent=t.t;pop.querySelector('#hwh-b').innerHTML=t.h+evBlock(t.ev);pop.classList.toggle('hwx-on',t.h.indexOf('class="hwx"')>=0);
   pop.hidden=false;mark(b,true);pop.style.visibility='hidden';place();pop.style.visibility='';
   // The panel is a place to read: move focus into it so keyboard and screen-reader users land on the text.
   try{pop.focus({preventScroll:true})}catch(e){pop.focus()}}
@@ -45,7 +51,9 @@ function close(refocus){if(!pop||pop.hidden)return;const b=trig&&trig.isConnecte
 // A re-render replaces the button: follow it by key, or close when it is gone.
 function sync(){if(!pop||pop.hidden)return;if(!trig||!trig.isConnected){const b=cur&&find(cur);if(!b){pop.hidden=true;mark(null,false);cur=null;trig=null;return}trig=b;b.setAttribute('aria-expanded','true')}place()}
 
-document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.hwh');
+document.addEventListener('click',e=>{const ev=e.target.closest&&e.target.closest('.hwev a');
+  if(ev&&typeof HWVault!=='undefined'){e.preventDefault();const from=S.v;close(false);HWVault.openCalc(ev.dataset.ev,from);return}
+  const b=e.target.closest&&e.target.closest('.hwh');
   if(b){e.preventDefault();e.stopPropagation();open(b);return}
   if(!pop||pop.hidden)return;
   if(e.target.closest('.hwhx')){close(true);return}
@@ -63,7 +71,7 @@ if(typeof HWEvents!=='undefined')HWEvents.on('page:viewed',()=>close(false));
 
 /* ---------- the texts (moved here from inline notes; wording unchanged unless a short visible line replaced it) ---------- */
 reg('nutintro','Nutrition & calories','<p>Log your meals to see calories and nutrients, today and over the week.</p>');
-reg('nutest','Estimated nutrient values (EST)','<p><b>EST</b> means estimated. Macro values for menu foods are estimated from typical dish composition. Custom foods use the numbers you entered.</p>');
+reg('nutest','Estimated nutrient values (EST)','<p><b>EST</b> means estimated. Macro values for menu foods are estimated from typical dish composition. Custom foods use the numbers you entered.</p>','none');
 reg('sleepgame','Sleep visuals are a game','<p>Game visuals made from the sleep you logged. They are not a medical measurement.</p>');
 reg('sleepscore','HealthWiz Sleep Score','<p>HealthWiz Sleep Score is a game score from your logged sleep. It is <b>NOT</b> a medical measurement.</p>');
 reg('alarmwhy','Why the alarm can miss','<p>A web page cannot ring reliably when the browser is closed, the tab is in the background or the phone is locked, especially on iPhone.</p><p>For a sure alarm, also set your phone\'s Clock app.</p>');
@@ -77,8 +85,8 @@ reg('statcmp','About this comparison','<p><b>Completed days only</b> (today is s
 reg('scorenote','About the Health Score','<p>A habit score from what you logged, <b>not a diagnosis</b>.</p>');
 reg('scorewt','About these weights','<p>These weights are the team\'s reasoned judgement from the sources above, not a validated clinical formula.</p><p class="mut"><small>For developers: edit WT in js/v6-score.js to change them.</small></p>'
   +(typeof HWSources!=='undefined'?'<b class="hwx-h">SOURCES CHECKED</b><ul class="hwx-src">'+['f21','whofv','whodiet','iomdri','mifflin','whopa','acsm','aasm','aasmkids','cdcbmi','cohen'].map(HWSources.cite).join('')+'</ul>'
-    +'<b class="hwx-h">NOT YET CHECKED</b><ul class="hwx-l"><li>The AHA resting heart-rate range (60–100 BPM): the AHA page could not be opened for checking.</li></ul>':''));
-reg('fvinfo','Fruit & vegetables','<p>1 portion = 80 g (dried fruit 30 g). Counted automatically from the fruit and vegetable dishes in your nutrition log.</p>');
+    +'<b class="hwx-h">NOT YET CHECKED</b><ul class="hwx-l"><li>The AHA resting heart-rate range (60–100 BPM): the AHA page could not be opened for checking.</li></ul>':''),'score');
+reg('fvinfo','Fruit & vegetables','<p>1 portion = 80 g (dried fruit 30 g). Counted automatically from the fruit and vegetable dishes in your nutrition log.</p>','fv');
 
 HWUI.css('help',`
 .hwh{position:relative;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;box-sizing:border-box;min-width:26px;width:26px;min-height:26px;height:26px;padding:0;margin:0 0 0 6px;font:bold 11px/1 var(--fh);color:#fff;background:#1f6fb0;border:2px solid var(--ln);box-shadow:inset -2px -2px 0 rgba(0,0,0,.2),2px 2px 0 var(--ln);border-radius:0;-webkit-font-smoothing:none;text-transform:none;letter-spacing:0}
@@ -95,6 +103,8 @@ h3 .hwh,h2 .hwh{margin-left:8px}
 .hwht{display:block;margin:0 0 6px;font:9px/1.6 var(--fh);color:var(--vio)}
 .hwhb p{margin:0 0 8px}.hwhb p:last-child{margin-bottom:0}.hwhb a{color:var(--blue);font-weight:bold}
 .hwhx{display:block;margin:10px 0 0;min-height:36px}
+.hwev{margin:10px 0 0!important}.hwev a{display:inline-flex;align-items:center;min-height:44px;box-sizing:border-box;padding:6px 10px;border:3px solid var(--ln);background:var(--p2);color:var(--blue);font-weight:700;text-decoration:underline}
+.hwev a:focus-visible{outline:3px solid var(--blue);outline-offset:2px}.hwev-none{color:var(--mut)}
 .hwhs{display:inline-flex;align-items:center;flex-wrap:wrap;gap:2px 0}
 `);
 return{reg,btn,open,close,sync,isOpen:()=>!!pop&&!pop.hidden,esc:esc2}})();

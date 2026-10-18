@@ -32,7 +32,7 @@ js/v6-calcx.js             the Stairs page's worked explanations (stair workout 
 js/v6-f21.js               the Group 14 F21 study's raw measurements, every report table worked out from them (tests/61-f21)
 js/v6-lab.js               the Science Laboratory (route 'lab'): Be Your Own Experiment, page shell, the concept-sheet lab scene
 js/v6-trial.js             the Evidence Trial: reasoning questions built from real data, answers worked out from the data
-js/v6-vault.js             the Evidence Vault: every source on shelves, source → claim → HealthWiz's use → where you see it
+js/v6-vault.js             the Evidence Vault: every source on shelves, source → claim → HealthWiz's use → where you see it; calculation cards opened from a "?" by `#vault=<id>`
 js/v6-uncert.js            the Uncertainty Engine: how unmeasured assumptions move an estimate (no made-up error margins)
 js/v6-plan.js              Stair Prescription on the Stairs page: a weekly stair plan the player chooses (st.s.pl); not a prescription
 js/v6-time.js              the Health Time Machine (route 'time', door on Statistics): saved records on a day / week / month timeline

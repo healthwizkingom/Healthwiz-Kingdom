@@ -28,7 +28,7 @@ function project(v,b,a,w){const N=HWExplain.num,P={w};
     limits:['Uth\'s factor was found in well-trained men with a true maximal heart rate; an after-exercise pulse is lower, and the result is not your VO₂max or your real oxygen use.','Shown for learning only: never saved, never in the Health Score.']})}
 /** Peak heart rate as a share of 220 − age (js/v6-stairs.js peak()); dev = the peak came from a heart-rate device. */
 function peak(p,dev){const age=p&&p.max?220-p.max:null;
-  return HWExplain.btn('xpeak','How the peak heart rate is compared',{what:'Your highest heart rate in this workout, as a share of an estimated maximum heart rate for your age.',
+  return HWExplain.btn('xpeak','How the peak heart rate is compared',{ev:'peak',what:'Your highest heart rate in this workout, as a share of an estimated maximum heart rate for your age.',
     inputs:[{n:'Peak heart rate (highest of the climb and just after)',v:p.pk,u:'BPM',o:dev?'device':'you',d:0},{n:'Age',v:age,u:'years',o:'you',d:0}],
     formula:'estimated maximum = 220 − age\nshare = peak ÷ estimated maximum × 100, rounded',
     steps:['Estimated maximum: 220 − '+age+' = '+p.max+' BPM','Share: '+p.pk+' ÷ '+p.max+' × 100 = '+HWExplain.num(p.pk/p.max*100,1)+' % → '+p.pct+' %',

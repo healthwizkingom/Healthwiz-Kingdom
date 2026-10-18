@@ -8,7 +8,9 @@
    The same records feed every "?" panel, so the Vault and the explanations can never disagree. CALCS lists where each
    source is used; tests/62-lab.test.mjs checks that every cited source is on a shelf and every shelf entry exists.
    Context is kept: the open book and search stay while the page is visited, and the page reached through "WHERE YOU SEE
-   IT" shows a "BACK TO THE VAULT" button. */
+   IT" shows a "BACK TO THE VAULT" button.
+   Deep link: every "?" of a calculation links to #vault=<calculation id> (CALCS id); HWVault.openCalc(id, fromView) opens the
+   Vault on that calculation card, offers "BACK TO <page>", and an unknown id shows a message above the normal Vault. */
 const HWVault=(()=>{
 // where each source is used: name, route, the formula as the app runs it, sources, HealthWiz's own choices (not the source's)
 const CALCS=[
@@ -29,12 +31,12 @@ const CALCS=[
   {id:'lab',topic:'project',name:'The Laboratory\'s Group 14 sample and Evidence Trial',v:'lab',f:'pulse rate = average count × 60 ÷ 180; f = PR ÷ 60; T = 1 ÷ f; ω = 2πf',src:['f21'],app:'Participants are shown as P1–P6; every value is worked out from the report\'s raw counts.'},
   {id:'gravity',topic:'physics',name:'Stair Sense: work and power',v:'stair',f:'W = m × g × h; P = W ÷ t',src:['nistg','nistcal'],app:'Work against gravity only: not the energy the body uses.'}];
 const TOPICS=[['body','Body & energy','balance'],['heart','Heart & activity','pulse'],['food','Food, water & sleep','food'],['project','Our project','flask'],['physics','Physics & units','gear']];
-const Z={open:null,q:'',ret:null};
+const Z={open:null,q:'',ret:null,calc:null,bad:null,back:null,flash:0};
 const ico=(n,s)=>HWPixel.icon(n,s||1);
 const usedBy=id=>CALCS.filter(c=>c.src.includes(id));
 const topicOf=id=>{const u=usedBy(id);return u.length?u[0].topic:'physics'};
 const match=(r,q)=>!q||(r.t+' '+r.by+' '+r.s+' '+usedBy(r.id).map(c=>c.name).join(' ')).toLowerCase().includes(q.toLowerCase());
-const NAMES={body:'Body & Energy',sleep:'Sleep',score:'Health Score',pulse:'Stairs workout',run:'Running Road',exercise:'Training Hall',stair:'Stairs',lab:'Science Laboratory'};
+const NAMES={food:'Food',body:'Body & Energy',sleep:'Sleep',score:'Health Score',pulse:'Stairs workout',run:'Running Road',exercise:'Training Hall',stair:'Stairs',lab:'Science Laboratory'};
 function book(r){const on=Z.open===r.id;
   return '<button type="button" class="vbk'+(on?' on':'')+' k-'+r.k+'" data-a="vopen" data-id="'+r.id+'" aria-expanded="'+on+'"><b>'+esc(r.t)+'</b><small>'+esc(r.by.split(',')[0])+' · '+esc(String(r.d).slice(0,4))+'</small></button>'}
 function chain(r){const U=usedBy(r.id);
@@ -45,23 +47,51 @@ function chain(r){const U=usedBy(r.id);
     +(U.length?U.map(c=>'<div class="vuse"><b>'+esc(c.name)+'</b><pre class="hwx-f">'+esc(c.f)+'</pre><small><i>HealthWiz\'s own choices:</i> '+esc(c.app)+'</small>'
       +'<button type="button" class="g sm" data-a="vgo" data-v="'+c.v+'">WHERE YOU SEE IT: '+esc(NAMES[c.v]||c.v).toUpperCase()+'</button></div>').join(''):'<p class="mut">Listed for reference.</p>')+'</div></div>'
     +'<div class="vst"><span class="vno">4</span><div><b class="vh">HOW IT WAS CHECKED</b><p>'+esc(r.c)+'</p>'+(r.x?'<p><i>Limits:</i> '+esc(r.x)+'</p>':'')+'</div></div></div>'}
+const has=id=>CALCS.some(c=>c.id===id),nameOf=id=>(CALCS.find(c=>c.id===id)||{name:id}).name;
+const cmatch=(c,q)=>!q||(c.name+' '+c.f).toLowerCase().includes(q.toLowerCase());
+/** One calculation: the formula as the app runs it, HealthWiz's own choices, every source it rests on, and where the result is shown.
+    The card opened from a "?" is open, outlined with a text tag (not colour alone) and focused. */
+function calcCard(c){const on=Z.calc===c.id;
+  return '<details class="vcc'+(on?' vtarget'+(Z.flash?' vflash':''):'')+'" id="vc-'+c.id+'"'+(on?' open':'')+'><summary><b>'+esc(c.name)+'</b>'+(on?' <span class="pxtag">OPENED FROM THE ? BUTTON</span>':'')+'</summary>'
+    +'<b class="vh">FORMULA (AS THE APP RUNS IT)</b><pre class="hwx-f">'+esc(c.f)+'</pre>'
+    +'<small><span class="pxtag">HEALTHWIZ\'S OWN WORK</span> <i>HealthWiz\'s own choices:</i> '+esc(c.app)+'</small>'
+    +'<b class="vh">SOURCES</b><ul class="hwx-src">'+c.src.map(HWSources.cite).join('')+'</ul>'
+    +'<div class="row">'+c.src.map(id=>'<button type="button" class="chip sm" data-a="vopen" data-id="'+id+'">'+esc((HWSources.get(id)||{t:id}).t.split(':')[0].slice(0,42))+'</button>').join('')+'</div>'
+    +'<button type="button" class="g sm" data-a="vgo" data-v="'+c.v+'">WHERE YOU SEE IT: '+esc(NAMES[c.v]||c.v).toUpperCase()+'</button></details>'}
 function shelf(){const all=HWSources.all().filter(r=>match(r,Z.q)),o=Z.open&&HWSources.get(Z.open)?Object.assign({id:Z.open},HWSources.get(Z.open)):null;
-  return '<div class="card vault"><h3>'+ico('scroll')+' THE EVIDENCE VAULT</h3><p>Every source behind a number in HealthWiz, with what it supports and how the app uses it. Open a book to follow the chain.</p>'
+  const cs=CALCS.filter(c=>cmatch(c,Z.q));
+  return '<div class="card vault"><h3>'+ico('scroll')+' THE EVIDENCE VAULT</h3><p>Every source behind a number in HealthWiz, with what it supports and how the app uses it. Open a book to follow the chain, or open a calculation to see its formula and sources.</p>'
+    +(Z.back?'<button type="button" class="g sm vbackto" data-a="vbackto">◀ BACK TO '+esc(NAMES[Z.back.v]||Z.back.v).toUpperCase()+'</button>':'')
+    +(Z.bad?'<p class="warn" id="vwarn" role="alert" tabindex="-1">That Evidence Vault entry ("'+esc(Z.bad)+'") was not found. It may have been renamed or removed. You can search or browse everything below.</p>':'')
     +'<label for="vq"><b>Search the Vault</b></label><input id="vq" type="search" autocomplete="off" value="'+esc(Z.q)+'" aria-describedby="vqx"><small class="mut" id="vqx">Example: sleep, BMI, oxygen</small>'
     +(o?chain(o)+'<div class="row"><button type="button" class="g sm" data-a="vclose">CLOSE THE BOOK</button></div>':'')
     +TOPICS.map(t=>{const B=all.filter(r=>topicOf(r.id)===t[0]);return B.length?'<h4 class="vshelf">'+ico(t[2])+' '+t[1].toUpperCase()+' <small>('+B.length+')</small></h4><div class="vrow">'+B.map(book).join('')+'</div>':''}).join('')
-    +(all.length?'':'<p class="mut">No source matches that word yet.</p>')
-    +'<details class="vcalc"><summary><b>Browse by calculation</b></summary>'+CALCS.map(c=>'<div class="vuse"><b>'+esc(c.name)+'</b><div class="row">'+c.src.map(id=>'<button type="button" class="chip sm" data-a="vopen" data-id="'+id+'">'+esc((HWSources.get(id)||{t:id}).t.split(':')[0].slice(0,42))+'</button>').join('')+'</div></div>').join('')+'</details>'
+    +(all.length||cs.length?'':'<p class="mut">No source or calculation matches that word yet.</p>')
+    +'<details class="vcalc"'+(Z.calc||Z.q?' open':'')+'><summary><b>Browse by calculation ('+cs.length+')</b></summary>'+cs.map(calcCard).join('')+'</details>'
     +'<small class="mut">Sources are kept to primary research, official bodies and recognised organisations; no Wikipedia. A source is listed only after it was opened and seen to support its claim.</small></div>'}
 HWLab.section('vault',{name:'Evidence Vault',icon:'scroll',render:shelf});
 acts.vopen=d=>{if(!HWSources.get(d.id))return;Z.open=d.id;render();const c=document.getElementById('vch');if(c){c.scrollIntoView&&c.scrollIntoView({block:'start',behavior:HWUI.reduced()?'auto':'smooth'});c.focus({preventScroll:true})}};
 acts.vclose=()=>{const id=Z.open;Z.open=null;render();const b=document.querySelector('[data-a="vopen"][data-id="'+id+'"]');if(b)b.focus()};
 acts.vgo=d=>{Z.ret={v:d.v};go(d.v)};
+/** Open the Vault on one calculation (called by the "?" links and by #vault=<id>). `from` = the page to offer a way back to. */
+function openCalc(id,from){const ok=has(id);Z.q='';Z.open=null;Z.calc=ok?id:null;Z.bad=ok?null:id;Z.flash=1;
+  if(from&&from!=='lab')Z.back={v:from};
+  HWLab.Z().tab='vault';try{history.replaceState(null,'','#vault='+encodeURIComponent(id))}catch(e){}
+  if(S.v!=='lab')go('lab');else render();
+  requestAnimationFrame(()=>{const el=document.getElementById(ok?'vc-'+id:'vwarn');Z.flash=0;
+    if(el){el.scrollIntoView&&el.scrollIntoView({block:'start',behavior:HWUI.reduced()?'auto':'smooth'});const f=el.querySelector('summary')||el;try{f.focus({preventScroll:true})}catch(e){}}})}
+acts.vbackto=()=>{const b=Z.back;Z.back=null;Z.calc=null;if(b)go(b.v)};
+const hashId=()=>{const m=/^#vault=([A-Za-z0-9_-]+)$/.exec(location.hash||'');return m?m[1]:null};
+const applyHash=()=>{const id=hashId();if(id&&S.v!=='onb'&&!(S.v==='welcome'&&typeof needOnb==='function'&&needOnb()))openCalc(id)};
+addEventListener('hashchange',applyHash);
+if(document.readyState==='complete')setTimeout(applyHash,0);else addEventListener('load',()=>setTimeout(applyHash,0));
 acts.vback=()=>{Z.ret=null;HWLab.Z().tab='vault';go('lab')};
 document.addEventListener('input',e=>{if(e.target&&e.target.id==='vq'){Z.q=e.target.value;const pos=e.target.selectionStart;render();const i=document.getElementById('vq');if(i){i.focus();try{i.setSelectionRange(pos,pos)}catch(x){}}}});
 // "BACK TO THE VAULT" on the page reached from a book; it goes once the user moves on elsewhere
 {const r=render;render=function(){const x=r.apply(this,arguments);try{if(Z.ret&&S.v===Z.ret.v){const m=document.querySelector('#main .pg');if(m&&!m.querySelector('.vret'))m.insertAdjacentHTML('afterbegin','<button type="button" class="g sm vret" data-a="vback">◀ BACK TO THE EVIDENCE VAULT</button>')}}catch(e){}return x}}
-HWEvents.on('page:viewed',e=>{if(Z.ret&&e.view!==Z.ret.v&&e.view!=='lab')Z.ret=null});
+HWEvents.on('page:viewed',e=>{if(Z.ret&&e.view!==Z.ret.v&&e.view!=='lab')Z.ret=null;
+  if(e.view!=='lab'&&(!Z.back||e.view!==Z.back.v))Z.back=null;
+  if(e.view!=='lab'&&hashId())try{history.replaceState(null,'',location.pathname+location.search)}catch(x){}});
 HWUI.css('vault',`
 .vault input{width:100%;min-height:44px;box-sizing:border-box;margin:4px 0 2px}.vshelf{font:8px/1.6 var(--fh);margin:14px 0 6px;display:flex;gap:6px;align-items:center}
 .vrow{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 10px;border-bottom:6px solid #6b4423;box-shadow:0 3px 0 #47301a}
@@ -75,7 +105,12 @@ HWUI.css('vault',`
 .vh{display:block;font:8px/1.6 var(--fh);color:var(--vio);margin-bottom:4px}.vst p{margin:0 0 6px}
 .vuse{border-top:2px solid var(--ln);padding:8px 0}.vuse>b{display:block}.vuse small{display:block;margin:4px 0}.vuse button{min-height:44px;margin-top:4px}
 .vcalc summary{min-height:44px;display:flex;align-items:center;cursor:pointer}.vcalc .chip{text-transform:none;letter-spacing:0;font:12px var(--fb)}
-.vret{margin:0 0 10px;min-height:44px}
-@media(prefers-reduced-motion:reduce){.vch{animation:none}}
+.vret,.vbackto{margin:0 0 10px;min-height:44px}
+.vcc{border-top:2px solid var(--ln);padding:2px 0;scroll-margin-top:80px}.vcc summary{min-height:44px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;cursor:pointer}.vcc summary:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.vcc .hwx-f{margin:6px 0}.vcc small{display:block;margin:4px 0}.vcc>button{min-height:44px;margin-top:6px}
+.vtarget{border:4px dashed var(--gold);padding:4px 8px;background:var(--p2)}
+.vflash{animation:vflash 2.4s ease-out 1}@keyframes vflash{0%,40%{box-shadow:0 0 0 6px var(--gold)}100%{box-shadow:0 0 0 0 transparent}}
+#vwarn:focus{outline:3px solid var(--gold)}
+@media(prefers-reduced-motion:reduce){.vch,.vflash{animation:none}}
 `);
-return{CALCS,TOPICS,usedBy,Z:()=>Z}})();
+return{CALCS,TOPICS,usedBy,has,name:nameOf,openCalc,Z:()=>Z}})();
