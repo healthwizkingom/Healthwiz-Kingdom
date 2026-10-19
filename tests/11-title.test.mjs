@@ -102,3 +102,13 @@ test('switching to reduced motion mid-session drops parallax already applied', a
   assert.deepEqual(errors, []);
   await ctx.close();
 });
+
+test('start screen: the green caped hero is not drawn; the knight, campfire and dragon stay', async () => {
+  const { page, ctx, errors } = await openApp({ seed: OFF });
+  await page.waitForSelector('.wl'); await page.waitForTimeout(250);
+  // the hero sprite was the only thing drawn in its cape greens (#4cc15a / #2f8a3a with skin #f1c27d) inside a .zh group
+  const n = await page.evaluate(() => [...document.querySelectorAll('.wl g.zh')].filter(g => g.querySelector('[fill="#4cc15a"]') && g.querySelector('[fill="#f1c27d"]')).length);
+  assert.equal(n, 0, 'no caped hero');
+  assert.ok(await page.$('.wl [data-k="camp"]'), 'the campfire spot is still there');
+  assert.deepEqual(errors, []); await ctx.close();
+});
