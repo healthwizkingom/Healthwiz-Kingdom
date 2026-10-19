@@ -184,7 +184,7 @@ function whyCard(){
 const whatIf=C=>{if(typeof HWWhatIf==='undefined')return '';try{return HWWhatIf.section(C)}catch(e){console.error('[HealthWiz] what-if failed:',e);return ''}}; // js/v6-whatif.js: a simulation only
 pages.score=()=>{
   const C=compute();
-  return '<h2>🏆 HEALTH SCORE</h2><p class="mut">Your logged habits, weighed into one score, with advice for each area.</p>'+head(C)+whatIf(C)+table(C)+recCard(C)+whyCard()
+  return '<h2>🏆 HEALTH SCORE</h2><p class="mut">Your logged habits, weighed into one score, with advice for each area.</p>'+head(C)+table(C)+recCard(C)+whatIf(C)+whyCard()   // the What-if card sits below the orb reading (owner's order)
    +'<div class="card"><small class="mut">Supports UN Sustainable Development Goal 3: Good Health and Well-being. HealthWiz is a wellness tracker, not a medical device.</small></div>'};
 
 acts.scw=d=>{W=d.w==='week'?'week':'day';render()};

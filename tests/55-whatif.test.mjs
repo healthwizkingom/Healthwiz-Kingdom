@@ -152,3 +152,11 @@ test('the simulator closes when the page is left and survives the TODAY / LAST 7
   assert.equal(await page.locator('#wif-body').count(), 0);
   assert.deepEqual(errors, []); await ctx.close();
 });
+
+test('the What-if card sits below the orb reading (REPLAY ORB READING) and above Why these weights', async () => {
+  const { page, ctx, errors } = await boot(full);
+  await page.click('[data-a="orbshow"]');
+  const o = await page.evaluate(() => { const m = document.querySelector('#main').innerHTML; return ['HOW YOUR SCORE ADDS UP', 'REPLAY ORB READING', 'data-a="wifopen"', 'WHY THESE WEIGHTS'].map(k => m.indexOf(k)); });
+  assert.ok(o.every((v, i) => v >= 0 && (i === 0 || v > o[i - 1])), 'table → orb reading → What-if → weights: ' + o);
+  assert.deepEqual(errors, []); await ctx.close();
+});

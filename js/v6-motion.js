@@ -50,7 +50,8 @@ html.hw-q-performance .wl .zh,html.hw-q-performance .wl .zr,html.hw-q-performanc
 html.hw-q-performance .wl .zl,html.hw-q-performance .wl .zff:not(:nth-of-type(4n)),html.hw-q-performance .wl .zv:nth-of-type(2n){display:none}
 html.hw-q-performance .fx u:nth-of-type(n+7),html.hw-q-performance .fx.done u:nth-of-type(n+13),html.hw-q-performance .fl2 u:nth-of-type(n+9),html.hw-q-performance .fl2 .flf:nth-of-type(n+2){display:none}
 html.hw-q-performance .wl.v6px .zsv,html.hw-q-performance .wl.v6px .tt{transform:none}
-#v6motion .v6mlab{font:8px/1.6 var(--fh);margin:12px 0 6px}`);
+#v6motion .v6mlab{font:8px/1.6 var(--fh);margin:12px 0 6px}#v6motion [data-a="mjump"]{min-height:44px}
+#awmeet,#v6lunaset{scroll-margin-top:12px}`);
 
 let last='';
 function apply(quiet){const h=document.documentElement,L=level(),r=reduced(),off=!enabled();sync();
@@ -74,6 +75,8 @@ HWEvents.on('app:ready',()=>{apply(true);if(choice()!=='auto'||reduced())return;
 /* settings */
 function set(k,v){const S2=st.s;if(k==='perf')S2.perf=LV.includes(v)?v:'auto';else if(k==='anim')S2.anim=+v?1:0;else if(k==='rm')S2.rm=+v?1:0;save();apply()}
 acts.mopt=d=>{set(d.k,d.v);render()};
+// Meet Luke / Luna Companion: bring that card (js/v6-addfood.js, js/v6-medius.js) into view on the same Settings page and focus its heading
+acts.mjump=d=>{const c=document.getElementById(d.t);if(!c)return;const h=c.querySelector('h3')||c;h.tabIndex=-1;c.scrollIntoView({block:'start',behavior:reduced()?'auto':'smooth'});try{h.focus({preventScroll:true})}catch(e){h.focus()}};
 const chip=(k,v,label,on)=>'<button class="chip'+(on?' on':'')+'" data-a="mopt" data-k="'+k+'" data-v="'+v+'" aria-pressed="'+on+'">'+label+'</button>';
 function card(){const c=choice(),L=level(),dev=device();
   return '<div class="card" id="v6motion"><h3>✨ ANIMATION &amp; PERFORMANCE</h3>'
@@ -81,7 +84,8 @@ function card(){const c=choice(),L=level(),dev=device();
   +'<p class="v6mlab">MOTION</p><div class="row">'+chip('rm',0,'Follow device',s().rm!==1)+chip('rm',1,'Reduce',s().rm===1)+'</div>'
   +(dev?'<small class="mut">Your device asks for reduced motion, so movement is already reduced.</small>':'')
   +'<p class="v6mlab">VISUAL QUALITY</p><div class="row">'+['auto',...LV].map(v=>chip('perf',v,NAME[v],c===v)).join('')+'</div>'
-  +'<small class="mut">Now: <b>'+(enabled()?NAME[L]:'Still')+'</b>'+(c==='auto'?' (picked for this device)':'')+'. High adds extra ambient life. Performance calms the busiest background effects and particles for older phones and saves battery. Animation also pauses while the app is in the background.</small></div>'}
+  +'<small class="mut">Now: <b>'+(enabled()?NAME[L]:'Still')+'</b>'+(c==='auto'?' (picked for this device)':'')+'. High adds extra ambient life. Performance calms the busiest background effects and particles for older phones and saves battery. Animation also pauses while the app is in the background.</small>'
+  +'<p class="v6mlab">CHARACTERS</p><div class="row"><button type="button" class="g sm" data-a="mjump" data-t="awmeet">Meet Luke</button><button type="button" class="g sm" data-a="mjump" data-t="v6lunaset">Luna Companion</button></div></div>'}
 {const p=pages.set;pages.set=(...a)=>{const h=p(...a),k='<h2>⚙️ SETTINGS</h2>';return h.indexOf(k)>=0?h.replace(k,k+card()):h+card()}}
 apply(true);
 return{enabled,reduced,device,level,choice,count,cap,set,apply,probe,card}})();

@@ -140,3 +140,19 @@ test('animation pauses while the app is in the background', async () => {
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.zsv .zd')).animationPlayState), 'running');
   await ctx.close();
 });
+
+test('Animation & Performance: "Meet Luke" and "Luna Companion" bring their Settings cards into view and focus them', async () => {
+  const { page, ctx, errors } = await openApp({ viewport: { width: 390, height: 844 } });
+  await go(page, 'set');
+  for (const [name, id] of [['Meet Luke', 'awmeet'], ['Luna Companion', 'v6lunaset']]) {
+    const b = page.locator('#v6motion [data-a="mjump"]', { hasText: name });
+    assert.equal(await b.count(), 1, name + ' button in the Animation & Performance card');
+    assert.equal((await b.innerText()).trim().toLowerCase(), name.toLowerCase());
+    await b.scrollIntoViewIfNeeded(); await b.focus(); await page.keyboard.press('Enter');
+    await page.waitForFunction(i => Math.abs(document.getElementById(i).getBoundingClientRect().top - 12) < 4, id, { timeout: 4000 }).catch(() => {}); // smooth scroll settles
+    const r = await page.evaluate(i => [document.activeElement.closest('[id]').id, document.getElementById(i).getBoundingClientRect().top], id);
+    assert.equal(r[0], id, name + ' focuses its card');
+    assert.ok(r[1] >= -1 && r[1] < 200, name + ' card is in view: ' + r[1]);
+  }
+  assert.deepEqual(errors, []); await ctx.close();
+});
