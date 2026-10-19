@@ -88,7 +88,7 @@ HWUI.css('foodsel',`
 .fsn{flex:1 1 180px;min-width:0}.fsn b{display:block;overflow-wrap:anywhere}.fsn small{display:block}
 .fsc{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .fsq{display:flex;align-items:center;gap:6px}.fsq button,.fsrm{min-width:44px;justify-content:center;padding:6px;font-size:14px}.fsq b{min-width:22px;text-align:center}
-.fspm,.fsck{display:flex;flex-direction:column;font-size:11px;margin:0}.fspm select{width:80px;min-height:44px;margin:0}.fsck input{width:96px;min-height:44px;margin:0}
+.fspm,.fsck{display:flex;flex-direction:column;font-size:12px;margin:0}.fspm select{width:80px;min-height:44px;margin:0}.fsck input{width:96px;min-height:44px;margin:0}
 .fsk{min-width:64px;text-align:right;margin-left:auto}
 .fstot{margin:10px 0 6px}
 .fsact{display:flex;gap:8px;flex-wrap:wrap}.fsact .fslog{flex:1 1 auto;justify-content:center}

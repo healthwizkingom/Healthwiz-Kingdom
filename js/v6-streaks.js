@@ -45,7 +45,7 @@ BG.push(
 ['🏡','Kingdom Steward','Have 4 regions Thriving in the same week',()=>[thriving(),4]]);
 
 /* ---------- consistency card on the Quest Board (after the original STREAK card) ---------- */
-HWUI.css('streaks',`.v6wk{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin:8px 0}.v6wk span{text-align:center;border:3px solid var(--ln);padding:6px 0;font:8px/1.4 var(--fh);background:var(--p2)}.v6wk span b{display:block;font-size:14px;font-family:var(--fn,inherit)}.v6wk .on{background:var(--grn);color:#fff}.v6wk .today{outline:3px dashed var(--gold);outline-offset:-6px}.v6wk .later{opacity:.45}`);
+HWUI.css('streaks',`.v6wk{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin:8px 0}.v6wk span{text-align:center;border:3px solid var(--ln);padding:6px 0;font:12px/1.4 var(--fl);background:var(--p2)}.v6wk span b{display:block;font-size:14px;font-family:var(--fn,inherit)}.v6wk .on{background:var(--grn);color:#fff}.v6wk .today{outline:3px dashed var(--gold);outline-offset:-6px}.v6wk .later{opacity:.45}`);
 const DL=['MON','TUE','WED','THU','FRI','SAT','SUN'],IC={on:'✔',rest:'☾',today:'•',later:''};
 function card(){const g=gentle(),c=current(),W=week(),n=W.filter(x=>x.s==='on').length;
   return '<div class="card" id="v6streak"><h3>🌱 CONSISTENCY '+HWHelp.btn('streakrest')+'</h3><div class="grid"><div class="t">🔥 Current streak<b>'+c+'</b><small>days in a row</small></div><div class="t">🌿 Gentle streak<b>'+g.days+'</b><small>'+(g.rests?g.rests+' rest day'+(g.rests>1?'s':'')+' taken':'rest days allowed')+'</small></div><div class="t">📅 This week<b>'+n+'/7</b><small>days logged</small></div></div>'

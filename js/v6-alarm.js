@@ -177,10 +177,10 @@ HWUI.css('alarm',`
 #v6alm h3{display:flex;align-items:center;gap:8px}
 .v6alw{display:flex;gap:8px;align-items:flex-start;padding:8px;margin:0 0 10px;border:2px dashed var(--ln);background:var(--p2);font-size:13px}
 .v6als{display:flex;gap:10px;align-items:flex-start;margin:0 0 8px}.v6als>div{flex:1 1 auto;min-width:0}.v6als p{margin:6px 0}
-.v6all{margin:8px 0 4px}.v6ald{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.v6ald button{min-width:0;min-height:44px;padding:4px 0;margin:0;font-size:7px}
+.v6all{margin:8px 0 4px}.v6ald{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.v6ald button{min-width:0;min-height:44px;padding:4px 0;margin:0;font-size:12px}
 #v6alm .row button,#v6alm input{min-height:44px}.v6alon button{flex:1 1 140px;display:flex;align-items:center;justify-content:center;gap:6px}
 .v6aln{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.v6alp summary{display:flex;align-items:center;gap:6px;min-height:44px;cursor:pointer;font:var(--px-f1)/1.6 var(--fh)}
+.v6alp summary{display:flex;align-items:center;gap:6px;min-height:44px;cursor:pointer;font:var(--px-f1)/1.6 var(--fl)}
 .v6alp>div{margin:8px 0;padding:8px;border:2px solid var(--ln);background:var(--p2)}.v6alp>div.on{box-shadow:0 0 0 3px var(--gold)}.v6alp p,.v6alp ol{margin:4px 0}
 .v6alo{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(6,9,13,.88)}
 .v6alo[hidden]{display:none}

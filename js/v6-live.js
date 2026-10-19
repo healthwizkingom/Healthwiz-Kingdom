@@ -157,13 +157,13 @@ HWUI.css('live',`
 .v6heat{margin:8px 0 0;padding:6px 8px;border:2px dashed #e8812a;font-size:13px}
 .v6aq{border-left:10px solid var(--aq,var(--ln))}
 .v6aqh{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline}
-.v6aqk{font:9px/1.8 var(--fh)}.v6aqk span{color:var(--mut)}
+.v6aqk{font:12px/1.8 var(--fl)}.v6aqk span{color:var(--mut)}
 .v6aqv{font-size:14px}.v6aqv b{font-size:20px}
 .v6aqa{margin:8px 0}
 .v6aq a,.v6hzb a{color:inherit;text-decoration:underline;display:inline-block;padding:4px 0}
 .v6hzb{display:flex;flex-direction:column;gap:4px;margin:0 0 14px;padding:8px 10px;background:var(--pn);border:3px solid var(--ln);border-left:10px solid var(--aq,var(--mut));box-shadow:3px 3px 0 var(--ln);font-size:13px}
-.v6hzb b{font:8px/1.8 var(--fh)}.v6hzb small{color:var(--mut)}
-#v6live .v6pl{display:flex;gap:8px;align-items:baseline;margin:6px 0}#v6live .v6pk{flex:0 0 auto;font:7px/1.8 var(--fh);min-width:84px}
+.v6hzb b{font:12px/1.8 var(--fl)}.v6hzb small{color:var(--mut)}
+#v6live .v6pl{display:flex;gap:8px;align-items:baseline;margin:6px 0}#v6live .v6pk{flex:0 0 auto;font:12px/1.8 var(--fl);min-width:84px}
 #v6live button{min-height:44px}
 /* game layer only: a hazy kingdom sky behind the cards (the cards themselves are opaque and unchanged) */
 body.hw-haze .amb .amsky{inset:0;background:linear-gradient(rgba(196,170,120,.42),rgba(186,170,140,.18))}

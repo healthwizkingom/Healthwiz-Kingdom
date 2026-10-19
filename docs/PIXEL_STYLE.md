@@ -4,6 +4,67 @@ The visual direction for every screen from now on, and the shared code behind it
 Introduced in the visual-foundation session (`docs/ARCHITECTURE_AUDIT.md` §30). Later sessions redesign screens with
 these pieces instead of inventing new ones.
 
+## Design system (type, spacing, colour): the October 2026 design pass
+
+**Identity in one sentence:** a hard-edged pixel interface with health-clear numbers, and the magic kept in the art.
+Health first, game second: health values, units and ranges are always in the readable sans; game values (XP, level,
+badges) stay visibly apart and are tagged as game progress.
+
+### Type scale (six roles, no others)
+
+| Role | Face | Size | Use |
+|---|---|---|---|
+| Display | Press Start 2P (`--fh`) | 24 px (32, 40, 48 only on the title screen) | title screen wordmark, rewards, game overlays |
+| Title | Press Start 2P (`--fh`) | 16 px | page titles (`h1`, `h2`), the Home wordmark |
+| Heading | Pixelify Sans 600 (`--fl`) | 16 px | card headings (`h3`), buttons, the Home greeting line's neighbours |
+| Label | Pixelify Sans 600 (`--fl`) | 12 px | bottom tabs, tags, chips, small buttons, status tags |
+| Body | system sans (`--fn`) | 15 px (small text 12 px) | running text, captions, chart labels, table cells |
+| Number | system sans 700, tabular (`--fn`) | 20 to 48 px | every health number and unit (tiles, Health Score, BPM, kcal) |
+
+* Press Start 2P is drawn on an 8 px grid, so it is used at multiples of 8 only (16 and 24 in the app, plus the larger
+  title-screen steps). Pixel text below 16 px uses Pixelify Sans, never Press Start 2P.
+* Nothing is smaller than 12 px. The old monospace voice is gone: chart labels, captions and canvas readouts use the sans
+  (`--fm` is now an alias of `--fn`).
+* Tokens: `--px-f1` 12 px (label), `--px-f2` 16 px (heading and title), `--px-f3` 24 px (display).
+
+**Font choice, with the evidence.** The bottom tab labels and the Home header were the failures: Press Start 2P at 8 to 12 px
+is about twice as wide as a readable face, so "Settings" overflowed its 53 px cell at 12 px and the wordmark ran under the
+avatar. I rendered Press Start 2P, Silkscreen and Pixelify Sans at 8, 12, 16 and 24 px as headings, as labels and as the five
+tabs at 360 px. Press Start 2P stays crisp but wide; Silkscreen is narrow and crisp but capitals only and tiny at 8 px;
+Pixelify Sans keeps the pixel look, has lower case, and fits all five tabs at 12 px with room to spare. So: Press Start 2P for
+headings only (16 and 24 px), Pixelify Sans for labels, buttons and tabs, the system sans for body text and every number.
+Both pixel fonts are SIL Open Font License 1.1 (licence texts in `assets/fonts/`), subset to Latin and bundled as woff2 with
+`@font-face` in `index.html`, pre-cached in `sw.js` and embedded by `tools/build-standalone.mjs`. There is no Google Fonts
+request, so the first visit looks the same offline.
+
+### Spacing scale
+
+One grid unit is `--px-unit` = 4 px. Allowed steps: 4, 8, 12, 16, 24, 32 (panel padding and gaps 12, panel margin 14).
+Tap targets are at least 44 x 44 px. Borders 4 px on panels, 3 px on controls, 2 px on tags.
+
+### Colour roles
+
+Surfaces `--bg --pn --p2`; ink `--ink`; muted text `--mut`; frame `--ln` (and `--edge` in the Arcane skin); accents `--gold`
+(primary action), `--blue`, `--vio`, `--red`, `--grn`. Eight themes share these names.
+
+**Status set (good, watch, caution).** Colour is never the only cue: each status is a colour, a shape and a word
+(`.stt` tag, `stt(kind)` in `js/hw-04-part.js`): good = check mark + GOOD (solid frame), watch = diamond + WATCH (dashed
+frame), caution = triangle + CAUTION (double frame). Tokens `--st-good --st-watch --st-caution` have a light-surface set and
+a dark-surface set (`index.html`); all three are at least 4.5:1 against the background, panel and tile colour of every theme
+(computed for the eight themes: lowest ratio 4.51, Parchment tile with the watch colour).
+
+* Home tiles: only where the user has a target and has logged something. Water: 100 percent or more of the target is good,
+  50 to 99 watch, below 50 caution. Calories: 90 to 110 percent good, 50 to 130 watch, otherwise caution. This is
+  *calculated progress toward the user's own target today*, not a health judgement; time of day is not considered.
+* Health Score: 60 and above good (Excellent and Good), 40 to 59 watch (Fair), below 40 caution (Needs attention). The
+  band words are unchanged.
+
+### Panels
+
+The main health panels (Home "Today's health", the Water "Add water" card, the Health Score header) use the stepped pixel
+frame `.pxp.pxn` with the `.pxh` heading. The Arcane skin keeps it square and draws the steps in `--edge` (`js/v6-arcane.js`).
+Still to convert for later: the other tracker cards, the Kingdom and Stats cards, and the settings panels.
+
 ## Direction since the magical redesign (owner's request, October 2026)
 
 **Magical and modern, with pixel art at its heart.** The owner asked for a look that is "more visually magical, and a
@@ -38,9 +99,9 @@ generic dashboard look (rounded cards, soft drop shadows, gradients, thin system
 3. **Colours come from tokens.** The original theme tokens (`--bg --pn --p2 --ink --mut --ln --gold --red --blue
    --grn --vio`) switch with light/dark and the saved THEME choice. New UI uses them, or `.pxdk` for a dark HUD, so it
    follows the theme for free. Icons use the one icon palette (`HWPixel.PAL`).
-4. **Type.** Headings, buttons, tags and HUD numbers use the pixel font `var(--fh)` (Press Start 2P). It is drawn on
-   an 8 px grid, so new pixel text uses `--px-f1` 8 px, `--px-f2` 16 px or `--px-f3` 24 px. Running text and long
-   numbers stay in `var(--fb)` for legibility. Never set pixel-font text in italics.
+4. **Type.** See the type scale above. Titles use Press Start 2P (`var(--fh)`) at 16 or 24 px; card headings, buttons and
+   tags use Pixelify Sans (`var(--fl)`) at 12 or 16 px (`--px-f1`, `--px-f2`); running text and every health number use
+   the sans (`var(--fn)`). Never set pixel-font text in italics.
 5. **Pixel art scales by whole numbers.** Grid art (icons, `spr()` sprites) is drawn at 1×, 2×, 3×… with
    `image-rendering: pixelated` (or `shape-rendering: crispEdges` for SVG). **High-resolution character art is
    different:** the knight, avatars, Medius and the orc (`assets/img/*.webp`, 180–292 px wide, already detailed) are
@@ -61,7 +122,7 @@ generic dashboard look (rounded cards, soft drop shadows, gradients, thin system
 | `--px-sh` / `--px-sh-c` | `4px 4px 0 var(--ln)` / `3px 3px 0 …` | hard drop shadow |
 | `--px-bevel` / `--px-bevel-c` | `inset -4px -4px 0 rgba(0,0,0,.18)` / `inset -3px -3px 0 rgba(0,0,0,.25)` | inner shade |
 | `--px-pad` / `--px-gap` | 12px | panel padding / grid gap |
-| `--px-f1` / `--px-f2` / `--px-f3` | 8 / 16 / 24 px | pixel-font sizes that stay crisp |
+| `--px-f1` / `--px-f2` / `--px-f3` | 12 / 16 / 24 px | label (Pixelify Sans) / heading and title / display (Press Start 2P) |
 | `--px-hud`, `--px-hud2`, `--px-hud-ink`, `--px-hud-mut`, `--px-hud-ln` | night blue, ink | dark HUD colours |
 
 These equal the original card and button values, so new panels match the existing screens.
@@ -76,7 +137,7 @@ All opt-in by class; nothing existing is restyled by them. Existing pieces stay 
 | `.pxp` | Panel. The same frame as `.card` (4 px ink border, bevel, hard shadow). |
 | `.pxp.pxn` | Stepped corners: one grid pixel cut from each corner, with a stepped shadow. For HUD and dialog frames. |
 | `.pxdk` | Dark HUD colours. Re-points the theme tokens inside it, so `.pxp`, buttons, `bar()` and muted text all follow. |
-| `.pxh` | Panel heading: icon + 8 px pixel-font label. |
+| `.pxh` | Panel heading: icon + 12 px pixel label (Pixelify Sans). |
 | `.pxhud` + `.pxst` | HUD strip of stats (icon, big number, unit), e.g. over a game scene. |
 | `.pxtag` | Small label (EST, NEW, LV 3…). |
 | `.pxi` | A pixel icon (set by `HWPixel.icon`). |

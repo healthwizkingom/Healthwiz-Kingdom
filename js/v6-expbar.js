@@ -78,7 +78,7 @@ HWUI.css('expbar',`
 @keyframes xpbsh{from{background-position:120% 0}to{background-position:-100% 0}}
 .bar.xpb.xpb-up i{box-shadow:0 0 12px 2px rgba(242,193,78,.75),inset 0 1px 0 rgba(255,255,255,.4)}
 .bar.xpb{position:relative}
-.xpb-gain{position:absolute;right:0;top:-4px;transform:translateY(-100%);font:7px/1 var(--fh);color:var(--ink);background:var(--pn);border:2px solid var(--gold);border-radius:6px;padding:3px 5px;white-space:nowrap;pointer-events:none;animation:xpbg 1.6s ease-out forwards}
+.xpb-gain{position:absolute;right:0;top:-4px;transform:translateY(-100%);font:12px/1 var(--fl);color:var(--ink);background:var(--pn);border:2px solid var(--gold);border-radius:6px;padding:3px 5px;white-space:nowrap;pointer-events:none;animation:xpbg 1.6s ease-out forwards}
 @keyframes xpbg{0%{opacity:0;transform:translateY(-60%)}15%{opacity:1;transform:translateY(-100%)}75%{opacity:1}100%{opacity:0;transform:translateY(-150%)}}
 @media(prefers-reduced-motion:reduce){.bar i,.db6bar i,.bar.xpb i{transition:none!important}.bar.xpb i:after{animation:none!important;display:none}.xpb-gain{display:none}}
 html.hw-q-performance .bar.xpb i:after{animation:none;display:none}

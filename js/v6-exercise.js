@@ -306,16 +306,16 @@ HWUI.css('exercise',`
 .xwrap{display:flex;flex-direction:column;gap:12px}
 .xh2{display:flex;align-items:center;gap:8px}
 .xpan{padding:12px}.xpan>.pxh{margin:0 0 10px}
-.xrun{display:flex;gap:4px;margin:0;padding:0;list-style:none}.xrun li{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;border:2px solid var(--ln);background:var(--p2);opacity:.6;font:8px/1.4 var(--fh);text-transform:uppercase}
+.xrun{display:flex;gap:4px;margin:0;padding:0;list-style:none}.xrun li{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;border:2px solid var(--ln);background:var(--p2);opacity:.6;font:12px/1.4 var(--fl);text-transform:uppercase}
 .xrun li.dn{opacity:.9}.xrun li.on{opacity:1;background:var(--px-hud,#1c2340);color:var(--xm2);box-shadow:inset 0 -3px 0 var(--xm2)}
 .xmed{display:flex;gap:10px;align-items:flex-start}.xmed .av{width:44px;height:44px;flex:0 0 44px;object-fit:cover;object-position:top;border:3px solid var(--ln);background:var(--p2);image-rendering:auto}
 .xmed p{margin:0;flex:1;position:relative;padding:8px 10px;background:var(--pn);border:3px solid var(--ln);box-shadow:var(--px-sh-c,3px 3px 0 var(--ln));font-size:14px;line-height:1.45}
-.xmed p b{display:block;font:8px/1.6 var(--fh);color:var(--vio)}
+.xmed p b{display:block;font:12px/1.6 var(--fl);color:var(--vio)}
 .xgos{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:10px}
 .xgo{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-height:44px;padding:10px;text-align:left;background:var(--p2);color:var(--ink);border:3px solid var(--ln);box-shadow:3px 3px 0 var(--ln);font:inherit;cursor:pointer}
-.xgo>b{font:10px/1.6 var(--fh)}.xgo small{font-size:12px;color:var(--mut)}.xgo .pxtag{font-style:normal}
+.xgo>b{font:16px/1.6 var(--fl)}.xgo small{font-size:12px;color:var(--mut)}.xgo .pxtag{font-style:normal}
 .xgo.on{border-color:var(--xm2);box-shadow:3px 3px 0 var(--ln),0 0 0 2px var(--xm2);background:rgba(62,230,208,.12)}
-.xgn{display:flex;gap:8px;flex-wrap:wrap}.xgn i{font-style:normal;font-size:12px}.xgn i b{font:12px var(--fh);color:var(--gold)}
+.xgn{display:flex;gap:8px;flex-wrap:wrap}.xgn i{font-style:normal;font-size:12px}.xgn i b{font:16px var(--fl);color:var(--gold)}
 .xown{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 10px}.xnum{display:flex;flex-direction:column;gap:4px;font-size:13px}.xnum span{display:flex;align-items:center;gap:6px}.xnum input{width:90px;min-height:44px}
 .xsm{font-size:13px;margin:6px 0}
 .xpri{width:100%;min-height:48px;margin-top:10px}.xpri[disabled]{opacity:.55;cursor:not-allowed}
@@ -326,12 +326,12 @@ HWUI.css('exercise',`
   background-position:calc(var(--c)*-64px*var(--s)) calc(var(--r)*-96px*var(--s));pointer-events:none}
 .xmm.syn{opacity:.45}.xmm.lit{animation:xpulse 1.2s steps(3) infinite alternate}
 @keyframes xpulse{from{opacity:.75}to{opacity:1}}
-.xmv{position:absolute;left:4px;bottom:4px;font:8px var(--fh);color:var(--px-hud-mut,var(--mut))}
-.xsel{min-height:60px}.xmn{display:block;font:12px/1.6 var(--fh);color:var(--xm)}
+.xmv{position:absolute;left:4px;bottom:4px;font:12px var(--fl);color:var(--px-hud-mut,var(--mut))}
+.xsel{min-height:60px}.xmn{display:block;font:16px/1.6 var(--fl);color:var(--xm)}
 .xexs{display:flex;flex-direction:column;gap:6px;margin-top:6px}
 .xex{display:flex;align-items:center;gap:8px;min-height:44px;padding:6px 10px;text-align:left;background:var(--p2);color:var(--ink);border:3px solid var(--ln);font:14px var(--fb);cursor:pointer}
 .xex.on{border-color:var(--xm2);background:rgba(62,230,208,.14)}
-.xlist summary{min-height:44px;cursor:pointer;font:9px var(--fh)}.xchips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}.xchips>b{width:100%;font:8px var(--fh);color:var(--mut)}
+.xlist summary{min-height:44px;cursor:pointer;font:12px var(--fl)}.xchips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}.xchips>b{width:100%;font:12px var(--fl);color:var(--mut)}
 .xchips .chip{min-height:44px}.xchips .chip.on{border-color:var(--xm2);box-shadow:0 0 0 2px var(--xm2)}
 .xtut{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}.xtut>div:not(.xspr){flex:1 1 180px}
 .xspr{--s:2;flex:0 0 auto;width:calc(96px*var(--s));height:calc(96px*var(--s));background:rgba(0,0,0,.2) url(assets/img/exercise/moves.webp) no-repeat;image-rendering:pixelated;
@@ -343,15 +343,15 @@ HWUI.css('exercise',`
 .xcue{margin:0 0 8px;padding-left:20px;font-size:14px;line-height:1.5}.xcue li{margin:2px 0}
 .xreps{margin:6px 0}.xreps b{font:16px var(--fh);color:var(--gold)}.xreps span{font-size:14px}
 .xstop{margin:10px 0}
-.xhud{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}.xhud .pxst{flex:1 1 90px;display:flex;align-items:center;gap:6px;padding:6px 8px;border:2px solid var(--ln);background:rgba(0,0,0,.15);font:8px var(--fh)}
+.xhud{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}.xhud .pxst{flex:1 1 90px;display:flex;align-items:center;gap:6px;padding:6px 8px;border:2px solid var(--ln);background:rgba(0,0,0,.15);font:12px var(--fl)}
 .xhud .pxst b{font:16px var(--fh);color:var(--gold)}
-.xsets{display:flex;gap:6px;margin:0 0 10px}.xsets i{flex:1;height:28px;display:flex;align-items:center;justify-content:center;border:3px solid var(--ln);background:var(--p2);font:9px var(--fh);font-style:normal}
+.xsets{display:flex;gap:6px;margin:0 0 10px}.xsets i{flex:1;height:28px;display:flex;align-items:center;justify-content:center;border:3px solid var(--ln);background:var(--p2);font:12px var(--fl);font-style:normal}
 .xsets i.dn{background:var(--xm2);color:#10302c}.xsets i.on{border-color:var(--xm2)}
-.xrest{text-align:center}.xrest small{font:8px var(--fh)}.xrest b{display:block;font:32px/1.3 var(--fh);color:var(--xm)}
+.xrest{text-align:center}.xrest small{font:12px var(--fl)}.xrest b{display:block;font:32px/1.3 var(--fh);color:var(--xm)}
 .xsafe{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px;padding-top:10px;border-top:2px dashed var(--ln)}.xsafe>b{width:100%;font-size:13px}
 .xsafe .xbad{flex:1 1 130px;min-height:44px;color:var(--red)}
 .xhelp ul{padding-left:20px;line-height:1.5}.xhelp a{display:inline-flex;min-height:44px;align-items:center}
-.xest{margin:10px 0;padding:10px;border:2px dashed var(--ln)}.xest h4{display:flex;align-items:center;gap:6px;margin:0 0 6px;font:9px var(--fh)}.xest p{margin:4px 0;font-size:14px}
+.xest{margin:10px 0;padding:10px;border:2px dashed var(--ln)}.xest h4{display:flex;align-items:center;gap:6px;margin:0 0 6px;font:12px var(--fl)}.xest p{margin:4px 0;font-size:14px}
 .xrew{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px;border:2px solid var(--gold);margin:10px 0}.xrew small{flex:1 1 100%}
 .xdone{animation:xglow 1.6s steps(4) 2}
 @keyframes xglow{0%,100%{box-shadow:var(--px-sh,4px 4px 0 var(--ln))}50%{box-shadow:var(--px-sh,4px 4px 0 var(--ln)),0 0 0 4px var(--xm2),0 0 24px 4px rgba(62,230,208,.6)}}
@@ -360,7 +360,7 @@ html.hw-rm .xdone,html.hw-rm .xmm.lit{animation:none}
 @media(max-width:520px){.xmfig{--s:2}.xspr.big{--s:2}.xmap{gap:8px}}
 .xmerge{display:flex;flex-direction:column;gap:12px}.xside{min-width:0;display:flex;flex-direction:column;gap:12px}
 @media(min-width:760px){.xmerge{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start}.xmerge .xmap{margin:0}}
-.xlearn{padding:10px;border:2px dashed var(--xm2);background:rgba(62,230,208,.06)}.xlh{display:flex;align-items:center;gap:6px;margin:0 0 8px;font:9px/1.6 var(--fh);color:var(--xm)}
+.xlearn{padding:10px;border:2px dashed var(--xm2);background:rgba(62,230,208,.06)}.xlh{display:flex;align-items:center;gap:6px;margin:0 0 8px;font:12px/1.6 var(--fl);color:var(--xm)}
 .xchips .chip.xdim{opacity:.55}
 .xrunsec{margin-top:18px}.xrh{display:flex;align-items:center;gap:8px;margin:0 0 6px}
 @media(max-width:420px){.xmfig{--s:1.7}}

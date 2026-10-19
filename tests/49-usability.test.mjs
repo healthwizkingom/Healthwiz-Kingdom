@@ -77,7 +77,8 @@ test('Body & Energy: one page; bmi and calc routes open it at their section; unc
   const p0 = await page.evaluate(() => JSON.stringify(st.p));
   assert.equal(p0.includes('"h":180'), false, 'typing does not change the profile');
   assert.match(await page.textContent('#eout'), /BMR[\s\S]*TDEE[\s\S]*Not saved yet/);
-  assert.match(await page.textContent('#bout'), /not a diagnosis/);
+  await page.click('#bout .hwh[data-hwh="xbmi"]'); // the BMI note moved into the BMI "?"
+  assert.match(await page.evaluate(() => document.getElementById('hwh-pop').textContent), /It is not a diagnosis and does not describe every aspect of health\./); await page.keyboard.press('Escape');
   assert.ok(await noScroll(page));
   const fresh = await openApp({ ...M, seed: { ...RETURNING, s: { ...RETURNING.s, onb: 0 } } });
   await go(fresh.page, 'body');
@@ -122,7 +123,8 @@ test('quest start: the registry asks about conditions after activity; a knee pro
   await page.tap('[data-a="obact"][data-v="1.55"]');
   assert.equal(await page.evaluate(() => S.ob.i), 6.5, 'the conditions question comes after activity');
   assert.match(await page.textContent('#cdcard'), /Anything that affects your activity\?/);
-  assert.match(await page.textContent('#cdcard'), /does not diagnose conditions\. Ask a doctor before changing your activity\./);
+  await page.click('#cdcard .hwh'); // the disclaimer sits behind the question's "?"
+  assert.match(await page.evaluate(() => document.getElementById('hwh-pop').textContent), /does not diagnose conditions\. Ask a doctor before changing your activity\./); await page.keyboard.press('Escape');
   assert.equal(await page.locator('#cdcard [data-a="cdn"]').count(), 1, 'none of these');
   await page.tap('[data-a="cdt"][data-i="joint"]');
   await page.tap('[data-a="cda"]'); await page.fill('#cdin', 'x'.repeat(60)); await page.tap('[data-a="cdadd"]');
@@ -138,7 +140,8 @@ test('quest start: the registry asks about conditions after activity; a knee pro
   assert.match(await page.textContent('#advq2 .cqs'), /Sorted for you: low-impact first, because you chose joint or knee problems\./);
   assert.deepEqual(await page.$$eval('#advq2 .aq .an b', b => b.map(x => x.textContent.slice(0, 8))).then(a => a.slice(0, 1)), ['Activity'], 'low-impact activity first');
   assert.match(await page.textContent('#advq2 .cqd summary'), /check with your doctor first/i);
-  assert.match(await page.textContent('#advq2'), /HealthWiz does not diagnose conditions\. Ask a doctor before changing your activity\./);
+  await page.click('#advq2 .hwh[data-hwh="condnote"]');
+  assert.match(await page.evaluate(() => document.getElementById('hwh-pop').textContent), /HealthWiz does not diagnose conditions\. Ask a doctor before changing your activity\./); await page.keyboard.press('Escape');
   assert.match(await page.textContent('#v6q2'), /./); assert.doesNotMatch(await page.textContent('#v6q2'), /Mountain paths/, 'no stair weekly quest');
   await page.tap('#advq2 [data-a="condmove"]'); await page.waitForTimeout(200);
   assert.equal(await page.evaluate(() => QD(today())[2].p), 1, 'the easy move completes the Activity quest');

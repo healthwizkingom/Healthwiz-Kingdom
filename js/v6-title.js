@@ -67,11 +67,11 @@ HWUI.css('title',`
 .v6wxt small{display:block;color:#ffe9a8}
 /* short landscape screens: the chip stays one compact line (the heat tip is on Home), and steps aside below 360 px so
    the Start button always stays clear */
-@media(orientation:landscape) and (max-height:539px){.v6wxt{margin-top:4px;padding:2px 8px;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70vw}.v6wxt small{display:none}}
+@media(orientation:landscape) and (max-height:539px){.v6wxt{margin-top:4px;padding:2px 8px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70vw}.v6wxt small{display:none}}
 @media(orientation:landscape) and (max-height:359px){.v6wxt{display:none}}
-.v6rib{display:inline-block;margin-top:12px;padding:5px 10px;font:8px/1.8 var(--fh);color:#fff;background:rgba(20,32,79,.72);border:2px solid #f2c14e;text-shadow:1px 1px 0 #000}
-.wl .ct{gap:10px;flex-wrap:wrap}.wl .ct .v6set{font-size:10px;padding:10px 12px}
-.v6hot{pointer-events:all;cursor:pointer}.v6pop{position:absolute;z-index:9;pointer-events:none;font:9px/1.6 var(--fh);color:#fff;background:rgba(20,32,79,.85);border:2px solid #f2c14e;padding:4px 8px;white-space:nowrap;transform:translate(-50%,-120%);animation:v6pop 1.8s steps(12) forwards}
+.v6rib{display:inline-block;margin-top:12px;padding:5px 10px;font:12px/1.8 var(--fl);color:#fff;background:rgba(20,32,79,.72);border:2px solid #f2c14e;text-shadow:1px 1px 0 #000}
+.wl .ct{gap:10px;flex-wrap:wrap}.wl .ct .v6set{font-size:12px;padding:10px 12px}
+.v6hot{pointer-events:all;cursor:pointer}.v6pop{position:absolute;z-index:9;pointer-events:none;font:12px/1.6 var(--fl);color:#fff;background:rgba(20,32,79,.85);border:2px solid #f2c14e;padding:4px 8px;white-space:nowrap;transform:translate(-50%,-120%);animation:v6pop 1.8s steps(12) forwards}
 @keyframes v6pop{0%{opacity:0;margin-top:6px}15%{opacity:1;margin-top:0}80%{opacity:1}100%{opacity:0;margin-top:-10px}}
 .wl.v6px .zsv{transform:scale(1.03) translate(calc(var(--px,0)*-6px),calc(var(--py,0)*-4px));transition:transform .4s ease-out}
 .wl.v6px .tt{transform:translate(calc(var(--px,0)*3px),calc(var(--py,0)*2px));transition:transform .4s ease-out}
@@ -80,8 +80,8 @@ HWUI.css('title',`
 @media(prefers-reduced-motion:reduce){.v6wx,.v6wx i,.v6pop,.v6mist{animation:none!important}.v6wx i,.v6wx .v6fl{display:none}.v6wx u{opacity:.7}.wl.v6px .zsv,.wl.v6px .tt{transform:none}}
 /* step 25 (§77, §94): a phone in landscape is shorter than the scene's 540 px minimum, which pushed the Start button
    below the screen. Short landscape screens use their own height, and the title text is capped by height too. */
-@media(orientation:landscape) and (max-height:539px){.wl{min-height:0}.wl .tt h1{font-size:clamp(20px,min(6.4vw,9vh),52px)}
-.wl .tt p{font-size:clamp(9px,min(2.2vw,3.4vh),14px);margin-top:min(14px,2.5vh)}.wl .tt p.by{font-size:clamp(10px,min(2.8vw,4.2vh),18px);margin-top:min(18px,3vh)}}`);
+@media(orientation:landscape) and (max-height:539px){.wl{min-height:0}.wl .tt h1{font-size:24px}
+.wl .tt p{font-size:12px;margin-top:min(14px,2.5vh)}.wl .tt p.by{font-size:12px;margin-top:min(18px,3vh)}}`);
 
 const REACT={castle:['🏰 The castle bells ring for you!','🏰 A guard waves from the ramparts.'],tower:['⚡ The dark tower rumbles… restored regions keep it at bay.','⚡ Its red eye flickers, then dims.'],
   village:['🏘️ Villagers wave hello!','🏘️ Someone is baking bread. It smells wonderful.'],falls:['💧 The waterfall sparkles.','💧 Cool spray drifts across the meadow.'],
@@ -108,7 +108,7 @@ function ribbon(){if(!(st.e.length||st.xp))return '';const L=lvl();let g=0;try{g
   h=h.replace('<div class="wl">','<div class="wl" data-sky="'+wx+'">');
   h=h.replace('</svg></div>','</svg><div class="v6tod '+ph+'"></div>'+layer(wx)+'</div>');
   let chip='';try{chip=live()?live().titleChip():''}catch(e){}
-  h=h.replace('<p class="by t2">BY GROUP 14</p>','<p class="by t2">BY GROUP 14</p><div class="t2" data-tod="'+ph+'" data-wx="'+wx+'" style="margin-top:6px;font:8px var(--fh);color:#fff;text-shadow:1px 1px 0 #000">'+caption(ph,wx)+'</div><div id="v6wxt">'+chip+'</div>'+ribbon());
+  h=h.replace('<p class="by t2">BY GROUP 14</p>','<p class="by t2">BY GROUP 14</p><div class="t2" data-tod="'+ph+'" data-wx="'+wx+'" style="margin-top:6px;font:12px var(--fl);color:#fff;text-shadow:1px 1px 0 #000">'+caption(ph,wx)+'</div><div id="v6wxt">'+chip+'</div>'+ribbon());
   h=h.replace('</button></div><div class="ft">','</button><button class="g v6set" data-a="go" data-v="set" aria-label="Settings">⚙️ SETTINGS</button></div><div class="ft">');
   return h}}
 

@@ -197,7 +197,7 @@ function trace(){if(!M.el||M.map)return;const S2=shown(),P=[].concat.apply([],S2
 /* ---------- Run page ---------- */
 HWUI.css('run',`
 #v6run .v6rh{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;min-height:24px}
-#v6run .v6rg{display:inline-block;border:2px solid var(--ln);padding:2px 6px;font:7px/1.6 var(--fh);background:var(--p2)}
+#v6run .v6rg{display:inline-block;border:2px solid var(--ln);padding:2px 6px;font:12px/1.6 var(--fl);background:var(--p2)}
 #v6run .v6rg.ok{background:var(--grn);color:#fff}#v6run .v6rg.weak{background:var(--gold);color:#2b2418}#v6run .v6rg.lost{background:var(--red);color:#fff}
 #v6run .v6rr{display:inline-block;width:10px;height:10px;background:var(--red);border:2px solid var(--ln);margin-right:6px;vertical-align:-1px;animation:v6rrp 1s steps(2) infinite}
 @keyframes v6rrp{50%{opacity:.25}}@media(prefers-reduced-motion:reduce){#v6run .v6rr{animation:none}}html.hw-rm #v6run .v6rr,html.hw-still #v6run .v6rr{animation:none}
@@ -208,7 +208,7 @@ HWUI.css('run',`
 .v6rkx{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
 .v6rwx{margin:0 0 14px}.v6rwx .v6hzb{margin:0}.v6rwx .v6heat{display:flex;gap:6px;align-items:flex-start;margin:8px 0 0;background:var(--pn)}
 #v6run .v6rs>div{background:var(--p2);border:3px solid var(--ln);padding:8px 4px;text-align:center;min-width:0}
-#v6run .v6rs small{font:7px/1.6 var(--fh)}#v6run .v6rs b{display:block;font-size:clamp(18px,6vw,28px);line-height:1.2;overflow-wrap:anywhere}#v6run .v6rs em{font-style:normal;font-size:11px;color:var(--mut)}
+#v6run .v6rs small{font:12px/1.6 var(--fl)}#v6run .v6rs b{display:block;font-size:clamp(18px,6vw,28px);line-height:1.2;overflow-wrap:anywhere}#v6run .v6rs em{font-style:normal;font-size:12px;color:var(--mut)}
 #v6run .row button{flex:1 1 110px;justify-content:center;text-align:center}#v6run button:disabled{opacity:.45;cursor:not-allowed}
 #v6run ul{margin:6px 0;padding-left:18px}#v6run li{margin:3px 0}
 .v6rmc .v6rmh{justify-content:space-between;margin-bottom:8px}.v6rmc .v6rmh h3{margin:0}

@@ -78,10 +78,10 @@ acts.trhint=()=>{Z.hint=1;render()};
 acts.trretry=()=>{Z.pick=null;render();const c=document.querySelector('[data-a="trpick"]');if(c)c.focus()};
 acts.trgo=d=>{Z.i=Math.max(0,+d.i||0);Z.pick=null;Z.hint=0;render();const q=document.getElementById('trq');if(q&&q.scrollIntoView)q.scrollIntoView({block:'center'})};
 HWUI.css('trial',`
-.trn{font:8px/1.6 var(--fh);color:var(--vio);margin:8px 0 4px}.trq{font-weight:700;margin:0 0 8px}
+.trn{font:12px/1.6 var(--fl);color:var(--vio);margin:8px 0 4px}.trq{font-weight:700;margin:0 0 8px}
 .trc{display:grid;gap:6px}.trc .chip{min-height:48px;text-align:left;text-transform:none;letter-spacing:0;font:13px/1.4 var(--fb)}
 .trc .chip.ok{background:var(--grn);color:#fff}.trc .chip.no{outline:3px dashed var(--red);outline-offset:-3px}
 .trhint{margin:8px 0;padding:6px 8px;border:2px dashed var(--ln)}.trfb{margin:10px 0;padding:8px 10px;border:3px solid var(--ln);background:var(--p2)}.trfb.ok{border-color:var(--grn)}
-.trfb p{margin:4px 0 0}.trdata{margin:10px 0}.trdata>b{font:8px/1.6 var(--fh);color:var(--vio)}.trnav{margin-top:10px}.trnav button{min-height:44px}
+.trfb p{margin:4px 0 0}.trdata{margin:10px 0}.trdata>b{font:12px/1.6 var(--fl);color:var(--vio)}.trnav{margin-top:10px}.trnav button{min-height:44px}
 `);
 return{questions,Z:()=>Z}})();

@@ -116,7 +116,7 @@ const INFO={
   vault:{what:'The sources and calculations behind the numbers in HealthWiz: the formula the app runs, where it comes from and what it cannot tell you.',why:'So you can check where an estimate comes from instead of trusting it blindly.',next:'Search, open a calculation, or press the ? beside any result to land on its entry.'},
   unc:{what:'Shows how an estimate moves when an assumption or an input changes. Your original value always stays visible.',why:'One number looks exact, but it depends on assumptions. This shows how much.',next:'Pick an estimate, then change one choice at a time.'}};
 const GLOSS=[['Observation','one saved entry used as evidence, such as one workout or one night of sleep.'],['Prediction','your guess about what you will find. A guess you can test.'],['Independent variable','the thing that changes (for example, stair steepness).'],['Dependent variable','the thing you measure to see the effect (for example, pulse rise in BPM).'],['Control','something you keep the same so it does not blur the result.'],['Mean','the average: the total divided by the number of observations.'],['n','how many observations are in a group.'],['Estimate','a number worked out from a formula and assumptions, not measured directly.']];
-const intro=()=>'<div class="card labintro"><p>Test health questions with your own logs, practise judging evidence, and see where every number in HealthWiz comes from. Results describe patterns in your entries. They are not diagnoses and not medical advice.</p>'
+const intro=()=>'<div class="card labintro"><p>Test health questions with your own logs, practise judging evidence, and see where every number in HealthWiz comes from. Results describe patterns in your entries.'+HWHelp.btn('labnote','About the Laboratory','<p>They are not diagnoses and not medical advice.</p>')+'</p>'
   +'<details class="labgl"><summary>Words and labels used here</summary><dl class="labdl">'+GLOSS.map(g=>'<dt>'+g[0]+'</dt><dd>'+g[1]+'</dd>').join('')+'</dl>'
   +'<p class="lableg"><span class="pxtag">ENTERED BY YOU</span> <span class="pxtag">MEASURED BY A DEVICE</span> <span class="pxtag">WORKED OUT</span> <span class="pxtag">ESTIMATE</span> <span class="pxtag">SAMPLE</span> Each number says which of these it is. Anything written by an AI is labelled as such where it appears.</p></details></div>';
 const info=k=>{const i=INFO[k];return i?'<dl class="labinfo"><div><dt>What it is</dt><dd>'+i.what+'</dd></div><div><dt>Why it matters</dt><dd>'+i.why+'</dd></div><div><dt>Do this first</dt><dd>'+i.next+'</dd></div></dl>':''};
@@ -252,34 +252,34 @@ HWUI.css('lab',`
 @keyframes animeJoyHop{0%,100%{transform:scale(1) translateY(0)}50%{transform:scale(1.08) translateY(-14px)}}
 .labluna .v6lfull{display:block;width:100%!important;height:100%!important}
 .labcap{position:absolute;left:12px;bottom:10px;z-index:2;margin:0;max-width:60%;font:13px/1.45 var(--fb);color:#efe8ff;text-shadow:0 1px 2px #0a0628}
-.labcap b{display:block;font:9px/1.8 var(--fh);color:#fff0a8;letter-spacing:.5px;text-shadow:0 0 8px rgba(246,201,79,.7)}
+.labcap b{display:block;font:12px/1.8 var(--fl);color:#fff0a8;letter-spacing:.5px;text-shadow:0 0 8px rgba(246,201,79,.7)}
 @media(prefers-reduced-motion:reduce){.labbg,.labglow,.labmotes i{animation:none!important}.labmotes{display:none}}html.hw-q-performance .labmotes{display:none}
 html.hw-rm .labbg,html.hw-rm .labglow,html.hw-q-performance .labbg,html.hw-q-performance .labglow{animation:none!important}
 .labluna:focus-visible{outline:2px solid var(--gold,#f6c94f);outline-offset:2px;border-radius:8px}
 .labtabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}.labtabs .chip{min-height:44px;display:inline-flex;align-items:center;gap:6px}
-.labsteps{display:flex;flex-wrap:wrap;gap:4px 10px;list-style:none;padding:0;margin:0 0 10px;font:8px/1.8 var(--fh);color:var(--mut)}.labsteps .on{color:var(--ink);text-decoration:underline}.labsteps .done{color:var(--grn)}
+.labsteps{display:flex;flex-wrap:wrap;gap:4px 10px;list-style:none;padding:0;margin:0 0 10px;font:12px/1.8 var(--fl);color:var(--mut)}.labsteps .on{color:var(--ink);text-decoration:underline}.labsteps .done{color:var(--grn)}
 .labpick{display:grid;gap:8px}.labq{display:flex;gap:10px;align-items:center;text-align:left;min-height:56px;width:100%;padding:8px 10px}
 .labq span{min-width:0}.labq b{display:block;font:13px/1.4 var(--fb);font-weight:700;text-transform:none;letter-spacing:0}.labq small{display:block;font:12px/1.4 var(--fb);text-transform:none;letter-spacing:0;color:var(--mut)}
 .labpreds{display:grid;gap:6px;margin:8px 0}.labpreds .chip{min-height:44px;text-align:left;text-transform:none;font:13px/1.4 var(--fb)}
-.labdl dt{font:8px/1.6 var(--fh);color:var(--vio);margin-top:8px}.labdl dd{margin:2px 0 0}
+.labdl dt{font:12px/1.6 var(--fl);color:var(--vio);margin-top:8px}.labdl dd{margin:2px 0 0}
 .labck{display:flex;gap:8px;align-items:center;min-height:44px}.labck input{width:22px;height:22px;flex:0 0 auto}
 .labhow{margin:4px 0 8px;padding-left:20px}.labhow li{margin:4px 0}.labsafe{margin:8px 0}.labnav{margin-top:12px}.labnav button{min-height:44px}
 .labg{margin:10px 0}.labsamp{font-size:13px}.labverdict{margin:12px 0 0;padding:8px 10px;border:3px solid var(--ln);background:var(--p2)}.labverdict p{margin:4px 0 0}
 .labtbl{margin:10px 0}.labtbl summary{cursor:pointer;min-height:44px;display:flex;align-items:center}
-.labrep h4{font:8px/1.6 var(--fh);color:var(--vio);margin:12px 0 2px}.labrep p{margin:0}.labrep .row{margin-top:12px}
+.labrep h4{font:12px/1.6 var(--fl);color:var(--vio);margin:12px 0 2px}.labrep p{margin:0}.labrep .row{margin-top:12px}
 .labsv{display:flex;gap:8px;align-items:center;border-top:2px solid var(--ln);padding:8px 0}.labsv span{flex:1 1 auto;min-width:0}.labsv b,.labsv small{display:block}.labsv small{color:var(--mut)}
 .labdoor button{width:100%;min-height:44px}
 .labintro{padding:10px 12px}.labintro p{margin:0 0 4px;font-size:14px;line-height:1.45}.labgl summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:700}.labgl summary:focus-visible,.labtabs .chip:focus-visible{outline:3px solid var(--gold,#f6c94f);outline-offset:2px}
-.labgl dt{font:8px/1.6 var(--fh);color:var(--vio);margin-top:8px}.labgl dd{margin:2px 0 0}.lableg{margin-top:10px!important;font-size:13px}
+.labgl dt{font:12px/1.6 var(--fl);color:var(--vio);margin-top:8px}.labgl dd{margin:2px 0 0}.lableg{margin-top:10px!important;font-size:13px}
 .labinfo{display:grid;gap:6px;margin:0 0 12px;padding:10px 12px;border:3px solid var(--ln);background:var(--p2)}
-.labinfo>div{display:grid;grid-template-columns:7.5em 1fr;gap:4px 10px}.labinfo dt{font:8px/1.8 var(--fh);color:var(--vio)}.labinfo dd{margin:0}
+.labinfo>div{display:grid;grid-template-columns:7.5em 1fr;gap:4px 10px}.labinfo dt{font:12px/1.8 var(--fl);color:var(--vio)}.labinfo dd{margin:0}
 .labtabs .chip{transition:transform .12s ease,box-shadow .12s ease}.labtabs .chip:active{transform:translate(1px,1px)}
 @media(max-width:480px){.labinfo>div{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.labtabs .chip{transition:none}}
 .lbars{display:flex;gap:8px;align-items:stretch;height:150px;margin:8px 0;padding:4px 0 0;border-bottom:3px solid var(--ln)}
 .lbar{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:stretch;text-align:center;outline-offset:2px}
 .lbv{font:700 13px var(--fb)}.lbt{flex:1 1 auto;display:flex;align-items:flex-end;justify-content:center}.lbt i{display:block;width:70%;max-width:56px;background:var(--vio);border:3px solid var(--ln);border-bottom:0;box-shadow:inset -4px 0 0 rgba(0,0,0,.18)}
-.lbl{font-size:11px;line-height:1.25;margin-top:4px;overflow-wrap:anywhere;color:var(--ink)}.lbar:focus-visible{outline:3px solid var(--gold)}
-@media(max-width:420px){.labcap{font-size:12px;max-width:58%}.labcap b{font-size:8px}}
+.lbl{font-size:12px;line-height:1.25;margin-top:4px;overflow-wrap:anywhere;color:var(--ink)}.lbar:focus-visible{outline:3px solid var(--gold)}
+@media(max-width:420px){.labcap{font-size:12px;max-width:58%}.labcap b{font-size:12px}}
 `);
 return{section,L,Z:()=>Z,TPL,SERIES,results,conclusion,report,f21,MIN_N,bars}})();

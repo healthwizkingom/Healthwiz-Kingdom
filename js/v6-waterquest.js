@@ -168,7 +168,7 @@ function scene(o){const p=phase(),P=PH[p],lv=HWWater.stage(),n=HWWater.finds(),p
 
 /* swap the original #wq block for the new scene (it ends where the ADD WATER card begins) */
 {const p0=pages.water;pages.water=(...a)=>{const h=p0(...a);try{const i=h.indexOf('<div class="wq" id="wq">');if(i<0)return h;
-  const j=h.indexOf('<div class="card"><h3>',i);if(j<0)return h;const t=st.s.water||2000,w=wt();
+  const j=[h.indexOf('<div class="card"><h3>',i),h.indexOf('<div class="pxp pxn"><h3',i)].filter(x=>x>=0).sort((x,y)=>x-y)[0];if(j==null)return h;const t=st.s.water||2000,w=wt();
   return h.slice(0,i)+scene({p:w/t*100})+h.slice(j)}catch(e){console.error('[HWWaterQuest] scene failed:',e);return h}}}
 
 /* ---------- the knight's hydration sequence ---------- */
@@ -273,7 +273,7 @@ HWUI.css('waterquest',`
 .wq6 .wq6mo i{position:absolute;width:3px;height:3px;background:rgba(255,250,220,.75);animation:wq6mo var(--d,6s) ease-in-out infinite}
 .wq6 .wq6mo.ff i{width:4px;height:4px;background:#fff6a0;box-shadow:0 0 6px 2px rgba(255,240,140,.55)}
 @keyframes wq6mo{0%,100%{transform:translate(0,0);opacity:0}30%{opacity:1}50%{transform:translate(14px,-18px)}80%{opacity:.6}}
-.wq6 .wq6hud{position:absolute;left:8px;top:8px;z-index:12;display:flex;gap:8px;align-items:center;background:rgba(14,18,40,.72);color:#fff;border:2px solid #fff;padding:4px 8px;font:8px/1.4 var(--fh)}
+.wq6 .wq6hud{position:absolute;left:8px;top:8px;z-index:12;display:flex;gap:8px;align-items:center;background:rgba(14,18,40,.72);color:#fff;border:2px solid #fff;padding:4px 8px;font:12px/1.4 var(--fl)}
 .wq6 .wq6hud .num{color:#8fd4ff}
 .wq6 .wqd{right:8px;top:12%;height:52%;width:12px;z-index:12;background:rgba(14,18,40,.6);border-color:#fff}
 .wq6 .wqd i{background:linear-gradient(90deg,#5fb4ec 0 50%,#2f8fd0 50%)}

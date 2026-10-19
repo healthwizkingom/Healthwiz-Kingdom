@@ -223,8 +223,8 @@ function logged(){const L=A('pulse',today()).filter(e=>e.m&&(e.m.when==='before'
 /** Heart-rate recovery: pulse right after stopping minus the pulse one minute later. Plain numbers, no good/bad label, not a diagnosis. */
 function recTxt(){const a=okHR(W.hrA),r=okHR(W.hrR1);if(!a||!r)return'';const n=a-r;
   return(n>0?'Your heart rate fell by <b>'+n+'</b> BPM in one minute (from '+a+' to '+r+').':'Your heart rate did not fall in this minute. Rest a little longer and count again.')
-    +HWHelp.btn('strec','How the 1-minute drop is worked out','<p>Drop = pulse just after − pulse 1 minute later = '+a+' − '+r+' = '+n+' BPM.</p>',{ev:'recovery'})
-    +'<br><small class="mut">A guide only. It varies with fitness, caffeine, sleep and how hard you climbed. If you feel dizzy, have chest pain or feel unwell, stop and see a health professional.</small>'}
+    +HWHelp.btn('strec','How the 1-minute drop is worked out','<p>Drop = pulse just after − pulse 1 minute later = '+a+' − '+r+' = '+n+' BPM.</p><p>A guide only. It varies with fitness, caffeine, sleep and how hard you climbed.</p>',{ev:'recovery'})
+    +'<br><small class="mut">If you feel dizzy, have chest pain or feel unwell, stop and see a health professional.</small>'}
 function profForm(){return '<div class="stkc need" id="st-prof"><b>'+ico('warning')+' YOUR PROFILE FOR THE ESTIMATE</b><p class="mut">Age, sex, height and weight are needed. HealthWiz never guesses them.</p>'
     +'<div class="row"><label>Age<input id="pf-a" type="number" min="10" max="100" inputmode="numeric" value="'+(st.p.cfm||st.s.onb?esc(st.p.age):'')+'"></label><label>Sex<select id="pf-s"><option value="">choose</option><option value="m"'+((st.p.cfm||st.s.onb)&&st.p.sex==='m'?' selected':'')+'>Male</option><option value="f"'+((st.p.cfm||st.s.onb)&&st.p.sex==='f'?' selected':'')+'>Female</option></select></label></div>'
     +'<div class="row"><label>Height (cm)<input id="pf-h" type="number" min="100" max="230" inputmode="decimal" value="'+(st.p.cfm||st.s.onb?esc(st.p.h):'')+'"></label><label>Weight (kg)<input id="pf-w" type="number" min="20" max="300" inputmode="decimal" value="'+(st.p.cfm||st.s.onb?esc(st.p.w):'')+'"></label></div>'
@@ -328,7 +328,7 @@ function frame(now){raf=0;const cs=[...document.querySelectorAll('canvas.sttr')]
     const SPD=90,T=still?W/SPD:(now-t0)/1000,cyc=W/SPD,n=Math.floor(T/cyc),cx=still?W:(T-n*cyc)*SPD,yy=t=>H*.66-sig(t,RR)*H*.5;
     x.lineWidth=2;x.strokeStyle=P[1];x.beginPath();for(let p=0;p<=cx;p+=1){const y=yy(n*cyc+p/SPD);p?x.lineTo(p,y):x.moveTo(p,y)}x.stroke();
     if(!still&&cx+24<W){x.beginPath();for(let p=cx+24;p<=W;p+=1){const y=yy((n-1)*cyc+p/SPD);p===cx+24?x.moveTo(p,y):x.lineTo(p,y)}x.stroke()}
-    x.fillStyle='#fffbea';x.font='bold 12px ui-monospace,Menlo,Consolas,monospace';x.fillText(bpm?bpm+' BPM':'NOT ENTERED',8,16)});
+    x.fillStyle='#fffbea';x.font='bold 12px system-ui,sans-serif';x.fillText(bpm?bpm+' BPM':'NOT ENTERED',8,16)});
   if(live)raf=requestAnimationFrame(frame)}
 function draw(){if(!raf)raf=requestAnimationFrame(frame)}
 function watch(){if(hasIO){if(IOc)IOc.disconnect();IOc=new IntersectionObserver(es=>{es.forEach(e=>e.isIntersecting?vis.add(e.target):vis.delete(e.target));draw()});
@@ -452,7 +452,7 @@ DIS.stair=DIS.pulse='General exercise pacing aid, not medical treatment. Heart r
 HWUI.css('stairs',`
 .stlabr{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.stlabr .gvbtn{min-height:44px}
 .stfill{outline:3px solid var(--gold);outline-offset:2px}
-.stcnt{margin:10px 0}.stlab{display:block;margin:10px 0 2px;font:9px/1.6 var(--fh)}
+.stcnt{margin:10px 0}.stlab{display:block;margin:10px 0 2px;font:12px/1.6 var(--fl)}
 .stchips{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px;margin:8px 0}
 .stchips .chip{min-height:44px;min-width:44px;padding:6px 4px;font:14px/1.2 var(--fn)}
 .stbox[hidden]{display:none}.stot{margin:8px 0;font-size:16px;overflow-wrap:anywhere}
@@ -465,22 +465,22 @@ HWUI.css('stairs',`
 .sthd{display:flex;align-items:center;gap:12px;margin:22px 0 12px;padding:10px 12px;background:var(--pn);border:var(--px-bw) solid var(--ln);box-shadow:var(--px-bevel),var(--px-sh);scroll-margin-top:12px} /* also used by js/v6-body.js */
 .sthd>div{min-width:0;display:flex;flex-direction:column;gap:4px;align-items:flex-start}.sthd b{font:var(--px-f2)/1.3 var(--fh);overflow-wrap:anywhere}.sthd small{font-size:13px}
 .sttabs{margin-bottom:20px}.sttabs .nst .bar{min-height:10px}
-.stkh{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:10px 0}.stkh>b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fh)}.stkh small{flex:1 1 100%}
+.stkh{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:10px 0}.stkh>b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fl)}.stkh small{flex:1 1 100%}
 .stlogr{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px}.stlogb{flex:1 1 140px;min-height:44px;margin:0;justify-content:center}.stcam{flex:0 1 auto;min-height:44px;display:flex;align-items:center;justify-content:center;gap:6px}
-.stcount{margin:10px 0;padding:8px 10px;border:var(--px-bw-c) dashed var(--ln);background:var(--p2)}.stcount b:first-child{font:var(--px-f1)/1.6 var(--fh);margin-right:6px}
+.stcount{margin:10px 0;padding:8px 10px;border:var(--px-bw-c) dashed var(--ln);background:var(--p2)}.stcount b:first-child{font:var(--px-f1)/1.6 var(--fl);margin-right:6px}
 .stlogs{margin:10px 0}.stlg{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:6px 0;border-top:2px dashed var(--p2)}.stlg .stsa2{margin-left:auto;display:flex;gap:6px}
 .stcats button{flex:1 1 90px}.stloc{display:flex;align-items:center;gap:6px;flex-wrap:wrap;overflow-wrap:anywhere}
 .stsave{width:100%;margin-top:8px}.stbtns button{flex:1 1 100px;justify-content:center}.stbtns button:first-child{flex-grow:3}
-.sttimer{display:flex;align-items:baseline;justify-content:center;gap:10px;margin-top:8px}.sttimer small{font:var(--px-f1)/1.6 var(--fh)}.sttimer b{font:var(--px-f2)/1.3 var(--fh)}
+.sttimer{display:flex;align-items:baseline;justify-content:center;gap:10px;margin-top:8px}.sttimer small{font:var(--px-f1)/1.6 var(--fl)}.sttimer b{font:var(--px-f2)/1.3 var(--fh)}
 .sthrs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
 .sthr{padding:8px;border:var(--px-bw-c) solid var(--ln);box-shadow:var(--px-sh-c);background:var(--p2)}.sthr.b{border-top-color:var(--blue);border-top-width:6px}.sthr.a{border-top-color:var(--red);border-top-width:6px}
-.sthrh{display:flex;align-items:center;gap:6px;margin-bottom:6px}.sthrh b{font:var(--px-f1)/1.6 var(--fh)}
+.sthrh{display:flex;align-items:center;gap:6px;margin-bottom:6px}.sthrh b{font:var(--px-f1)/1.6 var(--fl)}
 .stpm{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:4px 0 6px;font-size:13px}.stpm small{font-size:13px;overflow-wrap:anywhere}
-#ststudy summary{cursor:pointer;min-height:44px;display:flex;align-items:center}#ststudy summary b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fh)}
-#ststudy .tbl{min-width:0;width:100%;table-layout:fixed;font:11px/1.3 var(--fb)}#ststudy th,#ststudy td{text-align:left;padding:4px 2px;vertical-align:top}#ststudy td+td{white-space:nowrap}#ststudy th{font:600 9px/1.3 var(--fb);color:var(--mut);overflow-wrap:anywhere}#ststudy th:nth-child(1){width:17%}#ststudy th:nth-child(2),#ststudy th:nth-child(3){width:11%}#ststudy th:nth-child(5){width:10%}#ststudy th:nth-child(4){width:21%}#ststudy th:nth-child(6),#ststudy th:nth-child(7){width:16%}
+#ststudy summary{cursor:pointer;min-height:44px;display:flex;align-items:center}#ststudy summary b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fl)}
+#ststudy .tbl{min-width:0;width:100%;table-layout:fixed;font:12px/1.3 var(--fb)}#ststudy th,#ststudy td{text-align:left;padding:4px 2px;vertical-align:top}#ststudy td+td{white-space:nowrap}#ststudy th{font:600 12px/1.3 var(--fb);color:var(--mut);overflow-wrap:anywhere}#ststudy th:nth-child(1){width:17%}#ststudy th:nth-child(2),#ststudy th:nth-child(3){width:11%}#ststudy th:nth-child(5){width:10%}#ststudy th:nth-child(4){width:21%}#ststudy th:nth-child(6),#ststudy th:nth-child(7){width:16%}
 .sttr{width:100%;height:120px;display:block;border:3px solid var(--ln);image-rendering:pixelated}
-.stkc{margin:10px 0;padding:10px;border:var(--px-bw-c) dashed var(--ln);background:var(--p2)}.stkc>b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fh)}.stkc p{margin:6px 0}
-.sthrsvg{width:100%;max-width:560px;height:auto;display:block;shape-rendering:crispEdges}.sthrsvg text{font:9px var(--fb);fill:var(--mut)}
+.stkc{margin:10px 0;padding:10px;border:var(--px-bw-c) dashed var(--ln);background:var(--p2)}.stkc>b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fl)}.stkc p{margin:6px 0}
+.sthrsvg{width:100%;max-width:560px;height:auto;display:block;shape-rendering:crispEdges}.sthrsvg text{font:12px var(--fb);fill:var(--mut)}
 .sthrsvg .gl{stroke:var(--mut);stroke-opacity:.35;stroke-width:1}.sthrsvg .jn{stroke:var(--ink);stroke-opacity:.5;stroke-width:2}
 .sthrsvg .hb{fill:var(--blue);stroke:var(--pn);stroke-width:2;shape-rendering:auto}.sthrsvg .ha{fill:var(--red);stroke:var(--pn);stroke-width:2}
 .sthrsvg .hr1{fill:var(--grn);stroke:var(--pn);stroke-width:2}.sthrsvg .dsh{stroke-dasharray:3 2}
@@ -496,7 +496,7 @@ HWUI.css('stairs',`
 .stsh{display:grid;grid-template-columns:auto 1fr auto;gap:2px 8px;align-items:center;font-size:12px;max-width:340px}.stsh .bar{margin:0}
 .stsa{display:flex;flex-direction:column;gap:6px;flex:0 0 auto}
 .strest{display:flex;gap:6px;align-items:flex-start;margin-top:4px;font-size:13px}.strest:empty{display:none}
-.stclimb{margin:10px 0;padding:8px;border:var(--px-bw-c) dashed var(--ln);background:var(--p2)}.stclimb>b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fh)}
+.stclimb{margin:10px 0;padding:8px;border:var(--px-bw-c) dashed var(--ln);background:var(--p2)}.stclimb>b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fl)}
 .stclimb .row label{flex:1 1 90px}.stclimb p{margin:6px 0;font-size:14px}.stclimb small{display:flex;gap:6px;align-items:center}.stsh b{display:inline-flex;align-items:center;gap:2px}
 @media(prefers-reduced-motion:reduce){.stses{animation:none}}html.hw-rm .stses,html.hw-still .stses{animation:none}
 `);

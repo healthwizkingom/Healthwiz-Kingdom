@@ -62,7 +62,7 @@ acts.hwq=d=>{const k=d.k;S.hq=S.hq||{};S.hq[k]=!isOpen(k);const p=document.getEl
 function place(h,k){return head(k)+h}
 /* Input first: on a page whose form sat far down, the form's card moves up in front of the read-only cards. Same cards, same ids,
    only the order changes; the "jump to the form" buttons that used to scroll there are no longer needed. */
-function lift(h,form,before){const t=document.createElement('template');t.innerHTML=h;const f=t.content.querySelector(form),c=f&&(f.closest('.card')||f),b=t.content.querySelector(before);
+function lift(h,form,before){const t=document.createElement('template');t.innerHTML=h;const f=t.content.querySelector(form),c=f&&(f.closest('.card,.pxp')||f),b=t.content.querySelector(before);
   if(!c||!b||!b.parentNode||c===b)return h;b.parentNode.insertBefore(c,b);t.content.querySelectorAll('.hwjump').forEach(x=>x.remove());return t.innerHTML}
 const FIRST={food:h=>lift(h,'#fpick','.nsg'),water:h=>lift(h,'#wc','.nshd+*'),sleep:h=>lift(h,'#slb','#dbatc')}; // Stairs: GPS check-in comes first, so its hand-log card is not lifted above it (js/v6-stairs.js)
 
@@ -149,7 +149,7 @@ function shortHome(h){const t=document.createElement('template');t.innerHTML=h;c
    on the game scenes (Dream Battle, Storm Within, the Counsel's name plate) stay part of the picture. */
 HWUI.css('hall-size',`
 html #main .back,html #main button.sm,html #main .chip,html #main .hwh,html #main .hwq,html #main button[data-a="edit"],html #main button[data-a="del"]{min-height:44px;min-width:44px}
-html #main .hwh:not(.hwhl){width:44px;height:44px;margin:-9px -9px -9px -1px;font-size:11px;isolation:isolate;background:none;border:0;box-shadow:none}
+html #main .hwh:not(.hwhl){width:44px;height:44px;margin:-9px -9px -9px -1px;font-size:12px;isolation:isolate;background:none;border:0;box-shadow:none}
 html #main .hwh:not(.hwhl):before{content:"";position:absolute;inset:9px;z-index:-1;background:#1f6fb0;border:2px solid var(--ln);box-shadow:inset -2px -2px 0 rgba(0,0,0,.2),2px 2px 0 var(--ln)}
 html #main .hwh[aria-expanded="true"]:not(.hwhl):before{background:var(--gold)}
 :root[data-theme="dark"] #main .hwh:not(.hwhl):before{border-color:#9fc4e8}@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) #main .hwh:not(.hwhl):before{border-color:#9fc4e8}}
@@ -164,13 +164,13 @@ html #main .wq6hud b,html #main .wq6hud .num,html #main .bn b,html #main .nshd b
 
 HWUI.css('hall',`
 .hwcr{display:flex;align-items:center;gap:8px;margin:0 0 4px}.hwcr .sm{flex:0 0 auto;min-height:44px;min-width:44px;margin:0}
-.hwcr .hwct{display:flex;align-items:center;gap:8px;flex:1 1 auto;min-width:0;margin:0;padding:0;background:none;border:0;box-shadow:none;min-height:0}.hwct>div{min-width:0}.hwct b{display:block;font:10px/1.5 var(--fh)}
+.hwcr .hwct{display:flex;align-items:center;gap:8px;flex:1 1 auto;min-width:0;margin:0;padding:0;background:none;border:0;box-shadow:none;min-height:0}.hwct>div{min-width:0}.hwct b{display:block;font:16px/1.5 var(--fl)}
 .pg.tr-food .nstabs,.pg.tr-water .nstabs{margin-bottom:12px}.pg.tr-food .nshd,.pg.tr-water .nshd{margin-bottom:8px}.pg.tr-food h2,.pg.tr-water h2{margin-bottom:8px}
 .hwtg{display:block;font-size:12px;line-height:1.3;color:var(--mut);font-weight:400}
-.hwq{font:12px var(--fh);padding:0 12px}
+.hwq{font:16px var(--fl);padding:0 12px}
 .hwh3{padding:6px 12px;margin-bottom:6px}.hwh3[hidden]{display:none}
 .hwhr{padding:2px 0;border-top:2px dashed var(--ln);font-size:13px;line-height:1.35;overflow-wrap:anywhere}.hwhr:first-child{border-top:0}
-.hwhr b{font:8px/1.8 var(--fh);color:var(--mut);margin-right:6px}
+.hwhr b{font:12px/1.8 var(--fl);color:var(--mut);margin-right:6px}
 .hweg{display:block;margin-top:3px;font-size:12px;line-height:1.4;color:var(--mut);font-weight:400}.hweg[hidden]{display:none}
 .hub .hb small{display:block}.hub .hb .hwa{display:block;margin-top:4px;font:12px/1.4 var(--fb);font-weight:400;letter-spacing:0;color:var(--mut)}
 .hwnx p{margin:0 0 8px}

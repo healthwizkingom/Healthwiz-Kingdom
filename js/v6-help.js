@@ -89,18 +89,18 @@ reg('scorewt','About these weights','<p>These weights are the team\'s reasoned j
 reg('fvinfo','Fruit & vegetables','<p>1 portion = 80 g (dried fruit 30 g). Counted automatically from the fruit and vegetable dishes in your nutrition log.</p>'+(typeof HWSources!=='undefined'?'<b class="hwx-h">SOURCES</b><ul class="hwx-src">'+['whofv','whodiet'].map(HWSources.cite).join('')+'</ul>':''),'fv');
 
 HWUI.css('help',`
-.hwh{position:relative;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;box-sizing:border-box;min-width:26px;width:26px;min-height:26px;height:26px;padding:0;margin:0 0 0 6px;font:bold 11px/1 var(--fh);color:#fff;background:#1f6fb0;border:2px solid var(--ln);box-shadow:inset -2px -2px 0 rgba(0,0,0,.2),2px 2px 0 var(--ln);border-radius:0;-webkit-font-smoothing:none;text-transform:none;letter-spacing:0}
+.hwh{position:relative;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;box-sizing:border-box;min-width:26px;width:26px;min-height:26px;height:26px;padding:0;margin:0 0 0 6px;font:bold 16px/1 var(--fl);color:#fff;background:#1f6fb0;border:2px solid var(--ln);box-shadow:inset -2px -2px 0 rgba(0,0,0,.2),2px 2px 0 var(--ln);border-radius:0;-webkit-font-smoothing:none;text-transform:none;letter-spacing:0}
 .hwh:after{content:"";position:absolute;inset:-10px}
 .hwh:active{transform:translate(1px,1px);box-shadow:inset -2px -2px 0 rgba(0,0,0,.2),1px 1px 0 var(--ln)}
 .hwh[aria-expanded="true"]{background:var(--gold);color:#2b2418}
 :root[data-theme="dark"] .hwh{border-color:#9fc4e8}@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .hwh{border-color:#9fc4e8}}
 .hwh:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
-.hwh.hwhl{width:auto;padding:0 8px;font-size:8px;white-space:nowrap}
+.hwh.hwhl{width:auto;padding:0 8px;font-size:12px;white-space:nowrap}
 h3 .hwh,h2 .hwh{margin-left:8px}
 .hwhp{position:fixed;z-index:130;box-sizing:border-box;max-width:calc(100vw - 16px);max-height:min(70vh,420px);overflow:auto;overscroll-behavior:contain;padding:12px;font:13px/1.55 var(--fb);color:var(--ink);background:var(--pn);border:4px solid var(--ln);box-shadow:inset -4px -4px 0 rgba(0,0,0,.18),4px 4px 0 var(--ln),0 0 0 3px var(--gold);text-align:left;text-transform:none;letter-spacing:0}
 .hwhp[hidden]{display:none}
 .hwhp:focus{outline:none}.hwhp:focus-visible{outline:3px solid var(--blue)}
-.hwht{display:block;margin:0 0 6px;font:9px/1.6 var(--fh);color:var(--vio)}
+.hwht{display:block;margin:0 0 6px;font:12px/1.6 var(--fl);color:var(--vio)}
 .hwhb p{margin:0 0 8px}.hwhb p:last-child{margin-bottom:0}.hwhb a{color:var(--blue);font-weight:bold}
 .hwhx{display:block;margin:10px 0 0;min-height:36px}
 .hwev{margin:10px 0 0!important}.hwev a{display:inline-flex;align-items:center;min-height:44px;box-sizing:border-box;padding:6px 10px;border:3px solid var(--ln);background:var(--p2);color:var(--blue);font-weight:700;text-decoration:underline}

@@ -192,7 +192,7 @@ pages.stress=function(){const q=S.sq;if(q&&q.ph==='fx')q.ph='enc';
   return h};
 
 HWUI.css('relief',`
-.rxg{margin:8px 0 4px}.rxh{font:11px/1.6 var(--fh);margin:0 0 6px}.rxs{margin:0 0 14px;font-size:14px;color:var(--mut)}.rxfoot{display:block;margin-top:14px;text-align:center}
+.rxg{margin:8px 0 4px}.rxh{font:16px/1.6 var(--fl);margin:0 0 6px}.rxs{margin:0 0 14px;font-size:14px;color:var(--mut)}.rxfoot{display:block;margin-top:14px;text-align:center}
 .rxl{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:16px}
 button.rxc{display:flex;flex-direction:column;align-items:stretch;padding:0;min-height:0;text-align:left;font:inherit;background:var(--pn);color:var(--ink);border:2px solid rgba(43,36,24,.45);border-radius:20px;overflow:hidden;box-shadow:0 8px 18px rgba(20,14,40,.22),0 0 0 1px rgba(242,193,78,.22);transition:transform .28s ease,box-shadow .28s ease;animation:rxin .55s ease both;animation-delay:calc(var(--i,0)*55ms)}
 button.rxc:hover{transform:translateY(-3px);box-shadow:0 12px 24px rgba(20,14,40,.3),0 0 0 2px rgba(242,193,78,.55),0 0 22px rgba(242,193,78,.25)}
@@ -201,21 +201,21 @@ button.rxc:active{transform:translateY(0) scale(.99)}button.rxc:focus-visible,.r
 .rxa{position:relative;display:block;aspect-ratio:2/1;min-height:118px;overflow:hidden;background:linear-gradient(180deg,var(--c1),var(--c2))}
 .rxa svg,.rxstage>svg{position:absolute;inset:0;width:100%;height:100%}.rxa:after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(10,8,24,.38),transparent 48%),radial-gradient(120% 80% at 50% 0,rgba(255,244,200,.22),transparent 60%);pointer-events:none}
 .rxk{position:absolute;left:50%;bottom:4%;height:78%;width:auto;transform:translateX(-50%);filter:drop-shadow(0 4px 6px rgba(0,0,0,.35));z-index:1}
-.rxtag,.rxtime{position:absolute;bottom:10px;z-index:2;font:8px/1.4 var(--fh);padding:5px 9px;border-radius:999px;background:rgba(255,248,224,.94);color:#2b2418}.rxtag{left:12px}.rxtime{right:12px;background:rgba(20,16,40,.6);color:#fff6d0}
-.rxt{display:block;padding:12px 14px 15px}.rxt b{display:block;font:12px/1.5 var(--fh);margin-bottom:6px}.rxt small{display:block;font:14px/1.5 var(--fb);color:var(--mut)}
+.rxtag,.rxtime{position:absolute;bottom:10px;z-index:2;font:12px/1.4 var(--fl);padding:5px 9px;border-radius:999px;background:rgba(255,248,224,.94);color:#2b2418}.rxtag{left:12px}.rxtime{right:12px;background:rgba(20,16,40,.6);color:#fff6d0}
+.rxt{display:block;padding:12px 14px 15px}.rxt b{display:block;font:16px/1.5 var(--fl);margin-bottom:6px}.rxt small{display:block;font:14px/1.5 var(--fb);color:var(--mut)}
 .rxp{position:absolute;left:var(--x);top:var(--y);width:5px;height:5px;border-radius:50%;background:#fff4c0;box-shadow:0 0 8px 2px rgba(255,236,160,.8);opacity:0;animation:rxfl 5s ease-in-out infinite;animation-delay:var(--d);z-index:2}
 @keyframes rxfl{0%{opacity:0;transform:translateY(8px)}30%,60%{opacity:.9}100%{opacity:0;transform:translateY(-16px)}}
 .rxpulse{transform-origin:50% 50%;transform-box:fill-box;animation:rxpl 5s ease-in-out infinite}@keyframes rxpl{50%{transform:scale(1.07);opacity:.82}}
 .rxd{display:flex;flex-direction:column;gap:12px}.rxbar{display:flex;align-items:center;justify-content:space-between;gap:10px}
 button.rxback,.rxback2{border-radius:999px}button.rxback{width:46px;height:46px;min-height:46px;padding:0;font:20px/1 var(--fb);background:var(--p2);color:var(--ink);border:2px solid rgba(43,36,24,.45);box-shadow:none}
-.rxback2{margin-bottom:10px}.rxchip{font:8px/1.4 var(--fh);padding:7px 12px;border-radius:999px;background:var(--p2);color:var(--ink)}
-.rxdt{font:15px/1.5 var(--fh);text-align:center;margin:6px 0 0}.rxds{text-align:center;font-size:16px;line-height:1.5;color:var(--mut);max-width:36ch;margin:0 auto}.rxnt{text-align:center;font-size:13px;color:var(--mut);margin:0}
+.rxback2{margin-bottom:10px}.rxchip{font:12px/1.4 var(--fl);padding:7px 12px;border-radius:999px;background:var(--p2);color:var(--ink)}
+.rxdt{font:16px/1.5 var(--fh);text-align:center;margin:6px 0 0}.rxds{text-align:center;font-size:16px;line-height:1.5;color:var(--mut);max-width:36ch;margin:0 auto}.rxnt{text-align:center;font-size:13px;color:var(--mut);margin:0}
 .rxstage{position:relative;display:grid;place-items:center;overflow:hidden;min-height:230px;border-radius:24px;background:linear-gradient(180deg,var(--c1),var(--c2));border:2px solid rgba(43,36,24,.4);box-shadow:inset 0 0 70px rgba(255,236,170,.2),0 10px 22px rgba(20,14,40,.25)}
 .rxstage.rxbig{min-height:min(34vh,260px)}.rxstage.rxrun{min-height:min(34vh,240px)}.rxstage.rxcmp{min-height:150px}
 .rxd>button.rxstart{position:sticky;bottom:16px;z-index:5}@media(max-width:760px){.rxd>button.rxstart{bottom:calc(92px + env(safe-area-inset-bottom,0px))}}
-button.rxstart{width:100%;min-height:58px;border-radius:999px;font:12px/1.4 var(--fh);background:linear-gradient(180deg,#ffe58f,#f2c14e);color:#2b2418;border:2px solid rgba(43,36,24,.6);box-shadow:0 8px 16px rgba(20,14,40,.28),inset 0 -3px 0 rgba(0,0,0,.12);transition:transform .2s ease,box-shadow .2s ease}
+button.rxstart{width:100%;min-height:58px;border-radius:999px;font:16px/1.4 var(--fl);background:linear-gradient(180deg,#ffe58f,#f2c14e);color:#2b2418;border:2px solid rgba(43,36,24,.6);box-shadow:0 8px 16px rgba(20,14,40,.28),inset 0 -3px 0 rgba(0,0,0,.12);transition:transform .2s ease,box-shadow .2s ease}
 button.rxstart:hover{box-shadow:0 10px 22px rgba(242,193,78,.45),inset 0 -3px 0 rgba(0,0,0,.12)}button.rxstart:active{transform:scale(.985)}
-.rxcue{text-align:center;font-size:17px;line-height:1.5;margin:2px 0 0;min-height:1.5em}.rxtm{text-align:center;font:10px/1.5 var(--fh);color:var(--mut);margin:0;min-height:1.5em}
+.rxcue{text-align:center;font-size:17px;line-height:1.5;margin:2px 0 0;min-height:1.5em}.rxtm{text-align:center;font:16px/1.5 var(--fl);color:var(--mut);margin:0;min-height:1.5em}
 .rxsh{position:relative;z-index:1;width:100%;height:100%;min-height:230px;display:grid;place-items:end center}.rxsh .rxk{position:relative;left:auto;bottom:auto;transform:none;height:200px;transform-origin:50% 92%}
 .rxsh.s0 .rxk{animation:rxj .14s linear infinite}.rxsh.s1 .rxk{animation:rxr 2.4s ease-in-out infinite}.rxsh.s2 .rxk{animation:rxl .9s ease-in-out infinite}.rxsh.s3 .rxk{animation:rxj2 .17s linear infinite}.rxsh.s4 .rxk{animation:rxb 4s ease-in-out infinite}
 @keyframes rxj{50%{transform:translateX(3px) rotate(1.2deg)}0%,100%{transform:translateX(-3px) rotate(-1.2deg)}}@keyframes rxj2{50%{transform:translate(5px,-4px) rotate(2.2deg)}0%,100%{transform:translate(-5px,0) rotate(-2.2deg)}}
@@ -228,7 +228,7 @@ button.rxorb{width:min(62vw,200px);height:min(62vw,200px);min-height:0;border-ra
 button.rxorb i{position:absolute;inset:22%;border-radius:50%;background:radial-gradient(circle at 40% 35%,#6a4a8a,#2c1f5a);box-shadow:0 0 14px rgba(180,150,255,.25);transition:background .15s,box-shadow .15s}
 button.rxorb.on i{background:radial-gradient(circle at 40% 35%,#fff6c8,#ffb347 55%,#e8622c);box-shadow:0 0 50px 18px rgba(255,190,90,.7)}
 .rxsc{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:8px}button.rxscb{display:block;min-height:0;padding:10px 12px;text-align:left;font:inherit;border-radius:16px;background:var(--p2);color:var(--ink);border:2px solid transparent;box-shadow:none}
-button.rxscb b{display:block;font:9px/1.5 var(--fh);margin-bottom:3px}button.rxscb small{font:12px/1.4 var(--fb)}button.rxscb.on{background:var(--pn);border-color:var(--gold);box-shadow:0 0 14px rgba(242,193,78,.4)}
+button.rxscb b{display:block;font:12px/1.5 var(--fl);margin-bottom:3px}button.rxscb small{font:12px/1.4 var(--fb)}button.rxscb.on{background:var(--pn);border-color:var(--gold);box-shadow:0 0 14px rgba(242,193,78,.4)}
 .rxnote{text-align:center;font-size:13px;border:2px dashed var(--gold);border-radius:14px;padding:8px}
 .rxwave{position:absolute;left:0;right:0;bottom:14px;z-index:2;display:flex;gap:6px;justify-content:center;align-items:flex-end;height:28px}.rxwave i{width:6px;border-radius:3px;background:rgba(255,246,208,.8);animation:rxw 2.4s ease-in-out infinite}
 .rxwave i:nth-child(1){height:10px}.rxwave i:nth-child(2){height:22px;animation-delay:-.5s}.rxwave i:nth-child(3){height:14px;animation-delay:-1s}.rxwave i:nth-child(4){height:24px;animation-delay:-1.5s}.rxwave i:nth-child(5){height:12px;animation-delay:-2s}@keyframes rxw{50%{transform:scaleY(.4)}}

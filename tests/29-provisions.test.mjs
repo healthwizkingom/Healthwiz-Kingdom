@@ -33,7 +33,8 @@ test('one Food & Water tile opens Nutrition & Hydration: banner, title, both sys
   assert.match(await txt(page, '.nshd'), /NUTRITION & CALORIES\s*\??\s*Nutrition Village\s*(RUINED|RECOVERING|DEVELOPING|THRIVING|FLOURISHING)/);
   for (const id of ['fcal', 'fmac', 'fpick', 'flog', 'fwk']) assert.equal(await page.locator('#' + id).count(), 1, id);
   assert.equal(await page.locator('#wq').count(), 0, 'one half at a time');
-  assert.match(await txt(page, 'main .dis'), /KOLEJ MARA KULIM[\s\S]*Needs vary by person/, 'one footnote for both');
+  await page.click('main .dis .hwh'); // the footnote now sits behind the footer "?"
+  assert.match(await page.evaluate(() => document.getElementById('hwh-pop').textContent), /KOLEJ MARA KULIM[\s\S]*Needs vary by person/, 'one footnote for both'); await page.keyboard.press('Escape');
   await page.click('main .back');
   assert.equal(await page.evaluate(() => S.v), 'health');
   assert.deepEqual(errors, []);

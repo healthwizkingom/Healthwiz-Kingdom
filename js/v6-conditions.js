@@ -13,7 +13,7 @@
      · a plain note on the Stairs page: an easy pace is suggested, or "check with your doctor first".
    What it never does: diagnose, claim a rule is medical advice, hide the Stairs page, remove a quest, or change calorie or water targets.
    A condition the user typed in themselves changes nothing except the reminder to ask a doctor (HealthWiz cannot know what it means).
-   Every screen that shows a condition-based change carries DISCLAIMER. */
+   Every screen that shows a condition-based change carries DISCLAIMER: in a "?" panel on the quest cards and the question, and in plain sight in the Stairs note. */
 const HWCond=(()=>{
 const DISCLAIMER='HealthWiz does not diagnose conditions. Ask a doctor before changing your activity.';
 const QN={water:'Water',food:'Nutrition',stair:'Activity',stress:'Mind',sleep:'Recovery'}; // QD(d)[i].v → the quest
@@ -70,11 +70,11 @@ function stairRow(q,done){const ok=q.p>=1||done;
 advq=function(d,full){const P=plan();if(!P.active)return orig(d,full);
   const Q=QD(d),n=Q.filter(q=>q.p>=1).length,I=Q.map((q,i)=>i).sort((a,b)=>(P.score[Q[b].v]-P.score[Q[a].v])||a-b);
   return '<div class="card" id="'+(full?'advq2':'advq')+'"><h2>ADVENTURE PROGRESS</h2><div class="ah"><span class="big">'+n+'/5 QUESTS</span><b>'+advp(d)+'% · +'+xdy(d)+' XP today</b></div>'+bar(advp(d),'var(--gold)')
-    +'<p class="cqs" role="note"><b>'+P.why+'</b> <button class="sm g" data-a="condedit">CHANGE</button></p>'
+    +'<p class="cqs" role="note"><b>'+P.why+'</b> <button class="sm g" data-a="condedit">CHANGE</button>'+HWHelp.btn('condnote','About quests sorted for you','<p>'+DISCLAIMER+'</p>')+'</p>'
     +I.map(i=>Q[i].v==='stair'&&P.hide?stairRow(Q[i],moveDone(d)):row(Q[i])).join('')
-    +'<p class="mut" style="margin:8px 0 0">All five: +100 XP bonus '+(st.claimed[d]?'(claimed ✓)':'')+'</p><p class="mut cqdis">'+DISCLAIMER+'</p><span class="gtag">🎮 GAME PROGRESS · NOT A HEALTH MEASUREMENT</span></div>'};
+    +'<p class="mut" style="margin:8px 0 0">All five: +100 XP bonus '+(st.claimed[d]?'(claimed ✓)':'')+'</p><span class="gtag">🎮 GAME PROGRESS · NOT A HEALTH MEASUREMENT</span></div>'};
 // a returning user who was never asked: one quiet line on the Quest Board, not a nag
-function ask(){return st.s.onb&&!Array.isArray(st.p.conds)?'<div class="card cqask"><h3>🎯 YOUR QUESTS, YOUR PACE</h3><p>Anything that affects your activity, such as asthma or sore knees? Tell HealthWiz and it will sort and soften your goals. Optional.</p><button data-a="condedit" style="width:100%">TELL HEALTHWIZ</button><p class="mut">'+DISCLAIMER+'</p></div>':''}
+function ask(){return st.s.onb&&!Array.isArray(st.p.conds)?'<div class="card cqask"><h3>🎯 YOUR QUESTS, YOUR PACE '+HWHelp.btn('condnote2','About your quests','<p>'+DISCLAIMER+'</p>')+'</h3><p>Anything that affects your activity, such as asthma or sore knees? Tell HealthWiz and it will sort and soften your goals. Optional.</p><button data-a="condedit" style="width:100%">TELL HEALTHWIZ</button></div>':''}
 {const p=pages.quests;pages.quests=(...a)=>{const h=p(...a),i=h.indexOf('<div class="card" id="advq2">');return i<0?h:h.slice(0,i)+ask()+h.slice(i)}}
 // the Activity quest counts an easy move when stairs are behind the doctor note (st.qa[date], optional like st.qd)
 acts.condmove=()=>{if(!stairsHidden())return;st.qa=st.qa||{};st.qa[today()]=1;save();toast('Easy move noted. Nice and gentle.');render()};
@@ -95,13 +95,12 @@ function screen(){const o=S.ob,c=CC(),nn=(o.d.name||'').trim()||'traveller',tp='
   chip=(a,t,on,x)=>'<button type="button" class="chip cdc'+(on?' on':'')+'" data-a="'+a+'"'+(x||'')+' aria-pressed="'+(on?'true':'false')+'">'+t+'</button>';
   const eff=c.ids.map(i=>'<li><b>'+RULES[i].label+':</b> '+RULES[i].why+'</li>').join('')+c.cu.map(t=>'<li><b>'+esc(t)+':</b> HealthWiz cannot know what this means for activity, so it changes no goal. Ask a doctor.</li>').join('');
   return '<div class="obw"><h2>📜 TRAVELLER\'S REGISTRY</h2><div class="obpr"><small>ONE MORE QUESTION</small>'+bar(100,'var(--gold)')+'</div><div class="obsay"><img src="'+WIZ+'" alt="Wizard King Medius" class="obz"><div class="tbx"><b>WIZARD KING MEDIUS</b><p id="obt" data-t="'+esc(say)+'" data-v="'+esc(tp)+'"></p></div></div>'
-    +'<div class="card" id="cdcard"><h3>Anything that affects your activity?</h3><p class="mut">Optional. Pick all that apply.</p>'
+    +'<div class="card" id="cdcard"><h3>Anything that affects your activity? '+HWHelp.btn('condnote3','About this question','<p>'+DISCLAIMER+'</p>')+'</h3><p class="mut">Optional. Pick all that apply.</p>'
     +'<div class="cdgrid" role="group" aria-label="Conditions that affect activity">'+ORDER.map(i=>chip('cdt',RULES[i].label,c.ids.includes(i),' data-i="'+i+'"')).join('')
     +c.cu.map((t,k)=>chip('cdx',esc(t)+' ✕',true,' data-k="'+k+'" aria-label="Remove '+esc(t)+'"')).join('')
     +chip('cdn','None of these',c.none&&!c.ids.length&&!c.cu.length)+chip('cda','Add another…',c.add)+'</div>'
     +(c.add?'<div class="row cdadd"><label>Another condition<input id="cdin" maxlength="40" autocomplete="off"></label><button data-a="cdadd">ADD</button></div><small class="mut">Up to 40 characters. Kept exactly as you type it, on this device.</small>'+(c.err?'<p class="warn" role="alert">'+esc(c.err)+'</p>':''):'')
     +(eff?'<ul class="cdeff">'+eff+'</ul>':'')
-    +'<p class="mut cdis">'+DISCLAIMER+'</p>'
     +'<div class="row" style="margin-top:12px"><button class="g" data-a="cdback">◀ BACK</button><button data-a="cdnext">NEXT ▶</button></div></div></div>'}
 {const p=pages.onb;pages.onb=function(){const o=S.ob;if(o&&o.i===CS)return screen();let h=p.apply(this,arguments);
   if(o&&o.i===6){const c=conds(),txt=Array.isArray(st.p.conds)?(c.length?c.map(x=>RULES[x]?RULES[x].label:esc(x)).join(', '):'None of these'):(o.cc?CCtext():'Not answered');
