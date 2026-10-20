@@ -36,7 +36,8 @@ js/v6-vault.js             the Evidence Vault: every source on shelves, source �
 js/v6-uncert.js            the Uncertainty Engine: how unmeasured assumptions move an estimate (no made-up error margins)
 js/v6-plan.js              Stair Prescription on the Stairs page: a weekly stair plan the player chooses (st.s.pl); not a prescription
 js/v6-time.js              the Health Time Machine (route 'time', door on Statistics): saved records on a day / week / month timeline
-js/v6-observatory.js       the Campus Health Observatory (route 'campus', door in the Health Hall): the stairways on a map, all unverified
+js/v6-campus-data.js        the Observatory's staircase records (STAIRS + the F21 step sizes + data/stair-survey.json), its links with the Stairs page
+js/v6-campus.js            the Campus Health Observatory (route 'campus', door in the Health Hall): list, details, links and fallback; loads the map below over https
 js/v6-addfood.js           Add More Food: Luke (the apprentice) searches the web (Gemini + Google Search via food-guess) for any food, portion and changes, with a source per part; signed out, the canteen menu
 js/v6-arcane.js            the magical, modern look: Arcane Night default theme, glowing rounded panels and controls (docs/PIXEL_STYLE.md)
 js/v6-emoji.js             every emoji the app shows drawn as pixel art (hand-drawn icon or the emoji pixelated)
@@ -103,6 +104,14 @@ js/v6-body.js              Body & Energy: BMI + daily energy + macros as one pag
 js/v6-log.js               Settings → ALL ENTRIES grouped by day (collapsible, totals), 14-day date chips, date picker, category filter
 js/v6-hall.js              usability: one shared 3-line header (what this is / what to enter / why) on every tracker, Health Hall tiles with today's value and the one input, a Next step line, example lines under empty inputs
 js/v6-safety.js            an error card instead of a blank screen
+observatory/               the Observatory's map, ES modules loaded only on the campus page over http(s) with WebGL: MapLibre map from the OSM data, both modes, illustrative terrain (from prototypes/campus-observatory)
+vendor/maplibre-gl/        MapLibre GL JS 4.7.1 (BSD-3-Clause), pinned copy; loaded only by the map; budget in tests/73-observatory-budget
+vendor/three/              Three.js r169 (MIT) and the 3D preview's add-ons, copied by tools/vendor-three.mjs (bare 'three' imports made relative)
+assets/models/stairs/      the Blender staircase models for the 3D preview (from the prototype; demonstration shapes, F21 step sizes)
+assets/models/avatars/     the map avatars: Tom, the anime school boy and girl (CC BY 4.0, suzuart): sources, licences and changes in CREDITS.md
+tools/blender_avatar.py    makes an avatar (reduced, one texture, skeleton, idle and walk) from a character model; tools/get-blender.sh installs Blender 4.2
+assets/models/campus-fantasy.glb  the fantasy campus buildings, modelled in Blender from the OSM outlines (the prototype's tools/blender_buildings.py); decoration
+data/                      campus-osm.geojson and elevation-zones.geojson (the map's data, copied unchanged from the prototype) and stair-survey.json
 assets/img/                the 15 images that were embedded as base64 in the original (the PNG art re-encoded as lossless WebP)
 assets/icons/              app icons (original pixel art, drawn by tools/make-icons.mjs)
 legacy/HealthWiz_Kingdom_5-4-3.html   the complete original single file (source of truth)
@@ -118,6 +127,40 @@ docs/                      architecture audit and plan, event catalog, testing g
 The scripts are classic `<script>` tags that share one global scope, so keep them in order.
 `tests/00-fidelity.test.mjs` checks that the markup and stylesheet still match the original (apart from its short
 `EDITS` list of deliberate changes), and that no original function, constant, page or action has been removed.
+
+## Campus Health Observatory (map)
+
+The 'campus' page (`js/v6-campus.js`) shows the campus staircases on a MapLibre map drawn from the OpenStreetMap export,
+with a Realistic and a Fantasy look, the illustrative terrain (heights only show the order of the two raised areas; they
+are not measured), markers that cluster, search, filters, the details in three groups and a full-screen option. The map
+needs the app to be served over https (GitHub Pages) or `http://localhost`, and WebGL. Selecting a staircase opens its
+3D preview (Three.js): the prototype's Blender models, labelled "Illustrative model — actual dimensions not surveyed.", or
+for a staircase with complete survey flights a model built from them ("Built from survey measurements · finishes
+illustrative"); a model is never sized from an estimated angle.
+The locate button (asked only when tapped) first lets the player choose an avatar (Tom, the anime school boy or the anime
+school girl; the one matching the profile is suggested first). The avatar stands at the device's GPS position with its
+accuracy circle; away from campus a labelled demo walk is offered. The position is never saved or sent. The page also
+shows the player's own stair activity from their saved sessions (no new points or badges). Avatar credits:
+[`assets/models/avatars/CREDITS.md`](assets/models/avatars/CREDITS.md). Opened from the file or as the
+single-file build, the page says so and lists the staircases with their details, without requesting anything. The map's
+files (`observatory/`, `vendor/`, `assets/models/`, `data/*.geojson`) load only when the page opens and are cached on first use.
+Map data © OpenStreetMap contributors (ODbL); the map shows the attribution.
+
+## Campus stair survey data
+
+The Campus Health Observatory and the Stairs page lay `data/stair-survey.json` over the app's own stair list (`STAIRS`
+in `js/hw-02-core.js`, which is never changed). Measured values are labelled measured or calculated; anything not in
+the survey keeps the app's value and label. The committed file is empty (`"stairs": {}`), which shows the app data
+alone. To update it: fill in the Word sheet, run one command from the repository root, refresh.
+
+```sh
+python3 tools/import_stair_sheet.py path/to/your-filled-sheet.docx   # writes data/stair-survey.json and data/stair-survey-report.md
+```
+
+The blank sheet, what each column means and what the report checks are in
+[`prototypes/campus-observatory/UPDATE_DATA.md`](prototypes/campus-observatory/UPDATE_DATA.md). The survey file is read
+only when the app is served over http(s); opened from the device (`file://`) or as the single-file build, the app's own
+values are shown and the page says the survey was not loaded.
 
 ## Saved data and versions
 

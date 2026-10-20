@@ -1,0 +1,82 @@
+/* HealthWiz Kingdom: the Observatory map's own styles (integration Phase 2), loaded with the map only (observatory/main.js).
+   From the prototype's css/app.css (prototypes/campus-observatory): the staircase waypoints, clusters, OSM building labels
+   and the illustrative zone labels. The mode is on the Observatory card (.cmpcard[data-mode]); the colour tokens are set
+   there by js/v6-campus.js. The layout, list and details styles live in js/v6-campus.js (they work without the map). */
+.cmpmap .maplibregl-canvas{outline:none}
+.maplibregl-ctrl-attrib{font-size:11px}
+.cmpcard[data-mode="fantasy"] .maplibregl-ctrl-attrib{background:rgba(12,19,46,.85);color:#d8deff}
+.cmpcard[data-mode="fantasy"] .maplibregl-ctrl-attrib a{color:#ffe08a}
+.cmpcard[data-mode="fantasy"] .maplibregl-ctrl-attrib-button{filter:invert(1)}
+
+
+/* ---------- staircase waypoints (one element, two looks). MapLibre positions the element; children are absolute. ---------- */
+.stm{width:40px;height:48px;padding:0;border:0;background:transparent;display:block;cursor:pointer;--mc:var(--m2)}
+.stm.c1{--mc:var(--m1)}.stm.c2{--mc:var(--m2)}.stm.c3{--mc:var(--m3)}
+.stm .pinsvg{position:absolute;left:4px;top:0;width:32px;height:42px;overflow:visible;filter:drop-shadow(0 3px 3px rgba(0,0,0,.35));transform-origin:50% 100%;transition:transform .18s ease}
+.pbody{fill:var(--mc);stroke:#fff;stroke-width:2}
+.pgem{fill:color-mix(in srgb,var(--mc) 50%,white)}
+.stm.part .pgem{fill:var(--part)}
+.pshine{fill:rgba(255,255,255,.55)}
+.pnum{font:800 10.5px var(--font);fill:#14102e}
+.stm .glow{position:absolute;left:50%;top:38px;width:22px;height:8px;margin-left:-11px;border-radius:50%;border:2px dashed var(--est);pointer-events:none}
+.stm .ring,.stm .beam{display:none;pointer-events:none}
+.stm .cnt{position:absolute;right:-6px;top:-8px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;font:800 10px/1 var(--font);padding:2px 4px}
+.stm .tip{display:none;position:absolute;left:50%;bottom:52px;transform:translateX(-50%);white-space:nowrap;max-width:240px;overflow:hidden;text-overflow:ellipsis;
+  font:600 12px/1.2 var(--font);padding:5px 9px;border-radius:8px;background:var(--panel);color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow);pointer-events:none}
+.stm:hover .tip,.stm:focus-visible .tip{display:block}
+.stm:hover .pinsvg,.stm:focus-visible .pinsvg{transform:translateY(-3px) scale(1.14)}
+.stm:focus-visible{outline:none}.stm:focus-visible .pbody{stroke:var(--acc);stroke-width:3}
+.stm.sel .pinsvg{transform:scale(1.32)}
+.stm.sel .ring{display:block;position:absolute;left:50%;top:32px;width:52px;height:20px;margin-left:-26px;border-radius:50%;border:2.5px solid var(--acc)}
+/* fantasy: enchanted checkpoints */
+.cmpcard[data-mode="fantasy"] .pbody{stroke:#f2c14e;stroke-width:1.6}
+.cmpcard[data-mode="fantasy"] .pgem{fill:color-mix(in srgb,var(--mc) 40%,#fff8e0)}
+.cmpcard[data-mode="fantasy"] .stm .pinsvg{filter:drop-shadow(0 0 5px color-mix(in srgb,var(--mc) 70%,transparent)) drop-shadow(0 3px 2px rgba(0,0,0,.5));animation:bob 3s ease-in-out infinite}
+.cmpcard[data-mode="fantasy"] .stm .glow{border:0;top:36px;width:30px;height:12px;margin-left:-15px;background:radial-gradient(closest-side,color-mix(in srgb,var(--mc) 85%,transparent),transparent);animation:pulse 3s ease-in-out infinite}
+.cmpcard[data-mode="fantasy"] .stm.est .glow{outline:1.5px dashed color-mix(in srgb,var(--mc) 80%,white);outline-offset:1px}
+.cmpcard[data-mode="fantasy"] .stm:hover .pinsvg,.cmpcard[data-mode="fantasy"] .stm:focus-visible .pinsvg{filter:drop-shadow(0 0 10px var(--mc)) drop-shadow(0 3px 2px rgba(0,0,0,.5))}
+.cmpcard[data-mode="fantasy"] .stm .tip{font-family:var(--head);background:linear-gradient(180deg,#1b2a62,#111b46);border-color:rgba(242,193,78,.45);color:#fff6dc}
+.cmpcard[data-mode="fantasy"] .stm.sel .ring{top:30px;width:60px;height:24px;margin-left:-30px;border:2px dashed #ffe9a8;box-shadow:0 0 14px rgba(242,193,78,.8),inset 0 0 10px rgba(242,193,78,.5);animation:spin 6s linear infinite}
+.cmpcard[data-mode="fantasy"] .stm.sel .beam{display:block;position:absolute;left:50%;bottom:8px;width:18px;height:110px;margin-left:-9px;border-radius:9px;
+  background:linear-gradient(to top,color-mix(in srgb,var(--mc) 75%,white),transparent);opacity:.55;filter:blur(1.5px);animation:rise .7s ease-out both}
+.cmpcard[data-mode="fantasy"] .stm .cnt{background:#f3e3b5;color:#3b2a1a;border-color:#7a5b3c}
+@keyframes bob{50%{translate:0 -3px}}
+@keyframes pulse{50%{opacity:.5;scale:1.15}}
+@keyframes rise{from{height:0;opacity:0}}
+@keyframes spin{to{rotate:360deg}}
+
+/* clusters of nearby waypoints */
+.clu{width:40px;height:40px;border-radius:50%;padding:0;display:grid;place-items:center;border:2px solid var(--acc);background:var(--panel);box-shadow:var(--shadow);font:800 13px/1 var(--font)}
+.clu b{position:relative;z-index:1}
+.cring{position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);display:flex;gap:2px}
+.cring i{width:8px;height:8px;border-radius:50%;border:1px solid var(--panel)}.cring .c1{background:var(--m1)}.cring .c2{background:var(--m2)}.cring .c3{background:var(--m3)}
+.cmpcard[data-mode="fantasy"] .clu{background:radial-gradient(circle at 50% 35%,#2b3c86,#121c48);border-color:#f2c14e;color:#fff6dc;box-shadow:0 0 0 3px rgba(242,193,78,.18),0 0 18px rgba(95,225,230,.35)}
+.clu:focus-visible{outline:3px solid var(--acc)}
+
+/* building labels from OSM names */
+.blab{pointer-events:none;font:700 11.5px/1.2 var(--font);color:#39414c;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 2px #fff;white-space:nowrap;letter-spacing:.01em}
+.cmpcard[data-mode="fantasy"] .blab{font:600 11.5px/1 var(--head);color:#e9edff;text-shadow:0 1px 0 #0b1430,0 0 6px #0b1430,0 0 10px #0b1430}
+.cmpmap.lo .blab{display:none}
+/* the two illustrative elevation zones */
+.zlab{pointer-events:none;display:flex;gap:8px;align-items:center;padding:6px 10px;border-radius:10px;background:rgba(255,255,255,.88);border:1px solid #b8b09c;color:#4a4436;white-space:nowrap}
+.zlab b{display:block;font:700 12px/1.2 var(--font)}.zlab small{display:block;font-size:10.5px;opacity:.8}
+.zico{width:18px;height:12px;flex:0 0 auto;background:currentColor;clip-path:polygon(0 100%,35% 20%,52% 55%,70% 0,100% 100%)}
+.cmpcard[data-mode="fantasy"] .zlab{background:linear-gradient(180deg,rgba(24,38,90,.92),rgba(12,19,46,.92));color:#fff6dc;border:1px solid}
+.cmpcard[data-mode="fantasy"] .zlab b{font-family:var(--head);font-size:13px;letter-spacing:.02em}
+.cmpcard[data-mode="fantasy"] .zl-middle{border-color:#7fe8ee;box-shadow:0 0 16px rgba(95,225,230,.35)}.cmpcard[data-mode="fantasy"] .zl-middle .zico{color:#7fe8ee}
+.cmpcard[data-mode="fantasy"] .zl-highest{border-color:#f2c14e;box-shadow:0 0 16px rgba(242,193,78,.4)}.cmpcard[data-mode="fantasy"] .zl-highest .zico{color:#f2c14e}
+
+
+/* your device position (only after SHOW WHERE I AM): a dot; the accuracy circle is a map layer */
+.mydot{width:18px;height:18px;border-radius:50%;background:#2864d8;border:3px solid #fff;box-shadow:0 0 0 6px rgba(40,100,216,.3)}
+.cmpcard[data-mode="fantasy"] .mydot{background:#5fe1e6;box-shadow:0 0 0 6px rgba(95,225,230,.3)}
+.cmpmap .maplibregl-ctrl-scale{font-size:11px}
+/* reduced motion (the app's setting or the system's): nothing bobs, pulses or spins */
+html.hw-rm .cmpcard .stm *,html.hw-q-performance .cmpcard .stm *{animation:none!important;transition:none!important}
+@media (prefers-reduced-motion:reduce){.cmpcard .stm *{animation:none!important;transition:none!important}}
+
+/* fantasy particles and selection sparks (./fx.js): over the map, never in the way of a tap */
+.cmpmap .cmpfx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;image-rendering:pixelated}
+
+/* a staircase where the player has saved a stair session (Phase 5): a cyan ring at its foot (from saved data only) */
+.stm.vis::after{content:"";position:absolute;left:50%;top:34px;width:34px;height:14px;margin-left:-17px;border-radius:50%;border:2.5px solid #63e6dc;pointer-events:none}
