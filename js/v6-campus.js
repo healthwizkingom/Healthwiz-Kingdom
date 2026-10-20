@@ -15,6 +15,12 @@
    * FULL SCREEN (the owner's request, 2026-10-20): the map fills the whole window (a fixed layer over the app, which
      also works on phones where the browser cannot make an element full screen); the selection bar keeps a DETAILS
      button that leaves full screen for the details. Escape or the same button closes it; it is kept for the tab.
+   * The 3D preview (integration Phase 3): selecting a staircase (marker, list or link) opens or updates its preview at
+     the top of the details; closing it keeps the selection. observatory/viewer3d.js (Three.js r169, vendor/three) shows
+     the prototype's Blender models (assets/models/stairs: the demonstration shapes, with the measured F21 step size for
+     ST14, ST19 and ST20) or, for a staircase with complete survey flights, a model built from those flights. It is never
+     sized from an estimated angle. Labels: "Illustrative model — actual dimensions not surveyed." or "Built from survey
+     measurements · finishes illustrative". It needs what the map needs (http(s), WebGL), and is freed with the page.
    * Location only on tap (decision 2): SHOW WHERE I AM asks once; on campus the nearest placed staircase is selected.
      The position is shown on this screen only: never saved, never sent, not kept for the tab.
    * HWCampus.focus(id): select a staircase from elsewhere (FIND ON OBSERVATORY, RETURN TO OBSERVATORY): the map flies
@@ -40,12 +46,12 @@ const unmapped=()=>R().filter(s=>!placed(s));
 
 /* ---------- state: kept for this tab (no position, no health data) ---------- */
 const VK='hw_obs_view',FILTERS=['all','map','nol','part','flag'];
-const V={sid:null,grp:null,mode:'fantasy',cam:null,terr:true,bld:true,full:false,tab:'list',f:'all',q:'',me:null,gps:'',err:'',fly:false};
+const V={sid:null,grp:null,mode:'fantasy',cam:null,terr:true,bld:true,full:false,vw:true,tab:'list',f:'all',q:'',me:null,gps:'',err:'',fly:false};
 try{const o=JSON.parse(sessionStorage.getItem(VK)||'null');if(o&&typeof o==='object'){
   if(typeof o.sid==='string')V.sid=o.sid;if(typeof o.grp==='string')V.grp=o.grp;if(o.mode==='realistic')V.mode='realistic';
   if(o.cam&&Array.isArray(o.cam.c)&&o.cam.c.length===2&&o.cam.c.every(isFinite)&&isFinite(o.cam.z))V.cam={c:o.cam.c.map(Number),z:+o.cam.z,b:+o.cam.b||0,p:+o.cam.p||0};
-  if(o.terr===false)V.terr=false;if(o.bld===false)V.bld=false;if(o.full===true)V.full=true;if(o.tab==='det')V.tab='det';if(FILTERS.indexOf(o.f)>=0)V.f=o.f;if(typeof o.q==='string')V.q=o.q.slice(0,80)}}catch(e){}
-const persist=()=>{if(M.ctl&&M.ctl.ready)V.cam=M.ctl.camera();try{sessionStorage.setItem(VK,JSON.stringify({sid:V.sid,grp:V.grp,mode:V.mode,cam:V.cam,terr:V.terr,bld:V.bld,full:V.full,tab:V.tab,f:V.f,q:V.q}))}catch(e){}};
+  if(o.terr===false)V.terr=false;if(o.bld===false)V.bld=false;if(o.full===true)V.full=true;if(o.vw===false)V.vw=false;if(o.tab==='det')V.tab='det';if(FILTERS.indexOf(o.f)>=0)V.f=o.f;if(typeof o.q==='string')V.q=o.q.slice(0,80)}}catch(e){}
+const persist=()=>{if(M.ctl&&M.ctl.ready)V.cam=M.ctl.camera();try{sessionStorage.setItem(VK,JSON.stringify({sid:V.sid,grp:V.grp,mode:V.mode,cam:V.cam,terr:V.terr,bld:V.bld,full:V.full,vw:V.vw,tab:V.tab,f:V.f,q:V.q}))}catch(e){}};
 const selKey=()=>{if(V.grp)return V.grp;const s=V.sid&&rec(V.sid);return s&&placed(s)?keyOf(s):null};
 
 /* ---------- the map: availability, loading, one element across redraws ---------- */
@@ -82,6 +88,53 @@ function paintMsg(){const e=$id('cmpmsg');if(!e)return;e.hidden=M.st==='ready';e
 /** Make the map match the state: the highlighted marker, and a pending fly to the selection. */
 function sync(){const c=M.ctl;if(!c||!c.ready)return;const k=selKey();c.select(k);if(V.fly&&k){V.fly=false;c.flyToGroup(k)}else if(V.fly)V.fly=false;
   if(V.me&&c.near(V.me.lng,V.me.lat))c.me(V.me)}
+
+/* ---------- the 3D preview: one element across redraws, like the map ---------- */
+const P3={st:'off',err:'',host:null,ctl:null,demo:null,shown:'',gen:0}; // st: off | loading | ready | error
+const vrec=s=>Object.assign({},s,{_plan:HWCampusData.surveyPlan(s)}); // a copy: the shared records are never changed
+function mount3d(){const slot=$id('cmpvwslot'),s=V.sid&&rec(V.sid);
+  if(!slot||!s){if(P3.ctl&&P3.shown){P3.ctl.hide();P3.shown=''}return}
+  if(!P3.host){P3.host=D0.createElement('div');P3.host.className='cmpvwhost';P3.host.innerHTML='<div class="cmpvwcv"></div><div class="cmpvwmsg" data-loading="1">Loading the 3D model…</div>'}
+  if(P3.host.parentNode!==slot)slot.appendChild(P3.host);
+  const msg=P3.host.querySelector('.cmpvwmsg');
+  if(P3.st==='off'){P3.st='loading';const g=++P3.gen;
+    loadModule().then(X=>X.viewer({host:P3.host.querySelector('.cmpvwcv'),msg,reduced:()=>HWUI.reduced(),onView:null})).then(r=>{if(g!==P3.gen){r.viewer.destroy();return}
+      P3.ctl=r.viewer;P3.demo=r.demo;P3.st='ready';mount3d()})
+      .catch(e=>{if(g!==P3.gen)return;P3.st='error';msg.hidden=false;delete msg.dataset.loading;
+        msg.textContent='The 3D preview could not start on this device ('+String(e&&e.message||'WebGL unavailable').slice(0,120)+'). The map and details still work.'});return}
+  if(P3.st!=='ready')return;
+  const k=s.id+'|'+V.mode,was=P3.shown;
+  if(was===k)return;
+  if(was&&was.split('|')[0]===s.id){P3.ctl.setMode(V.mode);P3.shown=k;return}
+  P3.shown=k;P3.ctl.show(vrec(s),P3.demo,V.mode).then(()=>{if(S.v==='campus')paintShapes()})}
+function unmount3d(){P3.gen++;if(P3.ctl)P3.ctl.destroy();P3.ctl=null;if(P3.host)P3.host.remove();P3.host=null;P3.st='off';P3.shown='';P3.err=''}
+/** The shape buttons follow the viewer (changed in place). */
+function paintShapes(){const w=$id('cmpvwshapes');if(!w||!P3.ctl)return;w.querySelectorAll('[data-shape]').forEach(b=>b.setAttribute('aria-pressed',String(P3.ctl.shape===b.dataset.shape)));
+  const sp=$id('cmpvwspin');if(sp)sp.setAttribute('aria-pressed',String(!!P3.ctl.spinning))}
+const SHAPES=[['straight','Straight'],['straight-landing','Straight with landing'],['L','L-turn'],['U','U-turn (switchback)']];
+/** The preview section at the top of a staircase's details. */
+function preview(s){const plan=HWCampusData.surveyPlan(s),m=s.measuredStep;
+  if(why())return '<p class="mut cmpsmall">3D preview: it needs what the map needs (the web address and WebGL), so it is not shown here.</p>';
+  if(!V.vw)return '<div class="row cmpact"><button type="button" class="g" data-a="cmpvwopen">SHOW 3D PREVIEW</button></div>';
+  const ch=plan?chip('part','Built from survey measurements')+chip('ill','Finishes illustrative'):chip('ill','Illustrative 3D model')+(m?chip('part','Step size measured (F21)'):chip('miss','Not yet surveyed'));
+  const d=P3.demo||{stepsPerFlight:9,width_m:1.4,riser_m:.16,tread_m:.3};
+  const facts=plan?['<b>Flights, steps, width, turns and landings:</b> from the survey sheet ('+esc(s.survey.label)+'): '+plan.length+' flight'+(plan.length>1?'s':'')+', '+plan.map(f=>f.n).join(' + ')+' steps.',
+      '<b>Landings:</b> '+(plan.slice(0,-1).every(f=>f.landingLength)?'measured length'+(plan.slice(0,-1).every(f=>f.landingWidth)?' and width.':'; width taken as the flight width where not measured.'):'where a landing size is not in the sheet, it is drawn as wide and deep as the flight (illustrative).'),
+      s.orientationDeg!=null?'<b>Orientation:</b> '+(s.orientationStatus==='measured'?'measured':'estimated')+', '+s.orientationDeg+'° from north.':'<b>Orientation:</b> not surveyed.',
+      '<b>Not measured:</b> the materials, railings, posts and the dais. Walls and surroundings are not drawn.']
+    :['<b>Shape, steps, width, landings:</b> demonstration values ('+d.stepsPerFlight+' steps a flight, '+d.width_m+' m wide). Pick a shape to compare; none is this staircase\'s surveyed form.',
+      m?'<b>Step size:</b> measured for this staircase (rise '+m.rise_m+' m, run '+m.run_m+' m, F21 report), so the slope of the steps matches its measured angle. Only the step size is real.'
+        :'<b>Step size:</b> demonstration value (rise '+d.riser_m+' m, run '+d.tread_m+' m), not this staircase. The stored angle is an estimate and does not size the model.',
+      s.orientationDeg!=null?'<b>Orientation:</b> estimated, '+s.orientationDeg+'° from north.':'<b>Orientation:</b> not surveyed. The model faces an arbitrary direction.',
+      '<b>Height and floors:</b> not inferred. The model\'s height comes only from the demonstration step count. The dais is decoration.'];
+  const vb=(v,lab,t,x)=>'<button type="button" class="g cmpvb" data-a="cmpvwc" data-v="'+v+'" aria-label="'+lab+'"'+(x||'')+'>'+t+'</button>';
+  return '<section class="cmpvw" id="cmpvw" aria-labelledby="cmpvw-t"><div class="cmpvwh"><div><p class="cmpeye">3D staircase preview</p><b id="cmpvw-t">'+esc(s.name)+'</b></div>'
+    +'<button type="button" class="g cmpvwx" data-a="cmpvwclose" aria-label="Close the 3D preview (the staircase stays selected)">×</button></div><ul class="cmpchips">'+ch+'</ul>'
+    +'<div class="cmpvws"><div class="cmpvwslot" id="cmpvwslot"></div><p class="cmpillus" role="note">'+(plan?'Built from survey measurements · finishes illustrative':'Illustrative model — actual dimensions not surveyed.')+'</p></div>'
+    +'<div class="cmpvwc" role="toolbar" aria-label="3D view controls">'+vb('left','Turn left','⟲')+vb('right','Turn right','⟳')+vb('in','Zoom in','+')+vb('out','Zoom out','−')+vb('reset','Reset the view','Reset')
+    +vb('spin','Spin','Spin',' id="cmpvwspin" aria-pressed="'+!!(P3.ctl&&P3.ctl.spinning)+'"')+'</div>'
+    +(plan?'':'<div class="cmpvwshapes" id="cmpvwshapes" role="group" aria-label="Demonstration shape">'+SHAPES.map(([k,l])=>'<button type="button" class="g cmpvb" data-a="cmpvwshape" data-shape="'+k+'" aria-pressed="'+((P3.ctl&&P3.ctl.shape||'straight-landing')===k)+'">'+l+'</button>').join('')+'</div>')
+    +'<details class="cmpvwmore"><summary>What is real in this model?</summary><ul>'+facts.map(t=>'<li>'+t+'</li>').join('')+'</ul></details></section>'}
 
 /* ---------- list ---------- */
 const FL={all:['All',()=>true],map:['On the map',placed],nol:['No location',s=>!placed(s)],part:['Step size measured',s=>!!s.measuredStep],flag:['Needs checking',s=>!!s.needsChecking]};
@@ -131,7 +184,7 @@ function details(s){const m=s.measuredStep,f=facts(s),v=s.survey,a=HWCampusData.
   if(s.notes)q+='<p class="cmpnotes">'+esc(s.notes)+'</p>';
   const mine='<p class="cmpmine">'+(a.sessions?'You saved '+a.sessions+' stair session'+(a.sessions>1?'s':'')+' here (last '+esc(a.last)+')':'No stair sessions saved here yet')+(a.firstCheckIn?' · first GPS check-in '+esc(a.firstCheckIn):'')+'</p>';
   return '<button type="button" class="cmpback" data-a="cmptab" data-t="list">‹ All staircases</button><p class="cmpeye">'+s.id+' · '+CN[s.appCategory]+'</p><h3 class="cmph" tabindex="-1">'+esc(s.name)+'</h3>'+mine
-    +'<div class="row cmpact"><button type="button" data-a="cmpstair" data-id="'+s.id+'">START STAIR SESSION</button>'+(placed(s)&&M.st==='ready'?'<button type="button" class="g" data-a="cmpshow">SHOW ON MAP</button>':'')+'</div>'
+    +preview(s)+'<div class="row cmpact"><button type="button" data-a="cmpstair" data-id="'+s.id+'">START STAIR SESSION</button>'+(placed(s)&&M.st==='ready'?'<button type="button" class="g" data-a="cmpshow">SHOW ON MAP</button>':'')+'</div>'
     +grp('map','Location',loc)+grp('stairs','Staircase profile',pro)+grp('scroll','Data quality',q)}
 function chooser(g){return '<button type="button" class="cmpback" data-a="cmptab" data-t="list">‹ All staircases</button><p class="cmpeye">Shared point</p><h3 class="cmph" tabindex="-1">'+g.items.length+' staircases at one stored point</h3>'
   +'<p class="mut cmpsmall">'+g.lat+', '+g.lng+' · '+esc(g.items[0].locationStatus==='measured'?'Measured location (survey)':'Estimated location (app data)')+'. These records store the identical coordinate; on site they are probably separate stairs. Pick one.</p>'
@@ -168,7 +221,7 @@ function weather(){const L=typeof HWLive!=='undefined'?HWLive:null;if(!L)return'
   const bd=a?L.band(a.pm2_5):null;
   return '<div class="cmpwx"><b>'+ico('cloud')+' Weather and haze, live</b><p>'+(w?Math.round(w.temperature_2m)+' °C · '+esc(L.WMO[w.weather_code]||'Weather'):'')+(w&&a?' · ':'')
     +(bd?'Haze '+esc(bd.k.toLowerCase())+' (PM2.5 '+Math.round(a.pm2_5)+' µg/m³)':'')+'</p>'+note+'</div>'}
-function page(){Promise.resolve().then(mount);
+function page(){Promise.resolve().then(()=>{mount();mount3d()});
   return '<div class="card cmpcard" id="cmpcard" data-mode="'+V.mode+'"><p>The campus staircases on one map. Tap a marker, or search the list, to see a staircase, how its data was gathered, and your own climbs there.</p>'
     +'<p class="warn cmpwarn" role="note"><b>Locations are not verified.</b> They come from the original app data and have no recorded source, unless a staircase says "Measured location (survey)". The raised ground is illustrative.</p>'
     +'<div class="cmpwrap">'+stage()
@@ -183,7 +236,7 @@ function page(){Promise.resolve().then(mount);
 const keep=()=>{persist();const y=window.scrollY;render();window.scrollTo(0,y)};
 const toDet=()=>{const e=D0.querySelector('#cmpdet .cmph');if(e)e.focus({preventScroll:true})};
 /** One path for every way of choosing a staircase: a marker, the list, a link in the details, focus(). */
-function pick(id,from){const s=rec(id);if(!s)return;V.sid=id;V.grp=null;V.tab='det';V.fly=placed(s)&&from!=='restore';keep();if(from!=='map')toDet()}
+function pick(id,from){const s=rec(id);if(!s)return;V.sid=id;V.grp=null;V.tab='det';V.vw=true;V.fly=placed(s)&&from!=='restore';keep();if(from!=='map')toDet()}
 function pickGroup(key){if(!points().some(g=>g.key===key))return;V.grp=key;V.sid=null;V.tab='det';V.fly=false;keep();toDet()}
 acts.cmpgo=()=>go('campus');
 acts.cmppick=d=>pick(d.id,'list');
@@ -201,7 +254,13 @@ acts.cmpterr=()=>{V.terr=!V.terr;if(M.ctl)M.ctl.terrain(V.terr);keep()};
 acts.cmpbld=()=>{V.bld=!V.bld;if(M.ctl)M.ctl.buildings(V.bld);keep()};
 acts.cmpfull=()=>{V.full=!V.full;keep();const b=$id('cmpfullb');if(b)b.focus({preventScroll:true})};
 acts.cmpdetfs=()=>{V.full=false;V.tab='det';keep();const d=$id('cmpdet');if(d){d.scrollIntoView({block:'start'});toDet()}};
-D0.addEventListener('keydown',e=>{if(e.key==='Escape'&&V.full&&S.v==='campus'){V.full=false;keep();const b=$id('cmpfullb');if(b)b.focus({preventScroll:true})}});
+D0.addEventListener('keydown',e=>{if(e.key==='Escape'&&!V.full&&S.v==='campus'&&V.vw&&$id('cmpvw')&&!D0.querySelector('dialog[open], .hwh-pop:not([hidden])')){acts.cmpvwclose();return}
+  if(e.key==='Escape'&&V.full&&S.v==='campus'){V.full=false;keep();const b=$id('cmpfullb');if(b)b.focus({preventScroll:true})}});
+acts.cmpvwopen=()=>{V.vw=true;keep()};
+acts.cmpvwclose=()=>{V.vw=false;if(P3.ctl&&P3.shown){P3.ctl.hide();P3.shown=''}keep();const b=D0.querySelector('[data-a="cmpvwopen"]');if(b)b.focus({preventScroll:true})};
+acts.cmpvwc=d=>{const c=P3.ctl;if(!c)return;const v=d.v;if(v==='left')c.rotateBy(-30);else if(v==='right')c.rotateBy(30);else if(v==='in')c.zoomBy(.78);else if(v==='out')c.zoomBy(1.28);
+  else if(v==='reset')c.reset();else if(v==='spin')c.spin(!c.spinning);paintShapes()};
+acts.cmpvwshape=d=>{if(P3.ctl&&SHAPES.some(x=>x[0]===d.shape)){P3.ctl.setShape(d.shape);paintShapes()}};
 acts.cmpforget=()=>{V.me=null;V.err='';if(M.ctl)M.ctl.me(null);keep()};
 // the search filters the list in place, so typing keeps the focus
 D0.addEventListener('input',e=>{if(!e.target||e.target.id!=='cmpq')return;V.q=e.target.value.slice(0,80);persist();const L=shown(),l=$id('cmplist'),c=$id('cmpcount');if(l)l.innerHTML=items(L);if(c)c.textContent=countTxt(L)});
@@ -220,7 +279,7 @@ function locate(){const g=navigator.geolocation;V.err='';
     {enableHighAccuracy:true,timeout:20000,maximumAge:0})}
 acts.cmpgps=()=>locate();
 /** Select a staircase from elsewhere (before go('campus')): the map flies to it; with no coordinates, it is not moved. */
-function focus(id){const s=rec(id);if(!s)return false;V.sid=id;V.grp=null;V.tab='det';V.fly=placed(s);persist();if(M.ctl&&S.v==='campus')sync();return true}
+function focus(id){const s=rec(id);if(!s)return false;V.sid=id;V.grp=null;V.tab='det';V.vw=true;V.fly=placed(s);persist();if(M.ctl&&S.v==='campus')sync();return true}
 
 /* ---------- the page, and its door in the Health Hall (after the Science Laboratory's) ---------- */
 pages.campus=()=>page();
@@ -229,8 +288,8 @@ BN.campus=['🗺','Campus Health Observatory','The campus staircases, your climb
 DIS.campus='Locations are unverified app data unless marked measured. Raised ground and building heights are illustrative. Your position is shown on this screen only and is never saved or sent.';
 const door=()=>'<div class="card cmpdoor" id="cmp-door"><h3>'+ico('map')+' CAMPUS HEALTH OBSERVATORY</h3><p>See the campus staircases on a map, how each one was measured, and check the air before you go.</p><button type="button" data-a="cmpgo">OPEN THE OBSERVATORY</button></div>';
 {const p=pages.health;pages.health=function(){return p.apply(this,arguments)+door()}}
-HWEvents.on('page:viewed',e=>{if(e.view!=='campus'){unmount();V.me=null;V.err='';V.gps='';fsClass()}});
-HWEvents.on('data:reset',()=>{unmount();V.sid=V.grp=null;V.cam=null;V.me=null;try{sessionStorage.removeItem(VK)}catch(e){}});
+HWEvents.on('page:viewed',e=>{if(e.view!=='campus'){unmount();unmount3d();V.me=null;V.err='';V.gps='';fsClass()}});
+HWEvents.on('data:reset',()=>{unmount();unmount3d();V.sid=V.grp=null;V.cam=null;V.me=null;try{sessionStorage.removeItem(VK)}catch(e){}});
 HWEvents.on('live:updated',()=>{if(S.v==='campus')keep()});
 addEventListener('pagehide',()=>{if(M.ctl)persist()});
 
@@ -294,6 +353,15 @@ HWUI.css('campus',`
 .cmpnotes{margin:10px 0 0;padding:10px;border-radius:10px;border:1px dashed var(--edge,var(--ln));font-size:13px}
 .cmpwx{border-top:1px solid var(--edge,var(--ln));padding-top:8px;margin-top:10px}.cmpwx svg{vertical-align:-3px}.cmpe{color:var(--red);font-weight:bold}
 .cmpsv{font-size:12.5px;margin:4px 0}
+.cmpvw{border:1px solid var(--edge,var(--ln));border-radius:12px;padding:10px;margin:8px 0}.cmpvwh{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.cmpvwx{margin:0;width:44px;height:44px;min-height:44px;padding:0;font-size:20px;flex:0 0 auto}
+.cmpvws{position:relative;height:min(300px,42vh);min-height:220px;border-radius:10px;overflow:hidden;background:#0d1430;margin:6px 0}
+.cmpvwslot,.cmpvwhost,.cmpvwcv{position:absolute;inset:0}.cmpvwcv{touch-action:none}.cmpvwcv canvas{display:block;width:100%!important;height:100%!important}
+.cmpvwmsg{position:absolute;inset:0;display:grid;place-items:center;padding:16px;text-align:center;background:rgba(13,20,48,.92);color:#d8deff}.cmpvwmsg[hidden]{display:none}
+.cmpillus{position:absolute;left:8px;right:8px;bottom:8px;margin:0;padding:6px 10px;border-radius:9px;font-size:12.5px;font-weight:700;text-align:center;border:1.5px dashed #c9b6ff;color:#e6dcff;background:rgba(13,20,48,.82);pointer-events:none}
+.cmpvwc,.cmpvwshapes{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.cmpvb{margin:0;min-width:44px;min-height:44px;padding:0 10px;font-size:14px}.cmpvb[aria-pressed="true"]{outline:2px solid var(--gold,#f6c94f);outline-offset:1px}
+.cmpvwmore{margin-top:8px;font-size:13px}.cmpvwmore summary{cursor:pointer;min-height:40px;display:flex;align-items:center;font-weight:600}.cmpvwmore ul{margin:4px 0;padding-left:18px}
+.cmpchip.ill{color:#c9b6ff;border-style:dashed}
 `);
-return{points,unmapped,focus,why,get selected(){return V.sid},get map(){return M.ctl},
-  get state(){return{sid:V.sid,grp:V.grp,mode:V.mode,full:V.full,tab:V.tab,f:V.f,q:V.q,terr:V.terr,bld:V.bld,cam:V.cam,map:M.st,msg:M.msg,me:V.me,err:V.err}}}})();
+return{points,unmapped,focus,why,get selected(){return V.sid},get map(){return M.ctl},get viewer(){return P3.ctl},
+  get state(){return{sid:V.sid,grp:V.grp,mode:V.mode,full:V.full,vw:V.vw,v3:P3.st,shown:P3.shown,tab:V.tab,f:V.f,q:V.q,terr:V.terr,bld:V.bld,cam:V.cam,map:M.st,msg:M.msg,me:V.me,err:V.err}}}})();

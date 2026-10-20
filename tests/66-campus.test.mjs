@@ -63,6 +63,8 @@ test('details in three groups with the player\'s own climbs and honest labels; S
   assert.match(d, /Floor label"G level"App data; its meaning on site is not documented\./);
   assert.doesNotMatch(d, /Nearest OSM place|Map terrain/, 'computed map facts appear only with the map data');
   assert.equal(await page.locator('#cmpdet [data-a="cmpshow"]').count(), 0, 'no SHOW ON MAP without a map');
+  assert.match(d, /3D preview: it needs what the map needs \(the web address and WebGL\), so it is not shown here\./);
+  assert.equal(await page.locator('#cmpvw').count(), 0);
   // a shared coordinate links to the other records
   await page.click('#cmptab-list'); await page.click('#cmplist .cmpitem[data-id="ST31"]');
   assert.match(await page.textContent('#cmpdet'), /Same point asST06, ST32[\s\S]*Needs checking/);

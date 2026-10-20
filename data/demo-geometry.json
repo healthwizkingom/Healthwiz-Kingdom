@@ -1,0 +1,19 @@
+{
+  "about": "Generic demonstration dimensions for the illustrative 3D staircase model ONLY. They are not campus measurements and are never shown as a staircase's data. Edit freely to test the look.",
+  "label": "Illustrative model — actual dimensions not surveyed.",
+  "riser_m": 0.16,
+  "tread_m": 0.30,
+  "width_m": 1.4,
+  "stepsPerFlight": 9,
+  "landingDepth_m": 1.4,
+  "gapBetweenFlights_m": 0.2,
+  "railHeight_m": 0.9,
+  "postEverySteps": 3,
+  "shapes": {
+    "straight": { "label": "Straight", "flights": 1, "turn": null },
+    "straight-landing": { "label": "Straight with landing", "flights": 2, "turn": "straight" },
+    "L": { "label": "L-turn", "flights": 2, "turn": "left" },
+    "U": { "label": "U-turn (switchback)", "flights": 2, "turn": "reverse" }
+  },
+  "defaultShape": "straight-landing"
+}

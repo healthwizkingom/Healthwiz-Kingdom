@@ -306,6 +306,10 @@ export function createMap(opts) {
     if (!cam) map.jumpTo({ zoom: map.getZoom() + .45 });
     recluster(); opts.onReady && opts.onReady();
   });
+  // the time of the last drawn frame: the map draws on demand, so a gap means it has settled (MapLibre's own 'idle' can
+  // wait on hillshade tiles that stay 'reloading' after a paint change, so it is not used)
+  let drawn = performance.now();
+  map.on('render', () => { drawn = performance.now(); });
   map.on('moveend', () => { recluster(); if (ready && opts.onCamera) opts.onCamera(camNow()); });
   map.on('click', () => {}); // a tap on empty map keeps the selection
   map.on('error', e => { const m = e && e.error && e.error.message; console.warn('[map]', m); });
@@ -318,6 +322,8 @@ export function createMap(opts) {
   return {
     map,
     get ready() { return ready; },
+    /** Milliseconds since the map last drew a frame (tests wait for a quiet map: the first terrain tiles take seconds). */
+    get quietMs() { return performance.now() - drawn; },
     get mode() { return mode; },
     get terrainOn() { return terrOn; },
     get buildingsOn() { return bldOn; },

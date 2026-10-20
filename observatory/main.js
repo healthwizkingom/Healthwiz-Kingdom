@@ -4,6 +4,8 @@
 //   HWObsMap.create(opts) → Promise<controller> (see ./map.js): loads MapLibre GL JS 4.7.1 (vendor/maplibre-gl, a
 //   classic script and its stylesheet), the OpenStreetMap export and the illustrative elevation zones (data/), builds
 //   the terrain and the map. Every file is same-origin, so the service worker caches it on first use.
+//   HWObsMap.viewer(opts) → Promise<{viewer, demo}> (integration Phase 3): loads the 3D preview (./viewer3d.js, Three.js
+//   r169 in vendor/three) and the demonstration dimensions (data/demo-geometry.json) the first time a preview opens.
 //   HWObsMap.facts(lng, lat) → {near, zone} once the data is loaded: the nearest named OSM place and the illustrative
 //   zone, computed in the browser (not survey data).
 import { createTerrain } from './terrain.js';
@@ -12,7 +14,7 @@ import { nearestNamed } from './geo.js';
 
 const base = new URL('../', import.meta.url);
 const at = p => new URL(p, base).href;
-let data = null, lib = null;
+let data = null, lib = null, demoGeo = null;
 
 function addOnce(tag, attrs) {
   const sel = tag + '[data-hwobs="' + attrs['data-hwobs'] + '"]';
@@ -48,6 +50,11 @@ window.HWObsMap = {
     const d = await loadData();
     if (!window.maplibregl) throw new Error('the map library did not load');
     return createMap(Object.assign({}, opts, { osm: d.osm, terrain: d.terrain }));
+  },
+  async viewer(opts) {
+    const [mod, demo] = await Promise.all([import('./viewer3d.js'), demoGeo || (demoGeo = fetch(at('data/demo-geometry.json'), { cache: 'no-cache' })
+      .then(r => { if (!r.ok) throw new Error('data/demo-geometry.json: HTTP ' + r.status); return r.json(); }).catch(e => { demoGeo = null; throw e; }))]);
+    return { viewer: mod.createViewer(opts), demo };
   },
   facts(lng, lat) {
     if (!data) return null;

@@ -39,6 +39,8 @@ before(async () => {
 after(async () => { if (browser) await browser.close(); await new Promise(r => server.close(r)); });
 
 const SEED = { ...RETURNING, s: { ...RETURNING.s, live: 0 } };
+const STUB = 'export function createViewer() { return { show() { return Promise.resolve(); }, hide() {}, destroy() {}, setMode() {}, setShape() {}, spin() {}, rotateBy() {}, zoomBy() {}, reset() {}, '
+  + 'get shape() { return "straight-landing"; }, get spinning() { return false; }, get isOpen() { return true; }, get debug() { return { source: "stub" }; } }; }';
 async function openHttp({ viewport, init, route, ctxOpt } = {}) {
   // software WebGL: a small map keeps each frame quick
   const ctx = await browser.newContext({ viewport: viewport || { width: 760, height: 640 }, reducedMotion: 'reduce', serviceWorkers: 'block', ...ctxOpt });
@@ -48,12 +50,15 @@ async function openHttp({ viewport, init, route, ctxOpt } = {}) {
   page.on('request', r => reqs.push(r.url()));
   await page.addInitScript(s => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('healthwiz', s); localStorage.setItem('hwtut', '1'); sessionStorage.setItem('seeded', '1'); } }, JSON.stringify(SEED));
   if (init) await page.addInitScript(init);
+  // the 3D preview has its own tests (75–77); here a do-nothing stand-in keeps the CPU (software WebGL) for the map
+  await page.route('**/observatory/viewer3d.js', r => r.fulfill({ contentType: 'text/javascript', body: STUB }));
   if (route) await route(page);
   await page.goto(base); await page.waitForSelector('.wl');
   return { ctx, page, errors, reqs };
 }
 const goView = (page, v) => page.evaluate(v => go(v), v);
-const ready = page => page.waitForFunction(() => HWCampus.state.map === 'ready' || HWCampus.state.map === 'error', null, { timeout: 80000 }).then(() => page.evaluate(() => HWCampus.state.map));
+// loaded and settled: the first terrain tiles are generated in the browser and take seconds with software WebGL
+const ready = page => page.waitForFunction(() => HWCampus.state.map === 'error' || (HWCampus.state.map === 'ready' && HWCampus.map.quietMs > 1000), null, { timeout: 80000 }).then(() => page.evaluate(() => HWCampus.state.map));
 // settled: the camera has stopped (map.loaded() can stay false while generated terrain tiles refresh)
 const idle = page => page.waitForFunction(() => { const m = HWCampus.map && HWCampus.map.map; return !!m && !m.isMoving(); }, null, { timeout: 20000 }).then(() => page.waitForTimeout(400));
 const cam = page => page.evaluate(() => { const m = HWCampus.map.map, c = m.getCenter(); return { lng: c.lng, lat: c.lat, z: m.getZoom() }; });

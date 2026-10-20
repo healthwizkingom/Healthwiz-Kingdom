@@ -2,7 +2,7 @@
 // within the 90 s test budget): served over http on a local server, in Chromium with software WebGL (the
 // flags of prototypes/campus-observatory/qa/smoke.mjs; slow, so the checks are few and the motion is reduced).
 //   * START → save → RETURN restores the camera; FIND for a staircase with no coordinates leaves the camera alone;
-//   * leaving the page frees the map (no canvas, no animation loop), also over several visits;
+//   Leaving the page: tests/78-observatory-map-leave.
 //   Full screen: tests/74-observatory-fullscreen.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -35,6 +35,8 @@ before(async () => {
 after(async () => { if (browser) await browser.close(); await new Promise(r => server.close(r)); });
 
 const SEED = { ...RETURNING, s: { ...RETURNING.s, live: 0 } };
+const STUB = 'export function createViewer() { return { show() { return Promise.resolve(); }, hide() {}, destroy() {}, setMode() {}, setShape() {}, spin() {}, rotateBy() {}, zoomBy() {}, reset() {}, '
+  + 'get shape() { return "straight-landing"; }, get spinning() { return false; }, get isOpen() { return true; }, get debug() { return { source: "stub" }; } }; }';
 async function openHttp({ viewport, init, route, ctxOpt } = {}) {
   // software WebGL: a small map keeps each frame quick
   const ctx = await browser.newContext({ viewport: viewport || { width: 760, height: 640 }, reducedMotion: 'reduce', serviceWorkers: 'block', ...ctxOpt });
@@ -44,12 +46,15 @@ async function openHttp({ viewport, init, route, ctxOpt } = {}) {
   page.on('request', r => reqs.push(r.url()));
   await page.addInitScript(s => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('healthwiz', s); localStorage.setItem('hwtut', '1'); sessionStorage.setItem('seeded', '1'); } }, JSON.stringify(SEED));
   if (init) await page.addInitScript(init);
+  // the 3D preview has its own tests (75–77); here a do-nothing stand-in keeps the CPU (software WebGL) for the map
+  await page.route('**/observatory/viewer3d.js', r => r.fulfill({ contentType: 'text/javascript', body: STUB }));
   if (route) await route(page);
   await page.goto(base); await page.waitForSelector('.wl');
   return { ctx, page, errors, reqs };
 }
 const goView = (page, v) => page.evaluate(v => go(v), v);
-const ready = page => page.waitForFunction(() => HWCampus.state.map === 'ready' || HWCampus.state.map === 'error', null, { timeout: 80000 }).then(() => page.evaluate(() => HWCampus.state.map));
+// loaded and settled: the first terrain tiles are generated in the browser and take seconds with software WebGL
+const ready = page => page.waitForFunction(() => HWCampus.state.map === 'error' || (HWCampus.state.map === 'ready' && HWCampus.map.quietMs > 1000), null, { timeout: 80000 }).then(() => page.evaluate(() => HWCampus.state.map));
 // settled: the camera has stopped (map.loaded() can stay false while generated terrain tiles refresh)
 const idle = page => page.waitForFunction(() => { const m = HWCampus.map && HWCampus.map.map; return !!m && !m.isMoving(); }, null, { timeout: 20000 }).then(() => page.waitForTimeout(400));
 const cam = page => page.evaluate(() => { const m = HWCampus.map.map, c = m.getCenter(); return { lng: c.lng, lat: c.lat, z: m.getZoom() }; });
@@ -76,16 +81,6 @@ test('round trip with the map: START → save → RETURN restores the camera; FI
   assert.ok(Math.abs(c2.lng - c1.lng) < 1e-5 && Math.abs(c2.z - c1.z) < .01, 'the map does not move');
   assert.equal(await page.locator('.stm.sel').count(), 0);
   assert.match(await page.textContent('#cmpdet'), /No location recorded, so it is not placed on the map\./);
-  assert.deepEqual(errors, []);
-  await ctx.close();
-});
-
-test('leaving frees the map every time: 4 visits leave no canvas, no marker and no animation loop', async () => {
-  const { ctx, page, errors } = await openHttp({ init: () => { window.__raf = 0; const r = requestAnimationFrame; window.requestAnimationFrame = function (f) { return r.call(this, t => { window.__raf++; f(t); }); }; } });
-  for (let i = 0; i < 4; i++) { await goView(page, 'campus'); assert.equal(await ready(page), 'ready'); await goView(page, 'health'); }
-  assert.deepEqual(await page.evaluate(() => [document.querySelectorAll('canvas.maplibregl-canvas, .stm, .clu').length, HWCampus.map]), [0, null]);
-  const f0 = await page.evaluate(() => window.__raf); await page.waitForTimeout(1500);
-  assert.equal(await page.evaluate(() => window.__raf) - f0, 0, 'no requestAnimationFrame loop after leaving');
   assert.deepEqual(errors, []);
   await ctx.close();
 });

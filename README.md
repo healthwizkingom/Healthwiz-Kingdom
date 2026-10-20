@@ -106,6 +106,8 @@ js/v6-hall.js              usability: one shared 3-line header (what this is / w
 js/v6-safety.js            an error card instead of a blank screen
 observatory/               the Observatory's map, ES modules loaded only on the campus page over http(s) with WebGL: MapLibre map from the OSM data, both modes, illustrative terrain (from prototypes/campus-observatory)
 vendor/maplibre-gl/        MapLibre GL JS 4.7.1 (BSD-3-Clause), pinned copy; loaded only by the map; budget in tests/73-observatory-budget
+vendor/three/              Three.js r169 (MIT) and the 3D preview's add-ons, copied by tools/vendor-three.mjs (bare 'three' imports made relative)
+assets/models/stairs/      the Blender staircase models for the 3D preview (from the prototype; demonstration shapes, F21 step sizes)
 data/                      campus-osm.geojson and elevation-zones.geojson (the map's data, copied unchanged from the prototype) and stair-survey.json
 assets/img/                the 15 images that were embedded as base64 in the original (the PNG art re-encoded as lossless WebP)
 assets/icons/              app icons (original pixel art, drawn by tools/make-icons.mjs)
@@ -128,9 +130,12 @@ The scripts are classic `<script>` tags that share one global scope, so keep the
 The 'campus' page (`js/v6-campus.js`) shows the campus staircases on a MapLibre map drawn from the OpenStreetMap export,
 with a Realistic and a Fantasy look, the illustrative terrain (heights only show the order of the two raised areas; they
 are not measured), markers that cluster, search, filters, the details in three groups and a full-screen option. The map
-needs the app to be served over https (GitHub Pages) or `http://localhost`, and WebGL. Opened from the file or as the
+needs the app to be served over https (GitHub Pages) or `http://localhost`, and WebGL. Selecting a staircase opens its
+3D preview (Three.js): the prototype's Blender models, labelled "Illustrative model — actual dimensions not surveyed.", or
+for a staircase with complete survey flights a model built from them ("Built from survey measurements · finishes
+illustrative"); a model is never sized from an estimated angle. Opened from the file or as the
 single-file build, the page says so and lists the staircases with their details, without requesting anything. The map's
-files (`observatory/`, `vendor/`, `data/*.geojson`) load only when the page opens and are cached on first use.
+files (`observatory/`, `vendor/`, `assets/models/`, `data/*.geojson`) load only when the page opens and are cached on first use.
 Map data © OpenStreetMap contributors (ODbL); the map shows the attribution.
 
 ## Campus stair survey data
