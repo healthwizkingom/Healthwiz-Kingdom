@@ -266,11 +266,12 @@ export function createMap(opts) {
     for (const g of opts.groups) {
       const s = g.items[0], el = document.createElement('button'), many = g.items.length > 1;
       el.type = 'button';
-      el.className = 'stm c' + catN(s.appCategory) + (s.locationStatus === 'measured' ? ' meas' : ' est') + (g.items.some(x => x.measuredStep || x.survey) ? ' part' : '');
+      const vis = !!opts.visited && g.items.some(x => opts.visited(x.id)); // the player has saved a stair session there
+      el.className = 'stm c' + catN(s.appCategory) + (s.locationStatus === 'measured' ? ' meas' : ' est') + (g.items.some(x => x.measuredStep || x.survey) ? ' part' : '') + (vis ? ' vis' : '');
       el.dataset.key = g.key;
       if (!many) el.dataset.id = s.id;
       const name = many ? g.items.length + ' staircases at one stored point' : s.id + ' · ' + s.name;
-      el.setAttribute('aria-label', (many ? g.items.map(x => x.id + ' ' + x.name).join('; ') : s.id + ' ' + s.name) + '. ' + locWord(s) + '.');
+      const label = (many ? g.items.map(x => x.id + ' ' + x.name).join('; ') : s.id + ' ' + s.name) + '. ' + locWord(s) + '.' + (vis ? ' You have climbed here.' : '');
       el.innerHTML = '<span class="ring" aria-hidden="true"></span><span class="glow" aria-hidden="true"></span><span class="beam" aria-hidden="true"></span>'
         + PIN(many ? '' : catN(s.appCategory)) + (many ? '<span class="cnt" aria-hidden="true">×' + g.items.length + '</span>' : '')
         + '<span class="tip" aria-hidden="true">' + esc(name.length > 46 ? name.slice(0, 44) + '…' : name) + '</span>';
@@ -278,6 +279,7 @@ export function createMap(opts) {
       // opacityWhenCovered 1: MapLibre dims a marker the (illustrative) terrain seems to hide; the staircases are the data and
       // must stay fully visible above the decoration
       const mk = new ML.Marker({ element: el, anchor: 'bottom', offset: [0, 6], opacity: '1', opacityWhenCovered: '1' }).setLngLat([g.lng, g.lat]).addTo(map);
+      el.setAttribute('aria-label', label); // after the Marker: MapLibre sets its own "Map marker" label on the element
       markers.set(g.key, { mk, el, g });
     }
   }
@@ -295,7 +297,7 @@ export function createMap(opts) {
       const n = mem.reduce((t, b) => t + b.m.g.items.length, 0), lng = mem.reduce((t, b) => t + b.m.g.lng, 0) / mem.length, lat = mem.reduce((t, b) => t + b.m.g.lat, 0) / mem.length;
       const cats = new Set(mem.flatMap(b => b.m.g.items.map(s => catN(s.appCategory))));
       const el = document.createElement('button');
-      el.type = 'button'; el.className = 'clu'; el.setAttribute('aria-label', n + ' staircases close together. Zoom in to separate them.');
+      el.type = 'button'; el.className = 'clu';
       el.innerHTML = '<span class="cring" aria-hidden="true">' + [...cats].sort().map(c => '<i class="c' + c + '"></i>').join('') + '</span><b>' + n + '</b>';
       el.addEventListener('click', ev => {
         ev.stopPropagation();
@@ -303,6 +305,7 @@ export function createMap(opts) {
         noPad(); map.fitBounds(b, { padding: Object.assign({}, opts.padding(), { top: opts.padding().top + 60 }), maxZoom: Math.max(map.getZoom() + 1.5, 18.6), duration: dur() });
       });
       clusters.push({ mk: new ML.Marker({ element: el, anchor: 'center', opacity: '1', opacityWhenCovered: '1' }).setLngLat([lng, lat]).addTo(map) });
+      el.setAttribute('aria-label', n + ' staircases close together. Zoom in to separate them.');
     }
     for (const a of pts) if (a.m.g.key === sel) a.m.el.hidden = false;
   }
@@ -334,6 +337,20 @@ export function createMap(opts) {
     for (let i = 0; i <= 48; i++) { const a = i / 48 * 2 * Math.PI; ring.push([lng + r * Math.sin(a) / (R * k * Math.cos(lat * k)), lat + r * Math.cos(a) / (R * k)]); }
     return { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [ring] } };
   }
+  /* ---------- the avatar (observatory/avatar.js): loaded the first time a position arrives; a new choice replaces it ---------- */
+  let avatar = null, avatarUrl = null, mePos = null;
+  function loadAvatar(url) {
+    if (avatarUrl === url) return;
+    if (avatar && avatar.id && map.getLayer('avatar')) map.removeLayer('avatar'); // onRemove frees the old one
+    avatar = 'loading'; avatarUrl = url;
+    import('./avatar.js').then(mod => {
+      if (gone || avatarUrl !== url) return;
+      avatar = mod.createAvatarLayer({ ML, url, heightAt: terrain.heightAt, terrainOn: () => terrOn, reduced: opts.reduced, mode: () => mode,
+        onReady: () => { if (gone || avatarUrl !== url) return; if (mePos) { avatar.moveTo(mePos.lng, mePos.lat, true); avatar.show(true); if (meMk) { meMk.remove(); meMk = null; } } },
+        onError: e => { console.warn('[avatar] the character could not load; the dot shows the position.', e && e.message); avatar = 'failed'; } });
+      map.addLayer(avatar); // on top of everything, like a game avatar
+    }).catch(e => { console.warn('[avatar]', e && e.message); avatar = 'failed'; });
+  }
   const camNow = () => { const c = map.getCenter(); return { c: [+c.lng.toFixed(7), +c.lat.toFixed(7)], z: +map.getZoom().toFixed(3), b: +map.getBearing().toFixed(2), p: +map.getPitch().toFixed(2) }; };
 
   map.on('load', () => {
@@ -349,6 +366,7 @@ export function createMap(opts) {
   let drawn = performance.now();
   map.on('render', () => { drawn = performance.now(); });
   map.on('moveend', () => { recluster(); if (ready && opts.onCamera) opts.onCamera(camNow()); });
+  map.on('dragstart', () => opts.onUserMove && opts.onUserMove());
   map.on('click', () => {}); // a tap on empty map keeps the selection
   map.on('error', e => { const m = e && e.error && e.error.message; console.warn('[map]', m); });
   const lost = () => opts.onError && opts.onError('The map stopped working on this device (WebGL context lost). The staircase list still works.');
@@ -369,7 +387,7 @@ export function createMap(opts) {
     get terrainOn() { return terrOn; },
     get buildingsOn() { return bldOn; },
     camera: camNow,
-    setMode(m) { mode = m; if (ready) applyMode(m); },
+    setMode(m) { mode = m; if (ready) applyMode(m); if (avatar && avatar.setMode) avatar.setMode(m); },
     setReduced() { if (ready) animate(); FX.set(mode === 'fantasy' && !opts.reduced()); },
     /** Highlight a marker by group key (null clears); returns the marker or null. */
     select(key) {
@@ -403,16 +421,29 @@ export function createMap(opts) {
     fit() { noPad(); map.fitBounds(bb, { padding: opts.padding(), duration: dur(), pitch: map.getPitch(), bearing: map.getBearing() }); },
     /** After the element was moved (the page redraws #main): fit the canvas again and draw a fresh frame. */
     resize() { if (!gone) { map.resize(); map.triggerRepaint(); } },
-    /** Show a device position {lng, lat, accuracy} as a dot and its accuracy circle; null hides it. Never stored. */
-    me(f) {
+    /** Show the player at a position {lng, lat, accuracy, source}: the chosen avatar (url) walking there, with the device's
+        accuracy circle; a plain dot stands in until the avatar has loaded (or if it cannot). null hides both. Never stored. */
+    me(f, jump, url) {
+      mePos = f;
       const src = map.getSource('me');
       if (src) src.setData({ type: 'FeatureCollection', features: f && f.accuracy ? [circle(f.lng, f.lat, Math.min(f.accuracy, 250))] : [] });
-      if (!f) { if (meMk) { meMk.remove(); meMk = null; } return; }
-      if (!meMk) { const el = document.createElement('div'); el.className = 'mydot'; el.setAttribute('role', 'img'); meMk = new ML.Marker({ element: el, anchor: 'center' }); }
-      meMk.getElement().setAttribute('aria-label', 'You are here (device estimate, ± ' + Math.round(f.accuracy || 0) + ' m)');
-      meMk.setLngLat([f.lng, f.lat]).addTo(map);
-      map.easeTo({ center: [f.lng, f.lat], zoom: Math.max(map.getZoom(), 17.6), duration: dur() });
+      if (!f) { if (meMk) { meMk.remove(); meMk = null; } if (avatar && avatar.show) avatar.show(false); return; }
+      if (url) loadAvatar(url);
+      const live = avatar && avatar.ready;
+      if (live) { avatar.moveTo(f.lng, f.lat, jump); avatar.show(true); }
+      if (live) { if (meMk) { meMk.remove(); meMk = null; } return; }
+      if (!meMk) { const el = document.createElement('div'); el.className = 'mydot'; el.setAttribute('role', 'img'); meMk = new ML.Marker({ element: el, anchor: 'center', opacityWhenCovered: '1' }); }
+      meMk.setLngLat([f.lng, f.lat]).addTo(map); // then the label: MapLibre sets its own on the element
+      meMk.getElement().setAttribute('aria-label', (f.source === 'demo' ? 'Demo walk (simulated position)' : 'You are here (device estimate' + (f.accuracy ? ', ± ' + Math.round(f.accuracy) + ' m' : '') + ')'));
     },
+    /** Keep the player in view: the first call zooms in close, like a game camera; later ones glide between fixes. */
+    followMe(f, first) {
+      const o = { center: [f.lng, f.lat], padding: opts.padding(), duration: opts.reduced() ? 0 : first ? 900 : 1000 };
+      if (first) Object.assign(o, { zoom: Math.max(map.getZoom(), 18.4), pitch: Math.max(map.getPitch(), 55) });
+      else o.easing = t => t;
+      map.easeTo(o);
+    },
+    get avatar() { return avatar; },
     /** Is a position inside the map's area? */
     near(lng, lat) { const b = map.getMaxBounds(); return !b || b.contains([lng, lat]); },
     /** Free everything: timers, markers, the WebGL context. */

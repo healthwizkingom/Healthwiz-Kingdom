@@ -99,7 +99,7 @@ test('round trip: select → START STAIR SESSION (nothing saved) → save → RE
   assert.deepEqual([saved.m.sid, saved.m.kind, saved.v], ['ST20', 'casual', 24]);
   assert.match(await page.textContent('#cmpbar'), /Session saved for Tangga sebelah rumah penjana elektrik/);
   // refresh: the title screen as before; nothing is saved again; the trip (this tab only) still offers RETURN
-  await page.waitForTimeout(1500); // a person refreshes seconds later; Chromium writes sessionStorage shortly after a change
+  await page.waitForTimeout(3000); // a person refreshes seconds later; Chromium writes sessionStorage shortly after a change
   await page.reload(); await page.waitForSelector('.wl');
   assert.equal(stairs(await state(page)).length, 3, 'a refresh creates no session');
   await go(page, 'stair');

@@ -108,6 +108,8 @@ observatory/               the Observatory's map, ES modules loaded only on the 
 vendor/maplibre-gl/        MapLibre GL JS 4.7.1 (BSD-3-Clause), pinned copy; loaded only by the map; budget in tests/73-observatory-budget
 vendor/three/              Three.js r169 (MIT) and the 3D preview's add-ons, copied by tools/vendor-three.mjs (bare 'three' imports made relative)
 assets/models/stairs/      the Blender staircase models for the 3D preview (from the prototype; demonstration shapes, F21 step sizes)
+assets/models/avatars/     the map avatars: Tom, the anime school boy and girl (CC BY 4.0, suzuart): sources, licences and changes in CREDITS.md
+tools/blender_avatar.py    makes an avatar (reduced, one texture, skeleton, idle and walk) from a character model; tools/get-blender.sh installs Blender 4.2
 assets/models/campus-fantasy.glb  the fantasy campus buildings, modelled in Blender from the OSM outlines (the prototype's tools/blender_buildings.py); decoration
 data/                      campus-osm.geojson and elevation-zones.geojson (the map's data, copied unchanged from the prototype) and stair-survey.json
 assets/img/                the 15 images that were embedded as base64 in the original (the PNG art re-encoded as lossless WebP)
@@ -134,7 +136,12 @@ are not measured), markers that cluster, search, filters, the details in three g
 needs the app to be served over https (GitHub Pages) or `http://localhost`, and WebGL. Selecting a staircase opens its
 3D preview (Three.js): the prototype's Blender models, labelled "Illustrative model — actual dimensions not surveyed.", or
 for a staircase with complete survey flights a model built from them ("Built from survey measurements · finishes
-illustrative"); a model is never sized from an estimated angle. Opened from the file or as the
+illustrative"); a model is never sized from an estimated angle.
+The locate button (asked only when tapped) first lets the player choose an avatar (Tom, the anime school boy or the anime
+school girl; the one matching the profile is suggested first). The avatar stands at the device's GPS position with its
+accuracy circle; away from campus a labelled demo walk is offered. The position is never saved or sent. The page also
+shows the player's own stair activity from their saved sessions (no new points or badges). Avatar credits:
+[`assets/models/avatars/CREDITS.md`](assets/models/avatars/CREDITS.md). Opened from the file or as the
 single-file build, the page says so and lists the staircases with their details, without requesting anything. The map's
 files (`observatory/`, `vendor/`, `assets/models/`, `data/*.geojson`) load only when the page opens and are cached on first use.
 Map data © OpenStreetMap contributors (ODbL); the map shows the attribution.

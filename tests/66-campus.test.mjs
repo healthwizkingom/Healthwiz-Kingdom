@@ -155,7 +155,7 @@ test('the selection, tab, filter and search are kept for the tab: leaving and a 
   assert.deepEqual(await page.evaluate(() => { const s = HWCampus.state; return [s.sid, s.tab, s.f]; }), ['ST19', 'det', 'part']);
   assert.match(await page.textContent('#cmpdet'), /Blok Aisyah/);
   // a person refreshes seconds later; Chromium writes sessionStorage to the tab's store shortly after a change
-  await page.waitForTimeout(1500);
+  await page.waitForTimeout(3000);
   await page.reload(); await page.waitForSelector('.wl');
   assert.notEqual(await page.evaluate(() => S.v), 'campus', 'a refresh opens the title screen, as before');
   await go(page, 'campus');

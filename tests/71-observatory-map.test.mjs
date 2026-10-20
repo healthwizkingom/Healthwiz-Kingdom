@@ -94,6 +94,10 @@ test('lazy and complete: nothing of the map before the page opens; then OSM attr
   assert.ok(r.clusters > 0, 'close markers cluster at campus zoom');
   assert.ok(r.worst < 1.5, 'markers on their coordinates: ' + r.worst.toFixed(2) + ' px');
   assert.deepEqual(r.zl.map(t => /illustrative height, not measured/.test(t)), [true, true]);
+  // every marker is named for screen readers (MapLibre would otherwise call each one "Map marker")
+  const names = await page.evaluate(() => [...document.querySelectorAll('.stm, .clu')].map(e => e.getAttribute('aria-label')));
+  assert.ok(names.length && names.every(n => n && n !== 'Map marker'), names.filter(n => !n || n === 'Map marker').length + ' unnamed');
+  assert.match(await page.getAttribute('.stm[data-key="5.3519878,100.5383771"]', 'aria-label'), /^ST20 Tangga sebelah rumah penjana elektrik ke Dewan Kenanga\. Estimated location\.$/);
   assert.deepEqual(errors, []);
   await ctx.close();
 });

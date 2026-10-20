@@ -8,7 +8,9 @@
 //   tools/vendor-three.mjs); vendor/ is 1,771,147 bytes → budget 1,948,262. assets/models/stairs = the prototype's
 //   Blender staircases (8 sets × style + pedestals, 5,537,184 bytes).
 //   Phase 4 (2026-10-20): + assets/models/campus-fantasy.glb, the prototype's Blender buildings (1,696,300 bytes):
-//   assets/models/ is 7,233,484 bytes → budget 7,956,832. Raise it, with the new size + 10 %, when the avatars arrive.
+//   assets/models/ was 7,233,484 bytes.
+//   Phase 5 (2026-10-20): + assets/models/avatars/ (tom.glb 1,141,324, schoolboy.glb 1,058,460, schoolgirl.glb 1,195,696 and
+//   CREDITS.md): assets/models/ is 10,630,767 bytes → budget 11,693,844.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -16,7 +18,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const BUDGET = { vendor: 1948262, 'assets/models': 7956832 };
+const BUDGET = { vendor: 1948262, 'assets/models': 11693844 };
 const files = dir => { const d = path.join(root, dir); if (!fs.existsSync(d)) return []; return fs.readdirSync(d, { recursive: true }).map(f => path.join(dir, f)).filter(f => fs.statSync(path.join(root, f)).isFile()); };
 const size = dir => files(dir).reduce((t, f) => t + fs.statSync(path.join(root, f)).size, 0);
 
@@ -33,5 +35,6 @@ test('none of them is precached at install or loaded by index.html: they come on
   }
   assert.ok(files('vendor').some(f => /maplibre-gl[\\/]LICENSE\.txt$/.test(f)), 'the MapLibre licence ships with it');
   assert.ok(files('vendor').some(f => /three[\\/]LICENSE$/.test(f)), 'the Three.js licence ships with it');
+  assert.ok(fs.existsSync(path.join(root, 'assets/models/avatars/CREDITS.md')) && /suzuart[\s\S]*CC BY 4\.0[\s\S]*suzuart/.test(fs.readFileSync(path.join(root, 'assets/models/avatars/CREDITS.md'), 'utf8')), 'the CC BY avatars carry their credits');
   assert.ok(!files('vendor/three').some(f => /\.js$/.test(f) && /from\s*['"]three['"]/.test(fs.readFileSync(path.join(root, f), 'utf8'))), 'no bare "three" import (there is no import map)');
 });

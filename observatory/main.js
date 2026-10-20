@@ -6,6 +6,9 @@
 //   the terrain and the map. Every file is same-origin, so the service worker caches it on first use.
 //   HWObsMap.viewer(opts) → Promise<{viewer, demo}> (integration Phase 3): loads the 3D preview (./viewer3d.js, Three.js
 //   r169 in vendor/three) and the demonstration dimensions (data/demo-geometry.json) the first time a preview opens.
+//   HWObsMap.locator(opts) → Promise<locator> (integration Phase 5, ./locate.js): the device's position, asked for only
+//   when the player taps the locate button, or a labelled demo walk; HWObsMap.demoPath(near) → the longest campus road
+//   (OpenStreetMap) for that walk.
 //   HWObsMap.facts(lng, lat) → {near, zone} once the data is loaded: the nearest named OSM place and the illustrative
 //   zone, computed in the browser (not survey data).
 import { createTerrain } from './terrain.js';
@@ -55,6 +58,22 @@ window.HWObsMap = {
     const [mod, demo] = await Promise.all([import('./viewer3d.js'), demoGeo || (demoGeo = fetch(at('data/demo-geometry.json'), { cache: 'no-cache' })
       .then(r => { if (!r.ok) throw new Error('data/demo-geometry.json: HTTP ' + r.status); return r.json(); }).catch(e => { demoGeo = null; throw e; }))]);
     return { viewer: mod.createViewer(opts), demo };
+  },
+  async locator(opts) { const mod = await import('./locate.js'); return mod.createLocator(opts); },
+  /** The demo walk's path: the longest road inside the map's area (near(lng, lat)), from the OSM export. */
+  demoPath(near) {
+    if (!data) return [];
+    const k = Math.PI / 180, len = c => c.slice(1).reduce((t, b, i) => t + Math.hypot((b[0] - c[i][0]) * Math.cos(b[1] * k), b[1] - c[i][1]), 0);
+    const roads = data.osm.features.filter(f => (f.properties.kind === 'road' || f.properties.kind === 'road_major') && f.geometry.type === 'LineString');
+    roads.sort((a, b) => len(b.geometry.coordinates) - len(a.geometry.coordinates));
+    const inside = roads.find(f => f.geometry.coordinates.every(([x, y]) => near(x, y)));
+    return (inside || roads[0] || { geometry: { coordinates: [] } }).geometry.coordinates;
+  },
+  /** How far (km) a position is from the middle of the campus map. */
+  kmFromCampus(lng, lat) {
+    if (!data) return null;
+    const [x0, y0, x1, y1] = data.osm.bounds, k = Math.PI / 180, R = 6371.0088, cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+    return Math.hypot((lng - cx) * k * R * Math.cos(cy * k), (lat - cy) * k * R);
   },
   facts(lng, lat) {
     if (!data) return null;

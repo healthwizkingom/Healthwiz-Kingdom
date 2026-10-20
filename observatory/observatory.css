@@ -77,3 +77,6 @@ html.hw-rm .cmpcard .stm *,html.hw-q-performance .cmpcard .stm *{animation:none!
 
 /* fantasy particles and selection sparks (./fx.js): over the map, never in the way of a tap */
 .cmpmap .cmpfx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;image-rendering:pixelated}
+
+/* a staircase where the player has saved a stair session (Phase 5): a cyan ring at its foot (from saved data only) */
+.stm.vis::after{content:"";position:absolute;left:50%;top:34px;width:34px;height:14px;margin-left:-17px;border-radius:50%;border:2.5px solid #63e6dc;pointer-events:none}
