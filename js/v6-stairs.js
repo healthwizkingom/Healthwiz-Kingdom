@@ -447,7 +447,7 @@ HWEvents.on('data:reset',()=>{pick=null;W=W0();try{sessionStorage.removeItem(DK)
 
 // Health Hall: one Stairs tile (the Pulse tile is gone; Running's tile is removed by js/v6-running.js)
 {const i=HUB.findIndex(h=>h[0]==='pulse');if(i>=0)HUB.splice(i,1);
-  const j=HUB.findIndex(h=>h[0]==='stair');if(j>=0)HUB[j]=['stair','🧗','Stairs & Workout','Stair Mountain',d=>sp(d)+' steps today']}
+  const j=HUB.findIndex(h=>h[0]==='stair');if(j>=0)HUB[j]=['stair','🧗','Stairs','Stair Mountain',d=>sp(d)+' steps today']}
 DIS.stair=DIS.pulse='General exercise pacing aid, not medical treatment. Heart rates are the numbers you counted and entered, steady readings from your own heart-rate device, or camera estimates, that you chose to use; the trace is a picture, not an ECG, and nothing here is a diagnosis. Calorie numbers are estimates. Stop and get medical help for dizziness, chest pain, faintness or severe breathlessness.';
 
 HWUI.css('stairs',`

@@ -51,7 +51,7 @@ test('one page, two halves side by side; GPS first; Pulse opens the heart rate; 
   await go(page, 'health');
   const tiles = await page.$$eval('#hub [data-v]', b => b.map(x => x.dataset.v + ':' + x.querySelector('b').textContent));
   assert.deepEqual(tiles.map(t => t.split(':')[0]), ['food', 'sleep', 'stair', 'exercise', 'stress', 'body', 'stats', 'score']);
-  assert.ok(tiles.includes('stair:Stairs & Workout'));
+  assert.ok(tiles.includes('stair:Stairs'));
   // old routes: Pulse (Heartstone Hall) opens the heart-rate card; Running opens the Training Hall's Running Road
   await go(page, 'pulse');
   assert.equal(await page.evaluate(() => S.v), 'campus', 'the Stairs section of the Campus page');

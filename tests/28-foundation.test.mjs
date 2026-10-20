@@ -71,7 +71,7 @@ test('navigation audit: tabs, every Health Hall tile there and BACK again, Storm
   await page.click('#nav [data-v="health"]');
   const tiles = await page.$$eval('#hub [data-a="go"]', b => b.map(x => [x.dataset.v, x.querySelector('b').textContent]));
   const names = Object.fromEntries(tiles);
-  for (const [v, n] of [['food', 'Food & Water'], ['stair', 'Stairs & Workout'], ['sleep', 'Sleep'], ['stress', 'Stress']]) assert.equal(names[v], n, n + ' tile');
+  for (const [v, n] of [['food', 'Food & Water'], ['stair', 'Stairs'], ['sleep', 'Sleep'], ['stress', 'Stress']]) assert.equal(names[v], n, n + ' tile');
   assert.deepEqual([names.pulse, names.run], [undefined, undefined], 'Pulse and Running moved into the Stairs page');
   assert.equal(names.water, undefined, 'Nutrition and Water share one tile (§31)');
   for (const [v] of tiles) {
