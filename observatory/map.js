@@ -41,7 +41,7 @@ const PAINT = {
   realistic: {
     bg: { 'background-color': '#e6e9e2', 'background-pattern': undefined },
     res: { 'fill-color': '#dfded8', 'fill-pattern': undefined },
-    campus: { 'fill-color': '#f3f1ea', 'fill-pattern': undefined },
+    campus: { 'fill-color': '#a3b268', 'fill-pattern': undefined }, // the lawns of the drone video (measured #708421), lightened so the markers and labels read
     'campus-edge': { 'line-color': '#b5ad99', 'line-width': 1.4, 'line-dasharray': [3, 2], 'line-opacity': 1 },
     'campus-glow': { 'line-opacity': 0 },
     'zone-top': { 'fill-opacity': 0 },

@@ -84,7 +84,8 @@ test('Fantasy and Realistic: the Blender buildings of each look replace the stan
   await page.waitForFunction(() => HWCampus.map.modelsLook === 'realistic', null, { timeout: 60000 });
   assert.deepEqual([await visible(page, 'models'), await visible(page, 'bx'), await visible(page, 'bld'), await visible(page, 'roof')], [true, false, false, false],
     'the daylight Blender buildings (with the gazebos), not the plain blocks');
-  assert.equal(await page.evaluate(() => HWCampus.map.map.getStyle().layers.filter(l => l.id === 'models').length), 1, 'one model layer: the other look is not kept');
+  // one model layer (ids are unique): the fantasy one was removed (and freed) before the realistic one was added
+  assert.equal(await page.evaluate(() => !!HWCampus.map.map.getLayer('models') && HWCampus.map.models.ready), true, 'one model layer, the realistic one, ready');
   // the buildings switch hides the Blender buildings too
   await page.click('[data-a="cmpmode"][data-m="fantasy"]');
   await page.waitForFunction(() => HWCampus.map.modelsLook === 'fantasy', null, { timeout: 60000 });
