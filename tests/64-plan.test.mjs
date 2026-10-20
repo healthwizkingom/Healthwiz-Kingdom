@@ -78,7 +78,7 @@ test('done only from a saved stair session; SKIP and UNSKIP; START is today only
   const t = await page.evaluate(() => today());
   // START today: picks the chosen stairway's pace (Easy) and stays on the Stairs page
   await page.click('[data-a="plstart"][data-d="' + t + '"]');
-  assert.equal(await page.evaluate(() => [S.v, PACES[S.pb.pace][1]].join()), 'stair,Easy');
+  assert.equal(await page.evaluate(() => [S.v, PACES[S.pb.pace][1]].join()), 'campus,Easy'); // the Stairs section of the Campus page
   assert.equal((await state(page)).e.length, 0, 'START writes nothing');
   // with a chosen stairway, START really chooses it on the Stairs page (HWStairs.choose), not only S.loc
   await page.evaluate(() => { st.s.pl.sid = 'ST20'; save(); render(); });

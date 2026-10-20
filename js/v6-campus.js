@@ -357,7 +357,8 @@ function locate(){const g=navigator.geolocation;V.err='';
     {enableHighAccuracy:true,timeout:20000,maximumAge:0})}
 acts.cmpgps=()=>locate();
 /** Select a staircase and bring the Observatory (the top of the page) into view: used by FIND / RETURN TO OBSERVATORY in the Stairs section. */
-function show(id){if(!focus(id))return false;persist();render();const e=$id('cmpcard');if(e)e.scrollIntoView({block:'start'});return true}
+function show(id){if(V.sid===id&&rec(id)){V.grp=null;V.tab='det'}else if(!focus(id))return false; // already selected: the camera stays where it is
+  persist();render();const e=$id('cmpcard');if(e)e.scrollIntoView({block:'start'});return true}
 /** Select a staircase from elsewhere (before go('campus')): the map flies to it; with no coordinates, it is not moved. */
 function focus(id){const s=rec(id);if(!s)return false;V.sid=id;V.grp=null;V.tab='det';V.vw=true;V.fly=placed(s);persist();if(M.ctl&&S.v==='campus')sync();return true}
 

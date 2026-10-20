@@ -48,7 +48,7 @@ const hashOn=()=>/^#stairs?$/i.test(location.hash||'');
 function clearHash(){if(hashOn())try{history.replaceState(null,'',location.pathname+location.search)}catch(x){}}
 const applyHash=()=>{if(hashOn()&&S.v!=='onb'&&!(S.v==='welcome'&&typeof needOnb==='function'&&needOnb()))go('stair')};
 addEventListener('hashchange',applyHash);
-if(document.readyState==='complete')setTimeout(applyHash,0);else addEventListener('load',()=>setTimeout(applyHash,0));
+HWEvents.on('app:ready',()=>setTimeout(applyHash,0)); // once, after the first render
 
 HWUI.css('campusstairs',`
 .stsec{scroll-margin-top:8px;margin:14px 0 0}.stsech{margin-bottom:14px;padding:0}.stsech .pxh{margin:0;display:flex;align-items:center;gap:0}

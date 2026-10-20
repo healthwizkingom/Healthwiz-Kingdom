@@ -67,7 +67,7 @@ test('Stairs workout: the "?" offers the VO₂ (project method) and the energy e
   await page.waitForSelector('#vc-project[open]');
   assert.match(await page.innerText('#vc-project'), /VO₂ = 15\.3 × pulse after ÷ pulse before/);
   await page.click('[data-a="vbackto"]');
-  assert.equal(await page.evaluate(() => S.v), 'stair');
+  assert.equal(await page.evaluate(() => S.v), 'campus', 'the Stairs section of the Campus page');
   assert.deepEqual(await page.evaluate(() => [HWStairs.draft.hrB, HWStairs.draft.hrA]), ['70', '105'], 'unsaved input kept');
   assert.deepEqual(errors, []); await ctx.close();
 });

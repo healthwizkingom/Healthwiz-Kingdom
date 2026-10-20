@@ -4,7 +4,7 @@
 // saved data, the consumers of the data and the Campus features keep working; the phone layout fits.
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { openApp, closeBrowser, go, state, RETURNING, entry, fillSteps } from './helpers.mjs';
+import { openApp, closeBrowser, go, state, RETURNING, entry, fillSteps, APP_URL } from './helpers.mjs';
 
 after(closeBrowser);
 const top = (page, sel) => page.$eval(sel, e => Math.round(e.getBoundingClientRect().top));
@@ -75,6 +75,11 @@ test('old routes land on the Stairs section: stair, pulse (heart-rate card), and
   await go(page, 'home');
   assert.equal(await page.evaluate(() => location.hash), '', 'the address is cleaned when leaving');
   assert.deepEqual(errors, []); await ctx.close();
+  // a saved link or bookmark ending in #stairs
+  const b = await openApp({ url: APP_URL + '#stairs' });
+  await b.page.waitForFunction(() => typeof S !== 'undefined' && S.v === 'campus');
+  assert.equal(await b.page.evaluate(() => HWCampusStairs.open), true, 'opening the app at #stairs lands on the open section');
+  assert.deepEqual(b.errors, []); await b.ctx.close();
 });
 
 test('every Stairs feature works inside Campus: casual climb, workout with heart rate and calories, LOG BPM, chart, chronicle edit/delete, Stair Sense, plan, study', async () => {

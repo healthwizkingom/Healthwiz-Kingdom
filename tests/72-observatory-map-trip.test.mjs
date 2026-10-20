@@ -69,7 +69,7 @@ test('round trip with the map: START → save → RETURN restores the camera; FI
   await page.click('[data-a="cmpzin"]'); await idle(page);
   const c0 = await cam(page);
   await page.click('#cmpdet [data-a="cmpstair"][data-id="ST20"]');
-  assert.deepEqual(await page.evaluate(() => [S.v, HWStairs.pick, !!HWCampus.map]), ['stair', 'ST20', false]);
+  assert.deepEqual(await page.evaluate(() => [S.v, HWStairs.pick, !!HWCampus.map]), ['campus', 'ST20', true]); // the Stairs section is on the same page: the map stays
   await fillSteps(page, '#ss', '10'); await page.fill('#sc', '1'); await page.click('[data-a="savestair"]');
   await page.click('[data-a="cmpback"]');
   assert.equal(await ready(page), 'ready'); await idle(page);
