@@ -94,6 +94,7 @@ export function createModelLayer(opts) {
         [].concat(o.material).forEach(mt => {
           for (const k of ['map']) if (mt[k]) mt[k].magFilter = THREE.NearestFilter;
           if (/lamp_glow/.test(mt.name || '')) lamps.push(mt);
+          else if (/rune_glow|crystal_glow/.test(mt.name || '')) mt.emissiveIntensity = 2.6; // the Fantasy waystones, keystone and crystals always glow
         });
       });
       scene.add(g); place(); light(opts.sky ? opts.sky() : null); map && map.triggerRepaint();

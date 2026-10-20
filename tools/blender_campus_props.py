@@ -179,6 +179,118 @@ for lot in props['parking']:
             B.add(box((q[0] - v[0] * .15, q[1] - v[1] * .15), v, u, 1.2, .82, 1.05, 1.5, mi('plain:#3b4652')), tile=(1, 1))
             taken += 1; n_car += 1
 
+# ---------------------------------------------------------------- wayfinding: the gate, signposts, notice boards, waystones
+# The gate is mapped in OSM (barrier=gate): both looks put a gate there, across the road (Realistic: the red portal of
+# frames 1-3; Fantasy: a gatehouse of two crenellated towers with banners, in the mood of the fantasy reference). The
+# signposts (at road junctions), notice boards (beside the gathering squares and inside the gate) and rune waystones with
+# crystals (in the squares) are Fantasy-only decoration: nothing like them is mapped (data/campus-props.json).
+def nearest_road(q):
+    best = None
+    for f in osm['features']:
+        if f['geometry']['type'] != 'LineString' or f['properties'].get('kind') not in ('road', 'road_major'):
+            continue
+        P = [loc(*c) for c in f['geometry']['coordinates']]
+        for a, b in zip(P, P[1:]):
+            L2 = (b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2 or 1
+            t = max(0, min(1, ((q[0] - a[0]) * (b[0] - a[0]) + (q[1] - a[1]) * (b[1] - a[1])) / L2))
+            pt = (a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t); d = math.dist(q, pt)
+            if best is None or d < best[0]:
+                L = math.sqrt(L2); best = (d, pt, ((b[0] - a[0]) / L, (b[1] - a[1]) / L))
+    return best
+M_STONE = 'plain:#6d6f86'; M_STONE_D = 'plain:#4f5068'; M_WOOD = 'plain:#6b4a2f'; M_BANNER = 'plain:#a8283a'; M_GOLD = 'plain:#d9a441'
+if 'rune_glow' not in M:
+    M['rune_glow'] = material('rune_glow', color=hexc('#ffb347'), emit=1.0, rough=.4)
+if 'crystal_glow' not in M:
+    M['crystal_glow'] = material('crystal_glow', color=hexc('#6fe3ff'), emit=1.0, rough=.2)
+def crenels(c, u, v, hl, hw, z, mat_i):
+    """Merlons along the four edges of a rectangle top at height z."""
+    for su, L, a, b in ((1, hl, u, v), (-1, hl, u, v), (1, hw, v, u), (-1, hw, v, u)):
+        n = max(2, round(L / .9))
+        for i in range(n):
+            if i % 2:
+                continue
+            t = -L + (i + .5) * 2 * L / n
+            m = (c[0] + b[0] * su * (hw if a is u else hl) + a[0] * t, c[1] + b[1] * su * (hw if a is u else hl) + a[1] * t)
+            B.add(box(m, a, b, L / n * .9, .25, z, z + .7, mat_i), tile=(1, 1))
+gate = next((f for f in osm['features'] if f['properties'].get('barrier') == 'gate'), None)
+n_way = 0
+if gate:
+    gq = loc(*gate['geometry']['coordinates']); _, gp, t = nearest_road(gq); n = (-t[1], t[0]); half = 4.6
+    if FAN:   # a gatehouse: two towers, an arch beam with merlons, red banners, warm lanterns
+        for s in (-1, 1):
+            tc = (gp[0] + n[0] * s * (half + 1.8), gp[1] + n[1] * s * (half + 1.8))
+            B.add(box(tc, t, n, 1.8, 1.8, 0, 9.0, mi(M_STONE)), tile=(1, 1))
+            B.add(box(tc, t, n, 2.05, 2.05, 9.0, 9.4, mi(M_STONE_D)), tile=(1, 1))
+            crenels(tc, t, n, 2.0, 2.0, 9.4, mi(M_STONE_D))
+            for side in (-1, 1):  # a banner on each face along the road
+                bc = (tc[0] + t[0] * side * 1.85, tc[1] + t[1] * side * 1.85)
+                B.add(box(bc, t, n, .06, .55, 3.6, 8.0, mi(M_BANNER)), tile=(1, 1))
+                B.add(box(bc, t, n, .08, .6, 7.9, 8.1, mi(M_GOLD)), tile=(1, 1))
+                lc = (tc[0] + t[0] * side * 2.0 - n[0] * s * 1.0, tc[1] + t[1] * side * 2.0 - n[1] * s * 1.0)
+                B.add(box(lc, t, n, .18, .18, 3.0, 3.45, mi('lamp_glow')), tile=(1, 1))
+        B.add(box(gp, t, n, 1.3, half, 6.4, 8.0, mi(M_STONE)), tile=(1, 1))
+        crenels(gp, t, n, 1.3, half, 8.0, mi(M_STONE_D))
+        B.add(box(gp, t, n, 1.35, .5, 6.0, 6.45, mi('rune_glow')), tile=(1, 1))   # a glowing keystone over the road
+    else:     # the red portal over the entrance road
+        for s in (-1, 1):
+            pc = (gp[0] + n[0] * s * half, gp[1] + n[1] * s * half)
+            B.add(box(pc, t, n, .3, .3, 0, 5.2, mi('plain:#c8343f')), tile=(1, 1))
+        B.add(box(gp, t, n, .45, half + .5, 5.2, 5.7, mi('plain:#c8343f')), tile=(1, 1))
+        B.add(box(gp, t, n, .9, half + .9, 5.7, 5.95, mi('plain:#e25b63')), tile=(1, 1))
+    n_way += 1
+if FAN:
+    # signposts at road junctions: a post with one arm along each road that leaves the junction
+    ends = {}
+    for f in osm['features']:
+        if f['geometry']['type'] != 'LineString' or f['properties'].get('kind') != 'road':
+            continue
+        P = [loc(*c) for c in f['geometry']['coordinates'] if inb(c)]
+        for i, q in enumerate(P):
+            k = (round(q[0]), round(q[1]))
+            for j in (i - 1, i + 1):
+                if 0 <= j < len(P):
+                    d = (P[j][0] - q[0], P[j][1] - q[1]); L = math.hypot(*d) or 1
+                    ends.setdefault(k, (q, []))[1].append((d[0] / L, d[1] / L))
+    posts = []
+    for k, (q, dirs) in ends.items():
+        if len(dirs) < 3 or any(math.dist(q, p) < 35 for p in posts):
+            continue
+        posts.append(q)
+        a = math.atan2(dirs[0][1] + dirs[1][1], dirs[0][0] + dirs[1][0]) + math.pi   # on the open corner, off the road
+        c = (q[0] + math.cos(a) * 5.2, q[1] + math.sin(a) * 5.2)
+        B.add(box(c, (1, 0), (0, 1), .09, .09, 0, 2.7, mi(M_WOOD)), tile=(1, 1))
+        for i, d in enumerate(dirs[:3]):
+            nd = (-d[1], d[0]); z = 2.35 - i * .32
+            B.add(box((c[0] + d[0] * .55, c[1] + d[1] * .55), d, nd, .55, .04, z - .11, z + .11, mi('plain:#9a6b3f')), tile=(1, 1))
+        B.add(box(c, (1, 0), (0, 1), .14, .14, 2.7, 2.85, mi(M_GOLD)), tile=(1, 1))
+        n_way += 1
+    # notice boards and waystones at the gathering squares (OSM place=square); a notice board inside the gate
+    spots = [f for f in osm['features'] if f['properties'].get('kind') == 'square' and f['geometry']['type'] == 'Polygon']
+    boards = []
+    for f in spots:
+        rel, cxy = local_rings(f['geometry']); u, v, hl, hw, c = frame_of(rel[0]); c = (c[0] + cxy[0], c[1] + cxy[1])
+        boards.append(((c[0] + v[0] * (hw + 2.2), c[1] + v[1] * (hw + 2.2)), u, v))
+        # the waystone: a tapered stone with glowing rune bands, and blue crystals around it
+        B.add(box(c, u, v, .55, .55, 0, .4, mi(M_STONE_D)), tile=(1, 1))
+        B.add(box(c, u, v, .38, .38, .4, 2.4, mi(M_STONE)), tile=(1, 1))
+        for z in (.9, 1.5, 2.0):
+            B.add(box(c, u, v, .4, .4, z, z + .12, mi('rune_glow')), tile=(1, 1))
+        B.add(pyramid(rect(c, u, v, .42, .42), 2.4, .6, mi(M_GOLD)), flat=1.0)
+        for k in range(3):
+            a = k * 2.1 + .4; q = (c[0] + math.cos(a) * 1.4, c[1] + math.sin(a) * 1.4)
+            B.add(pyramid([(q[0] + .18 * math.cos(j * 2.094), q[1] + .18 * math.sin(j * 2.094)) for j in range(3)], 0, .8 + .3 * k, mi('crystal_glow')), flat=1.0)
+        n_way += 1
+    if gate:
+        boards.append(((gp[0] - t[0] * 9 + n[0] * (half + 3), gp[1] - t[1] * 9 + n[1] * (half + 3)), t, n))
+    for c, u, v in boards:   # a wooden notice board under a small gable roof
+        for s in (-1, 1):
+            B.add(box((c[0] + u[0] * s * .9, c[1] + u[1] * s * .9), u, v, .07, .07, 0, 2.3, mi(M_WOOD)), tile=(1, 1))
+        B.add(box(c, u, v, .95, .04, .9, 1.9, mi('plain:#c9b089')), tile=(1, 1))
+        for i, col in enumerate(('#f0e6cf', '#e8d9a8', '#d6e4ef')):   # pinned notices
+            B.add(box((c[0] + u[0] * (-.55 + i * .55) + v[0] * .05, c[1] + u[1] * (-.55 + i * .55) + v[1] * .05), u, v, .2, .02, 1.15 + (i % 2) * .25, 1.55 + (i % 2) * .25, mi('plain:' + col)), tile=(1, 1))
+        B.add(pyramid(rect(c, u, v, 1.15, .45), 2.3, .45, mi('plain:#7a2f36')), flat=1.0)
+        n_way += 1
+
 ob = B.object('campus_props', (0, 0, 0))
 ob['drape'] = 1
 while len(ob.data.uv_layers) > 1:   # one UV set
@@ -190,4 +302,4 @@ os.makedirs(os.path.dirname(os.path.abspath(OUT)), exist_ok=True)
 bpy.ops.export_scene.gltf(filepath=os.path.abspath(OUT), export_format='GLB', export_extras=True, export_yup=True,
                           export_apply=True, export_image_format='AUTO', export_materials='EXPORT',
                           export_normals=False)   # the map computes the normals (observatory/models3d.js): a smaller file
-print('PROPS', STYLE, 'lights', n_light, 'manholes', n_hole, 'goals', n_goal, 'cars', n_car, 'triangles ~', tris, '->', OUT, os.path.getsize(OUT), 'bytes')
+print('PROPS', STYLE, 'wayfinding', n_way, 'lights', n_light, 'manholes', n_hole, 'goals', n_goal, 'cars', n_car, 'triangles ~', tris, '->', OUT, os.path.getsize(OUT), 'bytes')

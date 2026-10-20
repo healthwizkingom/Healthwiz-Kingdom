@@ -14,8 +14,40 @@
     "parking": "Car parks with white or yellow bay lines in front of the blocks (frames 1-4, 13-15, 33-35)."
   },
   "parking": [
-    { "id": "anjung-santap", "name": "Anjung Santap car park (estimated place)", "lng": 100.53905, "lat": 5.35112, "angle_deg": 0, "rows": 2, "bays": 10, "cars": 4 },
-    { "id": "blok-e", "name": "Block E car park (estimated place)", "lng": 100.53825, "lat": 5.35181, "angle_deg": 0, "rows": 2, "bays": 11, "cars": 3 },
-    { "id": "hostel", "name": "Hostel car park (estimated place)", "lng": 100.53985, "lat": 5.34872, "angle_deg": 90, "rows": 2, "bays": 9, "cars": 3 }
-  ]
+    {
+      "id": "anjung-santap",
+      "name": "Anjung Santap car park (estimated place)",
+      "lng": 100.53905,
+      "lat": 5.35112,
+      "angle_deg": 0,
+      "rows": 2,
+      "bays": 10,
+      "cars": 4
+    },
+    {
+      "id": "blok-e",
+      "name": "Block E car park (estimated place)",
+      "lng": 100.53825,
+      "lat": 5.35181,
+      "angle_deg": 0,
+      "rows": 2,
+      "bays": 11,
+      "cars": 3
+    },
+    {
+      "id": "hostel",
+      "name": "Hostel car park (estimated place)",
+      "lng": 100.53985,
+      "lat": 5.34872,
+      "angle_deg": 90,
+      "rows": 2,
+      "bays": 9,
+      "cars": 3
+    }
+  ],
+  "wayfinding": {
+    "gate": "The gate is mapped in OpenStreetMap (node/8095311178, barrier=gate), so both looks put one there, across the entrance road: Realistic, the red portal seen in the drone video (frames 1-3); Fantasy, a gatehouse of two crenellated towers with red banners and a glowing keystone.",
+    "fantasyReference": "The Fantasy look takes its mood (stone gatehouses with banners, timber-framed houses with lit windows, iron lanterns, glowing rune stones and blue crystals) from a fan-made fantasy town video chosen by the owner (TikTok https://vt.tiktok.com/ZSgAnEarj/, 2026-10-20), as a reference only: every model here is an original design, nothing is copied from it.",
+    "decoration": "Fantasy only, and decoration: signposts at road junctions (OSM road crossings), wooden notice boards beside the three OSM squares and inside the gate, rune waystones with blue crystals in the squares, red banners on the academic halls and blue ones on the hostels, timber framing on the small buildings. None of these is mapped in the real campus."
+  }
 }

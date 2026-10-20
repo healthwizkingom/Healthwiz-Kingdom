@@ -95,8 +95,9 @@ function mount(){fsClass();const slot=$id('cmpmapslot');if(!slot||why())return;
   if(M.st==='off'){M.st='loading';M.msg='';const g=++M.gen;paintMsg();
     loadModule().then(X=>X.create({container:M.host,groups:points(),cam:V.cam,mode:V.mode,terr:V.terr,bld:V.bld,padding:pad,reduced:()=>HWUI.reduced(),
       onSelect:t=>{if(t&&t.group)pickGroup(t.group);else if(t&&t.id)pick(t.id,'map')},onCamera:c=>{if(!ME.used)V.cam=c;persist()},
-      visited:id=>HWCampusData.activity(id).sessions>0,onUserMove:()=>{if(meOn()&&ME.follow){ME.follow=false;if(S.v==='campus')keep()}},
-      onReady:()=>{if(g!==M.gen)return;M.st='ready';paintMsg();sync();const b=$id('cmptilt');if(b)b.setAttribute('aria-pressed',String(M.ctl.map.getPitch()>5))},
+      visited:id=>HWCampusData.activity(id).sessions>0,
+      onLandmark:id=>{if(typeof HWCampusMagic!=='undefined')HWCampusMagic.open(id)},found:()=>typeof HWCampusMagic!=='undefined'?HWCampusMagic.foundIds():[],layers:typeof HWCampusMagic!=='undefined'?HWCampusMagic.layers():undefined,onUserMove:()=>{if(meOn()&&ME.follow){ME.follow=false;if(S.v==='campus')keep()}},
+      onReady:()=>{if(g!==M.gen)return;M.st='ready';paintMsg();sync();if(typeof HWCampusMagic!=='undefined')HWCampusMagic.ready(M.ctl);const b=$id('cmptilt');if(b)b.setAttribute('aria-pressed',String(M.ctl.map.getPitch()>5))},
       onError:m=>{if(g!==M.gen)return;fail(m)}})).then(c=>{if(g!==M.gen){c.destroy();return}M.ctl=c;if(c.ready){M.st='ready';paintMsg();sync()}})
       .catch(e=>{if(g!==M.gen)return;fail('The campus map could not be loaded ('+String(e&&e.message||e).slice(0,120)+'). The staircases are listed with their details.')})}
   else if(M.ctl){M.ctl.resize();sync()}else paintMsg()}
@@ -296,11 +297,11 @@ function stage(){const w=why(),s=V.sid&&rec(V.sid),g=V.grp&&points().find(x=>x.k
   const b=(a,lab,t,x)=>'<button type="button" class="cmpctl" data-a="'+a+'" aria-label="'+lab+'" title="'+lab+'"'+(x||'')+'>'+t+'</button>';
   return '<div class="cmpstage'+(V.full?' cmpfull':'')+'" id="cmpstage"'+(V.full?' role="dialog" aria-modal="true" aria-label="Campus map, full screen"':'')+'><div class="cmpslot" id="cmpmapslot"></div>'
     +'<div class="cmpmodes" role="group" aria-label="Map style"><button type="button" class="cmpmode" data-a="cmpmode" data-m="fantasy"'+on(0,V.mode==='fantasy')+'>Fantasy</button><button type="button" class="cmpmode" data-a="cmpmode" data-m="realistic"'+on(0,V.mode==='realistic')+'>Realistic</button></div>'
-    +finder()+pill+meBar()+chooser3()+'<div class="cmpctls" role="toolbar" aria-label="Map controls">'+b('cmpme','Show me on the map (uses your location)','<span class="cmploc" aria-hidden="true"></span>',' aria-pressed="'+meOn()+'"')+b('cmpzin','Zoom in','+')+b('cmpzout','Zoom out','−')+b('cmpnorth','North up','N')
+    +finder()+pill+meBar()+chooser3()+'<div class="cmpctls" role="toolbar" aria-label="Map controls">'+b('cmpme','Show me on the map (uses your location)','<span class="cmploc" aria-hidden="true"></span>',' aria-pressed="'+meOn()+'"')+b('cmpzin','Zoom in','+')+b('cmpzout','Zoom out','−')+b('cmpnorth','North up (the needle points north)','<span class="cmpcomp" id="cmpcomp" aria-hidden="true"><i></i><b>N</b></span>')+b('cmprotl','Rotate left','<svg viewBox="0 0 24 24" aria-hidden="true" class="cmpsv2"><path d="M9 5H4v5"/><path d="M4.5 9.5A8 8 0 1 1 6 17"/></svg>')+b('cmprotr','Rotate right','<svg viewBox="0 0 24 24" aria-hidden="true" class="cmpsv2"><path d="M15 5h5v5"/><path d="M19.5 9.5A8 8 0 1 0 18 17"/></svg>')
     +b('cmptilt','Tilted 3D view','3D',' id="cmptilt" aria-pressed="'+(M.ctl&&M.ctl.ready?M.ctl.map.getPitch()>5:!V.cam||V.cam.p>5)+'"')+b('cmpterr','Illustrative terrain',spr('peak'),on(0,V.terr))
-    +b('cmpbld','Raised buildings (illustrative heights)',spr('block'),on(0,V.bld))+b('cmpskyb','Sky and weather on the map',ico('cloud'),' id="cmpskyb" aria-expanded="'+V.skyo+'" aria-controls="cmpskyp"')+b('cmpfit','Whole campus view',ico('map'))
+    +b('cmpbld','Raised buildings (illustrative heights)',spr('block'),on(0,V.bld))+b('cmpskyb','Sky and weather on the map',ico('cloud'),' id="cmpskyb" aria-expanded="'+V.skyo+'" aria-controls="cmpskyp"')+(typeof HWCampusMagic!=='undefined'?HWCampusMagic.layerBtn(b):'')+b('cmpfit','Whole campus view',ico('map'))
     +b('cmpfull',V.full?'Leave full screen':'Full screen map',ico('expand'),' id="cmpfullb" aria-pressed="'+V.full+'"')+'</div>'
-    +skyPanel()+'<p class="cmpskycap" id="cmpskycap" role="status"></p>'+'<details class="cmpleg"><summary>Legend</summary><p><span class="cmplg m1"></span>Mild <span class="cmplg m2"></span>Moderate <span class="cmplg m3"></span>Vigorous <small>(app category)</small></p>'
+    +skyPanel()+(typeof HWCampusMagic!=='undefined'?HWCampusMagic.stage():'')+'<p class="cmpskycap" id="cmpskycap" role="status"></p>'+'<details class="cmpleg"><summary>Legend</summary><p><span class="cmplg m1"></span>Mild <span class="cmplg m2"></span>Moderate <span class="cmplg m3"></span>Vigorous <small>(app category)</small></p>'
     +'<p><span class="cmplg est"></span>Estimated location <span class="cmplg part"></span>Step size measured (F21) or surveyed</p><p><span class="cmplg ter"></span>Raised ground and contour lines (every 2 m): which area is higher is from the owner\'s annotated screenshot; where the slopes start and end is estimated from the drone video and the staircase list. Heights are illustrative, not measured</p><p><span class="cmplg osm"></span>Roads with kerbs and drains, street lights, goal posts, the tennis net and car parks: modelled in Blender in the look of the drone video, on the OpenStreetMap roads and fields. Car park places are estimated; parked cars are decoration</p><p><span class="cmplg sky"></span>Sky: the live Kulim weather and modelled haze (Settings, Live data) and the time from your clock; a picture, not a forecast</p>'
     +'<p><span class="cmplg osm"></span>Buildings, paths, fields: OpenStreetMap. Building heights are illustrative.</p>'+(V.mode==='fantasy'?'<p><span class="cmplg deco"></span>Roofs, turrets, trees, lanterns and glows are decoration on the real OSM outlines</p>':'')
     +'<p><span class="cmplg vis"></span>A ring: you have saved a stair session there</p>'
@@ -352,7 +353,7 @@ function page(){Promise.resolve().then(()=>{mount();mount3d()});
     +'<p class="mut cmpsv">'+esc(HWCampusData.surveyNote())+'</p>'
     +(M.st==='ready'?'<div class="row"><button type="button" data-a="cmpme">'+(meOn()?'STOP SHOWING WHERE I AM':'SHOW WHERE I AM')+'</button></div>'
       :'<div class="row"><button type="button" data-a="cmpgps"'+(V.gps==='wait'?' disabled':'')+'>'+(V.gps==='wait'?'FINDING YOU...':'SHOW WHERE I AM')+'</button>'+(V.me?'<button type="button" class="g" data-a="cmpforget">HIDE MY POSITION</button>':'')+'</div>')
-    +(ME.last&&!ME.far&&ME.st==='gps'?nearTxt(ME.last.lat,ME.last.lng,ME.last.accuracy):'')+mine()
+    +(ME.last&&!ME.far&&ME.st==='gps'?nearTxt(ME.last.lat,ME.last.lng,ME.last.accuracy):'')+mine()+(typeof HWCampusMagic!=='undefined'?HWCampusMagic.below():'')
     +(V.err?'<p class="cmpe" role="alert">'+esc(V.err)+' Pick a staircase on the map or in the list instead.</p>':'')+where()+weather()
     +'<div class="cmpwx"><b>'+ico('map')+' Campus-wide activity</b><p class="mut">Not available. HealthWiz does not collect anyone else\'s location, so there is nothing to show here. Your own visits stay on your device.</p></div></div>'
     +(typeof HWCampusStairs!=='undefined'?HWCampusStairs.html():'')}
@@ -374,6 +375,7 @@ acts.cmpclear=()=>{V.sid=V.grp=null;V.tab='list';keep()};
 acts.cmpstair=d=>{if(!rec(d.id))return;pick(d.id,'list');const l=$id('cmplog');if(l)l.scrollIntoView({block:'start'})};
 acts.cmpshow=()=>{const k=selKey();if(k&&M.ctl)M.ctl.flyToGroup(k)};
 acts.cmpmode=d=>{V.mode=d.m==='realistic'?'realistic':'fantasy';if(M.ctl)M.ctl.setMode(V.mode);keep()};
+acts.cmprotl=()=>{if(M.ctl)M.ctl.map.easeTo({bearing:M.ctl.map.getBearing()-30,duration:HWUI.reduced()?0:400})};acts.cmprotr=()=>{if(M.ctl)M.ctl.map.easeTo({bearing:M.ctl.map.getBearing()+30,duration:HWUI.reduced()?0:400})};
 acts.cmpzin=()=>{if(M.ctl)M.ctl.zoom(1)};acts.cmpzout=()=>{if(M.ctl)M.ctl.zoom(-1)};acts.cmpnorth=()=>{if(M.ctl)M.ctl.north()};
 acts.cmpfit=()=>{if(M.ctl)M.ctl.fit()};
 acts.cmptilt=()=>{if(!M.ctl)return;const on=M.ctl.map.getPitch()<=5;M.ctl.tilt(on);const b=$id('cmptilt');if(b)b.setAttribute('aria-pressed',String(on))};
