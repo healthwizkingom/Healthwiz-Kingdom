@@ -75,8 +75,16 @@ HWEvents.on('app:ready',()=>{apply(true);if(choice()!=='auto'||reduced())return;
 /* settings */
 function set(k,v){const S2=st.s;if(k==='perf')S2.perf=LV.includes(v)?v:'auto';else if(k==='anim')S2.anim=+v?1:0;else if(k==='rm')S2.rm=+v?1:0;save();apply()}
 acts.mopt=d=>{set(d.k,d.v);render()};
-// Meet Luke / Luna Companion: bring that card (js/v6-addfood.js, js/v6-medius.js) into view on the same Settings page and focus its heading
-acts.mjump=d=>{const c=document.getElementById(d.t);if(!c)return;const h=c.querySelector('h3')||c;h.tabIndex=-1;c.scrollIntoView({block:'start',behavior:reduced()?'auto':'smooth'});try{h.focus({preventScroll:true})}catch(e){h.focus()}};
+// Meet Luke / Luna Companion (js/v6-addfood.js, js/v6-medius.js): their Settings cards stay hidden until their button here
+// is pressed (owner's request, 2026-10-20); the button opens that card (and closes the other), brings it into view and
+// focuses its heading; pressed again, it hides it. Which one is open is kept in memory only (a class on <html>).
+const CHARS=['awmeet','v6lunaset'];let charOpen=null;
+const showChar=()=>{CHARS.forEach(k=>document.documentElement.classList.toggle('hw-open-'+k,charOpen===k));
+  document.querySelectorAll('[data-a="mjump"]').forEach(b=>b.setAttribute('aria-expanded',String(b.dataset.t===charOpen)))};
+acts.mjump=d=>{if(!CHARS.includes(d.t))return;charOpen=charOpen===d.t?null:d.t;showChar();if(!charOpen)return;const c=document.getElementById(d.t);if(!c)return;
+  const h=c.querySelector('h3')||c;h.tabIndex=-1;c.scrollIntoView({block:'start',behavior:reduced()?'auto':'smooth'});try{h.focus({preventScroll:true})}catch(e){h.focus()}};
+HWEvents.on('page:viewed',e=>{if(e.view!=='set'){charOpen=null;showChar()}});
+HWUI.css('motionchars','#awmeet,#v6lunaset{display:none}html.hw-open-awmeet #awmeet,html.hw-open-v6lunaset #v6lunaset{display:block}');
 const chip=(k,v,label,on)=>'<button class="chip'+(on?' on':'')+'" data-a="mopt" data-k="'+k+'" data-v="'+v+'" aria-pressed="'+on+'">'+label+'</button>';
 function card(){const c=choice(),L=level(),dev=device();
   return '<div class="card" id="v6motion"><h3>✨ ANIMATION &amp; PERFORMANCE</h3>'
@@ -85,7 +93,8 @@ function card(){const c=choice(),L=level(),dev=device();
   +(dev?'<small class="mut">Your device asks for reduced motion, so movement is already reduced.</small>':'')
   +'<p class="v6mlab">VISUAL QUALITY</p><div class="row">'+['auto',...LV].map(v=>chip('perf',v,NAME[v],c===v)).join('')+'</div>'
   +'<small class="mut">Now: <b>'+(enabled()?NAME[L]:'Still')+'</b>'+(c==='auto'?' (picked for this device)':'')+'. High adds extra ambient life. Performance calms the busiest background effects and particles for older phones and saves battery. Animation also pauses while the app is in the background.</small>'
-  +'<p class="v6mlab">CHARACTERS</p><div class="row"><button type="button" class="g sm" data-a="mjump" data-t="awmeet">Meet Luke</button><button type="button" class="g sm" data-a="mjump" data-t="v6lunaset">Luna Companion</button></div></div>'}
+  +'<p class="v6mlab">CHARACTERS</p><div class="row"><button type="button" class="g sm" data-a="mjump" data-t="awmeet" aria-controls="awmeet" aria-expanded="'+(charOpen==='awmeet')+'">Meet Luke</button><button type="button" class="g sm" data-a="mjump" data-t="v6lunaset" aria-controls="v6lunaset" aria-expanded="'+(charOpen==='v6lunaset')+'">Luna Companion</button></div>'
+  +'<small class="mut">Their cards open here, below, when you press their button.</small></div>'}
 {const p=pages.set;pages.set=(...a)=>{const h=p(...a),k='<h2>⚙️ SETTINGS</h2>';return h.indexOf(k)>=0?h.replace(k,k+card()):h+card()}}
 apply(true);
 return{enabled,reduced,device,level,choice,count,cap,set,apply,probe,card}})();

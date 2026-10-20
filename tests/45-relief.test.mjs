@@ -1,13 +1,13 @@
 // Stress Quest activity collection (js/v6-relief.js): illustrated cards replace the "what would help you handle this?" options.
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { openApp, closeBrowser, go, state } from './helpers.mjs';
+import { openApp, closeBrowser, go, state, dass } from './helpers.mjs';
 
 after(closeBrowser);
 const boot = async (o = {}) => { const r = await openApp(o); await r.page.waitForSelector('.wl'); return r; };
-async function toEncounter(page, feel = 3) {
+async function toEncounter(page, v = 1) {
   await go(page, 'stress');
-  await page.click('[data-a="sqs"]'); await page.click(`[data-a="sqf"][data-i="${feel}"]`); await page.click('[data-a="sqy"]'); await page.click('[data-a="sqe"]');
+  await dass(page, v); await page.click('[data-a="sqe"]'); // the 21 DASS-21 statements (js/v6-dass.js), then the activities
 }
 const IDS = ['shake', 'lantern', 'arrow', 'react', 'sound', 'ground', 'write', 'steps'];
 const VIEWPORTS = [{ width: 390, height: 844 }, { width: 1280, height: 900 }];
@@ -49,7 +49,8 @@ test('open a card, read it, go back; START and back work for every activity', as
 
 test('the weather and recorded mood stay put: finishing activities never move the stress rating', async () => {
   const { page, errors } = await boot({ viewport: VIEWPORTS[0] });
-  await toEncounter(page, 4);
+  // 14 answers of 3 and 7 of 2: total 56 of 63, storm level 1 + round(9 × 56 ÷ 63) = 1 + 8 = 9
+  await toEncounter(page, Array.from({ length: 21 }, (_, i) => i < 14 ? 3 : 2));
   const snap = () => page.evaluate(() => ({ r: S.sq.r, r0: S.sq.r0, scene: document.querySelector('#qsc')?.innerHTML.length }));
   const before = await snap();
   assert.equal(before.r, 9);

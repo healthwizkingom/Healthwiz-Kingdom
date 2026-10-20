@@ -2,7 +2,7 @@
 // pixel-art standard and its icons (js/v6-pixel.js), the navigation audit, and saved data left exactly as it was.
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { openApp, closeBrowser, go, state, RETURNING, entry, fillSteps } from './helpers.mjs';
+import { openApp, closeBrowser, go, state, RETURNING, entry, fillSteps, pickStair } from './helpers.mjs';
 
 after(closeBrowser);
 const HEALTH = ['food', 'water', 'sleep', 'stair', 'exercise', 'stress', 'body', 'stats', 'score']; // 'pulse' and 'run' open sections of 'stair'
@@ -45,7 +45,7 @@ test('heart rate lives in the stair Workout: before/after visualizations, loggin
   assert.equal(await page.evaluate(() => S.v), 'campus', 'the old Pulse route opens the Stairs section of the Campus page');
   assert.equal(await page.locator('#sthrc canvas.sttr').count(), 2, 'before and after heart rate visualizations');
   assert.doesNotMatch(await page.textContent('main'), /MEASURE PULSE/);
-  await page.selectOption('#wk-loc', 'ST03');
+  await pickStair(page, 'ST03');
   await page.fill('#wk-b', '68'); await page.fill('#wk-a', '112'); await fillSteps(page, '#wk-s', '10'); await page.fill('#wk-c', '2');
   await page.click('[data-a="stwsave"]');
   const s = await state(page);

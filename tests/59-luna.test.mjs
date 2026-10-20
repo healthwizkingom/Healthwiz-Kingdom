@@ -35,7 +35,7 @@ test('Luna speaks the bubbles: her full figure, LUNA label; compact shows the po
   const size = await page.$eval('#v6md .v6lfull', f => { const i = f.querySelector('.v6lfi'), b = i.getBoundingClientRect(); return [f.dataset.pose, Math.round(b.width), Math.round(b.height), getComputedStyle(i).imageRendering, getComputedStyle(i).backgroundSize]; });
   assert.deepEqual(size, ['cast', 80, 120, 'pixelated', '1680px 120px'], 'a badge: the casting pose, at 1x');
   await page.evaluate(() => { document.getElementById('v6md').remove(); HWMedius.hush(); });
-  await go(page, 'set');
+  await go(page, 'set'); await page.click('[data-a="mjump"][data-t="v6lunaset"]'); // the card opens from its button (Animation & Performance)
   await page.click('#v6lunaset [data-a="lunasz"][data-m="1"]');
   assert.equal((await state(page)).s.lsz, 1);
   await page.evaluate(() => { const M = st.md; M.last = {}; M.seen = {}; HWMedius.say('level', { level: 4, name: 'Pathfinder' }); });
@@ -119,7 +119,7 @@ test('Ask Luna lists the page\'s "?" explanations and points at one, opening the
 
 test('Settings: one Luna card (talk, size, style, reset); Medius keeps his voice switch; nothing new in the schema', async () => {
   const { page, ctx, errors } = await openApp({ seed: seed({ lst: 'e', lsz: 1 }) });
-  await go(page, 'set');
+  await go(page, 'set'); await page.click('[data-a="mjump"][data-t="v6lunaset"]'); // the card opens from its button (Animation & Performance)
   const t = await page.textContent('#v6lunaset');
   assert.match(t, /LUNA COMPANION[\s\S]*Chatty[\s\S]*Compact[\s\S]*Explore[\s\S]*RESET/);
   assert.match(t, /nothing is sent anywhere/);
@@ -179,7 +179,7 @@ test('her movements come from the sheet\'s poses: every pose is used; a bubble w
 
 test('Meet Luna (Settings): every pose from the design sheets, the four views included, one at a time, and her things', async () => {
   const { page, ctx, errors } = await openApp({ seed: seed() });
-  await go(page, 'set');
+  await go(page, 'set'); await page.click('[data-a="mjump"][data-t="v6lunaset"]'); // the card opens from its button (Animation & Performance)
   const poses = await page.evaluate(() => HWLuna.poses);
   const seen = [await page.getAttribute('#v6lmeet .v6lfull', 'data-pose')];
   for (let i = 1; i < poses.length; i++) { await page.click('#v6lmeet [data-a="lunameet"][data-d="1"]'); seen.push(await page.getAttribute('#v6lmeet .v6lfull', 'data-pose')); }

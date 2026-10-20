@@ -3,13 +3,13 @@
 // when a stair session is saved; skip / edit / turn off; no XP, no penalties; the route and the phone layout.
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { openApp, closeBrowser, go, state, RETURNING } from './helpers.mjs';
+import { openApp, closeBrowser, go, state, RETURNING, stairHistory } from './helpers.mjs';
 
 after(closeBrowser);
 const EMOJI = /(?:\p{Emoji_Presentation}|\p{Emoji}️)/u;
 const card = page => page.textContent('#plcard');
 async function make(page, { goal = 'start', days = null, min = 10 } = {}) {
-  await go(page, 'stair');
+  await go(page, 'stair'); await stairHistory(page); // the plan is in the Stairs section under the Observatory
   await page.click('[data-a="plnew"]');
   await page.click('[data-a="plgoal"][data-v="' + goal + '"]');
   if (days) { // replace the default Mon / Wed / Fri
@@ -23,7 +23,7 @@ async function make(page, { goal = 'start', days = null, min = 10 } = {}) {
 
 test('no plan yet: an optional MAKE A PLAN card on the Stairs page; making one saves only the player\'s choices', async () => {
   const { page, errors } = await openApp({ seed: RETURNING });
-  await go(page, 'stair');
+  await go(page, 'stair'); await stairHistory(page); // the plan is in the Stairs section under the Observatory
   let t = await card(page);
   assert.match(t, /MY STAIR PLAN[\s\S]*you pick the days and the minutes[\s\S]*Optional\.[\s\S]*MAKE A PLAN/);
   await page.click('#plcard .hwh[data-hwh="plnote"]'); // the disclaimer sits behind the card's "?"
@@ -76,7 +76,7 @@ test('done only from a saved stair session; SKIP and UNSKIP; START is today only
   const { page, errors } = await openApp({ seed: RETURNING });
   await make(page, { goal: 'start', days: [0, 1, 2, 3, 4, 5, 6] });
   const t = await page.evaluate(() => today());
-  // START today: picks the chosen stairway's pace (Easy) and stays on the Stairs page
+  // START today: picks the chosen stairway's pace (Easy) and shows the Observatory's log (LOG A CLIMB)
   await page.click('[data-a="plstart"][data-d="' + t + '"]');
   assert.equal(await page.evaluate(() => [S.v, PACES[S.pb.pace][1]].join()), 'campus,Easy'); // the Stairs section of the Campus page
   assert.equal((await state(page)).e.length, 0, 'START writes nothing');
@@ -84,7 +84,7 @@ test('done only from a saved stair session; SKIP and UNSKIP; START is today only
   await page.evaluate(() => { st.s.pl.sid = 'ST20'; save(); render(); });
   await page.click('[data-a="plstart"][data-d="' + t + '"]');
   assert.equal(await page.evaluate(() => [HWStairs.pick, STAIRS[S.loc].id].join()), 'ST20,ST20');
-  assert.equal((await page.textContent('.sqlist .chip.on .sqn')).trim(), await page.evaluate(() => STAIRS.find(s => s.id === 'ST20').name));
+  assert.ok((await page.textContent('#cmplog .stloc')).includes(await page.evaluate(() => STAIRS.find(s => s.id === 'ST20').name)));
   assert.equal((await state(page)).e.length, 0, 'START writes nothing');
   // SKIP today, then UNSKIP
   await page.click('[data-a="plskip"][data-d="' + t + '"]');

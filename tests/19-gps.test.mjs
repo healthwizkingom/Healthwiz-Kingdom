@@ -50,7 +50,7 @@ test('GPS check-in: explanation first, one reading, nearby list, confirm logs a 
   assert.deepEqual(await xp(), [[25, 'Stair check-in'], [5, 'Discovered Tangga sebelah rumah penjana elektrik ke Dewan Kenanga']], '25 for the session + 5 for the discovery');
   assert.ok(s.gp.v.ST20);
   assert.match(await page.textContent('#v6gps'), /discovered by GPS check-in: 1 of 28 on the map/);
-  assert.match(await page.textContent('.sqlist .chip.on'), /penjana elektrik/, 'the manual form now points at that stairway');
+  assert.match(await page.textContent('#cmplog .stloc'), /penjana elektrik/, 'the manual form now points at that stairway');
   const raw = await page.evaluate(() => localStorage.getItem('healthwiz'));
   assert.ok(!raw.includes('5.35202') && !raw.includes('100.53838'), 'the user position is never stored');
   // a second check-in at the same stairway: logged, no second discovery

@@ -96,9 +96,9 @@ function cards(I){
   /* stress */
   if(!I.stress)miss('stress','Do a stress check-in','No stress check-in is logged for this period.',['Do a check-in in the Mind Forest.']);
   else{const v=I.stress.val,o={urgency:I.stress.sub,rows:rows('stress'),note:'A self check-in, not a diagnosis. In an emergency call 999; Befrienders KL 03-7627 2929.'};
-    if(v>=7)Object.assign(o,{title:'Take a breather',why:'Your stress rating is '+I.stress.txt+'. That is high.',todo:['Try the Calming Grove breathing.','Take a short walk.','Talk to a friend, a lecturer or the college counsellor.']});
-    else if(v>=4)Object.assign(o,{title:'Plan short breaks',why:'Your stress rating is '+I.stress.txt+'. That is moderate.',todo:['Plan short breaks between study blocks.','Keep a regular bedtime.']});
-    else Object.assign(o,{title:'Your stress is low',why:'Your stress rating is '+I.stress.txt+'.',todo:['Keep the habits that help: sleep, movement and time with friends.']});
+    if(v>=7)Object.assign(o,{title:'Take a breather',why:'Your stress check-ins put the storm at '+I.stress.txt+' (from your DASS-21 answers): high on the app\'s scale.',todo:['Try the Calming Grove breathing.','Take a short walk.','Talk to a friend, a lecturer or the college counsellor.']});
+    else if(v>=4)Object.assign(o,{title:'Plan short breaks',why:'Your stress check-ins put the storm at '+I.stress.txt+' (from your DASS-21 answers): the middle of the app\'s scale.',todo:['Plan short breaks between study blocks.','Keep a regular bedtime.']});
+    else Object.assign(o,{title:'A calm storm',why:'Your stress check-ins put the storm at '+I.stress.txt+' (from your DASS-21 answers).',todo:['Keep the habits that help: sleep, movement and time with friends.']});
     add('stress',o)}
 
   /* BMI */

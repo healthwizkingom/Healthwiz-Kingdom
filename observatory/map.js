@@ -14,12 +14,18 @@ import { makeImage } from './textures.js';
 import { makeTrees } from './deco.js';
 import { makeBuildingParts, makeWalkways, WALK } from './buildings.js';
 import { createFx } from './fx.js';
+import { skyLook } from './sky.js';
 
 let ML = null; // window.maplibregl, set when a map is created (main.js loads the library first)
 // made in Blender by tools/blender_campus.py from the OSM outlines, in the look of the owner's drone video (one GLB per look)
 const MODEL_URL = {
   fantasy: new URL('../assets/models/campus-fantasy.glb', import.meta.url).href,
   realistic: new URL('../assets/models/campus-realistic.glb', import.meta.url).href,
+};
+// the ground-level details (roads with kerbs and drains, street lights, goal posts, car parks): tools/blender_campus_props.py
+const PROPS_URL = {
+  fantasy: new URL('../assets/models/campus-props-fantasy.glb', import.meta.url).href,
+  realistic: new URL('../assets/models/campus-props-realistic.glb', import.meta.url).href,
 };
 // trees: Realistic has the palms and broadleaf trees of the drone video; Fantasy has its own trees, palms among them
 const TREE_IMG = {
@@ -54,7 +60,7 @@ const PAINT = {
     road: { 'line-color': '#ffffff', 'line-pattern': undefined }, 'road-major': { 'line-color': '#fff1c2', 'line-pattern': undefined },
     'walk-glow': { 'line-opacity': 0 },
     walk: { 'line-color': '#958cab', 'line-dasharray': [2, 1.5], 'line-opacity': .9 },
-    'zone-contour': { 'line-color': '#a8977a', 'line-width': .9, 'line-opacity': .75, 'line-blur': 0 },
+    'zone-contour': { 'line-color': '#a8977a', 'line-width': ['case', ['get', 'major'], 1.7, .9], 'line-opacity': .75, 'line-blur': 0 },
     'zone-edge-glow': { 'line-opacity': 0 },
     'zone-edge': { 'line-color': '#8c836e', 'line-width': 1.4, 'line-opacity': .9, 'line-dasharray': [4, 2] },
     'sel-glow': { 'circle-color': '#2864d8', 'circle-opacity': .14 },
@@ -83,7 +89,7 @@ const PAINT = {
     road: { 'line-color': '#c9a46a', 'line-pattern': 'px-cobble' }, 'road-major': { 'line-color': '#d8b77d', 'line-pattern': 'px-cobble' },
     'walk-glow': { 'line-opacity': .4 },
     walk: { 'line-color': '#8ff7ea', 'line-dasharray': [0, 4, 3], 'line-opacity': 1 },
-    'zone-contour': { 'line-color': LEVEL('#f2c14e', '#7fe8ee'), 'line-width': 1.1, 'line-opacity': .38, 'line-blur': .6 },
+    'zone-contour': { 'line-color': LEVEL('#f2c14e', '#7fe8ee'), 'line-width': ['case', ['get', 'major'], 2, 1.1], 'line-opacity': .38, 'line-blur': .6 },
     'zone-edge-glow': { 'line-opacity': .32 },
     'zone-edge': { 'line-color': LEVEL('#f2c14e', '#7fe8ee'), 'line-width': 1.6, 'line-opacity': .8, 'line-dasharray': undefined },
     'sel-glow': { 'circle-color': '#f2c14e', 'circle-opacity': .22 },
@@ -145,7 +151,7 @@ function style(osm, zonesFC, trees, parts, walks, demUrl) {
       L('walk-glow', 'line', ['all', K('footway_covered'), LINE], { 'line-color': '#63e6dc', 'line-width': 9, 'line-blur': 6, 'line-opacity': 0 }, join),
       L('walk', 'line', ['all', K('footway_covered'), LINE], { 'line-width': ['interpolate', ['linear'], ['zoom'], 15, 1.2, 19, 4] }, { 'line-join': 'round' }),
       L('bglow', 'line', ['all', K('building'), POLY], { 'line-color': '#ffb84d', 'line-opacity': .2, 'line-width': ['interpolate', ['linear'], ['zoom'], 15, 4, 19, 26], 'line-blur': ['interpolate', ['linear'], ['zoom'], 15, 4, 19, 22] }, { visibility: 'none' }),
-      L('zone-contour', 'line', Z('contour'), {}, join, 'zones'), // illustrative contours every 3 m on the gentle slopes
+      L('zone-contour', 'line', Z('contour'), {}, join, 'zones'), // illustrative contours every 2 m (every 10 m thicker), traced from the terrain (./terrain.js)
       L('zone-edge-glow', 'line', Z('edge'), { 'line-color': LEVEL('#f2c14e', '#5fe1e6'), 'line-width': 12, 'line-blur': 9, 'line-opacity': 0 }, join, 'zones'),
       L('zone-edge', 'line', Z('edge'), {}, join, 'zones'),
       L('sel-glow', 'circle', null, { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 15, 14, 20, 90], 'circle-blur': .7, 'circle-pitch-alignment': 'map' }, {}, 'sel'),
@@ -193,7 +199,8 @@ export function createMap(opts) {
   const cam = opts.cam;
   const map = new ML.Map(Object.assign({
     container: opts.container, style: style(osm, terrain.overlays(), trees, parts, walks, terrain.url),
-    maxPitch: 75, minZoom: 15.5, maxZoom: 20.5, maxBounds: [[x0 - .0012, y0 - .0012], [x1 + .0012, y1 + .0012]], // Kolej MARA Kulim only (data/campus-osm.geojson is cut to it)
+    maxPitch: 75, minZoom: 15.5, maxZoom: 20.5, maxBounds: [[x0, y0], [x1, y1]], // Kolej MARA Kulim only: the view stays inside the OpenStreetMap export's own area (data/campus-osm.geojson is cut to it)
+    pixelRatio: Math.min(window.devicePixelRatio || 1, 1.5), // a 2x or 3x screen draws 1.5x: far less to fill each frame, still sharp
     attributionControl: false, dragRotate: true, pitchWithRotate: true, touchPitch: true, fadeDuration: opts.reduced() ? 0 : 300,
   }, cam ? { center: cam.c, zoom: cam.z, bearing: cam.b, pitch: cam.p } : { bounds: bb, fitBoundsOptions: { padding: opts.padding() }, pitch: 58, bearing: -12 }));
   map.addControl(new ML.AttributionControl({ compact: true }), 'bottom-right');
@@ -202,12 +209,18 @@ export function createMap(opts) {
   fxCanvas.className = 'cmpfx'; fxCanvas.setAttribute('aria-hidden', 'true');
   map.getContainer().appendChild(fxCanvas);
   const FX = createFx(fxCanvas);
+  // the sky's CSS layers (./sky.js): a tint, a fog veil and the rain, over the map canvas and under the markers
+  const skyEl = document.createElement('div');
+  skyEl.className = 'cmpsky'; skyEl.setAttribute('aria-hidden', 'true');
+  skyEl.innerHTML = '<i class="cmpsky-tint"></i><i class="cmpsky-veil"></i><i class="cmpsky-rain"></i>';
+  map.getCanvasContainer().insertBefore(skyEl, map.getCanvas().nextSibling);
+  let skySt = opts.sky || null, skyNow = null;
   map.addControl(new ML.ScaleControl({ unit: 'metric', maxWidth: 100 }), 'bottom-left');
   map.on('styleimagemissing', e => { if (!map.hasImage(e.id)) { const im = makeImage(e.id); if (im) map.addImage(e.id, im, { pixelRatio: 2 }); } });
 
   let mode = opts.mode === 'realistic' ? 'realistic' : 'fantasy', bldOn = opts.bld !== false, terrOn = opts.terr !== false, sel = null, timer = null, step = 0, ready = false, gone = false;
   const markers = new Map(), zoneMarks = [], labels = [];
-  let clusters = [], meMk = null, sparked = null;
+  let clusters = [], meMk = null, sparked = null, only = null; // only: the marker keys the search on the map matches (null: all)
 
   function applyMode(m) {
     mode = m;
@@ -224,9 +237,20 @@ export function createMap(opts) {
     FX.set(m === 'fantasy' && !opts.reduced());
     if (m !== 'fantasy') FX.follow(null);
     setHeights();
-    try { map.setSky(SKY[m]); } catch (e) {}
-    try { map.setLight(LIGHT[m]); } catch (e) {}
+    applySky();
     animate();
+  }
+  /** The sky, the light and the weather layers for the current state and look (./sky.js); without a state, the look's own. */
+  function applySky() {
+    const L = skySt ? skyLook(skySt, mode) : null; skyNow = L;
+    try { map.setSky(L ? L.sky : SKY[mode]); } catch (e) {}
+    try { map.setLight(L ? L.light : LIGHT[mode]); } catch (e) {}
+    const st = skyEl.style;
+    st.setProperty('--tint', L ? L.tint : 0); st.setProperty('--tintc', L ? L.tintC : '#000');
+    st.setProperty('--veil', L ? L.veil : 0); st.setProperty('--veilc', L ? L.veilC : '#fff');
+    st.setProperty('--rain', L ? L.rain : 0);
+    skyEl.classList.toggle('wet', !!(L && L.rain)); skyEl.classList.toggle('still', !!opts.reduced());
+    if (models && models.light) models.light(L);
   }
   function setHeights() {
     if (!map.getLayer('bld')) return;
@@ -251,7 +275,8 @@ export function createMap(opts) {
     buildingVisibility();
     import('./models3d.js').then(mod => {
       if (gone || seq !== loadSeq) return;
-      models = mod.createModelLayer({ ML, url: MODEL_URL[look], look: look === 'fantasy' ? 'night' : 'day', heightAt: terrain.heightAt, terrainOn: () => terrOn,
+      models = mod.createModelLayer({ ML, url: MODEL_URL[look], propsUrl: PROPS_URL[look], look: look === 'fantasy' ? 'night' : 'day', heightAt: terrain.heightAt, terrainOn: () => terrOn,
+        sky: () => skyNow,
         quality: () => (window.innerWidth < 900 || (window.devicePixelRatio || 1) > 2.5) ? 'low' : 'high',
         onReady: () => { if (gone || seq !== loadSeq) return; modelsReady = true; buildingVisibility(); },
         onError: e => { console.warn('[models] the 3D buildings could not load; showing the simple ones.', e && e.message); if (seq !== loadSeq) return; failed[look] = true; modelsReady = false; models = 'failed'; modelsLook = null; if (!gone) buildingVisibility(); } });
@@ -275,17 +300,12 @@ export function createMap(opts) {
     zoneMarks.forEach(z => { z.getElement().hidden = !on; });
     if (models && models.replace) models.replace();
   }
-  // fantasy: walkways flow like enchanted paths and the plateau rims breathe, unless motion is reduced
-  const DASH = [[0, 4, 3], [.5, 4, 2.5], [1, 4, 2], [1.5, 4, 1.5], [2, 4, 1], [2.5, 4, .5], [3, 4, 0], [0, .5, 3, 3.5], [0, 1, 3, 3], [0, 1.5, 3, 2.5], [0, 2, 3, 2], [0, 2.5, 3, 1.5], [0, 3, 3, 1], [0, 3.5, 3, .5]];
+  // fantasy: the walkways and plateau rims keep a steady glow. They used to flow and breathe on a timer, but every tick
+  // made MapLibre redraw the whole 3D scene (terrain, buildings, shadows) about five times a second while the map sat
+  // still, which made the page lag even on laptops (owner's report, 2026-10-20). Now the map only redraws when it moves.
   function animate() {
     clearInterval(timer); timer = null;
-    if (mode !== 'fantasy' || opts.reduced()) { if (map.getLayer('zone-edge-glow') && mode === 'fantasy') map.setPaintProperty('zone-edge-glow', 'line-opacity', .32); return; }
-    timer = setInterval(() => {
-      if (gone || document.hidden || !map.getLayer('walk') || !map.getContainer().isConnected) return;
-      step = (step + 1) % DASH.length;
-      map.setPaintProperty('walk', 'line-dasharray', DASH[step]);
-      map.setPaintProperty('zone-edge-glow', 'line-opacity', .28 + .14 * Math.sin(step / DASH.length * Math.PI * 2));
-    }, 190);
+    if (mode === 'fantasy' && map.getLayer('zone-edge-glow')) map.setPaintProperty('zone-edge-glow', 'line-opacity', .32);
   }
 
   /* ---------- staircase markers: one per stored coordinate (records sharing a coordinate share a marker) ---------- */
@@ -314,7 +334,9 @@ export function createMap(opts) {
   function recluster() {
     if (gone) return;
     clusters.forEach(c => c.mk.remove()); clusters = [];
-    const pts = [...markers.values()].map(m => ({ m, p: map.project([m.g.lng, m.g.lat]) }));
+    // the search on the map: only the matching markers (and the selected one) are shown and clustered
+    for (const m of markers.values()) if (only && !only.has(m.g.key) && m.g.key !== sel) m.el.hidden = true;
+    const pts = [...markers.values()].filter(m => !only || only.has(m.g.key) || m.g.key === sel).map(m => ({ m, p: map.project([m.g.lng, m.g.lat]) }));
     const used = new Set();
     for (const a of pts) {
       if (used.has(a) || a.m.g.key === sel) continue;
@@ -336,7 +358,7 @@ export function createMap(opts) {
     }
     for (const a of pts) if (a.m.g.key === sel) a.m.el.hidden = false;
   }
-  /* ---------- labels: OSM building names, and the two illustrative elevation zones ---------- */
+  /* ---------- labels: OSM building names, and the illustrative elevation levels ---------- */
   function addLabels() {
     const best = {};
     for (const f of osm.features) {
@@ -353,7 +375,7 @@ export function createMap(opts) {
     for (const z of terrain.labels()) {
       const el = document.createElement('div');
       el.className = 'zlab zl-' + z.level;
-      el.innerHTML = '<span class="zico" aria-hidden="true"></span><span><b>' + esc(z.name) + '</b><small>' + esc(z.region) + ' · illustrative height, not measured</small></span>';
+      el.innerHTML = '<span class="zico" aria-hidden="true"></span><span><b>' + esc(z.name) + '</b><small>' + esc(z.region) + ' · estimated slope, illustrative height, not measured</small></span>';
       zoneMarks.push(new ML.Marker({ element: el, anchor: z.anchor, offset: z.anchor === 'right' ? [-14, 0] : [0, -16] }).setLngLat([z.lng, z.lat]).addTo(map));
     }
     const lo = () => map.getContainer().classList.toggle('lo', map.getZoom() < 16.4);
@@ -416,8 +438,13 @@ export function createMap(opts) {
     get buildingsOn() { return bldOn; },
     camera: camNow,
     setMode(m) { mode = m; if (ready) applyMode(m); if (avatar && avatar.setMode) avatar.setMode(m); },
-    setReduced() { if (ready) animate(); FX.set(mode === 'fantasy' && !opts.reduced()); },
+    setReduced() { if (ready) animate(); FX.set(mode === 'fantasy' && !opts.reduced()); skyEl.classList.toggle('still', !!opts.reduced()); },
+    /** The sky: a state from ./sky.js skyState (null: the look's own sky). One redraw; nothing animates on the map itself. */
+    sky(st) { skySt = st || null; if (ready) applySky(); },
+    get skyLook() { return skyNow; },
     /** Highlight a marker by group key (null clears); returns the marker or null. */
+    /** The search on the map: show only these markers (keys), or all of them (null). */
+    only(keys) { only = keys ? new Set(keys) : null; recluster(); },
     select(key) {
       if (!ready) { sel = key || null; return null; }
       for (const m of markers.values()) { m.el.classList.remove('sel'); m.el.style.zIndex = ''; m.el.setAttribute('aria-pressed', 'false'); }

@@ -7,6 +7,8 @@ Run headless (Blender 4.2 LTS, no add-ons; sh tools/get-blender.sh installs it),
     blender -b --factory-startup -P tools/blender_campus.py -- --style fantasy     # assets/models/campus-fantasy.glb
 
 Options: --src data/campus-osm.geojson  --looks data/campus-looks.json  --out <file.glb>
+         --props   the ground-level details instead (roads, kerbs, drains, lights, goal posts, car parks):
+                   assets/models/campus-props-<style>.glb, see tools/blender_campus_props.py
 
 What comes from where:
   * footprints and positions: the OSM export (data/campus-osm.geojson), unchanged; each building keeps its real outline;
@@ -38,7 +40,8 @@ if STYLE not in ('realistic', 'fantasy'):
     raise SystemExit('--style must be realistic or fantasy')
 SRC = arg('--src', 'data/campus-osm.geojson')
 LOOKS = arg('--looks', 'data/campus-looks.json')
-OUT = arg('--out', 'assets/models/campus-' + STYLE + '.glb')
+PROPS = '--props' in argv   # the ground-level details instead of the buildings (tools/blender_campus_props.py)
+OUT = arg('--out', 'assets/models/campus-' + ('props-' if PROPS else '') + STYLE + '.glb')
 FAN = STYLE == 'fantasy'
 R, RAD = 6371008.8, math.pi / 180
 STOREY_M, BASE_M = 3.6, .6
@@ -469,6 +472,11 @@ def details(B, look, rel, H, top):
             B.add(box(at(dw + 3.0, s * 4.2), west, along, .45, .45, 0, H + .9, B.mi('plain:' + red)), tile=(1, 1))
         B.add(box(at(dw + 3.0), west, along, .45, 4.65, H + .1, H + .9, B.mi('plain:' + red)), tile=(1, 1))
         B.add(box(at(dw + 1.6), west, along, 1.6, 4.0, 3.8, 4.1, B.mi('plain:#c9cdd3')), tile=(1, 1))
+
+if PROPS:   # roads, kerbs, drains, lights, goal posts, car parks: a separate GLB, made with the helpers above
+    _pp = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'blender_campus_props.py')
+    exec(compile(open(_pp, encoding='utf-8').read(), _pp, 'exec'))
+    sys.exit(0)
 
 for f in osm['features']:
     p, g = f['properties'], f['geometry']

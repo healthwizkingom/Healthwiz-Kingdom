@@ -1,6 +1,6 @@
 {
  "type": "FeatureCollection",
- "about": "ILLUSTRATIVE elevation zones for the prototype map. Outlines traced from the owner's annotated phone screenshot (2026-10-20): the two circled areas. Heights are illustrative display values chosen to show the order (base < middle < highest), not measurements. Replace them with surveyed elevations when available. Each zone rises gradually over slopeWidth_m metres outside its outline to a flat top. Edit freely: the map rebuilds its terrain from this file.",
+ "about": "ESTIMATED, ILLUSTRATIVE elevation levels for the campus map. Which area is higher comes from the owner's annotated screenshot (2026-10-20): the north raised (middle), the south the highest. Where each slope starts and ends was then estimated (2026-10-20) from the owner's drone video (TikTok @ikraMRahim, used with permission; the frames named on each level) and from the climbing staircases in the app's STAIRS list. The heights are display values chosen to show the order (base < south terrace < middle < highest), not measurements. Each level rises gradually over slopeWidth_m metres outside its outline to a flat top; where two levels meet, the higher one wins. Replace with surveyed elevations when available.",
  "features": [
   {
    "type": "Feature",
@@ -10,272 +10,265 @@
     "region": "Upper cluster",
     "level": "middle",
     "illustrativeHeight_m": 12,
-    "slopeWidth_m": 55,
-    "source": "owner annotation (red circle, north), illustrative"
+    "slopeWidth_m": 45,
+    "source": "estimated: the owner's annotation (which area is higher) with where the slopes start and end estimated from the drone video and the staircase list; illustrative",
+    "evidence": "Owner annotation: the north is raised (middle). Drone video: the covered walkways from the academic block to the northern blocks climb in steps (frames 11, 22) and roads rise toward the hostels (frames 21-24). The STAIRS list puts climbing stairs between about 5.3518 and 5.3525 N (ST14, ST18, ST19, ST20, ST21, ST26: 'naik ke' = going up), so the slope is drawn there, from the road north of the academic block up to the northern buildings."
    },
    "geometry": {
     "type": "Polygon",
     "coordinates": [
      [
       [
-       100.5384183,
-       5.3529134
+       100.5397374,
+       5.35213
       ],
       [
-       100.5382816,
-       5.3528678
+       100.5397795,
+       5.3521355
       ],
       [
-       100.5381542,
-       5.3528144
+       100.5398187,
+       5.3521517
       ],
       [
-       100.5380362,
-       5.3527532
+       100.5398524,
+       5.3521774
       ],
       [
-       100.5379275,
-       5.3526842
+       100.5398782,
+       5.3522109
       ],
       [
-       100.5378282,
-       5.3526075
+       100.5398945,
+       5.35225
       ],
       [
-       100.5377506,
-       5.3525309
+       100.5399,
+       5.3522919
       ],
       [
-       100.5376948,
-       5.3524546
+       100.5399,
+       5.3528581
       ],
       [
-       100.5376608,
-       5.3523785
+       100.5398945,
+       5.3529
       ],
       [
-       100.5376486,
-       5.3523027
+       100.5398782,
+       5.3529391
       ],
       [
-       100.5376487,
-       5.3522364
+       100.5398524,
+       5.3529726
       ],
       [
-       100.5376613,
-       5.3521797
+       100.5398187,
+       5.3529983
       ],
       [
-       100.5376863,
-       5.3521326
+       100.5397795,
+       5.3530145
       ],
       [
-       100.5377237,
-       5.3520952
+       100.5397374,
+       5.35302
       ],
       [
-       100.5377331,
-       5.3520511
+       100.5375126,
+       5.35302
       ],
       [
-       100.5377146,
-       5.3520004
+       100.5374705,
+       5.3530145
       ],
       [
-       100.5376681,
-       5.3519431
+       100.5374313,
+       5.3529983
       ],
       [
-       100.5375936,
-       5.3518792
+       100.5373976,
+       5.3529726
       ],
       [
-       100.537544,
-       5.3518219
+       100.5373718,
+       5.3529391
       ],
       [
-       100.5375193,
-       5.3517712
+       100.5373555,
+       5.3529
       ],
       [
-       100.5375194,
-       5.351727
+       100.53735,
+       5.3528581
       ],
       [
-       100.5375443,
-       5.3516894
+       100.53735,
+       5.3522919
       ],
       [
-       100.537591,
-       5.3516621
+       100.5373555,
+       5.35225
       ],
       [
-       100.5376595,
-       5.3516452
+       100.5373718,
+       5.3522109
       ],
       [
-       100.5377497,
-       5.3516385
+       100.5373976,
+       5.3521774
       ],
       [
-       100.5378617,
-       5.3516422
+       100.5374313,
+       5.3521517
       ],
       [
-       100.5379705,
-       5.3516493
+       100.5374705,
+       5.3521355
       ],
       [
-       100.5380762,
-       5.3516599
+       100.5375126,
+       5.35213
       ],
       [
-       100.5381788,
-       5.3516739
-      ],
-      [
-       100.5382783,
-       5.3516913
-      ],
-      [
-       100.5383778,
-       5.3517031
-      ],
-      [
-       100.5384773,
-       5.3517092
-      ],
-      [
-       100.5385768,
-       5.3517096
-      ],
-      [
-       100.5386763,
-       5.3517043
-      ],
-      [
-       100.5387759,
-       5.3516896
-      ],
-      [
-       100.5388754,
-       5.3516653
-      ],
+       100.5397374,
+       5.35213
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "south-terrace",
+    "name": "South terrace",
+    "region": "Blok C terrace",
+    "level": "middle",
+    "illustrativeHeight_m": 10,
+    "slopeWidth_m": 40,
+    "source": "estimated: the owner's annotation (which area is higher) with where the slopes start and end estimated from the drone video and the staircase list; illustrative",
+    "evidence": "Drone video: a covered walkway with steps climbs a grass bank from the cafe and courts to the long block (frames 31-32), and grass banks with steps sit in front of the hostel blocks (frame 30). The STAIRS list: ST04 cafe to the tennis court, ST11 tennis court to Blok C, ST12 Blok C to Blok A/B. Drawn as a terrace at Blok C, half way up."
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
       [
-       100.538975,
-       5.3516317
+       100.5403235,
+       5.3492
       ],
       [
-       100.5390747,
-       5.3515885
+       100.5403563,
+       5.3492043
       ],
       [
-       100.5391867,
-       5.3515644
+       100.5403868,
+       5.3492169
       ],
       [
-       100.5393111,
-       5.3515594
+       100.540413,
+       5.3492369
       ],
       [
-       100.5394479,
-       5.3515735
+       100.5404331,
+       5.349263
       ],
       [
-       100.5395971,
-       5.3516066
+       100.5404457,
+       5.3492933
       ],
       [
-       100.5397198,
-       5.3516599
+       100.54045,
+       5.3493259
       ],
       [
-       100.539816,
-       5.3517335
+       100.54045,
+       5.3496541
       ],
       [
-       100.5398858,
-       5.3518273
+       100.5404457,
+       5.3496867
       ],
       [
-       100.539929,
-       5.3519413
+       100.5404331,
+       5.349717
       ],
       [
-       100.5399536,
-       5.3520552
+       100.540413,
+       5.3497431
       ],
       [
-       100.5399596,
-       5.3521689
+       100.5403868,
+       5.3497631
       ],
       [
-       100.5399468,
-       5.3522823
+       100.5403563,
+       5.3497757
       ],
       [
-       100.5399155,
-       5.3523956
+       100.5403235,
+       5.34978
       ],
       [
-       100.5398639,
-       5.3525024
+       100.5381265,
+       5.34978
       ],
       [
-       100.5397921,
-       5.3526026
+       100.5380937,
+       5.3497757
       ],
       [
-       100.5397001,
-       5.3526963
+       100.5380632,
+       5.3497631
       ],
       [
-       100.539588,
-       5.3527835
+       100.538037,
+       5.3497431
       ],
       [
-       100.5394727,
-       5.3528539
+       100.5380169,
+       5.349717
       ],
       [
-       100.5393544,
-       5.3529076
+       100.5380043,
+       5.3496867
       ],
       [
-       100.539233,
-       5.3529445
+       100.538,
+       5.3496541
       ],
       [
-       100.5391086,
-       5.3529647
+       100.538,
+       5.3493259
       ],
       [
-       100.5389966,
-       5.352979
+       100.5380043,
+       5.3492933
       ],
       [
-       100.5388971,
-       5.3529874
+       100.5380169,
+       5.349263
       ],
       [
-       100.53881,
-       5.35299
+       100.538037,
+       5.3492369
       ],
       [
-       100.5387353,
-       5.3529867
+       100.5380632,
+       5.3492169
       ],
       [
-       100.5386452,
-       5.3529728
+       100.5380937,
+       5.3492043
       ],
       [
-       100.5385395,
-       5.3529484
+       100.5381265,
+       5.3492
       ],
       [
-       100.5384183,
-       5.3529134
+       100.5403235,
+       5.3492
       ]
      ]
     ]
@@ -289,256 +282,129 @@
     "region": "Southern region",
     "level": "highest",
     "illustrativeHeight_m": 24,
-    "slopeWidth_m": 80,
-    "source": "owner annotation (red circle, south), illustrative"
+    "slopeWidth_m": 22,
+    "source": "estimated: the owner's annotation (which area is higher) with where the slopes start and end estimated from the drone video and the staircase list; illustrative",
+    "evidence": "Owner annotation: the south is the highest area. Drone video: the hostel blocks A and B stand above a grass embankment with steps (frames 26-30). The STAIRS list: ST12 Blok C up to Blok A/B. Drawn as the top level, reached by a short steep bank south of the terrace."
    },
    "geometry": {
     "type": "Polygon",
     "coordinates": [
      [
       [
-       100.537676,
-       5.350012
+       100.5399735,
+       5.34845
       ],
       [
-       100.537819,
-       5.3500261
+       100.5400063,
+       5.3484543
       ],
       [
-       100.5379667,
-       5.3500418
+       100.5400368,
+       5.3484669
       ],
       [
-       100.538119,
-       5.3500592
+       100.540063,
+       5.3484869
       ],
       [
-       100.538276,
-       5.3500782
+       100.5400831,
+       5.348513
       ],
       [
-       100.5384377,
-       5.3500988
+       100.5400957,
+       5.3485433
       ],
       [
-       100.5386056,
-       5.3501179
+       100.5401,
+       5.3485759
       ],
       [
-       100.5387797,
-       5.3501355
+       100.5401,
+       5.3491541
       ],
       [
-       100.53896,
-       5.3501516
+       100.5400957,
+       5.3491867
       ],
       [
-       100.5391466,
-       5.3501661
+       100.5400831,
+       5.349217
       ],
       [
-       100.5393238,
-       5.3501743
+       100.540063,
+       5.3492431
       ],
       [
-       100.5394918,
-       5.350176
+       100.5400368,
+       5.3492631
       ],
       [
-       100.5396504,
-       5.3501713
+       100.5400063,
+       5.3492757
       ],
       [
-       100.5397997,
-       5.3501603
+       100.5399735,
+       5.34928
       ],
       [
-       100.5399335,
-       5.3501301
+       100.5381265,
+       5.34928
       ],
       [
-       100.5400518,
-       5.3500808
+       100.5380937,
+       5.3492757
       ],
       [
-       100.5401546,
-       5.3500125
+       100.5380632,
+       5.3492631
       ],
       [
-       100.5402419,
-       5.349925
+       100.538037,
+       5.3492431
       ],
       [
-       100.5403168,
-       5.3498312
+       100.5380169,
+       5.349217
       ],
       [
-       100.5403792,
-       5.3497308
+       100.5380043,
+       5.3491867
       ],
       [
-       100.5404292,
-       5.3496241
+       100.538,
+       5.3491541
       ],
       [
-       100.5404668,
-       5.3495108
+       100.538,
+       5.3485759
       ],
       [
-       100.5404936,
-       5.3493817
+       100.5380043,
+       5.3485433
       ],
       [
-       100.5405095,
-       5.3492368
+       100.5380169,
+       5.348513
       ],
       [
-       100.5405146,
-       5.3490759
+       100.538037,
+       5.3484869
       ],
       [
-       100.5405088,
-       5.3488991
+       100.5380632,
+       5.3484669
       ],
       [
-       100.5404874,
-       5.3487506
+       100.5380937,
+       5.3484543
       ],
       [
-       100.5404503,
-       5.3486303
+       100.5381265,
+       5.34845
       ],
       [
-       100.5403977,
-       5.3485382
-      ],
-      [
-       100.5403294,
-       5.3484744
-      ],
-      [
-       100.5402285,
-       5.3484181
-      ],
-      [
-       100.5400949,
-       5.3483694
-      ],
-      [
-       100.5399286,
-       5.3483282
-      ],
-      [
-       100.5397297,
-       5.3482946
-      ],
-      [
-       100.5395338,
-       5.3482705
-      ],
-      [
-       100.539341,
-       5.3482559
-      ],
-      [
-       100.5391513,
-       5.3482507
-      ],
-      [
-       100.5389647,
-       5.3482551
-      ],
-      [
-       100.5387874,
-       5.3482675
-      ],
-      [
-       100.5386194,
-       5.3482878
-      ],
-      [
-       100.5384608,
-       5.3483162
-      ],
-      [
-       100.5383114,
-       5.3483525
-      ],
-      [
-       100.5381682,
-       5.3483983
-      ],
-      [
-       100.5380313,
-       5.3484537
-      ],
-      [
-       100.5379005,
-       5.3485186
-      ],
-      [
-       100.5377759,
-       5.348593
-      ],
-      [
-       100.5376637,
-       5.3486771
-      ],
-      [
-       100.537564,
-       5.3487707
-      ],
-      [
-       100.5374766,
-       5.3488739
-      ],
-      [
-       100.5374017,
-       5.3489868
-      ],
-      [
-       100.5373501,
-       5.3490967
-      ],
-      [
-       100.5373219,
-       5.3492037
-      ],
-      [
-       100.537317,
-       5.3493078
-      ],
-      [
-       100.5373354,
-       5.3494089
-      ],
-      [
-       100.5373553,
-       5.3495117
-      ],
-      [
-       100.5373769,
-       5.349616
-      ],
-      [
-       100.5373999,
-       5.349722
-      ],
-      [
-       100.5374245,
-       5.3498295
-      ],
-      [
-       100.5374787,
-       5.3499137
-      ],
-      [
-       100.5375626,
-       5.3499745
-      ],
-      [
-       100.537676,
-       5.350012
+       100.5399735,
+       5.34845
       ]
      ]
     ]

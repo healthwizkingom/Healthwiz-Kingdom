@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { openApp, closeBrowser, go, state, RETURNING, yearOfLogs, fillSteps } from './helpers.mjs';
+import { openApp, closeBrowser, go, state, RETURNING, yearOfLogs, fillSteps, pickStair } from './helpers.mjs';
 
 after(closeBrowser);
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -97,7 +97,7 @@ test('storage full: superseded upgrade copies are freed first; if that is not en
   const { page, ctx, errors } = await openApp();
   await page.waitForSelector('.wl');
   await go(page, 'stair');
-  await page.click('.sqlist .chip >> nth=0');
+  await pickStair(page);
   const log = async n => { await fillSteps(page, '#ss', String(n)); await page.fill('#sc', '1'); await page.click('[data-a="savestair"]'); };
   // A: "full" until the pre-upgrade copy is gone → freed, retried, saved, no warning
   await page.evaluate(() => {

@@ -121,7 +121,9 @@ acts.ploffyes=()=>{off=0;delete st.s.pl;edit=null;save();toast('Stair plan turne
 acts.plskip=d=>{const p=get();if(!p||!/^\d{4}-\d\d-\d\d$/.test(d.d))return;p.sk[d.d]?delete p.sk[d.d]:(p.sk[d.d]=1);save();redraw()};
 acts.plstart=d=>{const p=get();if(!p||d.d!==today())return;const x=sessions(p).find(y=>y.d===d.d),sid=x&&x.plan&&x.plan.sid;
   if(sid&&typeof HWStairs!=='undefined')HWStairs.choose(sid);const pi=PACES.findIndex(q=>x&&x.plan&&q[1]===x.plan.pace);if(pi>=0)S.pb.pace=pi;
-  render();const t=document.getElementById('st-casual')||document.querySelector('.sqlist');if(t)t.scrollIntoView({block:'start',behavior:HWUI.reduced()?'auto':'smooth'});
+  // logging is in the Observatory's Details (2026-10-20): select the plan's staircase there and show its log
+  if(typeof HWCampus!=='undefined'){if(sid)HWCampus.focus(sid);HWCampus.openLog()}
+  render();const t=document.getElementById('cmplog')||document.getElementById('st-casual');if(t)t.scrollIntoView({block:'start',behavior:HWUI.reduced()?'auto':'smooth'});
   toast('Go at your own pace. Stop if you feel unwell.')};
 
 /* ---------- on the Stairs page: a saved plan (or one being made) right below its two halves; the small "make a plan"

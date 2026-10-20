@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { openApp, closeBrowser, go, state, daysAgo, yearOfLogs } from './helpers.mjs';
+import { openApp, closeBrowser, go, state, daysAgo, yearOfLogs, stairHistory } from './helpers.mjs';
 
 after(closeBrowser);
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -38,7 +38,7 @@ test('touch: tabs, logging, edit and delete by tap; touch scrolling; every contr
   const n0 = (await state(page)).e.filter(e => e.c === 'water').length;
   await page.tap('[data-a="wa"][data-v="250"]');
   assert.equal((await state(page)).e.filter(e => e.c === 'water').length, n0 + 1, 'water logged by tap');
-  await go(page, 'stair');
+  await go(page, 'stair'); await stairHistory(page); // the saved sessions are in the Stairs section's history
   const p0 = (await state(page)).e.filter(e => e.c === 'stair').length;
   await page.tap('#stlog [data-a="edit"]');
   await page.tap('#mo [data-a="mclose"]');
@@ -72,7 +72,7 @@ test('keyboard: Tab reaches the navigation with a visible focus ring; dialogs tr
   await page.keyboard.press('Enter');
   assert.equal(await page.evaluate(() => S.v), 'quests', 'Enter activates a tab');
   // edit dialog
-  await go(page, 'stair');
+  await go(page, 'stair'); await stairHistory(page);
   const id = await page.getAttribute('#stlog [data-a="edit"]', 'data-id');
   await page.focus('#stlog [data-a="edit"]');
   await page.keyboard.press('Enter');

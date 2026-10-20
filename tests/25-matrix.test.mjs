@@ -4,7 +4,7 @@
 // Chromium only here; docs/TESTING.md lists the checks to repeat on real Safari/Firefox/Samsung.
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { openApp, closeBrowser, go, state, yearOfLogs } from './helpers.mjs';
+import { openApp, closeBrowser, go, state, yearOfLogs, stairHistory } from './helpers.mjs';
 
 after(closeBrowser);
 const PAGES = ['home', 'health', 'food', 'water', 'sleep', 'pulse', 'stair', 'stress', 'bmi', 'calc', 'stats', 'quests', 'guide', 'badges', 'kingdom', 'set'];
@@ -59,8 +59,8 @@ test('rotation and an open keyboard: title, pages and the edit dialog adapt; SAV
     assert.deepEqual(b, { onScreen: true, clear: true }, `start button on screen, title clear of it, at ${w}×${h}`);
     assert.ok(await overflow(page) <= 1);
   }
-  await go(page, 'pulse');
-  await page.tap('[data-a="edit"]');
+  await go(page, 'pulse'); await stairHistory(page);
+  await page.tap('#stlog [data-a="edit"]');
   await page.waitForSelector('#mo:not([hidden])');
   for (const [w, h] of [[844, 390], [640, 300], [390, 500], [390, 844]]) {   // landscape, landscape + keyboard, portrait + keyboard
     await page.setViewportSize({ width: w, height: h });

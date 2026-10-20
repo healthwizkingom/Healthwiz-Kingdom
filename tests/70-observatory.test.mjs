@@ -1,10 +1,9 @@
 // Observatory integration, Phase 1 (docs/OBSERVATORY_INTEGRATION_PROMPT.md): one set of staircase records built from
 // STAIRS + HWStairs.STUDY + the survey overlay (js/v6-campus-data.js), and the two-way links with the Stairs page.
-//   * round trip: select on the Observatory → START STAIR SESSION (chooses, never saves) → save on the Stairs page →
-//     RETURN TO OBSERVATORY restores the staircase and the map view; refresh, the browser's back and a second tap create
-//     no second session; existing records and history are unchanged;
-//   * RETURN only after a session for that staircase was really saved and still exists;
-//   * a staircase without coordinates: listed, selectable, never placed; FIND ON OBSERVATORY does not move the map;
+//   * logging lives in the Observatory's Details (owner's request, 2026-10-20): a staircase picked there is logged in
+//     place, the view stays, a refresh and a second tap create no second session; existing records and history are
+//     unchanged; the old START / RETURN / FIND trip is gone;
+//   * a staircase without coordinates: listed, selectable, never placed, logged in its Details;
 //   * the survey file: never requested from file://; over http its values are laid over the records with the prototype's
 //     labels, and STAIRS itself is never changed. The survey values below are made-up test values, not campus data.
 import { test, after, before } from 'node:test';
@@ -74,7 +73,7 @@ test('records: one set built from STAIRS + the F21 study, with computed statuses
   assert.deepEqual(errors, []);
 });
 
-test('round trip: select → START STAIR SESSION (nothing saved) → save → RETURN restores staircase and view; refresh, back and taps add nothing', async () => {
+test('log in place: a staircase picked in the Observatory is logged in its Details; the view stays; refresh and a second tap add nothing; no trip links', async () => {
   const { page, errors } = await openObs();
   // filter, search and select ST20 from the list
   await page.click('[data-a="cmpfilt"][data-f="part"]');
@@ -82,109 +81,67 @@ test('round trip: select → START STAIR SESSION (nothing saved) → save → RE
   await page.click('#cmplist .cmpitem[data-id="ST20"]');
   const v0 = await view(page);
   assert.deepEqual(v0, { sid: 'ST20', grp: null, tab: 'det', f: 'part', q: 'kenanga', mode: 'fantasy' });
-  // START STAIR SESSION: chosen on the Stairs page, no session started or saved, no RETURN yet
-  await page.click('#cmpdet [data-a="cmpstair"][data-id="ST20"]');
-  assert.deepEqual(await page.evaluate(() => [S.v, HWStairs.pick, STAIRS[S.loc].id, S.pb.on]), ['campus', 'ST20', 'ST20', 0]); // the Stairs section of the Campus page
-  assert.match(await page.textContent('.sqlist .chip.on'), /penjana elektrik/);
-  assert.equal(stairs(await state(page)).length, 2, 'START saves nothing');
-  assert.equal(await page.locator('[data-a="cmpback"]').count(), 0, 'no RETURN before a session is saved');
-  assert.equal(await page.locator('[data-a="cmpfind"]').count(), 1);
-  assert.equal((await page.evaluate(() => HWCampusData.trip)).sid, 'ST20');
-  // save one casual climb: RETURN appears; a second tap on SAVE adds nothing (the form was cleared)
+  // its Details start with the logging forms, for this staircase; picking saves nothing
+  assert.match(await page.textContent('#cmplog-t'), /LOG A CLIMB HERE/);
+  assert.match(await page.textContent('#cmplog .stloc'), /penjana elektrik/);
+  assert.deepEqual(await page.evaluate(() => [S.v, HWStairs.pick, S.pb.on]), ['campus', 'ST20', 0]);
+  assert.equal(stairs(await state(page)).length, 2, 'picking saves nothing');
+  assert.equal(await page.locator('[data-a="cmpstair"], [data-a="cmpback"], [data-a="cmpfind"], #cmpbar').count(), 0, 'no START / RETURN / FIND trip any more');
+  // save one casual climb in Details: one session for ST20; still on the Observatory with the same view; a second tap adds nothing
   await logClimb(page);
   await page.click('[data-a="savestair"]');
   let s = await state(page);
   assert.equal(stairs(s).length, 3, 'one new session');
   const saved = stairs(s).at(-1);
   assert.deepEqual([saved.m.sid, saved.m.kind, saved.v], ['ST20', 'casual', 24]);
-  assert.match(await page.textContent('#cmpbar'), /Session saved for Tangga sebelah rumah penjana elektrik/);
-  // refresh: the title screen as before; nothing is saved again; the trip (this tab only) still offers RETURN
-  await page.waitForTimeout(3000); // a person refreshes seconds later; Chromium writes sessionStorage shortly after a change
+  assert.equal(await page.evaluate(() => S.v), 'campus');
+  assert.deepEqual(await view(page), v0, 'staircase, tab, filter and search kept');
+  assert.match(await page.textContent('#cmpdet'), /penjana elektrik[\s\S]*You saved 2 stair sessions here \(last \d{4}-\d\d-\d\d\) · first GPS check-in 2026-10-01/);
+  // refresh: nothing is saved again
   await page.reload(); await page.waitForSelector('.wl');
   assert.equal(stairs(await state(page)).length, 3, 'a refresh creates no session');
-  await go(page, 'stair');
-  assert.equal(await page.evaluate(() => HWStairs.pick), null, 'a refresh forgets the choice, as before');
-  assert.equal(await page.locator('[data-a="cmpback"]').count(), 1);
-  // the browser's back and forward (the app adds no history entries of its own, so the test makes one with a hash):
-  // nothing is saved again
-  const len = await page.evaluate(() => history.length);
-  await page.evaluate(() => { location.hash = 'back-test'; });
-  assert.equal(await page.evaluate(() => history.length), len + 1);
-  await page.goBack(); await page.goForward(); await page.goBack();
-  assert.equal(stairs(await state(page)).length, 3, 'back and forward create no session');
-  assert.equal(await page.locator('[data-a="cmpback"]').count(), 1, 'still offered once');
-  // RETURN: the Observatory with the same staircase and the same map view
-  await page.click('[data-a="cmpback"]');
-  assert.equal(await page.evaluate(() => S.v), 'campus');
-  assert.deepEqual(await view(page), v0, 'staircase, tab, filter and search restored');
-  assert.match(await page.textContent('#cmpdet'), /penjana elektrik[\s\S]*You saved 2 stair sessions here \(last \d{4}-\d\d-\d\d\) · first GPS check-in 2026-10-01/);
-  assert.equal(await page.evaluate(() => HWCampusData.trip), null, 'the trip ends at the Observatory');
-  // the app's own BACK, then the Stairs page: no RETURN any more, nothing saved
-  await page.click('.back[data-a="go"]');
-  assert.equal(await page.evaluate(() => S.v), 'health');
-  await go(page, 'stair');
-  assert.equal(await page.locator('[data-a="cmpback"]').count(), 0);
-  s = await state(page);
-  assert.equal(stairs(s).length, 3);
   // existing records and history are unchanged
+  s = await state(page);
   for (const h of HISTORY) assert.deepEqual(s.e.find(e => e.id === h.id), h, 'unchanged: ' + h.id);
   assert.deepEqual(s.gp, SEED.gp);
   assert.deepEqual(errors, []);
 });
 
-test('RETURN only for a genuinely saved session of the trip\'s staircase: not without a save, not for another staircase, not after a delete, not from a plain visit', async () => {
-  const { page, errors } = await openObs();
-  // a plain visit to the Stairs page (no trip) and a save: no RETURN
-  await go(page, 'stair');
-  await page.click('[data-a="cat"][data-c="MODERATE"]'); await page.click('.sqlist .chip:has-text("penjana elektrik")');
-  await logClimb(page);
-  assert.equal(stairs(await state(page)).length, 3);
-  assert.equal(await page.locator('[data-a="cmpback"]').count(), 0, 'not started from the Observatory');
-  // a trip to ST20, but the session is saved for another staircase: no RETURN
-  await go(page, 'campus');
+test('picking another staircase moves the log to it; HWCampusData.start selects and opens Details without saving; an old trip key is cleared', async () => {
+  const { page, errors } = await openApp({ seed: SEED, before: p => p.addInitScript(() => sessionStorage.setItem('hw_obs_ctx', JSON.stringify({ sid: 'ST20' }))) });
+  assert.equal(await page.evaluate(() => sessionStorage.getItem('hw_obs_ctx')), null, 'the old trip context is removed');
+  await go(page, 'campus'); await page.waitForSelector('#cmpcard');
   assert.equal(await page.evaluate(() => HWCampusData.start('ST20')), true);
-  await page.click('.sqlist .chip:has-text("Blok Aisyah")');
+  assert.deepEqual(await page.evaluate(() => [S.v, HWCampus.selected, HWCampus.state.tab, HWStairs.pick]), ['campus', 'ST20', 'det', 'ST20']);
+  assert.equal(stairs(await state(page)).length, 2, 'start saves nothing');
+  await page.click('#cmptab-list'); await page.click('#cmplist .cmpitem[data-id="ST19"]'); await page.waitForSelector('#cmplog');
+  assert.match(await page.textContent('#cmplog .stloc'), /Blok Aisyah/);
   await logClimb(page);
-  assert.equal(stairs(await state(page)).at(-1).m.sid, 'ST19');
-  assert.equal(await page.locator('[data-a="cmpback"]').count(), 0, 'another staircase');
-  // back to ST20 and saved: RETURN; the session deleted again: no RETURN
-  await page.click('.sqlist .chip:has-text("penjana elektrik")');
-  await logClimb(page);
-  assert.equal(await page.locator('[data-a="cmpback"]').count(), 1);
-  await page.evaluate(() => { const id = HWCampusData.trip.saved; st.e = st.e.filter(e => e.id !== id); save(); render(); });
-  assert.equal(await page.locator('[data-a="cmpback"]').count(), 0, 'a deleted session is not a saved one');
+  assert.equal(stairs(await state(page)).at(-1).m.sid, 'ST19', 'saved for the staircase picked now');
   assert.deepEqual(errors, []);
 });
 
-test('a staircase without coordinates: selectable from the list, never placed; START and FIND open it without a marker', async () => {
+test('a staircase without coordinates: selectable from the list, never placed; logged in its Details', async () => {
   const { page, errors } = await openObs();
   await page.click('#cmplist .cmpitem[data-id="ST02"]');
   assert.deepEqual(await view(page), { sid: 'ST02', grp: null, tab: 'det', f: 'all', q: '', mode: 'fantasy' });
   assert.equal(await page.evaluate(() => HWCampus.points().some(g => g.items.some(s => s.id === 'ST02'))), false, 'never a map point');
   assert.match(await page.textContent('#cmpdet'), /Tangga Selangkah Menara Gading[\s\S]*No location recorded, so it is not placed on the map\.[\s\S]*No location recorded[\s\S]*Estimated angle/);
-  await page.click('#cmpdet [data-a="cmpstair"][data-id="ST02"]');
   assert.deepEqual(await page.evaluate(() => [S.v, HWStairs.pick]), ['campus', 'ST02']);
-  assert.match(await page.textContent('.stloc'), /Tangga Selangkah Menara Gading[\s\S]*no map coordinates/);
-  // FIND ON OBSERVATORY: its details (tests/71-observatory-map checks the map does not move)
-  await go(page, 'stair'); await page.evaluate(() => { HWStairs.choose('ST02'); render(); });
-  await page.click('[data-a="cmpfind"]');
-  assert.deepEqual(await page.evaluate(() => [S.v, HWCampus.selected, HWCampus.state.tab]), ['campus', 'ST02', 'det']);
-  assert.match(await page.textContent('#cmpdet'), /No location recorded, so it is not placed on the map\./);
-  assert.equal(stairs(await state(page)).length, 2, 'nothing written');
+  assert.match(await page.textContent('#cmplog .stloc'), /Tangga Selangkah Menara Gading[\s\S]*no map coordinates/);
+  await logClimb(page);
+  assert.equal(stairs(await state(page)).at(-1).m.sid, 'ST02');
   assert.deepEqual(errors, []);
 });
 
-test('FIND ON OBSERVATORY selects a mapped staircase and opens its details; the phone layout fits 360 px', async () => {
+test('the phone layout fits 360 px: the log in Details, its SAVE a full-size tap target', async () => {
   const { page, errors } = await openApp({ seed: SEED, viewport: { width: 360, height: 760 }, context: { isMobile: true, hasTouch: true } });
-  await go(page, 'stair');
-  await page.evaluate(() => { HWStairs.choose('ST14'); render(); });
-  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth) <= 360, 'Stairs page: no sideways scroll');
-  const b = await page.$eval('[data-a="cmpfind"]', e => { const r = e.getBoundingClientRect(); return { h: r.height, right: r.right }; });
-  assert.ok(b.h >= 44 && b.right <= 360, 'the link is a full-size tap target on screen');
-  await page.click('[data-a="cmpfind"]');
-  assert.deepEqual(await page.evaluate(() => [S.v, HWCampus.selected, HWCampus.state.tab]), ['campus', 'ST14', 'det']);
+  await go(page, 'campus'); await page.waitForSelector('#cmpcard');
+  await page.click('#cmplist .cmpitem[data-id="ST14"]'); await page.waitForSelector('#cmplog');
   assert.match(await page.textContent('#cmpdet'), /Kenanga/);
-  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth) <= 360);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth) <= 360, 'no sideways scroll');
+  const b = await page.$eval('#cmplog [data-a="savestair"]', e => { const r = e.getBoundingClientRect(); return { h: r.height, right: r.right }; });
+  assert.ok(b.h >= 44 && b.right <= 360, 'SAVE is a full-size tap target on screen');
   assert.deepEqual(errors, []);
 });
 

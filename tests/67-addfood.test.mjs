@@ -239,7 +239,7 @@ test('no USDA anywhere: not in the Wizard, its server function, its instructions
 test('every figure, expression and prop of his design sheets is used: by his reactions, the turn, or Meet Luke (Settings), which steps through them one at a time', async () => {
   const S = fakeSupabase();
   const { page, errors } = await device(S, { viewport: { width: 360, height: 800 }, context: { isMobile: true, hasTouch: true } });
-  await go(page, 'set');
+  await go(page, 'set'); await page.click('[data-a="mjump"][data-t="awmeet"]'); // the card opens from its button (Animation & Performance)
   const all = await page.evaluate(() => ({ poses: HWAddFood.POSES, faces: HWAddFood.FACES }));
   assert.equal(all.poses.length, 22); assert.equal(all.faces.length, 12);
   const seen = [await page.getAttribute('#awmeet .awmfig', 'data-pose')];

@@ -2,9 +2,11 @@
    Stairs used to be a page of its own (route 'stair'); it is now a collapsible section, titled "Stairs", under the Observatory
    on the Campus page. The Stairs module (js/v6-stairs.js) still owns the content and the data, unchanged: the same storage
    keys, the same 'stair' / 'pulse' entries, the same ids and actions (st*, wk-*, gv*, pl*), so nothing saved needs a migration.
-   * Routes: go('stair') (the Health Hall card, quests, links) and go('pulse') (Heartstone Hall) open the Campus page with this
-     section open and scrolled to the top (the heart-rate card for 'pulse'). A plain visit to the Campus page, from its door in
-     the Health Hall, shows the section collapsed. The address #stairs does the same as go('stair') (read on load and on change).
+   * Routes: go('stair') (the Health Hall card, quests, links) and go('pulse') (Heartstone Hall) open the Campus page at the
+     top (owner's request, 2026-10-20), with the Observatory's Details showing the logging forms (the workout half for
+     'pulse'): logging happens in the Observatory now. This section, collapsed, keeps the history. A plain visit to the
+     Campus page, from its door in the Health Hall, is the same without switching to Details. The address #stairs does the
+     same as go('stair') (read on load and on change).
    * Collapsing is leaving, as far as the Stairs features go: the rhythm guide and the workout timer stop (the time so far is
      kept), a Stair Sense climb is paused, the camera pulse stops, the GPS card forgets its reading (event 'stairs:closed').
      Opening tells the heart-rate device module it may reconnect (event 'stairs:opened').
@@ -37,8 +39,9 @@ function reveal(id){const e=$id(id)||$id('stairs');if(e)e.scrollIntoView({block:
 {const g0=go;go=function(v){
   if(v==='stair'||v==='pulse'){
     if(typeof HWStairs!=='undefined')HWStairs.arrive(v);
-    openNow();const r=g0.call(this,'campus');reveal(v==='pulse'?'sthrc':'stairs');return r}
-  if(v==='campus'&&S.v!=='campus'){closeNow();if(typeof HWCampusData!=='undefined')HWCampusData.endTrip()} // a plain visit: collapsed, and the trip is over
+    if(typeof HWCampus!=='undefined')HWCampus.openLog();
+    const r=g0.call(this,'campus');window.scrollTo(0,0);return r}
+  if(v==='campus'&&S.v!=='campus'){closeNow()} // a plain visit: collapsed
   return g0.apply(this,arguments)}}
 HWEvents.on('page:viewed',e=>{if(e.view!=='campus'){open=false;clearHash()}});
 HWEvents.on('data:reset',()=>{open=false});

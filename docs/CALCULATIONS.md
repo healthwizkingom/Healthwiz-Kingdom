@@ -20,7 +20,7 @@ step, verified clickable sources, HealthWiz's own choices kept apart from the so
 | Group 14 study tables (pulse rate, f, T, ω, VO₂, energy, recovery) | `js/v6-f21.js` | — (data for the Lab) | f21 | Raw counts only are stored; tests/61-f21 recomputes Tables 7, 8, 9, 11 and they agree, apart from one rounding (P2 moderate VO₂ 22.95, printed 22.9). **Flag:** Section 4.4's "vigorous gave the highest energy for every participant" holds for 5 of 6 (P2: moderate 87.5 kJ > vigorous 85.1 kJ). |
 | Peak heart rate as % of 220 − age | `js/v6-stairs.js` `peak` | worked (`xpeak`) | tanaka | The unsourced "10–20 BPM" margin was removed; Tanaka's 208 − 0.7 × age is shown beside it. |
 | Running calories (MET × kg × h) | `js/v6-running.js` `met`, `kcalOf` | worked (`xrun`, `xrun-<id>`) | comprun, compwalk, compendium | **Fixed:** the table held 2011 values under a 2024 label; now the 2024 values with their codes (tests/37 updated with the new arithmetic). The unsourced "±20–30%" was removed. Runs saved with a stored kcal keep it. |
-| Health Score weights and components | `js/v6-score.js` | text + sources (`scorewt`) | whofv, whodiet, iomdri, mifflin, whopa, acsm, aasm, aasmkids, cdcbmi, cohen | Per-component worked examples: later stage. Not yet checked: AHA 60–100 BPM (page blocked), ACSM "≈ 1,000 kcal a week" (abstract says 500–1000 MET·min a week). The Group 14 figure is now checked: 6.3–37.5% (report Table 8; the earlier text said 6–37%). |
+| Health Score weights and components | `js/v6-score.js` | text + sources (`scorewt`) | whofv, whodiet, iomdri, mifflin, whopa, acsm, aasm, aasmkids, cdcbmi, lovibond95, henry05 (cohen before the DASS-21, 2026-10-20) | Per-component worked examples: later stage. Not yet checked: AHA 60–100 BPM (page blocked), ACSM "≈ 1,000 kcal a week" (abstract says 500–1000 MET·min a week). The Group 14 figure is now checked: 6.3–37.5% (report Table 8; the earlier text said 6–37%). |
 | Fruit & veg portions (80 g) | `js/v6-score.js` | text (`fvinfo`) | whofv | Source verified; worked example: later stage. |
 | Stair Sense: h = n × r, W = mgh, P = W ÷ t | `js/v6-gravity.js` | text + sources (`gvhelp`) | nistg, nistcal | Worked example: later stage. |
 | Step height from angle (rise = tread × tan θ) | `js/v6-stairs.js`, `js/v6-gravity.js` | text | f21 | The three measured stairways (rise, run, hypotenuse, θ) match the report's Table 2 and the angle bands its Section 4.1. |
@@ -66,6 +66,14 @@ card), `stairways`, `lab`. Calculations whose "?" is a game or simulation note (
 **Known duplication, not changed:** each `HWVault.CALCS` entry (`f`, `src`, `app`) is still written by hand next to the
 formula in its "?" panel; the two can drift. Differences seen: `fv` cites `whofv` + `whodiet` in the Vault and none in its "?"; `energy` cites
 `mifflin` in the Vault, `mifflin` + `cdcbmi` here.
+
+**Added 2026-10-20: the Stress Quest's DASS-21 check-in** (`js/v6-dass.js`, Vault entry `dass`, sources `dassfaq`,
+`lovibond95`, `henry05`, each opened first). Each scale (Depression, Anxiety, Stress) = the sum of its 7 answers (0–3)
+× 2, from 0 to 42 (the DASS FAQ's rule for the 21-item form); storm level = 1 + round(9 × total ÷ 63), where the total is
+the sum of all 21 answers (0–63). Worked example, checked in the browser: all 21 answers = 1 → each scale 7 × 2 = 14 of
+42; total 21; level 1 + round(9 × 21 ÷ 63) = 1 + 3 = 4. **Not used:** the DASS severity bands (Normal to Extremely
+severe), because the manual that sets them was not opened; the scores are shown without labels. The storm level and
+the order of the creatures are game choices, not part of the DASS.
 
 ## Rules for adding a "?"
 

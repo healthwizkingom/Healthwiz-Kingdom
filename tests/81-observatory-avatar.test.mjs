@@ -72,35 +72,34 @@ const watches = () => { window.__w = { watch: 0, clear: 0 }; const g = navigator
   g.watchPosition = (...a) => { window.__w.watch++; return w(...a); }; g.clearWatch = (...a) => { window.__w.clear++; return c(...a); }; };
 const glbs = reqs => reqs.filter(u => /\/avatars\/[^/]+\.glb$/.test(u)).map(u => u.split('/').pop());
 
-test('the avatar is chosen first (the profile\'s suggested first, with credits); on campus it stands at the GPS position; leaving stops the watch; nothing stored', async () => {
+test('the avatar follows the profile (male: the school boy, no chooser); on campus it stands at the GPS position; without a sex in the profile the player picks; leaving stops the watch; nothing stored', async () => {
   const { ctx, page, errors, reqs } = await openHttp({ ctxOpt: geo(AT_CAMPUS), init: watches });
   await goView(page, 'campus'); assert.equal(await ready(page), 'ready');
   assert.equal(await page.evaluate(() => window.__w.watch), 0, 'opening asks for no position');
+  // the test profile is male: the boy, straight away (owner's request, 2026-10-20: chosen from the profile)
   await page.click('.cmpctls [data-a="cmpme"]');
-  // the chooser: the test profile is male, so the boy first, then Tom, then the girl
-  assert.deepEqual(await page.$$eval('.cmpav [data-a="cmpavpick"]', b => b.map(x => x.dataset.v)), ['schoolboy', 'tom', 'schoolgirl']);
-  const t = await page.textContent('.cmpav');
-  assert.match(t, /Choose your avatar[\s\S]*matches your profile[\s\S]*Anime school boy \(suggested\)/);
-  assert.match(t, /"Rigged Anime School Boy \(Animation included\)" by suzuart \(Sketchfab\), CC BY 4\.0[\s\S]*"Stylized Anime Japanese High School Girl 2" by suzuart \(Sketchfab\), CC BY 4\.0/);
-  assert.equal(await page.evaluate(() => window.__w.watch), 0, 'no position before an avatar is chosen');
-  await page.click('.cmpav [data-a="cmpavpick"][data-v="schoolgirl"]');
+  assert.equal(await page.locator('.cmpav').count(), 0, 'no chooser when the profile has a sex');
   await page.waitForFunction(() => HWCampus.me.st === 'gps' && HWCampus.map.avatar && HWCampus.map.avatar.ready && HWCampus.map.avatar.state.visible, null, { timeout: 40000 });
-  assert.deepEqual(glbs(reqs), ['schoolgirl.glb'], 'only the chosen avatar is downloaded');
+  assert.deepEqual(glbs(reqs), ['schoolboy.glb'], 'only that avatar is downloaded');
   assert.match(await page.textContent('.cmpmebar'), /You · GPS ±12 m \(device estimate\)/);
+  assert.equal(await page.locator('.cmpmebar [data-a="cmpavopen"]').count(), 0, 'no Avatar button: it follows the profile');
   const r = await page.evaluate(() => ({ circle: HWCampus.map.map.getSource('me')._data.features.length, pos: HWCampus.map.avatar.state.pos, pressed: document.querySelector('.cmpctls [data-a="cmpme"]').getAttribute('aria-pressed') }));
   assert.equal(r.circle, 1, 'the accuracy circle');
   assert.ok(Math.abs(r.pos.lat - 5.3512) < 1e-6 && Math.abs(r.pos.lng - 100.5382) < 1e-6, 'the avatar stands at the position');
   assert.equal(r.pressed, 'true');
   assert.match(await page.textContent('#cmpcard'), /The nearest mapped staircase is .+, about \d+ m away \(± 12 m\)/);
-  assert.match(await page.textContent('.cmpleg'), /Your avatar: Anime school girl\. "Stylized Anime Japanese High School Girl 2" by suzuart/);
-  // the choice is a device preference; the position is stored nowhere
-  const store = await page.evaluate(() => [localStorage.getItem('hw_obs_avatar'), JSON.stringify(localStorage), JSON.stringify(sessionStorage)]);
-  assert.equal(store[0], 'schoolgirl');
-  assert.doesNotMatch(store[1] + store[2], /5\.3512|100\.5382/, 'the position is not saved or kept for the tab');
-  // changing the avatar replaces the model
-  await page.click('.cmpmebar [data-a="cmpavopen"]'); await page.click('.cmpav [data-a="cmpavpick"][data-v="tom"]');
+  assert.match(await page.textContent('.cmpleg'), /Your avatar: Anime school boy \(from your profile\)\. "Rigged Anime School Boy \(Animation included\)" by suzuart \(Sketchfab\), CC BY 4\.0/);
+  // no sex in the profile: the player picks (credits shown), and can change it; the choice is a device preference
+  await page.evaluate(() => { st.p.sex = ''; save(); render(); });
+  await page.click('.cmpmebar [data-a="cmpavopen"]');
+  assert.deepEqual(await page.$$eval('.cmpav [data-a="cmpavpick"]', b => b.map(x => x.dataset.v)), ['tom', 'schoolboy', 'schoolgirl']);
+  assert.match(await page.textContent('.cmpav'), /Choose your avatar[\s\S]*no sex set[\s\S]*"Stylized Anime Japanese High School Girl 2" by suzuart \(Sketchfab\), CC BY 4\.0/);
+  await page.click('.cmpav [data-a="cmpavpick"][data-v="tom"]');
   await page.waitForFunction(() => HWCampus.map.avatar && HWCampus.map.avatar.ready && HWCampus.map.avatar.state.visible, null, { timeout: 40000 });
-  assert.deepEqual(glbs(reqs), ['schoolgirl.glb', 'tom.glb']);
+  assert.deepEqual(glbs(reqs), ['schoolboy.glb', 'tom.glb']);
+  const store = await page.evaluate(() => [localStorage.getItem('hw_obs_avatar'), JSON.stringify(localStorage), JSON.stringify(sessionStorage)]);
+  assert.equal(store[0], 'tom');
+  assert.doesNotMatch(store[1] + store[2], /5\.3512|100\.5382/, 'the position is not saved or kept for the tab');
   // leaving stops the watch and frees everything
   await goView(page, 'health');
   assert.deepEqual(await page.evaluate(() => [window.__w.clear >= 1, HWCampus.me.st, HWCampus.map, document.querySelectorAll('canvas').length]), [true, 'off', null, 0]);

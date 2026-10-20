@@ -93,7 +93,7 @@ test('new insight and kingdom change reach Luna; settings toggle and recent word
   assert.ok(types.some(t => t === 'insight' || t === 'first' || t === 'kingdom'), types.join());
   await go(page, 'guide');
   assert.ok(await page.$('#v6medlog'));
-  await go(page, 'set');
+  await go(page, 'set'); await page.click('[data-a="mjump"][data-t="v6lunaset"]'); // the Luna companion card opens from its button
   await page.click('[data-a="medm"][data-m="0"]');
   assert.equal((await state(page)).s.med, 0);
   assert.deepEqual(errors, []);

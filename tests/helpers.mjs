@@ -93,3 +93,21 @@ export async function fillSteps(page, sel, value) {
   if (!(await box.isVisible())) await page.locator(sel === '#ss' ? '#stcnt-c' : '#stcnt-w').locator('[data-a="strng"][data-r="c"]').click();
   await box.fill(String(value));
 }
+
+/** Pick a staircase the way a player does since 2026-10-20: in the Campus Health Observatory (a marker, the search on the
+    map or the list), which opens its Details with the logging forms (LOG A CLIMB HERE). With no id: the first stairway of
+    the current category, the one the old stairway list showed first. Works without the map (file://). */
+export async function pickStair(page, id) {
+  await page.evaluate(i => acts.cmppick({ id: i || stairsOf(S.cat)[0].id }), id || null);
+  await page.waitForSelector('#cmplog');
+}
+/** Open the Stairs section under the Observatory (the history: summary, chart, measured stairways, Session Chronicle).
+    By its action, as a click would: a new badge's card can cover the header for a few seconds (tests/83 clicks the header). */
+export async function stairHistory(page) {
+  if (await page.getAttribute('#stsec-btn', 'aria-expanded') !== 'true') await page.evaluate(() => acts.stsec());
+  await page.waitForSelector('#stlog');
+}
+
+/** Stress Quest: BEGIN THE QUEST and answer the 21 DASS-21 statements (v: one answer 0–3 for all, or a list of 21),
+    reaching the result and the storm. */
+export async function dass(page, v = 1) { const a = Array.isArray(v) ? v : Array(21).fill(v); await page.click('[data-a="sqs"]'); for (const x of a) await page.click('[data-a="dsa"][data-v="' + x + '"]'); await page.waitForSelector('#qsc'); }

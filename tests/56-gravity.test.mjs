@@ -1,7 +1,7 @@
 // Stair Sense, the Gravity Trial (js/v6-gravity.js): step counting from the motion sensor, the physics, and the save rules.
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { openApp, closeBrowser, go, RETURNING, entry } from './helpers.mjs';
+import { openApp, closeBrowser, go, RETURNING, entry, pickStair } from './helpers.mjs'; // the staircase is picked in the Observatory (pickStair), not from a list
 
 after(closeBrowser);
 // DeviceMotionEvent variants, installed before the app loads
@@ -57,11 +57,11 @@ test('physics: worked example and unavailable inputs', async () => {
 test('unsupported browser: timer and manual steps work, review shows the measured step height, saving adds one record', async () => {
   const { page, ctx, errors } = await boot(RETURNING, { sensor: NONE });
   assert.ok(await page.locator('#gvtrial').isVisible());
-  await page.selectOption('#gv-sid', 'ST20');
+  await pickStair(page, 'ST20');
   assert.match(await page.textContent('.gvq'), /16\.9 cm.*measured/);
-  await page.selectOption('#gv-sid', 'ST03');
+  await pickStair(page, 'ST03');
   assert.match(await page.textContent('.gvq'), /10\.9 cm.*estimated from its angle \(19\.6/);
-  await page.selectOption('#gv-sid', 'ST20');
+  await pickStair(page, 'ST20');
   const before = await stairs(page);
   await page.click('[data-a="gvstart"]');
   assert.equal(await page.evaluate(() => HWGravity.sensor), 'unsupported');
@@ -93,7 +93,7 @@ test('unsupported browser: timer and manual steps work, review shows the measure
 test('the same steps at the same stairway today asks before adding a second record', async () => {
   const seed = { ...RETURNING, e: [entry('stair', 40, 0, { sid: 'ST20', loc: 'x', steps: 40, climbs: 1 })] };
   const { page, ctx, errors } = await boot(seed, { sensor: NONE });
-  await page.selectOption('#gv-sid', 'ST20');
+  await pickStair(page, 'ST20');
   await page.click('[data-a="gvstart"]'); await page.click('[data-a="gvfinish"]');
   await page.fill('#gv-n', '40'); await page.fill('#gv-m', '1');
   await page.click('[data-a="gvsave"]');
@@ -142,11 +142,11 @@ test('sensor granted: steps and cadence appear, PAUSE and FINISH stop the sensor
   assert.equal(+await page.inputValue('#gv-n'), est);
   assert.match(await page.textContent('#gv-nn'), /sensor estimated/);
   // a stairway with no measured step height: estimated from its angle (run x tan angle), labelled as an estimate
-  await page.selectOption('#gv-sid', 'ST03');
+  await pickStair(page, 'ST03');
   assert.equal(+await page.inputValue('#gv-r'), 10.9);   // 30.53 cm x tan 19.6 degrees
   assert.match(await page.textContent('#gv-rn'), /Estimated from the stairway.s angle[\s\S]*tan 19\.6/);
   // a very steep stairway would give an absurd height (> 30 cm): nothing is guessed, work and power are unavailable
-  await page.selectOption('#gv-sid', 'ST33');
+  await pickStair(page, 'ST33');
   assert.equal(await page.inputValue('#gv-r'), '');
   assert.match(await page.textContent('#gv-res'), /unavailable[\s\S]*unavailable[\s\S]*unavailable[\s\S]*unavailable/);
   assert.match(await page.textContent('#gv-res'), /Unavailable until you enter: height of one step/);
@@ -171,7 +171,7 @@ test('no motion readings arrive: says so and keeps the timer', async () => {
 test('missing body mass: work and power are unavailable, and asked for', async () => {
   const seed = { ...RETURNING, s: { ...RETURNING.s, onb: 0 }, p: { ...RETURNING.p } };
   const { page, ctx, errors } = await boot(seed, { sensor: NONE });
-  await page.selectOption('#gv-sid', 'ST19');
+  await pickStair(page, 'ST19');
   await page.click('[data-a="gvstart"]'); await page.click('[data-a="gvfinish"]');
   assert.equal(await page.inputValue('#gv-w'), '');
   await page.fill('#gv-n', '30'); await page.fill('#gv-m', '1');
@@ -230,7 +230,7 @@ test('existing sessions are untouched by saving a Stair Sense climb', async () =
   const old = entry('stair', 30, 3, { sid: 'ST05', loc: 'old', steps: 15, climbs: 2, diff: 'MILD' });
   const { page, ctx, errors } = await boot({ ...RETURNING, e: [old] }, { sensor: NONE });
   await page.click('[data-a="gvstart"]'); await page.click('[data-a="gvfinish"]');
-  await page.selectOption('#gv-sid', 'ST14'); await page.fill('#gv-n', '20'); await page.fill('#gv-m', '1');
+  await pickStair(page, 'ST14'); await page.fill('#gv-n', '20'); await page.fill('#gv-m', '1');
   await page.click('[data-a="gvsave"]');
   const e = await stairs(page);
   assert.equal(e.length, 2); assert.deepEqual(e[0], old);
@@ -249,7 +249,7 @@ test('small phone screens: idle, running and review have no sideways scroll and 
       assert.deepEqual(m.small, [], vp.width + ' ' + label + ': controls under 44 px');
     };
     await fit('idle');
-    await page.selectOption('#gv-sid', 'ST20');
+    await pickStair(page, 'ST20');
     await page.click('[data-a="gvstart"]'); await page.waitForSelector('#gv-steps'); await fit('running');
     await page.click('[data-a="gvfinish"]'); await page.fill('#gv-n', '40'); await page.fill('#gv-m', '0.5'); await fit('review');
     assert.deepEqual(errors, []); await ctx.close();
@@ -260,7 +260,7 @@ test('small phone screens: idle, running and review have no sideways scroll and 
 const inView = (page, sel) => page.evaluate(s => { const r = document.querySelector(s).getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; }, sel);
 const finishWith = async (page, steps, min, sid = 'ST20', climbs) => {
   await page.click('[data-a="gvstart"]'); await page.click('[data-a="gvfinish"]');
-  await page.selectOption('#gv-sid', sid); await page.fill('#gv-n', String(steps)); await page.fill('#gv-m', String(min));
+  await pickStair(page, sid); await page.fill('#gv-n', String(steps)); await page.fill('#gv-m', String(min));
   if (climbs) await page.fill('#gv-k', String(climbs));
 };
 
@@ -298,7 +298,7 @@ test('SEAL THE WORKOUT: steps, climbs, the time and the stairway are filled in',
   await finishWith(page, 30, 3.5, 'ST19');
   await page.click('[data-a="gvsend"]');
   assert.equal(await page.inputValue('#wk-s'), '30'); assert.equal(await page.inputValue('#wk-c'), '1');
-  assert.equal(await page.inputValue('#wk-d'), '3.5'); assert.equal(await page.inputValue('#wk-loc'), 'ST19');
+  assert.equal(await page.inputValue('#wk-d'), '3.5'); assert.equal(await page.evaluate(() => HWStairs.pick), 'ST19');
   assert.equal((await stairs(page)).length, 0);
   await page.click('[data-a="stwsave"]');
   const e = (await stairs(page)).at(-1);

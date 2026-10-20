@@ -13,6 +13,9 @@
 //   CREDITS.md): assets/models/ is 10,630,767 bytes → budget 11,693,844.
 //   Drone-video look (2026-10-20): campus-fantasy.glb rebuilt by tools/blender_campus.py (1,876,044 bytes) and
 //   + campus-realistic.glb (860,160 bytes): assets/models/ is 11,670,671 bytes, inside the unchanged budget.
+//   Ground details (owner's request, 2026-10-20: goal posts, car parks, street lights, drains, roads, modelled in Blender):
+//   + campus-props-realistic.glb and campus-props-fantasy.glb (tools/blender_campus_props.py, 239,324 bytes each):
+//   assets/models/ is 12,149,319 bytes → budget 13,364,250 (+ 10 %).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -20,7 +23,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const BUDGET = { vendor: 1948262, 'assets/models': 11693844 };
+const BUDGET = { vendor: 1948262, 'assets/models': 13364251 };
 const files = dir => { const d = path.join(root, dir); if (!fs.existsSync(d)) return []; return fs.readdirSync(d, { recursive: true }).map(f => path.join(dir, f)).filter(f => fs.statSync(path.join(root, f)).isFile()); };
 const size = dir => files(dir).reduce((t, f) => t + fs.statSync(path.join(root, f)).size, 0);
 
