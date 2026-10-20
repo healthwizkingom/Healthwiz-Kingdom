@@ -119,8 +119,8 @@ acts.ploff=()=>{off=1;redraw();const b=$('[data-a="ploffno"]');if(b)b.focus()};
 acts.ploffno=()=>{off=0;redraw()};
 acts.ploffyes=()=>{off=0;delete st.s.pl;edit=null;save();toast('Stair plan turned off. Your stair sessions stay saved.');redraw()};
 acts.plskip=d=>{const p=get();if(!p||!/^\d{4}-\d\d-\d\d$/.test(d.d))return;p.sk[d.d]?delete p.sk[d.d]:(p.sk[d.d]=1);save();redraw()};
-acts.plstart=d=>{const p=get();if(!p||d.d!==today())return;const x=sessions(p).find(y=>y.d===d.d),sid=x&&x.plan&&x.plan.sid,i=STAIRS.findIndex(s=>s.id===sid);
-  if(i>=0){S.loc=i;S.cat=STAIRS[i].cat}const pi=PACES.findIndex(q=>x&&x.plan&&q[1]===x.plan.pace);if(pi>=0)S.pb.pace=pi;
+acts.plstart=d=>{const p=get();if(!p||d.d!==today())return;const x=sessions(p).find(y=>y.d===d.d),sid=x&&x.plan&&x.plan.sid;
+  if(sid&&typeof HWStairs!=='undefined')HWStairs.choose(sid);const pi=PACES.findIndex(q=>x&&x.plan&&q[1]===x.plan.pace);if(pi>=0)S.pb.pace=pi;
   render();const t=document.getElementById('st-casual')||document.querySelector('.sqlist');if(t)t.scrollIntoView({block:'start',behavior:HWUI.reduced()?'auto':'smooth'});
   toast('Go at your own pace. Stop if you feel unwell.')};
 

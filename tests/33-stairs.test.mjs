@@ -344,6 +344,28 @@ test('pulse as periodic motion: f, T and ω under each trace with a help button'
   assert.deepEqual(errors, []); await ctx.close();
 });
 
+test('HWStairs.choose(id) chooses a stairway as a tap does (chip, line, workout field); FIND ON OBSERVATORY only once one is chosen', async () => {
+  const { page, errors } = await bootC();
+  assert.equal(await page.locator('#cmpbar').count(), 0, 'no link before a stairway is chosen');
+  assert.deepEqual(await page.evaluate(() => [HWStairs.choose('ST99'), HWStairs.pick]), [false, null], 'an unknown id chooses nothing');
+  assert.equal(await page.evaluate(() => { const ok = HWStairs.choose('ST19'); render(); return ok; }), true);
+  const name = await page.evaluate(() => STAIRS.find(s => s.id === 'ST19').name);
+  assert.deepEqual(await page.evaluate(() => [HWStairs.pick, STAIRS[S.loc].id, S.cat]), ['ST19', 'ST19', 'MODERATE']);
+  assert.equal((await page.textContent('.sqlist .chip.on .sqn')).trim(), name);
+  assert.match(await page.textContent('.stloc'), /Block Aisyah|Blok Aisyah/);
+  assert.equal(await page.getAttribute('#cmpbar [data-a="cmpfind"]', 'data-id'), 'ST19');
+  assert.equal(await page.locator('#cmpbar [data-a="cmpback"]').count(), 0, 'no RETURN without a trip from the Observatory');
+  await page.click('#stt-workout');
+  assert.equal(await page.inputValue('#wk-loc'), 'ST19', 'the workout half has it too');
+  assert.equal(await page.locator('#cmpbar [data-a="cmpfind"]').count(), 1);
+  // FIND ON OBSERVATORY selects it there (ST19 has coordinates: the map centres on it) and writes nothing
+  await page.click('#cmpbar [data-a="cmpfind"]');
+  assert.deepEqual(await page.evaluate(() => [S.v, HWCampus.selected]), ['campus', 'ST19']);
+  assert.match(await page.textContent('#cmpdet'), new RegExp(name.replace(/[()/]/g, '.')));
+  assert.equal(stairs(await state(page)).length, 0);
+  assert.deepEqual(errors, []);
+});
+
 test('measured stairways card: the three report stairs, report rank vs app band', async () => {
   const { page, ctx, errors } = await bootC();
   const rows = await page.$$eval('#ststudy tbody tr', r => r.map(x => [...x.cells].map(c => c.textContent.replace(/\s+/g, ' ').trim())));

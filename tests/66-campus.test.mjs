@@ -1,7 +1,8 @@
 // Campus Health Observatory (js/v6-observatory.js): the stairways on a map from the app's own coordinates, all marked
-// unverified; shared coordinates are one marker; unmapped stairways are listed, not placed; a marker opens the stairway
-// with the player's own climbs; it locates you on opening and centres on the nearest stairway; the map can be dragged;
-// SHOW WHERE I AM (granted, denied, far away) is never saved; the weather point's distance
+// unverified; shared coordinates are one marker; unmapped stairways are listed and selectable, not placed; a marker opens
+// the stairway with the player's own climbs; START STAIR SESSION chooses it on the Stairs page; opening asks for no
+// location (owner decision 2026-10-20: location only on tap); SHOW WHERE I AM centres on the nearest stairway; the map can
+// be dragged; SHOW WHERE I AM (granted, denied, far away) is never saved; the weather point's distance
 // is stated; no campus-wide overlay; nothing is written; the phone layout.
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -36,7 +37,7 @@ test('the door is last in the Health Hall; every point comes from STAIRS, shared
   assert.deepEqual(errors, []);
 });
 
-test('a marker (or the list) opens the stairway with the player\'s own climbs; CLIMB HERE picks it on the Stairs page', async () => {
+test('a marker (or the list) opens the stairway with the player\'s own climbs; START STAIR SESSION chooses it on the Stairs page', async () => {
   const { page, errors } = await open();
   const id = 'ST20';
   await page.evaluate(id => { add('stair', 100, { sid: id, steps: 20, climbs: 5 }, '', today(), '08:00', 0, ''); st.gp = { ok: 1, v: { [id]: '2026-10-01' } }; save(); render(); }, id);
@@ -46,13 +47,20 @@ test('a marker (or the list) opens the stairway with the player\'s own climbs; C
   const d = await page.textContent('#cmpdet');
   assert.match(d, /You saved 1 stair session here · first GPS check-in 2026-10-01/);
   assert.match(d, /Unverified: from the original app data/);
-  // the list reaches the same place, and lists the unmapped ones without a button
+  // the list reaches the same place, and lists the unmapped ones as their own (no marker) buttons
   await page.click('.cmplist summary');
   assert.ok(await page.locator('.cmplist .cmplb').count() >= 28);
+  assert.equal(await page.locator('.cmplist .cmplu').count(), 4);
   assert.match(await page.textContent('.cmplist'), /no coordinates recorded/);
   const before = (await state(page)).e.length;
+  assert.match(await page.textContent('#cmpdet [data-a="cmpstair"][data-id="' + id + '"]'), /^START STAIR SESSION$/);
   await page.click('#cmpdet [data-a="cmpstair"][data-id="' + id + '"]');
-  assert.equal(await page.evaluate(() => [S.v, STAIRS[S.loc].id].join()), 'stair,' + id);
+  assert.equal(await page.evaluate(() => [S.v, STAIRS[S.loc].id, HWStairs.pick].join()), 'stair,' + id + ',' + id);
+  // the Stairs page really shows it as chosen (not only S.loc): its chip is on and the line under the list names it
+  const name = await page.evaluate(id => STAIRS.find(s => s.id === id).name, id);
+  assert.equal(await page.locator('.sqlist .chip.on').count(), 1);
+  assert.equal((await page.textContent('.sqlist .chip.on .sqn')).trim(), name);
+  assert.match(await page.textContent('.stloc'), new RegExp(name.replace(/[()/]/g, '.')));
   assert.equal((await state(page)).e.length, before, 'nothing is written');
   assert.deepEqual(errors, []);
 });
@@ -83,10 +91,18 @@ test('SHOW WHERE I AM: on campus a "you" dot and the nearest stairway; far away 
   for (const r of [near, far, no]) assert.deepEqual(r.errors, []);
 });
 
-test('opening it finds you by itself: on campus the nearest stairway is selected and the map centres on it, zoomed in; location off is a quiet note', async () => {
-  const near = await openApp({ seed: RETURNING, context: { geolocation: { latitude: 5.3512, longitude: 100.5382, accuracy: 12 }, permissions: ['geolocation'] } });
+test('opening asks for no location (only the tap does); SHOW WHERE I AM on campus selects the nearest stairway and centres on it, zoomed in', async () => {
+  const count = page => page.addInitScript(() => { window.__geo = 0; const g = navigator.geolocation, o = g.getCurrentPosition.bind(g), w = g.watchPosition.bind(g);
+    g.getCurrentPosition = (...a) => { window.__geo++; return o(...a); }; g.watchPosition = (...a) => { window.__geo++; return w(...a); }; });
+  const near = await openApp({ seed: RETURNING, before: count, context: { geolocation: { latitude: 5.3512, longitude: 100.5382, accuracy: 12 }, permissions: ['geolocation'] } });
   await go(near.page, 'health'); await near.page.click('[data-a="cmpgo"]');
+  await near.page.waitForSelector('#cmpcard'); await near.page.waitForTimeout(400);
+  assert.equal(await near.page.evaluate(() => window.__geo), 0, 'opening the Observatory asks for no position');
+  assert.equal(await near.page.locator('.cmpme, .cmpnote, .cmpe').count(), 0);
+  assert.equal(await near.page.evaluate(() => HWCampus.state.sel), null, 'nothing is selected by itself');
+  await near.page.click('[data-a="cmpgps"]');
   await near.page.waitForSelector('.cmpme');
+  assert.equal(await near.page.evaluate(() => window.__geo), 1);
   const r = await near.page.evaluate(() => {
     const st = HWCampus.state, P = HWCampus.points(), me = st.me;
     const nearest = P.map((g, i) => ({ i, d: HWGps.dist(me.lat, me.lng, g.lat, g.lng) })).sort((a, b) => a.d - b.d)[0].i;
@@ -99,13 +115,8 @@ test('opening it finds you by itself: on campus the nearest stairway is selected
   assert.ok(r.det, 'its details are open');
   assert.match(await near.page.textContent('.cmpyou'), /Your position is used on this screen only: it is not saved or sent\./);
   assert.doesNotMatch(JSON.stringify(await state(near.page)), /5\.3512|100\.5382/);
-  // no permission: a quiet note, not an alert
-  const off = await openApp({ seed: RETURNING });
-  await go(off.page, 'health'); await off.page.click('[data-a="cmpgo"]');
-  await off.page.waitForSelector('.cmpnote');
-  assert.match(await off.page.textContent('.cmpnote'), /I could not find you automatically \(location permission is off for healthwiz\)\. Pick a stairway, or tap SHOW WHERE I AM\./);
-  assert.equal(await off.page.locator('.cmpe').count(), 0);
-  for (const x of [near, off]) assert.deepEqual(x.errors, []);
+  assert.doesNotMatch(await near.page.evaluate(() => JSON.stringify(sessionStorage)), /5\.3512|100\.5382/, 'the position is not kept for the tab either');
+  assert.deepEqual(near.errors, []);
 });
 
 test('the map moves: dragging pans every marker together, a drag does not select a marker, RECENTRE puts it back', async () => {
@@ -160,7 +171,7 @@ test('phone: the map fits 360 px, markers are at least 24 px, no glow under redu
 test('the Stage 4 modules add actions and classes without replacing any existing ones (the original Registry\'s obgo stays its own)', async () => {
   const fs = await import('node:fs');
   const dir = new URL('../js/', import.meta.url), files = fs.readdirSync(dir).filter(f => f.endsWith('.js'));
-  const NEW = ['v6-plan.js', 'v6-time.js', 'v6-observatory.js'];
+  const NEW = ['v6-plan.js', 'v6-time.js', 'v6-observatory.js', 'v6-campus-data.js'];
   const defs = f => [...fs.readFileSync(new URL(f, dir), 'utf8').matchAll(/acts\.([A-Za-z0-9_]+)\s*=/g)].map(m => m[1]);
   const old = new Set(files.filter(f => !NEW.includes(f)).flatMap(defs));
   for (const f of NEW) for (const a of defs(f)) assert.ok(!old.has(a), f + ' replaces the existing action ' + a);

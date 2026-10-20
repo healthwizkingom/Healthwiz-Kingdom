@@ -1,0 +1,123 @@
+/* v6: the Campus Health Observatory's staircase records, and the links between it and the Stairs page. Not part of the
+   original. Integration Phase 1 (docs/OBSERVATORY_INTEGRATION_PROMPT.md).
+   * One copy of the staircases: the records are built when needed from STAIRS (js/hw-02-core.js, the original v5.4.3
+     data), HWStairs.STUDY (js/v6-stairs.js, the Group 14 F21 report, Table 2: ST14, ST19, ST20) and the survey overlay
+     data/stair-survey.json (made from the Word sheet by tools/import_stair_sheet.py). The record fields and labels
+     follow the prototype (prototypes/campus-observatory/data/staircases.json and js/survey.js). Nothing is written
+     back into STAIRS. Statuses, shared coordinates, notes and "Needs checking" are worked out here, not stored.
+   * The survey file is fetched only over http(s). Opened from the device (file://, the single-file build) it is
+     skipped without a request or an error, and the page says the survey was not loaded.
+   * Activity per staircase is read from the saved stair sessions by m.sid (read-only; no schema change).
+   * Start Stair Session (on the Observatory) selects the staircase on the Stairs page with HWStairs.choose(id). It
+     never starts or saves a session. The trip is remembered in this tab only (sessionStorage 'hw_obs_ctx': the
+     staircase id, then the id of the session saved for it). Return to Observatory is offered only after such a
+     session was really saved and still exists. No health data is put in a URL. */
+const HWCampusData=(()=>{
+const APP='HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded';
+const F21='Group 14 F21 Full Written Report (v4), Table 2';
+const STEEP=45; // degrees: a stored angle above this is unusually steep for a staircase, so it is flagged for re-measurement
+const CK='hw_obs_ctx',SURVEY='data/stair-survey.json';
+const ico=(n,s)=>HWPixel.icon(n,s||1);
+const deg=r=>r*180/Math.PI;
+
+/* ---------- the records ---------- */
+const key=q=>q.lat.toFixed(7)+','+q.lng.toFixed(7);
+function base(){const S2=typeof HWStairs!=='undefined'?HWStairs.STUDY:[],G={},N={};
+  STAIRS.forEach(q=>{if(hasXY(q))(G[key(q)]=G[key(q)]||[]).push(q.id);(N[q.name]=N[q.name]||[]).push(q.id)});
+  return STAIRS.map(q=>{const xy=hasXY(q),m=S2.find(x=>x.id===q.id)||null,sh=xy?G[key(q)].filter(i=>i!==q.id):[],same=N[q.name].filter(i=>i!==q.id),notes=[];
+    if(!xy)notes.push('No coordinates recorded: listed, not placed on the map.');
+    if(sh.length)notes.push('Shares one stored coordinate with '+sh.join(', ')+'.');
+    if(same.length)notes.push('Same name as '+same.join(', ')+' in the app data: may be the same staircase.');
+    if(q.angle>STEEP)notes.push('Stored angle is unusually steep for a staircase: flagged for re-measurement.');
+    if(m){notes.push('Staircase '+m.k+' ('+m.n+') in the Group 14 F21 report: step rise and run measured. The report ranks it '+m.rank+' among its three stairs.');
+      if(Math.abs(m.th-q.angle)>.005)notes.push('The F21 angle ('+m.th.toFixed(2)+'°) differs from the app angle ('+q.angle.toFixed(2)+'°): check against the report.')}
+    return{id:q.id,name:q.name,appFloorLabel:q.floor,appCategory:q.cat,
+      latitude:xy?q.lat:null,longitude:xy?q.lng:null,locationSource:xy?APP:null,locationStatus:xy?'estimated':'missing',
+      estimatedAngle:q.angle,angleSource:m?F21+': θ = arctan(rise ÷ run) from measured steps':APP,angleStatus:m?'calculated from measured step rise and run':'estimated',
+      orientationDeg:null,orientationSource:null,stepCount:null,floorCount:null,verticalRise_m:null,
+      measuredStep:m?{rise_m:m.rise,run_m:m.run,hypotenuse_m:m.hyp,source:F21,reportStaircase:m.k,reportName:m.n,reportRank:m.rank}:null,
+      measurementStatus:m?'partially measured':'not surveyed',geometryStatus:'not surveyed',sharedLocationWith:sh,
+      survey:null,verification:{status:'unverified',by:null,date:null},needsChecking:!!(same.length||q.angle>STEEP),notes:notes.join(' ')}})}
+
+/** The survey laid over the records, by the prototype's rules (js/survey.js): the measured bottom position replaces the
+    estimate, θ = arctan(riser ÷ tread) per flight (calculated), step count and rise only from complete flights. */
+function applySurvey(R,sv){if(!sv||!sv.stairs||typeof sv.stairs!=='object')return 0;let n=0;
+  R.forEach(s=>{const v=sv.stairs[s.id];if(!v||typeof v!=='object')return;n++;
+    s.app={latitude:s.latitude,longitude:s.longitude,locationStatus:s.locationStatus,estimatedAngle:s.estimatedAngle,angleStatus:s.angleStatus,orientationDeg:s.orientationDeg};
+    const rec=v.survey||{},by=[rec.by,rec.date,rec.tool].filter(Boolean).join(', '),cp=v.complete||{};
+    s.survey=Object.assign({},v,{label:'Survey sheet'+(by?' ('+by+')':''),recordComplete:!!cp.record});
+    if(v.bottom&&isFinite(v.bottom.lat)&&isFinite(v.bottom.lng)){s.latitude=+v.bottom.lat;s.longitude=+v.bottom.lng;s.locationStatus='measured';
+      s.locationSource=s.survey.label+', phone GPS at the bottom step'+(v.bottom.accuracy_m!=null?', ±'+v.bottom.accuracy_m+' m':', accuracy not recorded');s.locationAccuracy_m=v.bottom.accuracy_m}
+    const F=Array.isArray(v.flights)?v.flights.map(f=>Object.assign({},f)):[];
+    if(F[0]&&F[0].heading_deg!=null){s.orientationDeg=F[0].heading_deg;s.orientationSource=s.survey.label+', heading of flight 1 (measured)';s.orientationStatus='measured'}
+    const all=k=>F.length&&F.every(f=>f[k]!=null);
+    if(all('risers')&&cp.flights){s.stepCount=F.reduce((t,f)=>t+f.risers,0);s.stepCountSource=s.survey.label+' (counted)'}
+    if(all('totalRise_cm')&&cp.flights){s.verticalRise_m=+(F.reduce((t,f)=>t+f.totalRise_cm,0)/100).toFixed(2);s.verticalRiseStatus='measured'}
+    else if(all('risers')&&all('riser_cm')&&cp.flights){s.verticalRise_m=+(F.reduce((t,f)=>t+f.risers*f.riser_cm,0)/100).toFixed(2);s.verticalRiseStatus='calculated (risers × riser height)'}
+    const fa=F.filter(f=>f.riser_cm&&f.tread_cm);
+    if(fa.length){fa.forEach(f=>{f.angle_deg=+deg(Math.atan(f.riser_cm/f.tread_cm)).toFixed(2)});const w=fa.reduce((t,f)=>t+(f.risers||1),0);
+      s.surveyAngle=+(fa.reduce((t,f)=>t+f.angle_deg*(f.risers||1),0)/w).toFixed(2)}
+    s.flightsSurveyed=F;
+    if(cp.flights)s.geometryStatus='surveyed';
+    s.measurementStatus=cp.flights&&cp.position?'surveyed':'partially measured'});
+  return n}
+/** The 3D plan of a fully surveyed staircase (metres, one entry per flight), or null when anything is missing. */
+function surveyPlan(s){const v=s&&s.survey;if(!v||!v.complete||!v.complete.flights)return null;
+  return v.flights.map((f,i,A)=>({n:f.risers,riser:f.riser_cm/100,tread:f.tread_cm/100,width:f.width_cm/100,turn:i<A.length-1?f.turn:null,
+    landingLength:f.landing&&f.landing.length_cm?f.landing.length_cm/100:null,landingWidth:f.landing&&f.landing.width_cm?f.landing.width_cm/100:null}))}
+
+/* ---------- the survey file: http(s) only ---------- */
+let SV=null,SVst='idle',SVn=0,R=null; // SVst: idle | loading | ok | error | local (opened from the device: not fetched)
+function load(){if(SVst!=='idle')return;const web=/^https?:$/.test(location.protocol);if(!web||typeof fetch!=='function'){SVst='local';return}
+  SVst='loading';
+  const done=()=>{R=null;records();if(S.v==='campus'||(SVn&&S.v==='stair')){const y=window.scrollY;render();window.scrollTo(0,y)}}; // the Observatory shows the survey state
+  fetch(SURVEY,{cache:'no-cache'}).then(r=>r.ok?r.json():Promise.reject(new Error('HTTP '+r.status))).then(j=>{SV=j&&typeof j==='object'?j:null;SVst='ok';done()})
+    .catch(()=>{SV=null;SVst='error';done()})}
+/** Every staircase record, in STAIRS order (built once, rebuilt when the survey arrives). Read them; do not change them. */
+function records(){load();if(!R){R=base();SVn=applySurvey(R,SV)}return R}
+const record=id=>records().find(s=>s.id===id)||null;
+const placed=s=>!!s&&s.latitude!=null&&s.longitude!=null;
+function surveyNote(){const n=(records(),SVn);
+  return SVst==='ok'?(n?'Survey data: '+n+' staircase'+(n>1?'s':'')+' from the survey sheet ('+SURVEY+').':'Survey data: none imported yet.')
+    :SVst==='local'?'Survey data: not loaded (the app was opened from this device, so the survey file cannot be read). The app\'s own values are shown.'
+    :SVst==='error'?'Survey data: the survey file could not be loaded. The app\'s own values are shown.':'Survey data: loading.'}
+/** The prototype's labels for a record: [kind, text]; kind is est | calc | part | miss | flag. */
+function labels(s){const L=[],m=s.measuredStep;
+  L.push(!placed(s)?['miss','No location recorded']:s.locationStatus==='measured'?['part','Measured location (survey)']:['est','Estimated location']);
+  L.push(s.surveyAngle!=null?['calc','Angle from surveyed steps']:s.estimatedAngle==null?['miss','Angle unavailable']:m?['calc','Angle from measured steps']:['est','Estimated angle']);
+  L.push(s.orientationStatus==='measured'?['part','Measured orientation']:s.orientationDeg!=null?['est','Estimated orientation']:['miss','Orientation not surveyed']);
+  L.push(s.measurementStatus==='surveyed'?['part','Surveyed']:s.survey?['part','Partially surveyed']:s.measurementStatus==='partially measured'?['part','Partially measured: step size only']:['miss','Not yet surveyed']);
+  if(s.survey&&!s.survey.recordComplete)L.push(['flag','Survey record incomplete']);
+  if(s.needsChecking)L.push(['flag','Needs checking']);
+  return L}
+
+/* ---------- activity from the saved sessions (read-only) ---------- */
+function activity(id){const L=(typeof HWStairs!=='undefined'?HWStairs.all():[]).filter(s=>s.sid===id),d=L.map(s=>s.d).sort();
+  return{sessions:L.length,steps:L.reduce((t,s)=>t+s.total,0),last:d.length?d[d.length-1]:null,firstCheckIn:st.gp&&st.gp.v&&st.gp.v[id]||null}}
+
+/* ---------- the trip: Observatory → Stairs page → back ---------- */
+const ctx=()=>{try{const o=JSON.parse(sessionStorage.getItem(CK)||'null');return o&&typeof o==='object'&&typeof o.sid==='string'?o:null}catch(e){return null}};
+const setCtx=o=>{try{o?sessionStorage.setItem(CK,JSON.stringify(o)):sessionStorage.removeItem(CK)}catch(e){}};
+/** Start Stair Session: choose the staircase on the Stairs page and open it. Nothing is started or saved. */
+function start(id){if(typeof HWStairs==='undefined'||!HWStairs.choose(id))return false;setCtx({sid:id,saved:null});go('stair');return true}
+/** The session saved for the staircase of this trip, if it is still in the save. */
+function savedSession(){const c=ctx();return c&&c.saved&&st.e.some(e=>e.id===c.saved&&e.c==='stair')?c:null}
+HWEvents.on('entry:added',e=>{const c=ctx(),x=e.entry;if(c&&x&&x.c==='stair'&&x.m&&x.m.sid===c.sid){c.saved=x.id;setCtx(c)}});
+HWEvents.on('page:viewed',e=>{if(e.view==='campus')setCtx(null)}); // the trip ends at the Observatory, however it was reached
+['data:reset','data:imported'].forEach(t=>HWEvents.on(t,()=>setCtx(null)));
+/** The Stairs page's links: FIND ON OBSERVATORY for the chosen staircase; RETURN TO OBSERVATORY after the trip's session was
+    saved (also after a refresh, which forgets the choice but not the trip), unless another staircase is chosen now. */
+function bar(){const id=typeof HWStairs!=='undefined'?HWStairs.pick:null,s=id&&record(id),c=savedSession(),back=c&&(!id||c.sid===id)?record(c.sid):null;if(!s&&!back)return'';
+  return '<div class="cmpbar" id="cmpbar">'+(back?'<p class="cmpbk" role="status"><b>Session saved</b> for '+esc(back.name)+'. Go back to it on the Observatory map.</p>':'')
+    +'<div class="row">'+(back?'<button type="button" data-a="cmpback">'+ico('map')+' RETURN TO OBSERVATORY</button>':'')
+    +(s?'<button type="button" class="g sm" data-a="cmpfind" data-id="'+esc(s.id)+'">'+ico('map')+' FIND ON OBSERVATORY</button>':'')+'</div></div>'}
+const open=id=>{if(typeof HWCampus!=='undefined'&&HWCampus.focus)HWCampus.focus(id);go('campus')};
+acts.cmpfind=d=>{if(d&&record(d.id))open(d.id)};
+// back to the view kept when the trip started (the Observatory keeps it in sessionStorage); focus only if it was lost
+acts.cmpback=()=>{const c=savedSession();if(!c)return;if(typeof HWCampus!=='undefined'&&HWCampus.selected!==c.sid)open(c.sid);else go('campus')};
+
+HWUI.css('campusdata',`
+.cmpbar{margin:8px 0}.cmpbar .row{flex-wrap:wrap;gap:8px}.cmpbar button{min-height:44px;margin:0}.cmpbk{margin:0 0 6px}.cmpbar svg{vertical-align:-3px}
+`);
+return{records,record,placed,labels,activity,surveyNote,applySurvey,surveyPlan,start,bar,load,STEEP,
+  get survey(){return{status:SVst,stairs:SVn}},get trip(){return ctx()}}})();

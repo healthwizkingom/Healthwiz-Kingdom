@@ -307,7 +307,7 @@ function chronicle(){const L=all().slice(-10).reverse();
 
 pages.stair=()=>{const g=typeof HWGps!=='undefined'?HWGps.card():'';
   Promise.resolve().then(watch);
-  return hud()+tabs()+(half==='casual'
+  return hud()+tabs()+(typeof HWCampusData!=='undefined'?HWCampusData.bar():'')+(half==='casual'
     ?'<p id="st-casual" class="stnote">Check in by GPS at a campus stairway first. If GPS is not available, log a climb by hand below. Climb at any time.</p>'+(g?'<div class="card" id="v6gps">'+g+'</div>':'')+casual()+study()
     :workout()+chart())+chronicle()};
 // the old Pulse page now opens the Workout section (see go below); this keeps a direct call safe
@@ -500,4 +500,4 @@ HWUI.css('stairs',`
 .stclimb .row label{flex:1 1 90px}.stclimb p{margin:6px 0;font-size:14px}.stclimb small{display:flex;gap:6px;align-items:center}.stsh b{display:inline-flex;align-items:center;gap:2px}
 @media(prefers-reduced-motion:reduce){.stses{animation:none}}html.hw-rm .stses,html.hw-still .stses{animation:none}
 `);
-return{session,all,record,fill,estimate,projectVO2,pulseSHM,shmTxt,STUDY,profile,peak,MET,bandOf,get pick(){return pick},get draft(){return Object.assign({},W,{secs:secsW()})}}})();
+return{session,all,record,fill,choose:id=>{const i=STAIRS.findIndex(s=>s.id===id);if(i<0)return!1;pick=id;S.loc=i;S.cat=STAIRS[i].cat;return!0},estimate,projectVO2,pulseSHM,shmTxt,STUDY,profile,peak,MET,bandOf,get pick(){return pick},get draft(){return Object.assign({},W,{secs:secsW()})}}})();

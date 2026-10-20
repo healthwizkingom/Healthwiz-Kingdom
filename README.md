@@ -36,6 +36,7 @@ js/v6-vault.js             the Evidence Vault: every source on shelves, source â
 js/v6-uncert.js            the Uncertainty Engine: how unmeasured assumptions move an estimate (no made-up error margins)
 js/v6-plan.js              Stair Prescription on the Stairs page: a weekly stair plan the player chooses (st.s.pl); not a prescription
 js/v6-time.js              the Health Time Machine (route 'time', door on Statistics): saved records on a day / week / month timeline
+js/v6-campus-data.js        the Observatory's staircase records (STAIRS + the F21 step sizes + data/stair-survey.json), its links with the Stairs page
 js/v6-observatory.js       the Campus Health Observatory (route 'campus', door in the Health Hall): the stairways on a map, all unverified
 js/v6-addfood.js           Add More Food: Luke (the apprentice) searches the web (Gemini + Google Search via food-guess) for any food, portion and changes, with a source per part; signed out, the canteen menu
 js/v6-arcane.js            the magical, modern look: Arcane Night default theme, glowing rounded panels and controls (docs/PIXEL_STYLE.md)
@@ -118,6 +119,22 @@ docs/                      architecture audit and plan, event catalog, testing g
 The scripts are classic `<script>` tags that share one global scope, so keep them in order.
 `tests/00-fidelity.test.mjs` checks that the markup and stylesheet still match the original (apart from its short
 `EDITS` list of deliberate changes), and that no original function, constant, page or action has been removed.
+
+## Campus stair survey data
+
+The Campus Health Observatory and the Stairs page lay `data/stair-survey.json` over the app's own stair list (`STAIRS`
+in `js/hw-02-core.js`, which is never changed). Measured values are labelled measured or calculated; anything not in
+the survey keeps the app's value and label. The committed file is empty (`"stairs": {}`), which shows the app data
+alone. To update it: fill in the Word sheet, run one command from the repository root, refresh.
+
+```sh
+python3 tools/import_stair_sheet.py path/to/your-filled-sheet.docx   # writes data/stair-survey.json and data/stair-survey-report.md
+```
+
+The blank sheet, what each column means and what the report checks are in
+[`prototypes/campus-observatory/UPDATE_DATA.md`](prototypes/campus-observatory/UPDATE_DATA.md). The survey file is read
+only when the app is served over http(s); opened from the device (`file://`) or as the single-file build, the app's own
+values are shown and the page says the survey was not loaded.
 
 ## Saved data and versions
 

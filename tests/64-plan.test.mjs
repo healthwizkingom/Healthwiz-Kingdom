@@ -80,6 +80,12 @@ test('done only from a saved stair session; SKIP and UNSKIP; START is today only
   await page.click('[data-a="plstart"][data-d="' + t + '"]');
   assert.equal(await page.evaluate(() => [S.v, PACES[S.pb.pace][1]].join()), 'stair,Easy');
   assert.equal((await state(page)).e.length, 0, 'START writes nothing');
+  // with a chosen stairway, START really chooses it on the Stairs page (HWStairs.choose), not only S.loc
+  await page.evaluate(() => { st.s.pl.sid = 'ST20'; save(); render(); });
+  await page.click('[data-a="plstart"][data-d="' + t + '"]');
+  assert.equal(await page.evaluate(() => [HWStairs.pick, STAIRS[S.loc].id].join()), 'ST20,ST20');
+  assert.equal((await page.textContent('.sqlist .chip.on .sqn')).trim(), await page.evaluate(() => STAIRS.find(s => s.id === 'ST20').name));
+  assert.equal((await state(page)).e.length, 0, 'START writes nothing');
   // SKIP today, then UNSKIP
   await page.click('[data-a="plskip"][data-d="' + t + '"]');
   assert.match(await page.textContent('#plcard .plrow.now'), /Skipped/);
