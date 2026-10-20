@@ -11,6 +11,8 @@
 //   assets/models/ was 7,233,484 bytes.
 //   Phase 5 (2026-10-20): + assets/models/avatars/ (tom.glb 1,141,324, schoolboy.glb 1,058,460, schoolgirl.glb 1,195,696 and
 //   CREDITS.md): assets/models/ is 10,630,767 bytes → budget 11,693,844.
+//   Drone-video look (2026-10-20): campus-fantasy.glb rebuilt by tools/blender_campus.py (1,876,044 bytes) and
+//   + campus-realistic.glb (860,160 bytes): assets/models/ is 11,670,671 bytes, inside the unchanged budget.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

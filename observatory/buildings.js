@@ -111,3 +111,40 @@ export function makeBuildingParts(osm) {
   }
   return { type: 'FeatureCollection', features: F };
 }
+
+/* ---------- covered walkways (both looks) ---------- */
+// Every OSM footway tagged covered=yes is drawn as the drone video shows it (frames 1-7, 13, 23, 36-37): a red metal roof
+// about 3 m wide at 2.5-2.8 m, on white posts every 4 m along both edges. The line is real; the width, height and post
+// spacing are illustrative. Returns {roofs, posts} as GeoJSON for fill-extrusion layers.
+export const WALK = { w: 3.0, base: 2.5, top: 2.8, post: .22, every: 4 };
+export function makeWalkways(osm) {
+  const roofs = [], posts = [];
+  const lng0 = (osm.bounds[0] + osm.bounds[2]) / 2, lat0 = (osm.bounds[1] + osm.bounds[3]) / 2;
+  const kx = RAD * R * Math.cos(lat0 * RAD), ky = RAD * R;
+  const ll = ([x, y]) => [lng0 + x / kx, lat0 + y / ky];
+  const quad = (a, ux, uy, l, hw, t0 = 0) => [[a[0] - ux * t0 - uy * hw, a[1] - uy * t0 + ux * hw], [a[0] + ux * (l + t0) - uy * hw, a[1] + uy * (l + t0) + ux * hw],
+    [a[0] + ux * (l + t0) + uy * hw, a[1] + uy * (l + t0) - ux * hw], [a[0] - ux * t0 + uy * hw, a[1] - uy * t0 - ux * hw]];
+  for (const f of osm.features) {
+    if (f.properties.kind !== 'footway_covered' || f.geometry.type !== 'LineString') continue;
+    const P = f.geometry.coordinates.map(p => toXY(p, lng0, lat0));
+    let carry = 0;
+    for (let i = 0; i < P.length - 1; i++) {
+      const a = P[i], b = P[i + 1], l = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      if (l < .2) continue;
+      const ux = (b[0] - a[0]) / l, uy = (b[1] - a[1]) / l;
+      // the roof: one slab per segment, lengthened by half a width at each end so the corners close
+      const q = quad(a, ux, uy, l, WALK.w / 2, WALK.w / 2).map(ll);
+      roofs.push({ type: 'Feature', properties: { osm: f.properties.osm }, geometry: { type: 'Polygon', coordinates: [[...q, q[0]]] } });
+      let t = carry; // posts keep their 4 m spacing round the bends
+      for (; t <= l; t += WALK.every) {
+        for (const s of [-1, 1]) {
+          const c = [a[0] + ux * t - uy * s * (WALK.w / 2 - .2), a[1] + uy * t + ux * s * (WALK.w / 2 - .2)];
+          const p = quad([c[0] - ux * WALK.post / 2, c[1] - uy * WALK.post / 2], ux, uy, WALK.post, WALK.post / 2).map(ll);
+          posts.push({ type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[...p, p[0]]] } });
+        }
+      }
+      carry = t - l;
+    }
+  }
+  return { roofs: { type: 'FeatureCollection', features: roofs }, posts: { type: 'FeatureCollection', features: posts } };
+}

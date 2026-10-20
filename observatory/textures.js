@@ -66,6 +66,8 @@ const T = {
   'px-roofred': () => slate(['#f0a070', '#c8603e', '#b0502f', '#8a3a22', '#4a1c10'], 11),
   'px-cottage': () => wall(['#d8ccb4', '#d0c4ab', '#ddd2bb', '#c9bca2'], '#9a8b70', '#7c6d54', 47, true),
   'px-goldroof': () => slate(['#ffe08a', '#e0ad3c', '#c99232', '#9a6a1c', '#5a3a0c'], 4),
+  // the campus's red metal roofs (the drone video's measured #ea566b), darkened for the night look: the covered walkways and gazebos
+  'px-roofcrimson': () => slate(['#e0707f', '#b4404f', '#9c3644', '#7a2834', '#3a1018'], 12),
   'px-wood': () => tiles(['#c58a55', '#9a6a3c', '#7a5230', '#4a3018'], 5),
   'px-canopy': () => tiles(['#8a78d8', '#6a5ac0', '#5546a4', '#2e2566'], 6),
   // lantern-lit cobbled road (a line pattern: drawn along the road)
@@ -118,6 +120,14 @@ const SP = {
   'px-tree-glow': { s: 2, pal: { k: '#0a0f24', d: '#23407a', g: '#2f5fa8', h: '#4f8fd8', l: '#9fd8ff', w: '#e9fbff', t: '#3b2416' }, rows: [
     '.....kkkk.....', '...kkhhhhkk...', '..khhlwhhhhk..', '.khlllhhhgghk.', '.khlwhhhgggdk.', 'khhhhhhgggggdk', 'khhhhggglggddk', 'kghhgggggdgddk',
     '.kgggggdddddk.', '..kkgddddkkk..', '....kkttkk....', '.....ktk......', '.....ktk......', '....kkttkk....'] },
+  // palms and broadleaf trees as the drone video shows them (lawn #708421 and tree #2b3a17 measured from its frames)
+  'px-palm': { s: 2, pal: { k: '#1c2a0c', g: '#4f6b1e', h: '#6f8a2a', l: '#9bb04a', T: '#8a7356', t: '#5e4c38' }, rows: [
+    '..k........k..', '.kgk..kk..kgk.', '..kgkkhhkkgk..', '.kkghhllhhgkk.', 'kggkhlgglhkggk', '.kk.khgghk.kk.', '..kgk.kT.kgk..', '.kgk..kTk.kgk.', '..k...kTk...k.', '......kTk.....', '......kTtk....', '.......kTk....', '.......kTk....', '.......kTtk...', '........kTk...', '.......kkTtk..'] },
+  'px-palm-night': { s: 2, pal: { k: '#061210', g: '#1a4a3a', h: '#28684f', l: '#3f8c69', T: '#4a3a2a', t: '#3b2416' }, rows: [
+    '..k........k..', '.kgk..kk..kgk.', '..kgkkhhkkgk..', '.kkghhllhhgkk.', 'kggkhlgglhkggk', '.kk.khgghk.kk.', '..kgk.kT.kgk..', '.kgk..kTk.kgk.', '..k...kTk...k.', '......kTk.....', '......kTtk....', '.......kTk....', '.......kTk....', '.......kTtk...', '........kTk...', '.......kkTtk..'] },
+  'px-tree-day': { s: 2, pal: { k: '#121a0a', d: '#1f2d10', g: '#2b3a17', h: '#3f5320', l: '#5d7430', t: '#4a3622', T: '#6a5034' }, rows: [
+    '.....kkkk.....', '...kkhhhhkk...', '..khhllhhhhk..', '.khlllhhhgghk.', '.khllhhhgggdk.', 'khhhhhhgggggdk', 'khhhhggggggddk', 'kghhgggggdgddk',
+    '.kgggggdddddk.', '..kkgddddkkk..', '....kkTtkk....', '.....kTtk.....', '.....kTtk.....', '....kkTtkk....'] },
   'px-lantern': { s: 2, pal: { k: '#14102a', g: '#c99a2e', y: '#ffe08a', w: '#fff8d6', o: '#ffb347' }, rows: [
     '..kk..', '.kggk.', 'kggggk', 'kywwyk', 'kyowyk', 'kyooyk', 'kggggk', '.kggk.', '..kk..', '..kk..', '..kk..', '.kkkk.'], glow: '#ffcf6b' },
 };

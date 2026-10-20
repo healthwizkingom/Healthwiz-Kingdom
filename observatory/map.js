@@ -12,12 +12,20 @@
 import { centroid } from './geo.js';
 import { makeImage } from './textures.js';
 import { makeTrees } from './deco.js';
-import { makeBuildingParts } from './buildings.js';
+import { makeBuildingParts, makeWalkways, WALK } from './buildings.js';
 import { createFx } from './fx.js';
 
 let ML = null; // window.maplibregl, set when a map is created (main.js loads the library first)
-// made in Blender by the prototype's tools/blender_buildings.py from the OSM outlines
-const MODEL_URL = new URL('../assets/models/campus-fantasy.glb', import.meta.url).href;
+// made in Blender by tools/blender_campus.py from the OSM outlines, in the look of the owner's drone video (one GLB per look)
+const MODEL_URL = {
+  fantasy: new URL('../assets/models/campus-fantasy.glb', import.meta.url).href,
+  realistic: new URL('../assets/models/campus-realistic.glb', import.meta.url).href,
+};
+// trees: Realistic has the palms and broadleaf trees of the drone video; Fantasy has its own trees, palms among them
+const TREE_IMG = {
+  realistic: ['match', ['get', 't'], 'px-tree-pine', 'px-palm', 'px-tree-glow', 'px-palm', 'px-tree-day'],
+  fantasy: ['match', ['get', 't'], 'px-tree-pine', 'px-palm-night', ['get', 't']],
+};
 const CATCOL = { MILD: '#7ee07c', MODERATE: '#f6c94f', VIGOROUS: '#ff7b6e' };
 const ATTR = '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a> (ODbL)';
 const K = k => ['==', ['get', 'kind'], k];
@@ -52,8 +60,10 @@ const PAINT = {
     'sel-glow': { 'circle-color': '#2864d8', 'circle-opacity': .14 },
     'sel-ring': { 'circle-stroke-color': '#2864d8', 'circle-stroke-width': 2.5 },
     'me-acc': { 'fill-color': '#2864d8' }, 'me-acc-edge': { 'line-color': '#2864d8' },
-    roof: { 'fill-extrusion-color': '#ddd7cc', 'fill-extrusion-opacity': .85, 'fill-extrusion-pattern': undefined },
-    bld: { 'fill-extrusion-color': ['match', ['get', 'building'], 'dormitory', '#d2cfdb', 'mosque', '#cfe0d4', 'house', '#e2dacd', '#d9d0c3'],
+    roof: { 'fill-extrusion-color': '#ea566b', 'fill-extrusion-opacity': .9, 'fill-extrusion-pattern': undefined },
+    walkroof: { 'fill-extrusion-color': '#ea566b', 'fill-extrusion-pattern': undefined },
+    walkpost: { 'fill-extrusion-color': '#f1eeee' },
+    bld: { 'fill-extrusion-color': ['match', ['get', 'building'], 'dormitory', '#dccbb0', 'mosque', '#dfdbde', 'house', '#e2dacd', '#dfdbde'],
       'fill-extrusion-opacity': .96, 'fill-extrusion-pattern': undefined },
     wt: { 'fill-extrusion-color': '#c4ccd6', 'fill-extrusion-pattern': undefined },
   },
@@ -79,12 +89,14 @@ const PAINT = {
     'sel-glow': { 'circle-color': '#f2c14e', 'circle-opacity': .22 },
     'sel-ring': { 'circle-stroke-color': '#ffe9a8', 'circle-stroke-width': 3 },
     'me-acc': { 'fill-color': '#5fe1e6' }, 'me-acc-edge': { 'line-color': '#8ff7ea' },
-    roof: { 'fill-extrusion-color': '#6a5ac0', 'fill-extrusion-opacity': .85, 'fill-extrusion-pattern': 'px-canopy' },
+    roof: { 'fill-extrusion-color': '#b4404f', 'fill-extrusion-opacity': .9, 'fill-extrusion-pattern': 'px-roofcrimson' },
+    walkroof: { 'fill-extrusion-color': '#b4404f', 'fill-extrusion-pattern': 'px-roofcrimson' },
+    walkpost: { 'fill-extrusion-color': '#c9a46a' },
     bld: { 'fill-extrusion-pattern': ['match', ['get', 'building'], 'dormitory', 'px-wall2', 'house', 'px-cottage', 'hut', 'px-wood', 'px-wall'], 'fill-extrusion-opacity': 1 },
     wt: { 'fill-extrusion-pattern': 'px-turret' },
   },
 };
-const FANTASY_ONLY = ['trees', 'lanterns', 'bglow'];
+const FANTASY_ONLY = ['lanterns', 'bglow'];
 const TERRAIN_LAYERS = ['hill', 'zone-top', 'zone-contour', 'zone-edge-glow', 'zone-edge'];
 const SKY = {
   realistic: { 'sky-color': '#cfe2f3', 'horizon-color': '#eef1ec', 'fog-color': '#e6e9e2', 'sky-horizon-blend': .6, 'horizon-fog-blend': .7, 'fog-ground-blend': .85, 'atmosphere-blend': .4 },
@@ -95,7 +107,7 @@ const LIGHT = {
   fantasy: { anchor: 'map', position: [1.4, 215, 38], color: '#c9d4ff', intensity: .5 },
 };
 
-function style(osm, zonesFC, trees, parts, demUrl) {
+function style(osm, zonesFC, trees, parts, walks, demUrl) {
   const L = (id, type, filter, paint = {}, layout = {}, source = 'osm') => ({ id, type, source, ...(filter ? { filter } : {}), paint, layout });
   const join = { 'line-join': 'round', 'line-cap': 'round' };
   const w = (a, b) => ['interpolate', ['exponential', 1.6], ['zoom'], 15, a, 19, b];
@@ -107,6 +119,8 @@ function style(osm, zonesFC, trees, parts, demUrl) {
       zones: { type: 'geojson', data: zonesFC },
       deco: { type: 'geojson', data: trees },
       bparts: { type: 'geojson', data: parts },
+      walkroofs: { type: 'geojson', data: walks.roofs },
+      walkposts: { type: 'geojson', data: walks.posts },
       sel: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
       me: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
       dem, demhs: { ...dem },
@@ -140,6 +154,9 @@ function style(osm, zonesFC, trees, parts, demUrl) {
       L('me-acc', 'fill', null, { 'fill-color': '#4a8cff', 'fill-opacity': .13 }, {}, 'me'),
       L('me-acc-edge', 'line', null, { 'line-color': '#4a8cff', 'line-width': 1.5, 'line-opacity': .7 }, {}, 'me'),
       L('roof', 'fill-extrusion', ['all', K('roof'), POLY], { 'fill-extrusion-base': 2.6, 'fill-extrusion-height': 3.0 }),
+      // the covered walkways as the video shows them: a red metal roof on white posts (./buildings.js, both looks)
+      L('walkpost', 'fill-extrusion', null, { 'fill-extrusion-base': 0, 'fill-extrusion-height': WALK.base }, {}, 'walkposts'),
+      L('walkroof', 'fill-extrusion', null, { 'fill-extrusion-base': WALK.base, 'fill-extrusion-height': WALK.top, 'fill-extrusion-opacity': .95 }, {}, 'walkroofs'),
       L('bld', 'fill-extrusion', ['all', K('building'), POLY], { 'fill-extrusion-height': HEIGHT, 'fill-extrusion-base': 0, 'fill-extrusion-vertical-gradient': true }),
       // fantasy: each footprint gets a plinth, gold eaves, a tiered slate hipped roof, a chimney and, on the large halls,
       // a corner turret with a spire (js/buildings.js). Decoration on the real outline, not surveyed shapes.
@@ -148,7 +165,7 @@ function style(osm, zonesFC, trees, parts, demUrl) {
           'ridge', ['match', ['get', 'btype'], 'mosque', 'px-goldroof', 'house', 'px-roofred', 'px-slate-hi'], ['match', ['get', 'btype'], 'mosque', 'px-goldroof', 'house', 'px-roofred', 'hut', 'px-wood', 'px-slate']] },
         { visibility: 'none' }, 'bparts'),
       L('wt', 'fill-extrusion', ['all', K('water_tower'), POLY], { 'fill-extrusion-height': 12 }),
-      L('trees', 'symbol', null, {}, { visibility: 'none', 'icon-image': ['get', 't'], 'icon-allow-overlap': true, 'icon-ignore-placement': true, 'icon-anchor': 'bottom',
+      L('trees', 'symbol', null, {}, { visibility: 'visible', 'icon-image': TREE_IMG.realistic, 'icon-allow-overlap': true, 'icon-ignore-placement': true, 'icon-anchor': 'bottom',
         'icon-pitch-alignment': 'viewport', 'icon-rotation-alignment': 'viewport', 'icon-size': ['interpolate', ['linear'], ['zoom'], 15, ['*', ['get', 's'], .55], 17, ['*', ['get', 's'], 1], 19.5, ['*', ['get', 's'], 2.1]] }, 'deco'),
       L('lanterns', 'symbol', ['all', K('footway_covered'), LINE], {}, { visibility: 'none', 'symbol-placement': 'line', 'symbol-spacing': 90, 'icon-image': 'px-lantern',
         'icon-allow-overlap': true, 'icon-ignore-placement': true, 'icon-anchor': 'bottom', 'icon-pitch-alignment': 'viewport', 'icon-rotation-alignment': 'viewport',
@@ -172,11 +189,11 @@ export function createMap(opts) {
   const bb = bbox((campus ? [campus] : osm.features).concat(opts.groups.map(g => ({ geometry: { coordinates: [g.lng, g.lat] } }))));
   const [x0, y0, x1, y1] = osm.bounds;
   terrain.register(ML);
-  const trees = makeTrees(osm, opts.groups.map(g => [g.lng, g.lat])), parts = makeBuildingParts(osm);
+  const trees = makeTrees(osm, opts.groups.map(g => [g.lng, g.lat])), parts = makeBuildingParts(osm), walks = makeWalkways(osm);
   const cam = opts.cam;
   const map = new ML.Map(Object.assign({
-    container: opts.container, style: style(osm, terrain.overlays(), trees, parts, terrain.url),
-    maxPitch: 75, minZoom: 14.5, maxZoom: 20.5, maxBounds: [[x0 - .006, y0 - .006], [x1 + .006, y1 + .006]],
+    container: opts.container, style: style(osm, terrain.overlays(), trees, parts, walks, terrain.url),
+    maxPitch: 75, minZoom: 15.5, maxZoom: 20.5, maxBounds: [[x0 - .0012, y0 - .0012], [x1 + .0012, y1 + .0012]], // Kolej MARA Kulim only (data/campus-osm.geojson is cut to it)
     attributionControl: false, dragRotate: true, pitchWithRotate: true, touchPitch: true, fadeDuration: opts.reduced() ? 0 : 300,
   }, cam ? { center: cam.c, zoom: cam.z, bearing: cam.b, pitch: cam.p } : { bounds: bb, fitBoundsOptions: { padding: opts.padding() }, pitch: 58, bearing: -12 }));
   map.addControl(new ML.AttributionControl({ compact: true }), 'bottom-right');
@@ -202,7 +219,8 @@ export function createMap(opts) {
       }
     }
     FANTASY_ONLY.forEach(id => map.getLayer(id) && map.setLayoutProperty(id, 'visibility', m === 'fantasy' ? 'visible' : 'none'));
-    if (m === 'fantasy') loadModels();
+    if (map.getLayer('trees')) map.setLayoutProperty('trees', 'icon-image', TREE_IMG[m]);
+    loadModels();
     FX.set(m === 'fantasy' && !opts.reduced());
     if (m !== 'fantasy') FX.follow(null);
     setHeights();
@@ -216,30 +234,39 @@ export function createMap(opts) {
     map.setPaintProperty('roof', 'fill-extrusion-height', bldOn ? 3.0 : 0);
     map.setPaintProperty('roof', 'fill-extrusion-base', bldOn ? 2.6 : 0);
     map.setPaintProperty('wt', 'fill-extrusion-height', bldOn ? 12 : 0);
+    map.setPaintProperty('walkpost', 'fill-extrusion-height', bldOn ? WALK.base : 0);
+    map.setPaintProperty('walkroof', 'fill-extrusion-height', bldOn ? WALK.top : 0);
+    map.setPaintProperty('walkroof', 'fill-extrusion-base', bldOn ? WALK.base : 0);
     buildingVisibility();
   }
-  /* ---------- the Blender buildings (fantasy). Until they load, or if they cannot, the generated roofs stand in. ---------- */
-  let models = null, modelsReady = false;
+  /* ---------- the Blender buildings, one GLB per look (tools/blender_campus.py). Only the current look's model is kept:
+     switching looks frees the other one (its geometry, textures and shadow map). Until it loads, or if it cannot, the
+     simple blocks (Realistic) or the generated roofs (Fantasy) stand in. ---------- */
+  let models = null, modelsReady = false, modelsLook = null, failed = {}, loadSeq = 0;
   function loadModels() {
-    if (models) return;
-    models = 'loading';
+    if (modelsLook === mode || failed[mode]) return;
+    if (models && typeof models === 'object' && map.getLayer('models')) map.removeLayer('models'); // frees the other look (onRemove)
+    models = 'loading'; modelsReady = false; modelsLook = mode;
+    const look = mode, seq = ++loadSeq;
+    buildingVisibility();
     import('./models3d.js').then(mod => {
-      if (gone) return;
-      models = mod.createModelLayer({ ML, url: MODEL_URL, heightAt: terrain.heightAt, terrainOn: () => terrOn,
+      if (gone || seq !== loadSeq) return;
+      models = mod.createModelLayer({ ML, url: MODEL_URL[look], look: look === 'fantasy' ? 'night' : 'day', heightAt: terrain.heightAt, terrainOn: () => terrOn,
         quality: () => (window.innerWidth < 900 || (window.devicePixelRatio || 1) > 2.5) ? 'low' : 'high',
-        onReady: () => { if (gone) return; modelsReady = true; buildingVisibility(); },
-        onError: e => { console.warn('[models] the 3D buildings could not load; showing the simple ones.', e && e.message); modelsReady = false; models = 'failed'; if (!gone) buildingVisibility(); } });
+        onReady: () => { if (gone || seq !== loadSeq) return; modelsReady = true; buildingVisibility(); },
+        onError: e => { console.warn('[models] the 3D buildings could not load; showing the simple ones.', e && e.message); if (seq !== loadSeq) return; failed[look] = true; modelsReady = false; models = 'failed'; modelsLook = null; if (!gone) buildingVisibility(); } });
       map.addLayer(models, 'trees');
       buildingVisibility();
-    }).catch(e => { console.warn('[models]', e && e.message); models = 'failed'; });
+    }).catch(e => { console.warn('[models]', e && e.message); if (seq !== loadSeq) return; failed[look] = true; models = 'failed'; modelsLook = null; });
   }
   function buildingVisibility() {
-    const fan = mode === 'fantasy', useModels = fan && modelsReady && bldOn;
+    const fan = mode === 'fantasy', useModels = modelsReady && modelsLook === mode && bldOn;
     const vis = (id, on) => map.getLayer(id) && map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none');
     vis('models', useModels);
-    vis('bld', !useModels);
+    vis('bld', !useModels); // the walls under the generated roofs too
     vis('wt', !useModels);
-    vis('bx', fan && bldOn && !modelsReady); // fantasy: the generated roofs and turrets on the OSM outlines (./buildings.js)
+    vis('roof', !useModels); // the GLB has the gazebos and shelters
+    vis('bx', fan && bldOn && !useModels); // fantasy: the generated roofs and turrets on the OSM outlines (./buildings.js)
   }
   function setTerrain(on) {
     terrOn = on;
@@ -383,6 +410,7 @@ export function createMap(opts) {
     get mode() { return mode; },
     get models() { return models; },
     get modelsReady() { return modelsReady; },
+    get modelsLook() { return modelsReady ? modelsLook : null; },
     get fx() { return FX; },
     get terrainOn() { return terrOn; },
     get buildingsOn() { return bldOn; },
