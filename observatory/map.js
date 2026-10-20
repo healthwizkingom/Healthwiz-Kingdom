@@ -6,14 +6,19 @@
 // switched off; so can the terrain.
 // Changes from the prototype: the markers come from HealthWiz's records (js/v6-campus-data.js: STAIRS + F21 + survey)
 // and say measured or estimated; the camera can be restored and reported (sessionStorage, js/v6-campus.js); the
-// position is a plain dot and accuracy circle (Tom comes in Phase 5); the Blender buildings come in Phase 4 (until then
-// the generated blocks stand in, as in the prototype while the model loads); destroy() frees the map when the page closes.
+// position is a plain dot and accuracy circle (Tom comes in Phase 5); destroy() frees the map when the page closes.
+// Phase 4: the Blender buildings with real-time shadows (./models3d.js, fantasy only; the generated roofs stand in while
+// they load or if they cannot) and the particles and selection sparks (./fx.js: fantasy only, never with reduced motion).
 import { centroid } from './geo.js';
 import { makeImage } from './textures.js';
 import { makeTrees } from './deco.js';
 import { makeBuildingParts } from './buildings.js';
+import { createFx } from './fx.js';
 
 let ML = null; // window.maplibregl, set when a map is created (main.js loads the library first)
+// made in Blender by the prototype's tools/blender_buildings.py from the OSM outlines
+const MODEL_URL = new URL('../assets/models/campus-fantasy.glb', import.meta.url).href;
+const CATCOL = { MILD: '#7ee07c', MODERATE: '#f6c94f', VIGOROUS: '#ff7b6e' };
 const ATTR = '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a> (ODbL)';
 const K = k => ['==', ['get', 'kind'], k];
 const Z = k => ['==', ['get', 'zkind'], k];
@@ -175,12 +180,17 @@ export function createMap(opts) {
     attributionControl: false, dragRotate: true, pitchWithRotate: true, touchPitch: true, fadeDuration: opts.reduced() ? 0 : 300,
   }, cam ? { center: cam.c, zoom: cam.z, bearing: cam.b, pitch: cam.p } : { bounds: bb, fitBoundsOptions: { padding: opts.padding() }, pitch: 58, bearing: -12 }));
   map.addControl(new ML.AttributionControl({ compact: true }), 'bottom-right');
+  // fantasy particles and selection sparks: a canvas over the map that ignores the pointer (decoration only)
+  const fxCanvas = document.createElement('canvas');
+  fxCanvas.className = 'cmpfx'; fxCanvas.setAttribute('aria-hidden', 'true');
+  map.getContainer().appendChild(fxCanvas);
+  const FX = createFx(fxCanvas);
   map.addControl(new ML.ScaleControl({ unit: 'metric', maxWidth: 100 }), 'bottom-left');
   map.on('styleimagemissing', e => { if (!map.hasImage(e.id)) { const im = makeImage(e.id); if (im) map.addImage(e.id, im, { pixelRatio: 2 }); } });
 
   let mode = opts.mode === 'realistic' ? 'realistic' : 'fantasy', bldOn = opts.bld !== false, terrOn = opts.terr !== false, sel = null, timer = null, step = 0, ready = false, gone = false;
   const markers = new Map(), zoneMarks = [], labels = [];
-  let clusters = [], meMk = null;
+  let clusters = [], meMk = null, sparked = null;
 
   function applyMode(m) {
     mode = m;
@@ -192,6 +202,9 @@ export function createMap(opts) {
       }
     }
     FANTASY_ONLY.forEach(id => map.getLayer(id) && map.setLayoutProperty(id, 'visibility', m === 'fantasy' ? 'visible' : 'none'));
+    if (m === 'fantasy') loadModels();
+    FX.set(m === 'fantasy' && !opts.reduced());
+    if (m !== 'fantasy') FX.follow(null);
     setHeights();
     try { map.setSky(SKY[m]); } catch (e) {}
     try { map.setLight(LIGHT[m]); } catch (e) {}
@@ -203,14 +216,37 @@ export function createMap(opts) {
     map.setPaintProperty('roof', 'fill-extrusion-height', bldOn ? 3.0 : 0);
     map.setPaintProperty('roof', 'fill-extrusion-base', bldOn ? 2.6 : 0);
     map.setPaintProperty('wt', 'fill-extrusion-height', bldOn ? 12 : 0);
-    // fantasy: the generated roofs and turrets on the OSM outlines (js/buildings.js); realistic: plain blocks
-    map.setLayoutProperty('bx', 'visibility', mode === 'fantasy' && bldOn ? 'visible' : 'none');
+    buildingVisibility();
+  }
+  /* ---------- the Blender buildings (fantasy). Until they load, or if they cannot, the generated roofs stand in. ---------- */
+  let models = null, modelsReady = false;
+  function loadModels() {
+    if (models) return;
+    models = 'loading';
+    import('./models3d.js').then(mod => {
+      if (gone) return;
+      models = mod.createModelLayer({ ML, url: MODEL_URL, heightAt: terrain.heightAt, terrainOn: () => terrOn,
+        quality: () => (window.innerWidth < 900 || (window.devicePixelRatio || 1) > 2.5) ? 'low' : 'high',
+        onReady: () => { if (gone) return; modelsReady = true; buildingVisibility(); },
+        onError: e => { console.warn('[models] the 3D buildings could not load; showing the simple ones.', e && e.message); modelsReady = false; models = 'failed'; if (!gone) buildingVisibility(); } });
+      map.addLayer(models, 'trees');
+      buildingVisibility();
+    }).catch(e => { console.warn('[models]', e && e.message); models = 'failed'; });
+  }
+  function buildingVisibility() {
+    const fan = mode === 'fantasy', useModels = fan && modelsReady && bldOn;
+    const vis = (id, on) => map.getLayer(id) && map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none');
+    vis('models', useModels);
+    vis('bld', !useModels);
+    vis('wt', !useModels);
+    vis('bx', fan && bldOn && !modelsReady); // fantasy: the generated roofs and turrets on the OSM outlines (./buildings.js)
   }
   function setTerrain(on) {
     terrOn = on;
     try { map.setTerrain(on ? { source: 'dem', exaggeration: 1 } : null); } catch (e) { console.warn('[terrain]', e.message); }
     TERRAIN_LAYERS.forEach(id => map.getLayer(id) && map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none'));
     zoneMarks.forEach(z => { z.getElement().hidden = !on; });
+    if (models && models.replace) models.replace();
   }
   // fantasy: walkways flow like enchanted paths and the plateau rims breathe, unless motion is reduced
   const DASH = [[0, 4, 3], [.5, 4, 2.5], [1, 4, 2], [1.5, 4, 1.5], [2, 4, 1], [2.5, 4, .5], [3, 4, 0], [0, .5, 3, 3.5], [0, 1, 3, 3], [0, 1.5, 3, 2.5], [0, 2, 3, 2], [0, 2.5, 3, 1.5], [0, 3, 3, 1], [0, 3.5, 3, .5]];
@@ -239,7 +275,9 @@ export function createMap(opts) {
         + PIN(many ? '' : catN(s.appCategory)) + (many ? '<span class="cnt" aria-hidden="true">×' + g.items.length + '</span>' : '')
         + '<span class="tip" aria-hidden="true">' + esc(name.length > 46 ? name.slice(0, 44) + '…' : name) + '</span>';
       el.addEventListener('click', ev => { ev.stopPropagation(); opts.onSelect(many ? { group: g.key } : { id: s.id }); });
-      const mk = new ML.Marker({ element: el, anchor: 'bottom', offset: [0, 6] }).setLngLat([g.lng, g.lat]).addTo(map);
+      // opacityWhenCovered 1: MapLibre dims a marker the (illustrative) terrain seems to hide; the staircases are the data and
+      // must stay fully visible above the decoration
+      const mk = new ML.Marker({ element: el, anchor: 'bottom', offset: [0, 6], opacity: '1', opacityWhenCovered: '1' }).setLngLat([g.lng, g.lat]).addTo(map);
       markers.set(g.key, { mk, el, g });
     }
   }
@@ -264,7 +302,7 @@ export function createMap(opts) {
         const b = bbox(mem.map(x => ({ geometry: { coordinates: [x.m.g.lng, x.m.g.lat] } })));
         noPad(); map.fitBounds(b, { padding: Object.assign({}, opts.padding(), { top: opts.padding().top + 60 }), maxZoom: Math.max(map.getZoom() + 1.5, 18.6), duration: dur() });
       });
-      clusters.push({ mk: new ML.Marker({ element: el, anchor: 'center' }).setLngLat([lng, lat]).addTo(map) });
+      clusters.push({ mk: new ML.Marker({ element: el, anchor: 'center', opacity: '1', opacityWhenCovered: '1' }).setLngLat([lng, lat]).addTo(map) });
     }
     for (const a of pts) if (a.m.g.key === sel) a.m.el.hidden = false;
   }
@@ -325,11 +363,14 @@ export function createMap(opts) {
     /** Milliseconds since the map last drew a frame (tests wait for a quiet map: the first terrain tiles take seconds). */
     get quietMs() { return performance.now() - drawn; },
     get mode() { return mode; },
+    get models() { return models; },
+    get modelsReady() { return modelsReady; },
+    get fx() { return FX; },
     get terrainOn() { return terrOn; },
     get buildingsOn() { return bldOn; },
     camera: camNow,
     setMode(m) { mode = m; if (ready) applyMode(m); },
-    setReduced() { if (ready) animate(); },
+    setReduced() { if (ready) animate(); FX.set(mode === 'fantasy' && !opts.reduced()); },
     /** Highlight a marker by group key (null clears); returns the marker or null. */
     select(key) {
       if (!ready) { sel = key || null; return null; }
@@ -340,6 +381,12 @@ export function createMap(opts) {
       if (src) src.setData({ type: 'FeatureCollection', features: m ? [{ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [m.g.lng, m.g.lat] } }] : [] });
       if (m) { m.el.classList.add('sel'); m.el.style.zIndex = 5; m.el.setAttribute('aria-pressed', 'true'); }
       recluster();
+      // fantasy: a burst of sparks once the camera arrives, then a slow ring of them at the selected waypoint
+      if (m && mode === 'fantasy' && !opts.reduced()) {
+        const col = CATCOL[m.g.items[0].appCategory] || '#fff0a8';
+        if (key !== sparked) { sparked = key; setTimeout(() => { if (gone || sel !== key) return; const q = this.screenOf(key); if (q) FX.burst(q.x, q.y, col); }, 820); }
+        FX.follow(() => this.screenOf(key), col);
+      } else { FX.follow(null); if (!m) sparked = null; }
       return m || null;
     },
     flyToGroup(key) {
@@ -370,7 +417,7 @@ export function createMap(opts) {
     near(lng, lat) { const b = map.getMaxBounds(); return !b || b.contains([lng, lat]); },
     /** Free everything: timers, markers, the WebGL context. */
     destroy() {
-      if (gone) return; gone = true; clearInterval(timer); timer = null;
+      if (gone) return; gone = true; clearInterval(timer); timer = null; FX.destroy(); fxCanvas.remove();
       map.getCanvas().removeEventListener('webglcontextlost', lost);
       try { map.remove(); } catch (e) {}
       markers.clear(); clusters = []; zoneMarks.length = 0; labels.length = 0; meMk = null;

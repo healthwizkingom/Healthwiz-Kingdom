@@ -35,6 +35,7 @@ before(async () => {
 after(async () => { if (browser) await browser.close(); await new Promise(r => server.close(r)); });
 
 const SEED = { ...RETURNING, s: { ...RETURNING.s, live: 0 } };
+const STUB_BUILDINGS = 'export function createModelLayer() { return { id: "models", type: "custom", renderingMode: "3d", onAdd() {}, render() {}, onRemove() {}, replace() {}, get ready() { return false; } }; }';
 const STUB = 'export function createViewer() { return { show() { return Promise.resolve(); }, hide() {}, destroy() {}, setMode() {}, setShape() {}, spin() {}, rotateBy() {}, zoomBy() {}, reset() {}, '
   + 'get shape() { return "straight-landing"; }, get spinning() { return false; }, get isOpen() { return true; }, get debug() { return { source: "stub" }; } }; }';
 async function openHttp({ viewport, init, route, ctxOpt } = {}) {
@@ -48,6 +49,8 @@ async function openHttp({ viewport, init, route, ctxOpt } = {}) {
   if (init) await page.addInitScript(init);
   // the 3D preview has its own tests (75–77); here a do-nothing stand-in keeps the CPU (software WebGL) for the map
   await page.route('**/observatory/viewer3d.js', r => r.fulfill({ contentType: 'text/javascript', body: STUB }));
+  // the Blender buildings have their own tests (79, 80); here a stand-in that never loads keeps the CPU for this file
+  await page.route('**/observatory/models3d.js', r => r.fulfill({ contentType: 'text/javascript', body: STUB_BUILDINGS }));
   if (route) await route(page);
   await page.goto(base); await page.waitForSelector('.wl');
   return { ctx, page, errors, reqs };

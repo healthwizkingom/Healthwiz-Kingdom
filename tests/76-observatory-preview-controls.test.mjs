@@ -38,6 +38,7 @@ before(async () => {
 after(async () => { if (browser) await browser.close(); await new Promise(r => server.close(r)); });
 
 const SEED = { ...RETURNING, s: { ...RETURNING.s, live: 0 } };
+const STUB_BUILDINGS = 'export function createModelLayer() { return { id: "models", type: "custom", renderingMode: "3d", onAdd() {}, render() {}, onRemove() {}, replace() {}, get ready() { return false; } }; }';
 async function openHttp({ viewport, init, route, ctxOpt } = {}) {
   // software WebGL: a small map keeps each frame quick
   const ctx = await browser.newContext({ viewport: viewport || { width: 760, height: 640 }, reducedMotion: 'reduce', serviceWorkers: 'block', ...ctxOpt });
@@ -47,6 +48,8 @@ async function openHttp({ viewport, init, route, ctxOpt } = {}) {
   page.on('request', r => reqs.push(r.url()));
   await page.addInitScript(s => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('healthwiz', s); localStorage.setItem('hwtut', '1'); sessionStorage.setItem('seeded', '1'); } }, JSON.stringify(SEED));
   if (init) await page.addInitScript(init);
+  // the Blender buildings have their own tests (79, 80); here a stand-in that never loads keeps the CPU for this file
+  await page.route('**/observatory/models3d.js', r => r.fulfill({ contentType: 'text/javascript', body: STUB_BUILDINGS }));
   if (route) await route(page);
   await page.goto(base); await page.waitForSelector('.wl');
   return { ctx, page, errors, reqs };
@@ -60,7 +63,8 @@ const cam = page => page.evaluate(() => { const m = HWCampus.map.map, c = m.getC
 
 
 const shown = (page, id) => page.waitForFunction(id => HWCampus.state.shown.startsWith(id + '|') && HWCampus.viewer && HWCampus.viewer.debug.source && document.querySelector('.cmpvwmsg').hidden, id, { timeout: 60000 });
-const glbs = reqs => reqs.filter(u => /\.glb$/.test(u)).map(u => u.split('/').pop());
+// the staircase models only (the fantasy map also loads its buildings, assets/models/campus-fantasy.glb)
+const glbs = reqs => reqs.filter(u => /\/stairs\/[^/]+\.glb$/.test(u)).map(u => u.split('/').pop());
 
 test('a staircase without coordinates has a preview; the shapes; closing keeps the selection and SHOW 3D PREVIEW reopens it; the mode follows the map', async () => {
   const { ctx, page, errors } = await openHttp();

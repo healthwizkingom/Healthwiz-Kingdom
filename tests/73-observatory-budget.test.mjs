@@ -6,8 +6,9 @@
 //   LICENSE.txt 5,984 = 874,604 bytes).
 //   Phase 3 (2026-10-20): vendor/three = Three.js r169 and the preview's add-ons (896,543 bytes, from
 //   tools/vendor-three.mjs); vendor/ is 1,771,147 bytes → budget 1,948,262. assets/models/stairs = the prototype's
-//   Blender staircases (8 sets × style + pedestals, 5,537,184 bytes) → budget 6,090,902. Raise both, with the new
-//   committed size + 10 %, when the fantasy buildings and the avatars arrive.
+//   Blender staircases (8 sets × style + pedestals, 5,537,184 bytes).
+//   Phase 4 (2026-10-20): + assets/models/campus-fantasy.glb, the prototype's Blender buildings (1,696,300 bytes):
+//   assets/models/ is 7,233,484 bytes → budget 7,956,832. Raise it, with the new size + 10 %, when the avatars arrive.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -15,7 +16,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const BUDGET = { vendor: 1948262, 'assets/models': 6090902 };
+const BUDGET = { vendor: 1948262, 'assets/models': 7956832 };
 const files = dir => { const d = path.join(root, dir); if (!fs.existsSync(d)) return []; return fs.readdirSync(d, { recursive: true }).map(f => path.join(dir, f)).filter(f => fs.statSync(path.join(root, f)).isFile()); };
 const size = dir => files(dir).reduce((t, f) => t + fs.statSync(path.join(root, f)).size, 0);
 

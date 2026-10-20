@@ -21,6 +21,10 @@
      ST14, ST19 and ST20) or, for a staircase with complete survey flights, a model built from those flights. It is never
      sized from an estimated angle. Labels: "Illustrative model — actual dimensions not surveyed." or "Built from survey
      measurements · finishes illustrative". It needs what the map needs (http(s), WebGL), and is freed with the page.
+   * Fantasy look (integration Phase 4): the Blender buildings with moonlit real-time shadows, the generated pixel
+     textures, glowing paths and lanterns, particles and selection sparks (observatory/), and gold-cornered panels here.
+     All decoration: none moves a marker or changes a number, nothing animates when motion is reduced, and Realistic
+     shows plain blocks. The art is original (drawn in code or modelled in Blender for HealthWiz).
    * Location only on tap (decision 2): SHOW WHERE I AM asks once; on campus the nearest placed staircase is selected.
      The position is shown on this screen only: never saved, never sent, not kept for the tab.
    * HWCampus.focus(id): select a staircase from elsewhere (FIND ON OBSERVATORY, RETURN TO OBSERVATORY): the map flies
@@ -362,6 +366,13 @@ HWUI.css('campus',`
 .cmpvwc,.cmpvwshapes{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.cmpvb{margin:0;min-width:44px;min-height:44px;padding:0 10px;font-size:14px}.cmpvb[aria-pressed="true"]{outline:2px solid var(--gold,#f6c94f);outline-offset:1px}
 .cmpvwmore{margin-top:8px;font-size:13px}.cmpvwmore summary{cursor:pointer;min-height:40px;display:flex;align-items:center;font-weight:600}.cmpvwmore ul{margin:4px 0;padding-left:18px}
 .cmpchip.ill{color:#c9b6ff;border-style:dashed}
+/* fantasy (integration Phase 4): the panels take the prototype's small gold corner brackets and a moonlit edge; the text,
+   numbers and labels keep the app's readable sans and contrast, so the health information stays ahead of the decoration */
+.cmpcard[data-mode="fantasy"] .cmppanel,.cmpcard[data-mode="fantasy"] .cmpvw{position:relative;border-color:rgba(242,193,78,.45);box-shadow:0 0 0 1px rgba(242,193,78,.12),0 0 22px rgba(95,225,230,.10)}
+.cmpcard[data-mode="fantasy"] .cmppanel::before,.cmpcard[data-mode="fantasy"] .cmpvw::before{content:"";position:absolute;inset:5px;pointer-events:none;z-index:1;opacity:.75;
+  background:linear-gradient(#f2c14e,#f2c14e) left top/12px 2px no-repeat,linear-gradient(#f2c14e,#f2c14e) left top/2px 12px no-repeat,linear-gradient(#f2c14e,#f2c14e) right top/12px 2px no-repeat,linear-gradient(#f2c14e,#f2c14e) right top/2px 12px no-repeat,
+  linear-gradient(#f2c14e,#f2c14e) left bottom/12px 2px no-repeat,linear-gradient(#f2c14e,#f2c14e) left bottom/2px 12px no-repeat,linear-gradient(#f2c14e,#f2c14e) right bottom/12px 2px no-repeat,linear-gradient(#f2c14e,#f2c14e) right bottom/2px 12px no-repeat}
+.cmpcard[data-mode="fantasy"] .cmpgrp h3,.cmpcard[data-mode="fantasy"] .cmpeye{color:var(--gold,#f6c94f)}
 `);
 return{points,unmapped,focus,why,get selected(){return V.sid},get map(){return M.ctl},get viewer(){return P3.ctl},
   get state(){return{sid:V.sid,grp:V.grp,mode:V.mode,full:V.full,vw:V.vw,v3:P3.st,shown:P3.shown,tab:V.tab,f:V.f,q:V.q,terr:V.terr,bld:V.bld,cam:V.cam,map:M.st,msg:M.msg,me:V.me,err:V.err}}}})();

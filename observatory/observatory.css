@@ -74,3 +74,6 @@
 /* reduced motion (the app's setting or the system's): nothing bobs, pulses or spins */
 html.hw-rm .cmpcard .stm *,html.hw-q-performance .cmpcard .stm *{animation:none!important;transition:none!important}
 @media (prefers-reduced-motion:reduce){.cmpcard .stm *{animation:none!important;transition:none!important}}
+
+/* fantasy particles and selection sparks (./fx.js): over the map, never in the way of a tap */
+.cmpmap .cmpfx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;image-rendering:pixelated}
