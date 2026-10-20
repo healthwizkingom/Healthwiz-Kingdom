@@ -97,7 +97,9 @@ test('log in place: a staircase picked in the Observatory is logged in its Detai
   assert.equal(await page.evaluate(() => S.v), 'campus');
   assert.deepEqual(await view(page), v0, 'staircase, tab, filter and search kept');
   assert.match(await page.textContent('#cmpdet'), /penjana elektrik[\s\S]*You saved 2 stair sessions here \(last \d{4}-\d\d-\d\d\) · first GPS check-in 2026-10-01/);
-  // refresh: nothing is saved again
+  // refresh: nothing is saved again (a person refreshes seconds later; Chromium writes sessionStorage, where the test's
+  // seeding is marked done, shortly after a change)
+  await page.waitForTimeout(3000);
   await page.reload(); await page.waitForSelector('.wl');
   assert.equal(stairs(await state(page)).length, 3, 'a refresh creates no session');
   // existing records and history are unchanged

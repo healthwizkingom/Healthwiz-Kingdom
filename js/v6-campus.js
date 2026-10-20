@@ -101,7 +101,7 @@ function mount(){fsClass();const slot=$id('cmpmapslot');if(!slot||why())return;
       .catch(e=>{if(g!==M.gen)return;fail('The campus map could not be loaded ('+String(e&&e.message||e).slice(0,120)+'). The staircases are listed with their details.')})}
   else if(M.ctl){M.ctl.resize();sync()}else paintMsg()}
 function fail(m){M.st='error';M.skyk=null;M.msg=m;if(M.ctl){M.ctl.destroy();M.ctl=null}if(M.host){M.host.remove();M.host=null}if(S.v==='campus')keep()}
-function unmount(){M.gen++;M.skyk=null;if(M.ctl){persist();M.ctl.destroy()}M.ctl=null;if(M.host)M.host.remove();M.host=null;M.st='off';M.msg=''}
+function unmount(){M.gen++;M.skyk=null;clearInterval(M.skyT);M.skyT=0;if(M.ctl){persist();M.ctl.destroy()}M.ctl=null;if(M.host)M.host.remove();M.host=null;M.st='off';M.msg=''}
 /** The loading / failure note over the map, changed in place (no redraw). */
 function paintMsg(){const e=$id('cmpmsg');if(!e)return;e.hidden=M.st==='ready';e.textContent=M.st==='error'?M.msg:'Loading the campus map…'}
 /** Make the map match the state: the highlighted marker, and a pending fly to the selection. */
@@ -281,11 +281,11 @@ function skyApply(){const c=M.ctl,X=window.HWObsMap;if(!c||!c.ready||!X||!X.sky|
   const P=points(),lat=P.length?P.reduce((a,g)=>a+g.lat,0)/P.length:5.3505,lng=P.length?P.reduce((a,g)=>a+g.lng,0)/P.length:100.5385;
   const st2=X.sky.state({now:new Date(),lat,lng,wx,hazeLevel:L?L.level():0,preview:V.sky}),k=JSON.stringify([st2.tod,st2.rain,st2.fog,st2.haze,st2.cloud,Math.round(st2.az/5),Math.round(st2.alt/3),c.mode]);
   if(k!==M.skyk){M.skyk=k;c.sky(st2)} // only when the picture changes: each change redraws the map once
+  if(!M.skyT)M.skyT=setInterval(()=>{if(!document.hidden)skyApply()},5*60e3); // the time of day moves on: one quiet check every 5 min, only while the map is open
   const t=$id('cmpskycap');if(t)t.textContent='Sky: '+X.sky.words(st2)+(V.sky==='live'?(st2.src==='live'?' (live)':' (clock; no live weather)'):' (preview)')}
 acts.cmpskyb=()=>{V.skyo=!V.skyo;keep()};
 acts.cmpsky=d=>{if(!SKYN[d.v])return;V.sky=d.v;persist();keep();skyApply()};
 HWEvents.on('live:updated',()=>{if(S.v==='campus')skyApply()});
-setInterval(()=>{if(S.v==='campus'&&!document.hidden)skyApply()},5*60e3); // the time of day moves on: one quiet update every 5 min
 
 /* ---------- the page ---------- */
 function stage(){const w=why(),s=V.sid&&rec(V.sid),g=V.grp&&points().find(x=>x.key===V.grp),on=(k,v)=>' aria-pressed="'+!!v+'"';
