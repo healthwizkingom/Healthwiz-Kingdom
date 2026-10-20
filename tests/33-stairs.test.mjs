@@ -129,7 +129,9 @@ test('workout: timer, heart rate before and after (two traces), calorie estimate
   assert.match(await page.textContent('#wk-time'), /^0:0[1-3]$/, 'the rhythm guide times the workout');
   await page.click('[data-a="pstop"]');
   assert.equal(await page.inputValue('#wk-b'), '72', 'typed values survive the re-render');
-  // the workout draft survives a reload of the tab
+  // the workout draft survives a reload of the tab (a person refreshes seconds later; Chromium writes sessionStorage to the
+  // tab's store shortly after a change, so an instant reload can miss the newest write)
+  await page.waitForTimeout(1500);
   await page.reload(); await page.waitForSelector('.wl'); await go(page, 'pulse');
   assert.equal(await page.inputValue('#wk-b'), '72');
   assert.ok(await page.evaluate(() => HWStairs.draft.secs) >= 1, 'timer kept');
