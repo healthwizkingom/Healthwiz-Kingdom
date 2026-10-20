@@ -37,7 +37,7 @@ js/v6-uncert.js            the Uncertainty Engine: how unmeasured assumptions mo
 js/v6-plan.js              Stair Prescription on the Stairs page: a weekly stair plan the player chooses (st.s.pl); not a prescription
 js/v6-time.js              the Health Time Machine (route 'time', door on Statistics): saved records on a day / week / month timeline
 js/v6-campus-data.js        the Observatory's staircase records (STAIRS + the F21 step sizes + data/stair-survey.json), its links with the Stairs page
-js/v6-observatory.js       the Campus Health Observatory (route 'campus', door in the Health Hall): the stairways on a map, all unverified
+js/v6-campus.js            the Campus Health Observatory (route 'campus', door in the Health Hall): list, details, links and fallback; loads the map below over https
 js/v6-addfood.js           Add More Food: Luke (the apprentice) searches the web (Gemini + Google Search via food-guess) for any food, portion and changes, with a source per part; signed out, the canteen menu
 js/v6-arcane.js            the magical, modern look: Arcane Night default theme, glowing rounded panels and controls (docs/PIXEL_STYLE.md)
 js/v6-emoji.js             every emoji the app shows drawn as pixel art (hand-drawn icon or the emoji pixelated)
@@ -104,6 +104,9 @@ js/v6-body.js              Body & Energy: BMI + daily energy + macros as one pag
 js/v6-log.js               Settings → ALL ENTRIES grouped by day (collapsible, totals), 14-day date chips, date picker, category filter
 js/v6-hall.js              usability: one shared 3-line header (what this is / what to enter / why) on every tracker, Health Hall tiles with today's value and the one input, a Next step line, example lines under empty inputs
 js/v6-safety.js            an error card instead of a blank screen
+observatory/               the Observatory's map, ES modules loaded only on the campus page over http(s) with WebGL: MapLibre map from the OSM data, both modes, illustrative terrain (from prototypes/campus-observatory)
+vendor/maplibre-gl/        MapLibre GL JS 4.7.1 (BSD-3-Clause), pinned copy; loaded only by the map; budget in tests/73-observatory-budget
+data/                      campus-osm.geojson and elevation-zones.geojson (the map's data, copied unchanged from the prototype) and stair-survey.json
 assets/img/                the 15 images that were embedded as base64 in the original (the PNG art re-encoded as lossless WebP)
 assets/icons/              app icons (original pixel art, drawn by tools/make-icons.mjs)
 legacy/HealthWiz_Kingdom_5-4-3.html   the complete original single file (source of truth)
@@ -119,6 +122,16 @@ docs/                      architecture audit and plan, event catalog, testing g
 The scripts are classic `<script>` tags that share one global scope, so keep them in order.
 `tests/00-fidelity.test.mjs` checks that the markup and stylesheet still match the original (apart from its short
 `EDITS` list of deliberate changes), and that no original function, constant, page or action has been removed.
+
+## Campus Health Observatory (map)
+
+The 'campus' page (`js/v6-campus.js`) shows the campus staircases on a MapLibre map drawn from the OpenStreetMap export,
+with a Realistic and a Fantasy look, the illustrative terrain (heights only show the order of the two raised areas; they
+are not measured), markers that cluster, search, filters, the details in three groups and a full-screen option. The map
+needs the app to be served over https (GitHub Pages) or `http://localhost`, and WebGL. Opened from the file or as the
+single-file build, the page says so and lists the staircases with their details, without requesting anything. The map's
+files (`observatory/`, `vendor/`, `data/*.geojson`) load only when the page opens and are cached on first use.
+Map data © OpenStreetMap contributors (ODbL); the map shows the attribution.
 
 ## Campus stair survey data
 

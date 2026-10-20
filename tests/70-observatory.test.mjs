@@ -38,7 +38,8 @@ const HISTORY = [entry('stair', 60, 3, { sid: 'ST20', loc: 'old name', steps: 20
   entry('pulse', 72, 1, { st: 'Resting' }), entry('water', 250, 1)];
 const SEED = { ...RETURNING, e: HISTORY, gp: { ok: 0, v: { ST20: '2026-10-01' } } };
 const openObs = async (o = {}) => { const r = await openApp({ seed: SEED, ...o }); await go(r.page, 'campus'); await r.page.waitForSelector('#cmpcard'); return r; };
-const view = page => page.evaluate(() => { const s = HWCampus.state; return { sid: s.sid, sel: s.sel, z: s.z, px: +s.px.toFixed(3), py: +s.py.toFixed(3) }; });
+// the Observatory's kept state (from the file there is no map, so no camera: tests/71-observatory-map checks that)
+const view = page => page.evaluate(() => { const s = HWCampus.state; return { sid: s.sid, grp: s.grp, tab: s.tab, f: s.f, q: s.q, mode: s.mode }; });
 const logClimb = async (page, steps = 12, climbs = 2) => { await fillSteps(page, '#ss', String(steps)); await page.fill('#sc', String(climbs)); await page.click('[data-a="savestair"]'); };
 
 test('records: one set built from STAIRS + the F21 study, with computed statuses and flags; STAIRS unchanged; no survey request from file://', async () => {
@@ -75,15 +76,12 @@ test('records: one set built from STAIRS + the F21 study, with computed statuses
 
 test('round trip: select → START STAIR SESSION (nothing saved) → save → RETURN restores staircase and view; refresh, back and taps add nothing', async () => {
   const { page, errors } = await openObs();
-  // select ST20 from the list, zoom in and move the map
-  await page.click('.cmplist summary');
-  const i = await page.evaluate(() => HWCampus.points().findIndex(g => g.L.some(s => s.id === 'ST20')));
-  await page.click('.cmplist .cmplb[data-i="' + i + '"]');
-  await page.click('[data-a="cmpzoom"]');
-  const map = await page.$eval('.cmpmap', m => { const b = m.getBoundingClientRect(); return { x: b.x + 20, y: b.y + b.height - 20 }; });
-  await page.mouse.move(map.x, map.y); await page.mouse.down(); await page.mouse.move(map.x + 40, map.y - 30, { steps: 5 }); await page.mouse.up();
+  // filter, search and select ST20 from the list
+  await page.click('[data-a="cmpfilt"][data-f="part"]');
+  await page.fill('#cmpq', 'kenanga');
+  await page.click('#cmplist .cmpitem[data-id="ST20"]');
   const v0 = await view(page);
-  assert.equal(v0.sid, 'ST20'); assert.equal(v0.z, 2); assert.ok(v0.px || v0.py, 'the map was moved');
+  assert.deepEqual(v0, { sid: 'ST20', grp: null, tab: 'det', f: 'part', q: 'kenanga', mode: 'fantasy' });
   // START STAIR SESSION: chosen on the Stairs page, no session started or saved, no RETURN yet
   await page.click('#cmpdet [data-a="cmpstair"][data-id="ST20"]');
   assert.deepEqual(await page.evaluate(() => [S.v, HWStairs.pick, STAIRS[S.loc].id, S.pb.on]), ['stair', 'ST20', 'ST20', 0]);
@@ -101,6 +99,7 @@ test('round trip: select → START STAIR SESSION (nothing saved) → save → RE
   assert.deepEqual([saved.m.sid, saved.m.kind, saved.v], ['ST20', 'casual', 24]);
   assert.match(await page.textContent('#cmpbar'), /Session saved for Tangga sebelah rumah penjana elektrik/);
   // refresh: the title screen as before; nothing is saved again; the trip (this tab only) still offers RETURN
+  await page.waitForTimeout(1500); // a person refreshes seconds later; Chromium writes sessionStorage shortly after a change
   await page.reload(); await page.waitForSelector('.wl');
   assert.equal(stairs(await state(page)).length, 3, 'a refresh creates no session');
   await go(page, 'stair');
@@ -117,8 +116,8 @@ test('round trip: select → START STAIR SESSION (nothing saved) → save → RE
   // RETURN: the Observatory with the same staircase and the same map view
   await page.click('[data-a="cmpback"]');
   assert.equal(await page.evaluate(() => S.v), 'campus');
-  assert.deepEqual(await view(page), v0, 'staircase, zoom and pan restored');
-  assert.match(await page.textContent('#cmpdet'), /penjana elektrik[\s\S]*You saved 2 stair sessions here · first GPS check-in 2026-10-01/);
+  assert.deepEqual(await view(page), v0, 'staircase, tab, filter and search restored');
+  assert.match(await page.textContent('#cmpdet'), /penjana elektrik[\s\S]*You saved 2 stair sessions here \(last \d{4}-\d\d-\d\d\) · first GPS check-in 2026-10-01/);
   assert.equal(await page.evaluate(() => HWCampusData.trip), null, 'the trip ends at the Observatory');
   // the app's own BACK, then the Stairs page: no RETURN any more, nothing saved
   await page.click('.back[data-a="go"]');
@@ -157,31 +156,25 @@ test('RETURN only for a genuinely saved session of the trip\'s staircase: not wi
   assert.deepEqual(errors, []);
 });
 
-test('a staircase without coordinates: selectable from the list, never placed; START and FIND work and do not move the map', async () => {
+test('a staircase without coordinates: selectable from the list, never placed; START and FIND open it without a marker', async () => {
   const { page, errors } = await openObs();
-  const markers = await page.locator('.cmpm').count();
-  await page.click('[data-a="cmpzoom"]');
-  const v0 = await view(page);
-  await page.click('.cmplist summary');
-  await page.click('.cmplist .cmplu[data-id="ST02"]');
-  const v1 = await view(page);
-  assert.deepEqual([v1.sid, v1.sel, v1.z, v1.px, v1.py], ['ST02', null, v0.z, v0.px, v0.py], 'selected, not placed, map not moved');
-  assert.match(await page.textContent('#cmpdet'), /Tangga Selangkah Menara Gading[\s\S]*No location recorded, so it is not placed on the map\.[\s\S]*No location recorded · Estimated angle/);
-  assert.equal(await page.locator('.cmpm').count(), markers, 'no marker added');
-  assert.equal(await page.locator('.cmpm.on').count(), 0);
+  await page.click('#cmplist .cmpitem[data-id="ST02"]');
+  assert.deepEqual(await view(page), { sid: 'ST02', grp: null, tab: 'det', f: 'all', q: '', mode: 'fantasy' });
+  assert.equal(await page.evaluate(() => HWCampus.points().some(g => g.items.some(s => s.id === 'ST02'))), false, 'never a map point');
+  assert.match(await page.textContent('#cmpdet'), /Tangga Selangkah Menara Gading[\s\S]*No location recorded, so it is not placed on the map\.[\s\S]*No location recorded[\s\S]*Estimated angle/);
   await page.click('#cmpdet [data-a="cmpstair"][data-id="ST02"]');
   assert.deepEqual(await page.evaluate(() => [S.v, HWStairs.pick]), ['stair', 'ST02']);
   assert.match(await page.textContent('.stloc'), /Tangga Selangkah Menara Gading[\s\S]*no map coordinates/);
-  // FIND ON OBSERVATORY: its details, the map where it was
+  // FIND ON OBSERVATORY: its details (tests/71-observatory-map checks the map does not move)
+  await go(page, 'stair'); await page.evaluate(() => { HWStairs.choose('ST02'); render(); });
   await page.click('[data-a="cmpfind"]');
-  const v2 = await view(page);
-  assert.deepEqual([v2.sid, v2.sel, v2.z, v2.px, v2.py], ['ST02', null, v0.z, v0.px, v0.py]);
+  assert.deepEqual(await page.evaluate(() => [S.v, HWCampus.selected, HWCampus.state.tab]), ['campus', 'ST02', 'det']);
   assert.match(await page.textContent('#cmpdet'), /No location recorded, so it is not placed on the map\./);
   assert.equal(stairs(await state(page)).length, 2, 'nothing written');
   assert.deepEqual(errors, []);
 });
 
-test('FIND ON OBSERVATORY centres the map on a mapped staircase; the phone layout fits 360 px', async () => {
+test('FIND ON OBSERVATORY selects a mapped staircase and opens its details; the phone layout fits 360 px', async () => {
   const { page, errors } = await openApp({ seed: SEED, viewport: { width: 360, height: 760 }, context: { isMobile: true, hasTouch: true } });
   await go(page, 'stair');
   await page.evaluate(() => { HWStairs.choose('ST14'); render(); });
@@ -189,11 +182,9 @@ test('FIND ON OBSERVATORY centres the map on a mapped staircase; the phone layou
   const b = await page.$eval('[data-a="cmpfind"]', e => { const r = e.getBoundingClientRect(); return { h: r.height, right: r.right }; });
   assert.ok(b.h >= 44 && b.right <= 360, 'the link is a full-size tap target on screen');
   await page.click('[data-a="cmpfind"]');
-  const r = await page.evaluate(() => { const st = HWCampus.state, m = document.querySelector('.cmpm[data-i="' + st.sel + '"]').getBoundingClientRect(), map = document.querySelector('.cmpmap').getBoundingClientRect();
-    return { sid: st.sid, z: st.z, dx: (m.x + m.width / 2 - map.x) / map.width, dy: (m.y + m.height / 2 - map.y) / map.height, doc: document.documentElement.scrollWidth }; });
-  assert.equal(r.sid, 'ST14'); assert.equal(r.z, 2);
-  assert.ok(Math.abs(r.dx - 0.5) < 0.05 && Math.abs(r.dy - 0.5) < 0.05, 'centred: ' + r.dx.toFixed(3) + ', ' + r.dy.toFixed(3));
-  assert.ok(r.doc <= 360);
+  assert.deepEqual(await page.evaluate(() => [S.v, HWCampus.selected, HWCampus.state.tab]), ['campus', 'ST14', 'det']);
+  assert.match(await page.textContent('#cmpdet'), /Kenanga/);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth) <= 360);
   assert.deepEqual(errors, []);
 });
 
@@ -226,7 +217,7 @@ test('over http: the committed (empty) survey changes nothing; a survey is laid 
     return { lat: s.latitude, lng: s.longitude, ls: s.locationStatus, src: s.locationSource, app: s.app.latitude, ang: s.surveyAngle, est: s.estimatedAngle, n: s.stepCount,
       rise: s.verticalRise_m, rs: s.verticalRiseStatus, o: s.orientationDeg, ms: s.measurementStatus, gs: s.geometryStatus, plan: HWCampusData.surveyPlan(s),
       lab: HWCampusData.labels(s).map(l => l[1]), u: [u.latitude, u.locationStatus, u.surveyAngle, u.measurementStatus, HWCampusData.surveyPlan(u)], ulab: HWCampusData.labels(u).map(l => l[1]),
-      marker: HWCampus.points().some(g => g.lat === 5.35195 && g.lng === 100.53841 && g.L.some(x => x.id === 'ST20')), placed: HWCampus.points().some(g => g.L.some(x => x.id === 'ST02')) }; });
+      marker: HWCampus.points().some(g => g.lat === 5.35195 && g.lng === 100.53841 && g.items.some(x => x.id === 'ST20')), placed: HWCampus.points().some(g => g.items.some(x => x.id === 'ST02')) }; });
   // θ = arctan(17 / 31) = 28.74°; rise = 10 × 17 cm = 1.70 m (calculated: no measured total rise)
   assert.deepEqual([r.lat, r.lng, r.ls, r.app, r.ang, r.est, r.n, r.rise, r.rs, r.o, r.ms, r.gs],
     [5.35195, 100.53841, 'measured', 5.3519878, 28.74, 28.52, 10, 1.7, 'calculated (risers × riser height)', 90, 'surveyed', 'surveyed']);
