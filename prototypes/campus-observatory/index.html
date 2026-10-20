@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en" data-mode="realistic">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Campus Health Observatory · prototype</title>
+<meta name="description" content="Standalone prototype: Kolej MARA Kulim staircases on an OpenStreetMap campus map with illustrative terrain, in a realistic and a fantasy style, with an automatic illustrative 3D staircase preview.">
+<meta name="theme-color" content="#0b1430">
+<link rel="stylesheet" href="vendor/maplibre-gl/maplibre-gl.css">
+<link rel="stylesheet" href="css/app.css">
+<script type="importmap">
+{ "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/" } }
+</script>
+<script src="vendor/maplibre-gl/maplibre-gl.js"></script>
+</head>
+<body>
+<a class="skip" href="#sheet">Skip to the staircase list</a>
+
+<header class="top">
+  <div class="brand">
+    <span class="logo" data-px="hat" aria-hidden="true"></span>
+    <div class="brand-t">
+      <h1>Campus Health Observatory</h1>
+      <p class="sub">Prototype · Kolej MARA Kulim · <span id="sum">loading…</span></p>
+    </div>
+  </div>
+  <div class="modes" role="group" aria-label="Map style">
+    <button type="button" class="mode" data-mode="fantasy" aria-pressed="false"><span data-px="star" aria-hidden="true"></span>Fantasy</button>
+    <button type="button" class="mode" data-mode="realistic" aria-pressed="true"><span data-px="peak" aria-hidden="true"></span>Realistic</button>
+  </div>
+  <button type="button" class="iconbtn about-open" aria-haspopup="dialog" aria-label="About this prototype and its data">?</button>
+</header>
+
+<main class="stage">
+  <div id="map" aria-label="Campus map with illustrative terrain. Drag to move, pinch or scroll to zoom, two fingers to rotate and tilt."></div>
+  <canvas id="fx" aria-hidden="true"></canvas>
+  <div id="maperr" class="maperr" hidden></div>
+
+  <div id="selpill" class="selpill" hidden role="status" aria-live="polite">
+    <span class="sp-dot" aria-hidden="true"></span>
+    <span class="sp-t"><b id="sp-id"></b><span id="sp-name"></span></span>
+    <button type="button" class="sp-b" data-act="campus">Campus view</button>
+    <button type="button" class="sp-x" data-act="clear" aria-label="Clear the selection">&times;</button>
+  </div>
+
+  <div id="mestat" class="mestat" hidden role="status" aria-live="polite">
+    <span class="me-dot" aria-hidden="true"></span><span class="me-t" id="me-t"></span>
+    <button type="button" class="sp-b" data-act="me-demo" hidden>Demo walk</button>
+    <button type="button" class="sp-b" data-act="me-follow" hidden>Follow me</button>
+    <button type="button" class="sp-x" data-act="me-stop" aria-label="Stop showing my position">&times;</button>
+  </div>
+
+  <div class="mapctl" role="toolbar" aria-label="Map controls">
+    <button type="button" class="ctl ctl-me" data-ctl="me" aria-pressed="false" aria-label="Show me on the map (uses your location)" title="Show me on the map"><span class="loc" aria-hidden="true"></span></button>
+    <button type="button" class="ctl" data-ctl="in" aria-label="Zoom in" title="Zoom in">+</button>
+    <button type="button" class="ctl" data-ctl="out" aria-label="Zoom out" title="Zoom out">&minus;</button>
+    <button type="button" class="ctl" data-ctl="north" aria-label="North up" title="North up"><span class="needle" aria-hidden="true"></span></button>
+    <button type="button" class="ctl" data-ctl="tilt" aria-pressed="true" aria-label="Tilted 3D view" title="2D or 3D view">3D</button>
+    <button type="button" class="ctl" data-ctl="terr" aria-pressed="true" aria-label="Illustrative terrain" title="Illustrative terrain"><span data-px="peak" aria-hidden="true"></span></button>
+    <button type="button" class="ctl" data-ctl="bld" aria-pressed="true" aria-label="Raised buildings (illustrative heights)" title="Raised buildings"><span data-px="block" aria-hidden="true"></span></button>
+    <button type="button" class="ctl" data-ctl="fit" aria-label="Whole campus view" title="Whole campus"><span data-px="frame" aria-hidden="true"></span></button>
+  </div>
+
+  <div class="legend" id="legend">
+    <button type="button" class="legend-tog" aria-expanded="false" aria-controls="legend-body"><span data-px="scroll" aria-hidden="true"></span>Legend</button>
+    <div id="legend-body" hidden>
+      <p><span class="lg m1"></span>Mild <span class="lg m2"></span>Moderate <span class="lg m3"></span>Vigorous <small>(app category)</small></p>
+      <p><span class="lg est"></span>Estimated location <span class="lg part"></span>Step size measured (F21)</p>
+      <p><span class="lg ter"></span>Raised ground: illustrative heights from your annotated screenshot, not measured</p>
+      <p><span class="lg osm"></span>Buildings, paths, fields: OpenStreetMap. Building heights are illustrative.</p>
+      <p class="fan-only"><span class="lg deco"></span>Roofs, turrets, chimneys, trees, lanterns, glows and particles are decoration on the real OSM outlines</p>
+    </div>
+  </div>
+
+  <aside id="sheet" class="sheet" aria-label="Staircases" data-state="peek">
+    <button type="button" class="handle" aria-label="Show more of the panel" aria-expanded="false"><span></span></button>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="tab-list" aria-controls="pane-list" aria-selected="true">Staircases</button>
+      <button type="button" role="tab" id="tab-det" aria-controls="pane-det" aria-selected="false">Details</button>
+    </div>
+    <section id="pane-list" role="tabpanel" aria-labelledby="tab-list" class="pane">
+      <div class="search">
+        <label for="q" class="vh">Search staircases</label>
+        <input id="q" type="search" placeholder="Search by name, ID or building (e.g. ST14, Kenanga)" autocomplete="off">
+        <button type="button" class="qx" data-act="qclear" aria-label="Clear the search" hidden>&times;</button>
+      </div>
+      <div class="filters" role="group" aria-label="Filter"></div>
+      <p class="count" id="count" aria-live="polite"></p>
+      <ul id="list" class="list"></ul>
+    </section>
+    <section id="pane-det" role="tabpanel" aria-labelledby="tab-det" class="pane" hidden>
+      <div id="vw-dock"></div>
+      <div id="det"><p class="empty">Pick a staircase on the map or in the list.</p></div>
+    </section>
+  </aside>
+
+  <section id="viewer" class="viewer" hidden aria-labelledby="vw-title">
+    <header class="vw-head">
+      <div class="vw-id">
+        <p class="eyebrow"><span data-px="stairs" aria-hidden="true"></span>3D staircase preview</p>
+        <h2 id="vw-title">—</h2>
+        <p class="vw-sub" id="vw-sub"></p>
+      </div>
+      <button type="button" class="iconbtn vw-close" aria-label="Close the 3D preview (the staircase stays selected)">&times;</button>
+    </header>
+    <ul class="chips vw-status" id="vw-status"></ul>
+    <div class="vw-stage">
+      <div id="vw-canvas"></div>
+      <div class="vw-compass" aria-hidden="true"><span class="vw-dial"><i></i></span><small id="vw-compass-t">Orientation not surveyed</small></div>
+      <p class="illus" role="note">Illustrative model — actual dimensions not surveyed.</p>
+      <div id="vw-msg" class="vw-msg" hidden></div>
+    </div>
+    <div class="vw-ctl" role="toolbar" aria-label="3D view controls">
+      <button type="button" class="vbtn" data-v="left" aria-label="Turn left">&#x27F2;</button>
+      <button type="button" class="vbtn" data-v="right" aria-label="Turn right">&#x27F3;</button>
+      <button type="button" class="vbtn" data-v="in" aria-label="Zoom in">+</button>
+      <button type="button" class="vbtn" data-v="out" aria-label="Zoom out">&minus;</button>
+      <button type="button" class="vbtn wide" data-v="reset">Reset</button>
+      <button type="button" class="vbtn wide" data-v="spin" aria-pressed="false">Spin</button>
+    </div>
+    <div class="seg" role="group" aria-label="Demonstration shape" id="vw-shapes"></div>
+    <details class="vw-more"><summary>What is real in this model?</summary><ul class="vw-facts" id="vw-facts"></ul></details>
+  </section>
+</main>
+
+<dialog id="about" aria-labelledby="ab-title">
+  <form method="dialog" class="ab">
+    <h2 id="ab-title">About this prototype</h2>
+    <p>A test of the look and the controls for a future Campus Health Observatory. It is separate from the HealthWiz app and does not read or change its data.</p>
+    <h3>Where the data comes from</h3>
+    <ul>
+      <li><b>Buildings, paths, fields, river:</b> the OpenStreetMap export you supplied. <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>, ODbL. It has no building heights, no terrain and no staircases.</li>
+      <li><b>Raised ground (Middle Elevation, Highest Elevation):</b> outlines traced from your annotated screenshot. The heights are illustrative and only show the order: base, then middle, then highest. They are not measurements.</li>
+      <li><b>Staircase names, locations, angles, categories:</b> the HealthWiz app's stair list. Their source was never recorded, so every location is an <b>estimated location</b>.</li>
+      <li><b>Step rise and run of ST14, ST19 and ST20:</b> the Group 14 F21 report, Table 2 (tape, mean of 5 steps).</li>
+      <li><b>3D staircase models and building heights:</b> illustrative only, modelled in Blender. Their numbers are demonstration values, not measurements.</li>
+      <li><b>Lighting and shadows:</b> a rendering effect. The light direction is chosen for a clear picture, not the real sun, so the shadows are not real shade on campus.</li>
+      <li><b>Fantasy buildings:</b> the walls follow each real OpenStreetMap outline; the roofs, eaves, chimneys, corner turrets with spires and the Surau's dome are a fantasy treatment modelled in Blender on that outline. They are not the buildings' real shapes or heights.</li>
+      <li><b>Trees, lanterns, glows, particles, the dais:</b> decoration. They mark nothing real.</li>
+      <li><b>You on the map (Tom):</b> only after you tap the locate button and allow it, the character stands at your device's GPS position and walks as you move; the blue circle is the device's own accuracy estimate. The position stays in this browser tab: it is not saved or sent anywhere. Tom is drawn larger than life so he can be seen. "Demo walk" moves him along a campus road; that position is simulated, not yours. The character is from the model you supplied ("Tom"), reduced and given a walk in Blender.</li>
+    </ul>
+    <h3>Labels you will see</h3>
+    <ul class="chips-legend" id="ab-chips"></ul>
+    <h3>Settings</h3>
+    <label class="chk"><input type="checkbox" id="opt-motion"> Reduce motion (no particles, no animated paths, no model entrance)</label>
+    <p class="mut">Map: drag to move, pinch or scroll to zoom, two-finger twist to rotate, two-finger drag up or down to tilt. Keyboard: Tab to a staircase marker and press Enter; arrow keys move the map; + and − zoom.</p>
+    <div class="row end"><button class="btn" value="close">Close</button></div>
+  </form>
+</dialog>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

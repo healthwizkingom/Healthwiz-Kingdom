@@ -1,0 +1,8 @@
+{
+ "about": "No survey imported yet. Fill in data/source/HealthWiz_Campus_Stair_Data_Sheet.docx and run: python3 tools/import_stair_sheet.py your-sheet.docx (see UPDATE_DATA.md). That replaces this file; do not edit it by hand.",
+ "source": null,
+ "stairs": {},
+ "buildings": [],
+ "answers": {},
+ "warnings": []
+}
