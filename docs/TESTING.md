@@ -21,7 +21,7 @@ compatibility tests.
 
 | Item | Tests |
 |---|---|
-| navigation | `34-final-polish` (every action and route on every page, four sizes, tutorial targets), `01-original-app`, `25-matrix-input` (tabs by tap and keyboard), `26-journey`, `28-foundation` (every tab and Health Hall tile, and back), `29-provisions` (old Nutrition/Water links, halves, tutorial), `33-stairs` (old Pulse and Running routes open their Stairs sections) |
+| navigation | `83-stairs-in-campus` (the Stairs card opens the Campus page at its open Stairs section; the Campus door shows it collapsed; `stair`, `pulse` and `#stairs` land there; closing it stops the timer; 360 px), `34-final-polish` (every action and route on every page, four sizes, tutorial targets), `01-original-app`, `25-matrix-input` (tabs by tap and keyboard), `26-journey`, `28-foundation` (every tab and Health Hall tile, and back), `29-provisions` (old Nutrition/Water links, halves, tutorial), `33-stairs` (old Pulse and Running routes open their Stairs sections) |
 | data logging | `01-original-app`, `26-journey` (every log type through the UI), `29-provisions` (food and water on the merged page), `33-stairs` (casual climbs by hand and GPS, workouts with heart rate, LOG BPM before/after counted and linked to a sealed workout, one session model, calorie estimate behind ?) |
 | editing, deleting | `01-original-app`, `03-events`, `25-matrix-input` (by touch and keyboard), `26-journey` |
 | calculations | `01-original-app` (sleep duration, BMI, pulse range), `04-insights` (baselines), `24-performance` (the entry index against full scans) |

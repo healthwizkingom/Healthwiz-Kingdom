@@ -37,12 +37,13 @@ js/v6-uncert.js            the Uncertainty Engine: how unmeasured assumptions mo
 js/v6-plan.js              Stair Prescription on the Stairs page: a weekly stair plan the player chooses (st.s.pl); not a prescription
 js/v6-time.js              the Health Time Machine (route 'time', door on Statistics): saved records on a day / week / month timeline
 js/v6-campus-data.js        the Observatory's staircase records (STAIRS + the F21 step sizes + data/stair-survey.json), its links with the Stairs page
+js/v6-campus-stairs.js     the collapsible "Stairs" section under the Observatory on the Campus page: header, open/closed state, the `stair` and `pulse` routes and the address `#stairs` (stairs and heart rate used to be a page of their own); events `stairs:opened` / `stairs:closed`
 js/v6-campus.js            the Campus Health Observatory (route 'campus', door in the Health Hall): list, details, links and fallback; loads the map below over https
 js/v6-addfood.js           Add More Food: Luke (the apprentice) searches the web (Gemini + Google Search via food-guess) for any food, portion and changes, with a source per part; signed out, the canteen menu
 js/v6-arcane.js            the magical, modern look: Arcane Night default theme, glowing rounded panels and controls (docs/PIXEL_STYLE.md)
 js/v6-emoji.js             every emoji the app shows drawn as pixel art (hand-drawn icon or the emoji pixelated)
 js/v6-provisions.js        Nutrition & Hydration as one page (the Provisions Hall): 'food' and 'water' are its two halves
-js/v6-stairs.js            the Stairs page: two halves side by side, casual stairs (GPS check-in first, then by hand) and workout & heart rate (LOG BPM before/after, f, T, ω of the pulse, calorie estimate and our project's VO₂ / kJ method behind a ? button), the Group 14 measured-stairways table; one session model
+js/v6-stairs.js            the Stairs features (shown as the Stairs section of the Campus page, see v6-campus-stairs.js): two halves side by side, casual stairs (GPS check-in first, then by hand) and workout & heart rate (LOG BPM before/after, f, T, ω of the pulse, calorie estimate and our project's VO₂ / kJ method behind a ? button), the Group 14 measured-stairways table; one session model
 js/v6-hrlog.js             hrLast(): the newest counted heart rate (logged BPM or a workout), used by the hub tile, kingdom panel and Stairs page
 js/v6-conditions.js        "Anything that affects your activity?": the conditions question in the registry, one rule table (quest order, stair goals behind a doctor note, pace note), st.p.conds
 js/v6-motion.js            animation settings + performance modes (High / Balanced / Performance), off-screen pause
@@ -129,6 +130,8 @@ The scripts are classic `<script>` tags that share one global scope, so keep the
 `EDITS` list of deliberate changes), and that no original function, constant, page or action has been removed.
 
 ## Campus Health Observatory (map)
+
+**Stairs is a section of this page.** Where the file list above says "the Stairs page", it means the collapsible "Stairs" section under the Observatory (`js/v6-campus-stairs.js`). The Health Hall card is still "Stairs & Workout" and opens this page with the section open; the Campus door shows it collapsed. The routes `stair` and `pulse` and the address `#stairs` open it too. The data is unchanged: the same `stair` and `pulse` entries and the same storage keys.
 
 The 'campus' page (`js/v6-campus.js`) shows the campus staircases on a MapLibre map drawn from the OpenStreetMap export,
 with a Realistic and a Fantasy look, the illustrative terrain (heights only show the order of the two raised areas; they

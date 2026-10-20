@@ -1,4 +1,5 @@
-/* v6 (stairs refactor): one Stairs page for casual stair climbing, workouts and heart rate. Not part of the original.
+/* v6 (stairs refactor): casual stair climbing, workouts and heart rate. Not part of the original. It builds the content of the
+   Stairs section of the Campus page (js/v6-campus-stairs.js); nothing navigates to a 'stair' view any more.
    The old Pulse page is retired from the navigation (its route, Heartstone Hall, opens the heart-rate card here) and
    Running moved to the Training Hall (js/v6-exercise.js shows the RUNNING ROAD section; the 'run' route opens it).
 
@@ -373,7 +374,7 @@ CH.stloc=v=>{const i=STAIRS.findIndex(s=>s.id===v);if(i<0){pick=null;return}pick
 
 /* ---------- workout timer: the Pace & Breathe rhythm guide is the clock ---------- */
 let TT=0;
-function tick(){clearInterval(TT);TT=0;if(!W.since)return;TT=setInterval(()=>{if(!W.since||S.v!=='stair'){clearInterval(TT);TT=0;return}
+function tick(){clearInterval(TT);TT=0;if(!W.since)return;TT=setInterval(()=>{if(!W.since||S.v!=='campus'||!$id('wk-time')){clearInterval(TT);TT=0;return}
   const t=$id('wk-time');if(t)t.textContent=clock(secsW());
   if(!W.durSet){const d=$id('wk-d'),m=durW();if(d&&document.activeElement!==d&&m!=null&&d.value!==String(m)){d.value=m;const n=$id('wk-dn');if(n)n.textContent='From the Pace & Breathe timer.';liveKcal()}}},1000)}
 function pause(){if(W.since){W.ms+=Date.now()-W.since;W.since=null;keepW()}clearInterval(TT);TT=0}
@@ -437,11 +438,11 @@ acts.hrlog=d=>{INP.stw();const k=d.k==='a'?'a':'b',v=okHR(k==='b'?W.hrB:W.hrA);
 HWEvents.on('activity:checkin',e=>{pick=e.sid});
 
 /* ---------- routes: Heartstone Hall (the old Pulse route) opens the heart-rate card; Running opens in the Training Hall (js/v6-exercise.js) ---------- */
-{const g0=go;go=function(v){if(v==='stair')half='casual'; // the Stairs tile opens the casual half (GPS first); the halves switch on the page
-  if(v!=='pulse')return g0.apply(this,arguments);half='workout';const r=g0.call(this,'stair');
-  const el=$id('sthrc');if(el)el.scrollIntoView({block:'start'});return r}}
+function arrive(v){half=v==='pulse'?'workout':'casual'} // the 'stair' route opens the casual half (GPS first), 'pulse' (Heartstone Hall) the heart-rate half
 // any navigation stops the rhythm guide (go() clears it), so the workout clock pauses too; a refresh keeps the time so far
-HWEvents.on('page:viewed',e=>{pause();if(e.view!=='stair'&&IOc){IOc.disconnect();IOc=null}});addEventListener('pagehide',pause);
+const leave=()=>{pause();clearInterval(S.tm);S.pb.on=0;if(IOc){IOc.disconnect();IOc=null}}; // section collapsed
+HWEvents.on('page:viewed',e=>{pause();if(e.view!=='campus'&&IOc){IOc.disconnect();IOc=null}});addEventListener('pagehide',pause);
+HWEvents.on('stairs:closed',leave);
 HWEvents.on('data:reset',()=>{pick=null;W=W0();try{sessionStorage.removeItem(DK)}catch(e){}});
 
 // Health Hall: one Stairs tile (the Pulse tile is gone; Running's tile is removed by js/v6-running.js)
@@ -500,4 +501,4 @@ HWUI.css('stairs',`
 .stclimb .row label{flex:1 1 90px}.stclimb p{margin:6px 0;font-size:14px}.stclimb small{display:flex;gap:6px;align-items:center}.stsh b{display:inline-flex;align-items:center;gap:2px}
 @media(prefers-reduced-motion:reduce){.stses{animation:none}}html.hw-rm .stses,html.hw-still .stses{animation:none}
 `);
-return{session,all,record,fill,choose:id=>{const i=STAIRS.findIndex(s=>s.id===id);if(i<0)return!1;pick=id;S.loc=i;S.cat=STAIRS[i].cat;return!0},estimate,projectVO2,pulseSHM,shmTxt,STUDY,profile,peak,MET,bandOf,get pick(){return pick},get draft(){return Object.assign({},W,{secs:secsW()})}}})();
+return{session,all,record,fill,arrive,leave,choose:id=>{const i=STAIRS.findIndex(s=>s.id===id);if(i<0)return!1;pick=id;S.loc=i;S.cat=STAIRS[i].cat;return!0},estimate,projectVO2,pulseSHM,shmTxt,STUDY,profile,peak,MET,bandOf,get pick(){return pick},get draft(){return Object.assign({},W,{secs:secsW()})}}})();

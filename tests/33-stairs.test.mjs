@@ -1,4 +1,4 @@
-// The Stairs page (js/v6-stairs.js): two halves side by side, CASUAL STAIRS (GPS check-in first, then by hand) and the
+// The Stairs features (js/v6-stairs.js), now the Stairs section of the Campus page (tests/83-stairs-in-campus): two halves side by side, CASUAL STAIRS (GPS check-in first, then by hand) and the
 // WORKOUT & HEART RATE half (Pace & Breathe timer, heart rate before / after with LOG BPM, calorie estimate behind a ?),
 // all logging one kind of stair session. Running lives on the Training Hall page. No Pulse page, no demo stairway, no
 // invented numbers.
@@ -28,7 +28,7 @@ test('one page, two halves side by side; GPS first; Pulse opens the heart rate; 
   const [c, w] = [await box('#stt-casual'), await box('#stt-workout')];
   assert.ok(Math.abs(c.y - w.y) < 2 && w.x > c.x + c.w - 2, 'the two halves are side by side, not one above the other');
   assert.equal(await page.getAttribute('#stt-casual', 'aria-current'), 'page');
-  assert.match(await page.textContent('.bn b'), /^Stairs$/);
+  assert.match(await page.textContent('#stsec-t b'), /^Stairs$/, 'the section is titled Stairs');
   assert.doesNotMatch(await page.textContent('main'), /Stair Mountain|summit path|WANDERER|STAIR QUEST|Casual climbing/);
   assert.match(await page.textContent('#st-casual'), /Check in by GPS[\s\S]*log a climb by hand/);
   assert.equal(await page.locator('#st-run, #v6run, #v6rb').count(), 0, 'no Running on the Stairs page');
@@ -54,7 +54,7 @@ test('one page, two halves side by side; GPS first; Pulse opens the heart rate; 
   assert.ok(tiles.includes('stair:Stairs & Workout'));
   // old routes: Pulse (Heartstone Hall) opens the heart-rate card; Running opens the Training Hall's Running Road
   await go(page, 'pulse');
-  assert.equal(await page.evaluate(() => S.v), 'stair');
+  assert.equal(await page.evaluate(() => S.v), 'campus', 'the Stairs section of the Campus page');
   assert.equal(await page.getAttribute('#stt-workout', 'aria-current'), 'page');
   assert.ok(await page.evaluate(() => Math.abs(document.getElementById('sthrc').getBoundingClientRect().top) < 40), 'Pulse opens the heart-rate card');
   await page.evaluate(() => { window.L = { map: () => ({ on() {}, remove() {}, fitBounds() {}, setView() {} }), tileLayer: () => ({ addTo() {} }), polyline: () => ({ addTo() { return this; }, getBounds() {} }) }; });

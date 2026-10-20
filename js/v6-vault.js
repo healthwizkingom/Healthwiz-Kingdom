@@ -75,9 +75,10 @@ function shelf(){const all=HWSources.all().filter(r=>match(r,Z.q)),o=Z.open&&HWS
 HWLab.section('vault',{name:'Evidence Vault',icon:'scroll',render:shelf});
 acts.vopen=d=>{if(!HWSources.get(d.id))return;Z.open=d.id;render();const c=document.getElementById('vch');if(c){c.scrollIntoView&&c.scrollIntoView({block:'start',behavior:HWUI.reduced()?'auto':'smooth'});c.focus({preventScroll:true})}};
 acts.vclose=()=>{const id=Z.open;Z.open=null;render();const b=document.querySelector('[data-a="vopen"][data-id="'+id+'"]');if(b)b.focus()};
-acts.vgo=d=>{Z.ret={v:d.v};go(d.v)};
+acts.vgo=d=>{Z.ret={v:d.v==='stair'||d.v==='pulse'?'campus':d.v};go(d.v)}; // the Stairs routes open the Campus page
 /** Open the Vault on one calculation (called by the "?" links and by #vault=<id>). `from` = the page to offer a way back to. */
-function openCalc(id,from){const ok=has(id);Z.q='';Z.open=null;Z.calc=ok?id:null;Z.bad=ok?null:id;Z.flash=1;
+function openCalc(id,from){if(from==='campus')from='stair'; // a "?" on the Campus page is one in its Stairs section
+  const ok=has(id);Z.q='';Z.open=null;Z.calc=ok?id:null;Z.bad=ok?null:id;Z.flash=1;
   if(from&&from!=='lab')Z.back={v:from};
   HWLab.Z().tab='vault';try{history.replaceState(null,'','#vault='+encodeURIComponent(id))}catch(e){}
   if(S.v!=='lab')go('lab');else render();

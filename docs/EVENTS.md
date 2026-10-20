@@ -50,6 +50,8 @@ take precedence over payload fields with the same name.
 | `game:started` | `id, name` | a mini-game opens (`js/v6-games.js`) |
 | `game:completed` | `id, name, xp, ok, result, found` | a mini-game reaches its result card. `xp` is 0 for replays the same day; `found` names a new discovery |
 | `activity:checkin` | `sid, name, cat, first` | a GPS check-in at a stairway is confirmed (`js/v6-gps.js`); `first` = first GPS check-in there (a discovery) |
+| `stairs:opened` | — | the Stairs section of the Campus page is opened: by the Stairs card, the `stair` / `pulse` routes, `#stairs`, or its header (`js/v6-campus-stairs.js`) |
+| `stairs:closed` | — | the section is collapsed with its header. Stairs features stop as if the page was left: rhythm guide and workout timer (time kept), Stair Sense, camera pulse, GPS reading. Leaving the Campus page is `page:viewed` as before |
 | `game:cancelled` | `id, name, seconds` | a mini-game is left before finishing (✕, Escape, navigation, reset or import) |
 | `network:changed` | `online` | the device goes offline or comes back online (`js/v6-pwa.js`) |
 | `live:updated` | `weather, air` (true = a reading is available), `level` (haze 0–5, 0 = none) | a live weather / haze refresh finished (`js/v6-live.js`) |

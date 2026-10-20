@@ -120,7 +120,7 @@ function nextCard(){const n=next();
 function wrap(k){const p=pages[k];if(!p)return;pages[k]=function(){let h=p.apply(this,arguments);
   if(k==='stress'){const q=S.sq;if(q&&q.ph&&q.ph!=='start')return bar_(k,0)+examples(h)}   // inside a stress quest the header would only get in the way
   if(FIRST[k])h=FIRST[k](h);
-  return examples(place(h,k))}}
+  return examples(k==='stair'?h:place(h,k))}} // Stairs is a section of the Campus page: it has its own header (js/v6-campus-stairs.js)
 ['food','water','sleep','stair','stress','body'].forEach(wrap);
 {const p=pages.health;pages.health=function(){const h=p.apply(this,arguments),i=h.indexOf('</p>');return i<0?nextCard()+h:h.slice(0,i+4)+nextCard()+h.slice(i+4)}}
 
@@ -177,4 +177,4 @@ HWUI.css('hall',`
 .hmq h3{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.hmq .big{margin-left:auto}
 .hmd{margin:0 0 14px}.hmd>summary{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;min-height:44px;margin:0;padding:8px 12px;cursor:pointer}.hmd>summary small{font-size:12px;color:var(--mut)}.hmd[open]>summary{margin-bottom:10px}.hmd>.card{margin-bottom:0}
 `);
-return{head,next,examples,compact,tiles:TILE,heads:HEAD}})();
+return{head,next,examples,compact,panel,tiles:TILE,heads:HEAD}})();

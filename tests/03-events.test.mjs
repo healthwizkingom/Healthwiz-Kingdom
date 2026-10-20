@@ -97,7 +97,7 @@ test('edit, delete, undo, page views and energy emit their events', async () => 
   assert.equal((await events(page, 'entry:deleted'))[0].entry.v, 75);
   assert.equal((await events(page, 'entry:restored'))[0].entry.v, 75);
   const pv = (await events(page, 'page:viewed')).at(-1);
-  assert.deepEqual([pv.from, pv.view], ['stair', 'home']);
+  assert.deepEqual([pv.from, pv.view], ['campus', 'home']);
   const en = await events(page, 'energy:rated');
   assert.deepEqual(en.map(e => [e.value, e.first]), [[4, true], [5, false]]);
   assert.deepEqual(errors, []);

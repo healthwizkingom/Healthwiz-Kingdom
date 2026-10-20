@@ -221,7 +221,7 @@ function closeSheet(){if(!sheet)return;sheet=false;const m=$('mo');if(m&&m.query
 acts.ppgopen=d=>{if(phase==='ask'||phase==='run')return;R=null;msg='';pend=d&&TL[d.k]?d.k:null;if(pend){target=null;const el=$('hwppg');if(el)el.scrollIntoView({block:'start'})}openSheet()};
 acts.ppgstart=()=>start();
 acts.ppgcancel=()=>cancel();
-HWEvents.on('page:viewed',()=>{closeSheet();gen++;stopCam();phase='idle';R=null;msg=''});
+HWEvents.on('page:viewed',()=>{closeSheet();gen++;stopCam();phase='idle';R=null;msg=''});HWEvents.on('stairs:closed',()=>{closeSheet();gen++;stopCam();phase='idle';R=null;msg=''});
 HWEvents.on('data:reset',()=>{gen++;stopCam();phase='idle';R=null;msg='';denied=false});
 D.addEventListener('visibilitychange',()=>{if(D.hidden&&(phase==='run'||phase==='ask'))cancel('The measurement stopped because the page was hidden. Start again when you are ready.')});
 addEventListener('pagehide',()=>{gen++;stopCam()});

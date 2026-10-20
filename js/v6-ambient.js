@@ -24,7 +24,7 @@
    opaque, and at most three toasts show at once. */
 const HWAmbient=(()=>{
 const THEME={home:'meadow',health:'meadow',bmi:'meadow',calc:'meadow',body:'meadow',stats:'meadow',set:'meadow',
-  food:'water',water:'water',sleep:'night',stair:'mountain',pulse:'mountain',run:'mountain',stress:'forest',
+  food:'water',water:'water',sleep:'night',stair:'mountain',pulse:'mountain',run:'mountain',campus:'mountain',stress:'forest',
   quests:'hall',badges:'hall',guide:'hall',kingdom:'hall'};
 const W=320;
 const TAU=Math.PI*2,wave=(x,k,a,ph)=>a*Math.sin(x/W*TAU*k+(ph||0)); // whole cycles over the strip, so it tiles

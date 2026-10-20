@@ -42,7 +42,7 @@ test('no decorative hearts at the top of any page; the title, level bar and regi
 test('heart rate lives in the stair Workout: before/after visualizations, logging, home tile, statistics', async () => {
   const { page, ctx, errors } = await openApp();
   await go(page, 'pulse');
-  assert.equal(await page.evaluate(() => S.v), 'stair', 'the old Pulse route opens the Stairs page');
+  assert.equal(await page.evaluate(() => S.v), 'campus', 'the old Pulse route opens the Stairs section of the Campus page');
   assert.equal(await page.locator('#sthrc canvas.sttr').count(), 2, 'before and after heart rate visualizations');
   assert.doesNotMatch(await page.textContent('main'), /MEASURE PULSE/);
   await page.selectOption('#wk-loc', 'ST03');
@@ -76,7 +76,7 @@ test('navigation audit: tabs, every Health Hall tile there and BACK again, Storm
   assert.equal(names.water, undefined, 'Nutrition and Water share one tile (§31)');
   for (const [v] of tiles) {
     await page.click(`#hub [data-v="${v}"]`);
-    assert.equal(await page.evaluate(() => S.v), v, 'tile ' + v);
+    assert.equal(await page.evaluate(() => S.v), v === 'stair' ? 'campus' : v, 'tile ' + v + (v === 'stair' ? ' (opens the Campus page at its Stairs section)' : ''));
     assert.equal(await page.textContent('main .bn b'), await page.evaluate(() => BN[S.v][1]));
     await page.click('main .back');
     assert.equal(await page.evaluate(() => S.v), 'health', 'BACK from ' + v);
