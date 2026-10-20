@@ -131,7 +131,7 @@ The scripts are classic `<script>` tags that share one global scope, so keep the
 
 ## Campus Health Observatory (map)
 
-**Stairs is a section of this page.** Where the file list above says "the Stairs page", it means the collapsible "Stairs" section under the Observatory (`js/v6-campus-stairs.js`). The Health Hall card is still "Stairs & Workout" and opens this page with the section open; the Campus door shows it collapsed. The routes `stair` and `pulse` and the address `#stairs` open it too. The data is unchanged: the same `stair` and `pulse` entries and the same storage keys.
+**Stairs is a section of this page.** Where the file list above says "the Stairs page", it means the collapsible "Stairs" section under the Observatory (`js/v6-campus-stairs.js`). The Health Hall card "Stairs" opens this page with the section open; the Campus door shows it collapsed. The routes `stair` and `pulse` and the address `#stairs` open it too. The data is unchanged: the same `stair` and `pulse` entries and the same storage keys.
 
 The 'campus' page (`js/v6-campus.js`) shows the campus staircases on a MapLibre map drawn from the OpenStreetMap export,
 with a Realistic and a Fantasy look, the illustrative terrain (heights only show the order of the two raised areas; they
