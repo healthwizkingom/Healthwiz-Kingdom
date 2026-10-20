@@ -63,7 +63,7 @@ const cam = page => page.evaluate(() => { const m = HWCampus.map.map, c = m.getC
 
 const visible = (page, id) => page.evaluate(id => { const m = HWCampus.map.map; return m.getLayer(id) ? m.getLayoutProperty(id, 'visibility') !== 'none' : null; }, id);
 
-test('Fantasy and Realistic: each look's Blender buildings replace the stand-ins; particles only in Fantasy, sparks on a selection; leaving frees it all', async () => {
+test('Fantasy and Realistic: the Blender buildings of each look replace the stand-ins; particles only in Fantasy, sparks on a selection; leaving frees it all', async () => {
   const { ctx, page, errors } = await openHttp({ ctxOpt: { reducedMotion: 'no-preference' },
     init: () => { window.__raf = 0; const r = requestAnimationFrame; window.requestAnimationFrame = function (f) { return r.call(this, t => { window.__raf++; f(t); }); }; } });
   await goView(page, 'campus'); assert.equal(await ready(page), 'ready');
