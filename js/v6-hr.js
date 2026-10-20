@@ -113,7 +113,7 @@ function help(){const m=D.getElementById('mo');if(!m)return;
 acts.hrcon=()=>connect();
 acts.hroff=()=>{disconnect();toast('Heart-rate device disconnected')};
 acts.hrhelp=()=>help();
-HWEvents.on('page:viewed',e=>{if(e.view==='stair'||e.view==='pulse')restore()});
+HWEvents.on('stairs:opened',restore); // the Stairs section of the Campus page was opened
 HWEvents.on('data:reset',()=>{disconnect();P={};try{localStorage.removeItem(K)}catch(e){}});
 
 HWUI.css('hr',`

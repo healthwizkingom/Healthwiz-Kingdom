@@ -37,8 +37,8 @@
      in the last 7 days and the 7 before, the staircases climbed most, a ring on the markers of staircases climbed. No new
      XP, badges or store.
    * HWCampus.focus(id): select a staircase from elsewhere (FIND ON OBSERVATORY, RETURN TO OBSERVATORY): the map flies
-     to it, or with no coordinates its details open without moving the map. START STAIR SESSION opens the Stairs page
-     with it chosen (HWCampusData.start); it never starts a session. Nothing here writes to the save. */
+     to it, or with no coordinates its details open without moving the map. START STAIR SESSION opens the Stairs section
+     of this page (js/v6-campus-stairs.js) with it chosen (HWCampusData.start); it never starts a session. Nothing here writes to the save. */
 const HWCampus=(()=>{
 const ico=(n,s)=>HWPixel.icon(n,s||1),D0=document,$id=i=>D0.getElementById(i);
 // two of the prototype's pixel sprites (js/pixel.js) for the terrain and buildings switches: one character = one pixel
@@ -277,7 +277,7 @@ function stage(){const w=why(),s=V.sid&&rec(V.sid),g=V.grp&&points().find(x=>x.k
 const nearTxt=(lat,lng,acc)=>{const n=points().map(g=>({g,d:dist(lat,lng,g.lat,g.lng)})).sort((a,b)=>a.d-b.d)[0];
   return n?'<p class="cmpyou" id="cmpnear">The nearest mapped staircase is <b>'+esc(n.g.items[0].name)+'</b>, about '+fmtD(n.d)+' away'+(acc?' (± '+Math.round(acc)+' m)':'')+'. Your position is used on this screen only: it is not saved or sent.</p>':''};
 /** The player's own stair activity, from saved sessions only (no new XP, badges or store). */
-function mine(){const L=typeof HWStairs!=='undefined'?HWStairs.all():[];if(!L.length)return '<div class="cmpwx"><b>'+ico('stairs')+' Your climbs on campus</b><p class="mut">No stair sessions saved yet. START STAIR SESSION on a staircase, then save it on the Stairs page.</p></div>';
+function mine(){const L=typeof HWStairs!=='undefined'?HWStairs.all():[];if(!L.length)return '<div class="cmpwx"><b>'+ico('stairs')+' Your climbs on campus</b><p class="mut">No stair sessions saved yet. START STAIR SESSION on a staircase, then save it in the Stairs section below.</p>'+(typeof HWCampusStairs!=='undefined'?'<button type="button" class="g sm" data-a="stopen">OPEN STAIRS</button>':'')+'</div>';
   const d=new Date(),ymd=x=>x.getFullYear()+'-'+('0'+(x.getMonth()+1)).slice(-2)+'-'+('0'+x.getDate()).slice(-2),back=n=>{const x=new Date(d);x.setDate(x.getDate()-n);return ymd(x)};
   const t=today(),a7=back(6),b7=back(13),wk=L.filter(s=>s.d>=a7&&s.d<=t),pw=L.filter(s=>s.d>=b7&&s.d<a7),steps=A=>A.reduce((x,s)=>x+s.total,0);
   const C={};L.forEach(s=>{if(s.sid&&rec(s.sid))C[s.sid]=(C[s.sid]||0)+1});const top=Object.keys(C).sort((x,y)=>C[y]-C[x]||(x<y?-1:1)).slice(0,3),none=L.filter(s=>!s.sid||!rec(s.sid)).length;
@@ -307,7 +307,8 @@ function page(){Promise.resolve().then(()=>{mount();mount3d()});
       :'<div class="row"><button type="button" data-a="cmpgps"'+(V.gps==='wait'?' disabled':'')+'>'+(V.gps==='wait'?'FINDING YOU...':'SHOW WHERE I AM')+'</button>'+(V.me?'<button type="button" class="g" data-a="cmpforget">HIDE MY POSITION</button>':'')+'</div>')
     +(ME.last&&!ME.far&&ME.st==='gps'?nearTxt(ME.last.lat,ME.last.lng,ME.last.accuracy):'')+mine()
     +(V.err?'<p class="cmpe" role="alert">'+esc(V.err)+' Pick a staircase on the map or in the list instead.</p>':'')+where()+weather()
-    +'<div class="cmpwx"><b>'+ico('map')+' Campus-wide activity</b><p class="mut">Not available. HealthWiz does not collect anyone else\'s location, so there is nothing to show here. Your own visits stay on your device.</p></div></div>'}
+    +'<div class="cmpwx"><b>'+ico('map')+' Campus-wide activity</b><p class="mut">Not available. HealthWiz does not collect anyone else\'s location, so there is nothing to show here. Your own visits stay on your device.</p></div></div>'
+    +(typeof HWCampusStairs!=='undefined'?HWCampusStairs.html():'')}
 
 /* ---------- actions ---------- */
 const keep=()=>{persist();const y=window.scrollY;render();window.scrollTo(0,y)};
@@ -355,6 +356,9 @@ function locate(){const g=navigator.geolocation;V.err='';
     e=>fail(e&&e.code===1?'Location permission is off for HealthWiz.':e&&e.code===3?'Finding your position took too long.':'Your position is not available right now.'),
     {enableHighAccuracy:true,timeout:20000,maximumAge:0})}
 acts.cmpgps=()=>locate();
+/** Select a staircase and bring the Observatory (the top of the page) into view: used by FIND / RETURN TO OBSERVATORY in the Stairs section. */
+function show(id){if(V.sid===id&&rec(id)){V.grp=null;V.tab='det'}else if(!focus(id))return false; // already selected: the camera stays where it is
+  persist();render();const e=$id('cmpcard');if(e)e.scrollIntoView({block:'start'});return true}
 /** Select a staircase from elsewhere (before go('campus')): the map flies to it; with no coordinates, it is not moved. */
 function focus(id){const s=rec(id);if(!s)return false;V.sid=id;V.grp=null;V.tab='det';V.vw=true;V.fly=placed(s);persist();if(M.ctl&&S.v==='campus')sync();return true}
 
@@ -362,7 +366,7 @@ function focus(id){const s=rec(id);if(!s)return false;V.sid=id;V.grp=null;V.tab=
 pages.campus=()=>page();
 PAR.campus='health';
 BN.campus=['🗺','Campus Health Observatory','The campus staircases, your climbs, the air outside.','rgba(92,192,90,.20)'];
-DIS.campus='Locations are unverified app data unless marked measured. Raised ground and building heights are illustrative. Your position is shown on this screen only and is never saved or sent.';
+DIS.campus='Locations are unverified app data unless marked measured. Raised ground and building heights are illustrative. Your position is shown on this screen only and is never saved or sent. '+DIS.stair; // the Stairs section: its pacing and heart-rate notice
 const door=()=>'<div class="card cmpdoor" id="cmp-door"><h3>'+ico('map')+' CAMPUS HEALTH OBSERVATORY</h3><p>See the campus staircases on a map, how each one was measured, and check the air before you go.</p><button type="button" data-a="cmpgo">OPEN THE OBSERVATORY</button></div>';
 {const p=pages.health;pages.health=function(){return p.apply(this,arguments)+door()}}
 HWEvents.on('page:viewed',e=>{if(e.view!=='campus'){meStop(true);ME.choose=false;unmount();ME.used=false;unmount3d();V.me=null;V.err='';V.gps='';fsClass()}});
@@ -453,6 +457,6 @@ HWUI.css('campus',`
   linear-gradient(#f2c14e,#f2c14e) left bottom/12px 2px no-repeat,linear-gradient(#f2c14e,#f2c14e) left bottom/2px 12px no-repeat,linear-gradient(#f2c14e,#f2c14e) right bottom/12px 2px no-repeat,linear-gradient(#f2c14e,#f2c14e) right bottom/2px 12px no-repeat}
 .cmpcard[data-mode="fantasy"] .cmpgrp h3,.cmpcard[data-mode="fantasy"] .cmpeye{color:var(--gold,#f6c94f)}
 `);
-return{points,unmapped,focus,why,get selected(){return V.sid},get map(){return M.ctl},get viewer(){return P3.ctl},
+return{points,unmapped,focus,show,why,get selected(){return V.sid},get map(){return M.ctl},get viewer(){return P3.ctl},
   get me(){return{st:ME.st,far:ME.far,follow:ME.follow,choose:ME.choose,avatar:avGet(),last:ME.last}},
   get state(){return{sid:V.sid,grp:V.grp,mode:V.mode,full:V.full,vw:V.vw,v3:P3.st,shown:P3.shown,tab:V.tab,f:V.f,q:V.q,terr:V.terr,bld:V.bld,cam:V.cam,map:M.st,msg:M.msg,me:V.me,err:V.err}}}})();

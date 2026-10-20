@@ -70,7 +70,7 @@ function surveyPlan(s){const v=s&&s.survey;if(!v||!v.complete||!v.complete.fligh
 let SV=null,SVst='idle',SVn=0,R=null; // SVst: idle | loading | ok | error | local (opened from the device: not fetched)
 function load(){if(SVst!=='idle')return;const web=/^https?:$/.test(location.protocol);if(!web||typeof fetch!=='function'){SVst='local';return}
   SVst='loading';
-  const done=()=>{R=null;records();if(S.v==='campus'||(SVn&&S.v==='stair')){const y=window.scrollY;render();window.scrollTo(0,y)}}; // the Observatory shows the survey state
+  const done=()=>{R=null;records();if(S.v==='campus'){const y=window.scrollY;render();window.scrollTo(0,y)}}; // the Observatory shows the survey state
   fetch(SURVEY,{cache:'no-cache'}).then(r=>r.ok?r.json():Promise.reject(new Error('HTTP '+r.status))).then(j=>{SV=j&&typeof j==='object'?j:null;SVst='ok';done()})
     .catch(()=>{SV=null;SVst='error';done()})}
 /** Every staircase record, in STAIRS order (built once, rebuilt when the survey arrives). Read them; do not change them. */
@@ -103,7 +103,7 @@ function start(id){if(typeof HWStairs==='undefined'||!HWStairs.choose(id))return
 /** The session saved for the staircase of this trip, if it is still in the save. */
 function savedSession(){const c=ctx();return c&&c.saved&&st.e.some(e=>e.id===c.saved&&e.c==='stair')?c:null}
 HWEvents.on('entry:added',e=>{const c=ctx(),x=e.entry;if(c&&x&&x.c==='stair'&&x.m&&x.m.sid===c.sid){c.saved=x.id;setCtx(c)}});
-HWEvents.on('page:viewed',e=>{if(e.view==='campus')setCtx(null)}); // the trip ends at the Observatory, however it was reached
+const endTrip=()=>setCtx(null); // the trip ends at the Observatory, however it was reached (js/v6-campus-stairs.js calls this on a plain arrival)
 ['data:reset','data:imported'].forEach(t=>HWEvents.on(t,()=>setCtx(null)));
 /** The Stairs page's links: FIND ON OBSERVATORY for the chosen staircase; RETURN TO OBSERVATORY after the trip's session was
     saved (also after a refresh, which forgets the choice but not the trip), unless another staircase is chosen now. */
@@ -111,13 +111,14 @@ function bar(){const id=typeof HWStairs!=='undefined'?HWStairs.pick:null,s=id&&r
   return '<div class="cmpbar" id="cmpbar">'+(back?'<p class="cmpbk" role="status"><b>Session saved</b> for '+esc(back.name)+'. Go back to it on the Observatory map.</p>':'')
     +'<div class="row">'+(back?'<button type="button" data-a="cmpback">'+ico('map')+' RETURN TO OBSERVATORY</button>':'')
     +(s?'<button type="button" class="g sm" data-a="cmpfind" data-id="'+esc(s.id)+'">'+ico('map')+' FIND ON OBSERVATORY</button>':'')+'</div></div>'}
-const open=id=>{if(typeof HWCampus!=='undefined'&&HWCampus.focus)HWCampus.focus(id);go('campus')};
+// the Observatory and the Stairs section are one page now: select the staircase and bring the Observatory into view
+const open=id=>{endTrip();if(typeof HWCampus==='undefined')return;if(S.v==='campus'&&HWCampus.show)HWCampus.show(id);else{HWCampus.focus(id);go('campus')}};
 acts.cmpfind=d=>{if(d&&record(d.id))open(d.id)};
 // back to the view kept when the trip started (the Observatory keeps it in sessionStorage); focus only if it was lost
-acts.cmpback=()=>{const c=savedSession();if(!c)return;if(typeof HWCampus!=='undefined'&&HWCampus.selected!==c.sid)open(c.sid);else go('campus')};
+acts.cmpback=()=>{const c=savedSession();if(!c)return;if(typeof HWCampus!=='undefined'&&HWCampus.selected!==c.sid)open(c.sid);else{endTrip();if(S.v==='campus'&&HWCampus.show)HWCampus.show(c.sid);else go('campus')}};
 
 HWUI.css('campusdata',`
 .cmpbar{margin:8px 0}.cmpbar .row{flex-wrap:wrap;gap:8px}.cmpbar button{min-height:44px;margin:0}.cmpbk{margin:0 0 6px}.cmpbar svg{vertical-align:-3px}
 `);
-return{records,record,placed,labels,activity,surveyNote,applySurvey,surveyPlan,start,bar,load,STEEP,
+return{records,record,placed,labels,activity,surveyNote,applySurvey,surveyPlan,start,bar,load,endTrip,STEEP,
   get survey(){return{status:SVst,stairs:SVn}},get trip(){return ctx()}}})();

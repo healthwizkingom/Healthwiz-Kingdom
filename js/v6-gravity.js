@@ -263,7 +263,7 @@ acts.gvsave=()=>{
   G.saved={loc:q.name,n,min:Math.round(min*10)/10,W:gv.W};G.ph='saved';G.dup=0;render()};
 
 // anywhere else, the sensor is off: leaving the page or hiding the tab pauses a running climb
-HWEvents.on('page:viewed',e=>{if(e.view!=='stair'&&(G.ph==='running'))acts.gvpause()});
+HWEvents.on('page:viewed',e=>{if(e.view!=='campus'&&(G.ph==='running'))acts.gvpause()});HWEvents.on('stairs:closed',()=>{if(G.ph==='running')acts.gvpause()});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&G.ph==='running')acts.gvpause()});
 HWEvents.on('data:reset',()=>{stop();G=fresh()});HWEvents.on('data:imported',()=>{stop();G=fresh()});
 

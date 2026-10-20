@@ -114,6 +114,6 @@ acts.gpsconfirm=()=>{if(U.k!=='confirm')return;
 
 // leaving a bulk change (import / reset) or the page drops any in-memory reading
 HWEvents.on('data:reset',()=>{gen++;U={k:'idle'}});HWEvents.on('data:imported',()=>{gen++;U={k:'idle'}});
-HWEvents.on('page:viewed',e=>{if(e.view!=='stair'){gen++;U={k:'idle'}}});
+HWEvents.on('page:viewed',e=>{if(e.view!=='campus'){gen++;U={k:'idle'}}});HWEvents.on('stairs:closed',()=>{gen++;U={k:'idle'}}); // the Stairs section lives on the Campus page
 
 return{nearby,dist,radius,counts,WEAK,card:cardSafe,get state(){return U.k}}})();

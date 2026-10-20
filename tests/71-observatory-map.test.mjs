@@ -68,7 +68,7 @@ const cam = page => page.evaluate(() => { const m = HWCampus.map.map, c = m.getC
 
 test('lazy and complete: nothing of the map before the page opens; then OSM attribution, a scale, terrain in order, 25 markers on their coordinates, clusters', async () => {
   const { ctx, page, errors, reqs } = await openHttp();
-  await goView(page, 'stair'); await goView(page, 'health');
+  await goView(page, 'sleep'); await goView(page, 'health'); // (Stairs is a section of the map page now: tests/83-stairs-in-campus)
   assert.deepEqual(reqs.filter(u => /observatory\/|vendor\/|\.geojson/.test(u)), [], 'the rest of the app never loads the map');
   await goView(page, 'campus');
   assert.equal(await ready(page), 'ready');

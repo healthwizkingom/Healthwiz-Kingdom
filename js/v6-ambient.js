@@ -6,7 +6,7 @@
      meadow   Home, Health Hall, BMI, Calories, Statistics, Settings      rolling hills, a far castle, clouds, motes
      water    Nutrition & Hydration                                       hills and a lake with moving light on it
      night    Sleep                                                       night hills, a moon, twinkling stars, fireflies
-     mountain Stairs (also the old Pulse and Running routes)              peaks with snow, a stair path, mist
+     mountain the open Stairs section of the Campus page, Running        peaks with snow, a stair path, mist
      forest   Stress                                                      pine forest, falling leaves
      hall     Quests, Badges, Guide, Kingdom                              a castle wall and two flickering torches
    The scenery is painted once per theme as small pixel-art strips (HWRig.paint, cached for the session) and shown
@@ -76,7 +76,7 @@ function build(){el=document.createElement('div');el.className='amb';el.setAttri
 function theme(v){const th=THEME[v]||'';if(!el)build();
   el.classList.toggle('amoff',!th);if(!th||th===cur)return;cur=th;el.dataset.th=th;
   el.querySelector('.amfar').style.backgroundImage='url('+url(th,0)+')';el.querySelector('.amnear').style.backgroundImage='url('+url(th,1)+')'}
-{const _r=render;render=function(){const r=_r.apply(this,arguments);try{theme(S.v)}catch(e){console.error('[HWAmbient]',e)}return r}}
+{const _r=render;render=function(){const r=_r.apply(this,arguments);try{theme(S.v==='campus'&&typeof HWCampusStairs!=='undefined'&&HWCampusStairs.open?'stair':S.v)}catch(e){console.error('[HWAmbient]',e)}return r}}
 
 HWUI.css('ambient',`
 .amb{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;contain:strict}

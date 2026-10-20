@@ -75,7 +75,7 @@ test('details in three groups with the player\'s own climbs and honest labels; S
   const before = (await state(page)).e.length;
   assert.match(await page.textContent('#cmpdet [data-a="cmpstair"]'), /^START STAIR SESSION$/);
   await page.click('#cmpdet [data-a="cmpstair"]');
-  assert.equal(await page.evaluate(() => [S.v, STAIRS[S.loc].id, HWStairs.pick].join()), 'stair,' + id + ',' + id);
+  assert.equal(await page.evaluate(() => [S.v, STAIRS[S.loc].id, HWStairs.pick].join()), 'campus,' + id + ',' + id);
   const name = await page.evaluate(id => STAIRS.find(s => s.id === id).name, id);
   assert.equal((await page.textContent('.sqlist .chip.on .sqn')).trim(), name);
   assert.match(await page.textContent('.stloc'), /penjana elektrik/);
@@ -179,7 +179,7 @@ test('phone: fits 360 px, list buttons and controls are full-size tap targets', 
 test('the Stage 4 modules add actions and classes without replacing any existing ones (the original Registry\'s obgo stays its own)', async () => {
   const fs = await import('node:fs');
   const dir = new URL('../js/', import.meta.url), files = fs.readdirSync(dir).filter(f => f.endsWith('.js'));
-  const NEW = ['v6-plan.js', 'v6-time.js', 'v6-campus.js', 'v6-campus-data.js'];
+  const NEW = ['v6-plan.js', 'v6-time.js', 'v6-campus.js', 'v6-campus-data.js', 'v6-campus-stairs.js'];
   const defs = f => [...fs.readFileSync(new URL(f, dir), 'utf8').matchAll(/acts\.([A-Za-z0-9_]+)\s*=/g)].map(m => m[1]);
   const old = new Set(files.filter(f => !NEW.includes(f)).flatMap(defs));
   for (const f of NEW) for (const a of defs(f)) assert.ok(!old.has(a), f + ' replaces the existing action ' + a);

@@ -84,7 +84,7 @@ test('round trip: select → START STAIR SESSION (nothing saved) → save → RE
   assert.deepEqual(v0, { sid: 'ST20', grp: null, tab: 'det', f: 'part', q: 'kenanga', mode: 'fantasy' });
   // START STAIR SESSION: chosen on the Stairs page, no session started or saved, no RETURN yet
   await page.click('#cmpdet [data-a="cmpstair"][data-id="ST20"]');
-  assert.deepEqual(await page.evaluate(() => [S.v, HWStairs.pick, STAIRS[S.loc].id, S.pb.on]), ['stair', 'ST20', 'ST20', 0]);
+  assert.deepEqual(await page.evaluate(() => [S.v, HWStairs.pick, STAIRS[S.loc].id, S.pb.on]), ['campus', 'ST20', 'ST20', 0]); // the Stairs section of the Campus page
   assert.match(await page.textContent('.sqlist .chip.on'), /penjana elektrik/);
   assert.equal(stairs(await state(page)).length, 2, 'START saves nothing');
   assert.equal(await page.locator('[data-a="cmpback"]').count(), 0, 'no RETURN before a session is saved');
@@ -163,7 +163,7 @@ test('a staircase without coordinates: selectable from the list, never placed; S
   assert.equal(await page.evaluate(() => HWCampus.points().some(g => g.items.some(s => s.id === 'ST02'))), false, 'never a map point');
   assert.match(await page.textContent('#cmpdet'), /Tangga Selangkah Menara Gading[\s\S]*No location recorded, so it is not placed on the map\.[\s\S]*No location recorded[\s\S]*Estimated angle/);
   await page.click('#cmpdet [data-a="cmpstair"][data-id="ST02"]');
-  assert.deepEqual(await page.evaluate(() => [S.v, HWStairs.pick]), ['stair', 'ST02']);
+  assert.deepEqual(await page.evaluate(() => [S.v, HWStairs.pick]), ['campus', 'ST02']);
   assert.match(await page.textContent('.stloc'), /Tangga Selangkah Menara Gading[\s\S]*no map coordinates/);
   // FIND ON OBSERVATORY: its details (tests/71-observatory-map checks the map does not move)
   await go(page, 'stair'); await page.evaluate(() => { HWStairs.choose('ST02'); render(); });
