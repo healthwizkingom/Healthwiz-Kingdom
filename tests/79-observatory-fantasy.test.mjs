@@ -1,6 +1,8 @@
 // The Observatory's fantasy look (integration Phase 4), over http with software WebGL:
-//   * Fantasy: the Blender buildings (assets/models/campus-fantasy.glb) load and replace the generated roofs; Realistic shows
-//     the plain blocks and no Blender buildings; the buildings switch hides them; markers keep their coordinates;
+//   * Fantasy: the Blender buildings (assets/models/campus-fantasy.glb) load and replace the generated roofs; Realistic loads
+//     its own daylight Blender buildings (assets/models/campus-realistic.glb, owner's request 2026-10-20: both looks follow
+//     the drone video) in place of the plain blocks, and only one look's model is kept; the buildings switch hides them;
+//     markers keep their coordinates;
 //   * particles and selection sparks run only in Fantasy (reduced motion: tests/80-observatory-still);
 //   * leaving the page frees all of it: no canvas, no animation loop.
 import { test, before, after } from 'node:test';
@@ -61,7 +63,7 @@ const cam = page => page.evaluate(() => { const m = HWCampus.map.map, c = m.getC
 
 const visible = (page, id) => page.evaluate(id => { const m = HWCampus.map.map; return m.getLayer(id) ? m.getLayoutProperty(id, 'visibility') !== 'none' : null; }, id);
 
-test('Fantasy: the Blender buildings replace the generated roofs; Realistic: plain blocks; particles only in Fantasy, sparks on a selection; leaving frees it all', async () => {
+test('Fantasy and Realistic: the Blender buildings of each look replace the stand-ins; particles only in Fantasy, sparks on a selection; leaving frees it all', async () => {
   const { ctx, page, errors } = await openHttp({ ctxOpt: { reducedMotion: 'no-preference' },
     init: () => { window.__raf = 0; const r = requestAnimationFrame; window.requestAnimationFrame = function (f) { return r.call(this, t => { window.__raf++; f(t); }); }; } });
   await goView(page, 'campus'); assert.equal(await ready(page), 'ready');
@@ -76,12 +78,17 @@ test('Fantasy: the Blender buildings replace the generated roofs; Realistic: pla
   const lit = await page.evaluate(() => new Promise(r => setTimeout(() => { const c = document.querySelector('.cmpfx'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 3; i < d.length; i += 4) if (d[i]) n++; r(n); }, 1500)));
   assert.ok(lit > 0, 'sparks and motes are drawn');
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.cmpfx')).pointerEvents), 'none', 'decoration never takes a tap');
-  // Realistic: plain blocks, no Blender buildings, no particles
+  // Realistic: its own Blender buildings in daylight (the fantasy model is freed), no particles
   await page.click('[data-a="cmpmode"][data-m="realistic"]');
-  assert.deepEqual([await visible(page, 'models'), await visible(page, 'bx'), await visible(page, 'bld')], [false, false, true]);
   assert.equal(await page.evaluate(() => HWCampus.map.fx.running), false);
+  await page.waitForFunction(() => HWCampus.map.modelsLook === 'realistic', null, { timeout: 60000 });
+  assert.deepEqual([await visible(page, 'models'), await visible(page, 'bx'), await visible(page, 'bld'), await visible(page, 'roof')], [true, false, false, false],
+    'the daylight Blender buildings (with the gazebos), not the plain blocks');
+  // one model layer (ids are unique): the fantasy one was removed (and freed) before the realistic one was added
+  assert.equal(await page.evaluate(() => !!HWCampus.map.map.getLayer('models') && HWCampus.map.models.ready), true, 'one model layer, the realistic one, ready');
   // the buildings switch hides the Blender buildings too
   await page.click('[data-a="cmpmode"][data-m="fantasy"]');
+  await page.waitForFunction(() => HWCampus.map.modelsLook === 'fantasy', null, { timeout: 60000 });
   assert.equal(await visible(page, 'models'), true);
   await page.click('[data-a="cmpbld"]');
   assert.deepEqual([await visible(page, 'models'), await visible(page, 'bx')], [false, false]);

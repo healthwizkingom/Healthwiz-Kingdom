@@ -111,8 +111,10 @@ vendor/three/              Three.js r169 (MIT) and the 3D preview's add-ons, cop
 assets/models/stairs/      the Blender staircase models for the 3D preview (from the prototype; demonstration shapes, F21 step sizes)
 assets/models/avatars/     the map avatars: Tom, the anime school boy and girl (CC BY 4.0, suzuart): sources, licences and changes in CREDITS.md
 tools/blender_avatar.py    makes an avatar (reduced, one texture, skeleton, idle and walk) from a character model; tools/get-blender.sh installs Blender 4.2
-assets/models/campus-fantasy.glb  the fantasy campus buildings, modelled in Blender from the OSM outlines (the prototype's tools/blender_buildings.py); decoration
-data/                      campus-osm.geojson and elevation-zones.geojson (the map's data, copied unchanged from the prototype) and stair-survey.json
+assets/models/campus-realistic.glb, campus-fantasy.glb  the campus buildings for each look, modelled in Blender from the OSM outlines in the look of the owner's drone video (tools/blender_campus.py, data/campus-looks.json); appearance is observed or campus-typical, heights estimated
+tools/blender_campus.py    makes those two GLBs: footprints from data/campus-osm.geojson, roof and wall colours, storeys and details from data/campus-looks.json
+tools/campus-clip.mjs      cuts the prototype's OpenStreetMap export to Kolej MARA Kulim (data/campus-osm.geojson): lines clipped to the export's bounds, features outside the campus dropped
+data/                      campus-osm.geojson (the prototype's OSM export cut to the campus by tools/campus-clip.mjs), elevation-zones.geojson (copied unchanged), campus-looks.json (each building's look from the drone video, with its frames and a confidence) and stair-survey.json
 assets/img/                the 15 images that were embedded as base64 in the original (the PNG art re-encoded as lossless WebP)
 assets/icons/              app icons (original pixel art, drawn by tools/make-icons.mjs)
 legacy/HealthWiz_Kingdom_5-4-3.html   the complete original single file (source of truth)
@@ -148,6 +150,20 @@ shows the player's own stair activity from their saved sessions (no new points o
 single-file build, the page says so and lists the staircases with their details, without requesting anything. The map's
 files (`observatory/`, `vendor/`, `assets/models/`, `data/*.geojson`) load only when the page opens and are cached on first use.
 Map data © OpenStreetMap contributors (ODbL); the map shows the attribution.
+
+**Only Kolej MARA Kulim, in the look of the drone video (2026-10-20).** The map's data is cut to the campus
+(`tools/campus-clip.mjs`): the main road, river and housing that ran up to 6 km beyond it are gone, and the map no longer
+pans more than about 130 m past the campus, so there is less to draw. Both looks show Blender buildings
+(`tools/blender_campus.py`): Realistic in daylight, Fantasy at night. Their roof and wall colours, storeys and a few details
+follow a drone video of the campus by @ikraMRahim, used with the creator's permission: the large academic block's blue roof
+with its striped skylight panel, rooftop tank and red entrance portal, the Surau's pale roof, the red-roofed blocks, the red
+gazebos and the covered walkways (a red roof on white posts). `data/campus-looks.json` lists, for every building, what was
+seen and in which frames, with a confidence (*high*, *medium*, or *campus-typical* for buildings the video does not clearly
+show, which get the red-roof, white-wall look most of the campus has). Footprints and positions are the OpenStreetMap
+outlines, unchanged; wall heights (storeys × 3.6 m + 0.6 m), roof pitches and the walkway width are estimates. Colours are
+the medians measured across the video's frames, so they are as filmed. The Fantasy look keeps its own additions (turrets,
+chimneys, gold trim), which are decoration, not real structures. To rebuild after editing the looks:
+`blender -b --factory-startup -P tools/blender_campus.py -- --style realistic` (and `--style fantasy`).
 
 ## Campus stair survey data
 
