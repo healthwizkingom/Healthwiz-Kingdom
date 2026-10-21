@@ -20,7 +20,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { openApp, closeBrowser, go, RETURNING } from './helpers.mjs';
+import { openApp, closeBrowser, go, RETURNING, dismissAware } from './helpers.mjs';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 async function until(page, fn, ms) { const t = Date.now(); for (;;) { if (await page.evaluate(fn)) return; if (Date.now() - t > ms) throw new Error('timed out: ' + fn); await new Promise(r => setTimeout(r, 300)); } }
@@ -86,7 +86,7 @@ test('with the map, on a phone: spinning hearts; a tap zooms the stop\'s disc ou
   await page.route('**/assets/models/heart-stop.glb', r => r.fulfill({ status: 404, body: 'not found' })); // the fallback; the 3D stops: below
   await page.addInitScript(s => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('healthwiz', s); localStorage.setItem('hwtut', '1'); sessionStorage.setItem('seeded', '1'); } }, JSON.stringify({ ...RETURNING, s: { ...RETURNING.s, live: 0 } }));
   await page.goto(base); await page.waitForSelector('.wl');
-  await page.evaluate(() => { go('campus'); if (window.HWCampusHud) HWCampusHud.aware(false); }); // OK on the Stay Aware notice
+  await page.evaluate(() => go('campus')); await dismissAware(page); // OK on the Stay Aware notice
   await until(page, () => HWCampus.state.map === 'ready', 80000);
   // the hearts: one per stored point, in the difficulty colour, spinning (16 steps), the difficulty number on the post
   // (the 3D stops cannot load in this test: the drawn hearts stay)
@@ -145,7 +145,7 @@ test('the solid 3D stops: one per marker, in the difficulty colour, on the marke
   await page.route('**/observatory/viewer3d.js', r => r.fulfill({ contentType: 'text/javascript', body: STUB_VIEWER }));
   await page.addInitScript(s => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('healthwiz', s); localStorage.setItem('hwtut', '1'); sessionStorage.setItem('seeded', '1'); } }, JSON.stringify({ ...RETURNING, s: { ...RETURNING.s, live: 0 } }));
   await page.goto(base); await page.waitForSelector('.wl');
-  await page.evaluate(() => { go('campus'); if (window.HWCampusHud) HWCampusHud.aware(false); }); // OK on the Stay Aware notice
+  await page.evaluate(() => go('campus')); await dismissAware(page); // OK on the Stay Aware notice
   await until(page, () => HWCampus.state.map === 'ready' && HWCampus.map.stops && HWCampus.map.stops.ready, 80000);
   const r = await page.evaluate(() => { const C = HWCampus.map, d = C.stops.debug, map = C.map, c = map.getContainer();
     const hex = x => '#' + x.getHexString();

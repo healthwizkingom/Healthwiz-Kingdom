@@ -116,6 +116,7 @@ test('Stay Aware, the HealthWiz menu, the Details sheet with its tabs, and the a
   const sh = await page.evaluate(() => { const s = document.getElementById('hudsheet'), st = document.getElementById('cmpstage'); return { inMap: st.contains(s), size: s.dataset.size, h: s.getBoundingClientRect().height / st.getBoundingClientRect().height, below: !!document.querySelector('#cmppane #cmpdet'), list: !!document.querySelector('#cmppane #cmplist'), log: !!s.querySelector('#cmplog'), scroll: getComputedStyle(s.querySelector('.hudbody')).overflowY }; });
   assert.deepEqual([sh.inMap, sh.size, sh.below, sh.list, sh.log, sh.scroll], [true, 'peek', false, true, true, 'auto']);
   assert.ok(sh.h > .15 && sh.h < .36, 'about a fifth of the map: ' + sh.h);
+  assert.ok(await page.evaluate(() => [...document.querySelectorAll('.hudbtn, .hudwavebtn')].every(b => b.getBoundingClientRect().bottom <= document.getElementById('hudsheet').getBoundingClientRect().top + 1)), 'the HealthWiz button and NEAREST STAIRS ride above the sheet');
   await page.click('.hudgrab');
   await until(page, () => document.getElementById('hudsheet').dataset.size === 'half', 3000);
   await page.waitForTimeout(400);
@@ -166,7 +167,7 @@ test('NEAREST STAIRS: a wave, then the nearest staircases with CHECK IN; a switc
   assert.match(d, /Demo walk: the position is simulated, so there is no check-in\./);
   assert.equal(await page.locator('#v6gps [data-a="gpspick"]').count(), 0);
   // the terrain switch: the map changes, the page is not redrawn, the map not resized
-  await page.click('#hudsheet [data-a="hudsheetx"]'); // the sheet covers the HealthWiz button, as in the recording
+  await page.click('#hudsheet [data-a="hudsheetx"]'); // close the details first
   await page.click('.hudbtn');
   await page.evaluate(() => { window.__r = 0; HWCampus.map.map.on('resize', () => window.__r++); document.getElementById('cmpcard').dataset.mark = '1'; });
   await page.click('#hudmenu [data-a="cmpterr"]');

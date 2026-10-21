@@ -16,7 +16,7 @@
    without it the Details stay below the map as before. */
 const HWCampusHud=(()=>{
 const D0=document,$id=i=>D0.getElementById(i),ico=(n,s)=>HWPixel.icon(n,s||1);
-let menu=false,leg=false,size='peek',aw=false,seen=false,dragged=false;
+let menu=false,leg=false,size='peek',aw=false,dragged=false;
 const C=()=>typeof HWCampus!=='undefined'?HWCampus:null;
 const redraw=()=>{const c=C();if(c&&c.redraw)c.redraw()};
 const reduced=()=>typeof HWUI!=='undefined'&&HWUI.reduced();
@@ -29,12 +29,12 @@ function menuHtml(o){
     +'<ul class="hudgrid">'+o.items.map(([a,l,t,i,x])=>'<li><span class="hudl" aria-hidden="true">'+l+'</span><button type="button" class="hudi" data-a="'+a+'" aria-label="'+t+'" title="'+t+'"'+(x||'')+'>'+i+'</button></li>').join('')+'</ul></div>'
     +'<button type="button" class="hudx" data-a="hudmenu" aria-label="Close the menu">×</button></div>'}
 /** Everything the HUD draws on the map stage. o: {items, find, legend, sheet}. */
-function html(o){if(!seen){seen=true;aw=true}
+function html(o){
   return '<button type="button" class="hudbtn" data-a="hudmenu" aria-expanded="'+menu+'" aria-controls="hudmenu" aria-label="HealthWiz menu: map buttons, search and legend"><img src="assets/icons/icon-192.png" alt="" width="56" height="56"></button>'
     +'<button type="button" class="hudwavebtn" data-a="hudwave" aria-label="Find the nearest stairs" title="Find the nearest stairs">'+WAVE+'<span>Nearest stairs</span></button>'
     +(menu?menuHtml(o):'')
     +(leg?'<div class="hudleg" id="hudleg" role="dialog" aria-modal="false" aria-labelledby="hudleg-t"><b id="hudleg-t">Legend</b><div class="cmpleg">'+o.legend+'</div><button type="button" class="cmpsx" data-a="hudleg" aria-label="Close the legend">×</button></div>':'')
-    +(o.sheet||'')+(aw?awareHtml():'')}
+    +(o.sheet||'')}
 
 /* ---------- Details: the sheet inside the map ---------- */
 function sheet(tab,body){const t=(k,ic,n)=>'<button type="button" role="tab" class="hudtab" data-a="hudtab" data-t="'+k+'" aria-selected="'+(tab===k)+'">'+ico(ic)+'<span>'+n+'</span></button>';
@@ -75,7 +75,7 @@ const SIGN='<svg viewBox="0 0 120 108" class="hudsign" aria-hidden="true" focusa
 function awareHtml(){return '<div class="hudaware" id="hudaware" role="alertdialog" aria-modal="true" aria-labelledby="hudaware-t" aria-describedby="hudaware-d"><div class="hudawc">'+SIGN
   +'<b id="hudaware-t">Stay Aware of Your Surroundings</b><p id="hudaware-d">Do not enter dangerous areas while playing HealthWiz Kingdom.</p>'
   +'<button type="button" class="hudok" data-a="hudaware">OK</button></div></div>'}
-function aware(v){aw=!!v;const e=$id('hudaware');if(!aw&&e)e.remove();if(!aw){const b=D0.querySelector('.hudbtn');if(b)b.focus({preventScroll:true})}}
+function aware(v){const was=aw;aw=!!v;const e=$id('hudaware');if(!aw&&e)e.remove();if(was&&!aw){const b=D0.querySelector('.hudbtn');if(b)b.focus({preventScroll:true})}}
 
 /* ---------- actions ---------- */
 acts.hudmenu=()=>{menu=!menu;leg=false;redraw();const f=menu?$id('cmpfind'):D0.querySelector('.hudbtn');if(f)f.focus({preventScroll:true})};
@@ -91,7 +91,9 @@ D0.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#hud
   setTimeout(()=>{const m=$id('hudmenu');if(m&&!menu)m.remove();const b=D0.querySelector('.hudbtn');if(b)b.setAttribute('aria-expanded','false')},0)},true);
 acts.hudlegopen=()=>redraw();
 D0.addEventListener('keydown',e=>{if(e.key!=='Escape'||S.v!=='campus')return;if(aw&&$id('hudaware')){aware(false);return}if(menu){acts.hudmenu();return}if(leg){acts.hudleg()}});
-HWEvents.on('page:viewed',e=>{if(e&&e.view!=='campus'){menu=false;leg=false;aw=false;seen=false;size='peek'}});
+// the notice opens once per visit to the page, when the map is there (the HUD drawn); it hangs on the body, so redraws keep it
+HWEvents.on('page:viewed',e=>{if(!e)return;if(e.view!=='campus'){menu=false;leg=false;aware(false);size='peek';return}
+  if(e.from!=='campus'&&D0.querySelector('#cmpstage .hudbtn')&&!$id('hudaware')){aw=true;D0.body.insertAdjacentHTML('beforeend',awareHtml());const b=D0.querySelector('#hudaware .hudok');if(b)b.focus({preventScroll:true})}});
 
 /* Redraws on the same page keep the page still: render() rebuilds the page wrapper, whose entrance fade (index.html: .pg pgin)
    made switching a map feature on or off look like the screen reloading. A new page still fades in. */
@@ -103,9 +105,11 @@ HWUI.css('campushud',`
 .hudbtn img{width:56px;height:56px;border-radius:50%;image-rendering:pixelated}
 .hudbtn:active{transform:translateX(-50%) scale(.94)}
 .hudwavebtn{position:absolute;z-index:7;right:12px;bottom:max(18px,env(safe-area-inset-bottom));min-height:0;margin:0;width:56px;height:56px;padding:0;border-radius:50%;border:2px solid #fff;background:#3fa5a0;color:#fff;box-shadow:0 3px 10px rgba(0,0,0,.3);display:grid;place-items:center}
-/* NEAREST STAIRS stays usable while Details are open: it rides just above the sheet */
+/* the HealthWiz button and NEAREST STAIRS stay usable while Details are open: they ride just above the sheet */
 #cmpstage:has(#hudsheet) .hudwavebtn{z-index:9;bottom:calc(max(170px,20%) + 24px)}#cmpstage:has(#hudsheet[data-size="half"]) .hudwavebtn{bottom:calc(max(260px,50%) + 24px)}
-#cmpstage:has(#hudsheet.drag) .hudwavebtn{visibility:hidden}
+#cmpstage:has(#hudsheet) .hudbtn{z-index:9;width:56px;height:56px;bottom:calc(max(170px,20%) + 10px)}#cmpstage:has(#hudsheet) .hudbtn img{width:44px;height:44px}
+#cmpstage:has(#hudsheet[data-size="half"]) .hudbtn{bottom:calc(max(260px,50%) + 10px)}
+#cmpstage:has(#hudsheet.drag) .hudwavebtn,#cmpstage:has(#hudsheet.drag) .hudbtn{visibility:hidden}
 .hudwavebtn svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}.hudwavebtn svg circle{fill:currentColor;stroke:none}
 .hudwavebtn span{position:absolute;bottom:-15px;left:50%;transform:translateX(-50%);white-space:nowrap;font:700 10px/1 var(--font);letter-spacing:.04em;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.8)}
 /* the menu: mint, round buttons under their names, the x at the bottom middle (the recording's look) */

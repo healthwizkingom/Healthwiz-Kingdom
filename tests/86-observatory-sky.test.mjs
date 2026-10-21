@@ -16,7 +16,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { execSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { RETURNING } from './helpers.mjs';
+import { RETURNING, dismissAware } from './helpers.mjs';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const json = p => JSON.parse(fs.readFileSync(path.join(root, p), 'utf8'));
@@ -116,7 +116,7 @@ test('with the map: the details load on the terrain; the Sky chooser tints, fogs
   page.on('request', r => reqs.push(r.url()));
   await page.addInitScript(s => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('healthwiz', s); localStorage.setItem('hwtut', '1'); sessionStorage.setItem('seeded', '1'); } }, JSON.stringify(SEED));
   await page.goto(base); await page.waitForSelector('.wl');
-  await page.evaluate(() => { go('campus'); if (window.HWCampusHud) HWCampusHud.aware(false); }); // OK on the Stay Aware notice
+  await page.evaluate(() => go('campus')); await dismissAware(page); // OK on the Stay Aware notice
   await page.waitForFunction(() => HWCampus.state.map === 'ready', null, { timeout: 80000 });
   await page.click('[data-a="cmpmode"][data-m="realistic"]');
   await page.waitForFunction(() => HWCampus.map.models && HWCampus.map.models.props, null, { timeout: 80000 });

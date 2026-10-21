@@ -116,7 +116,7 @@ function mount(){fsClass();const slot=$id('cmpmapslot');if(!slot||why())return;
 function autoMe(){if(ME.auto||meOn())return;ME.auto=true;if(!navigator.geolocation||!window.isSecureContext)return;
   const go=()=>{if(S.v==='campus'&&M.ctl&&M.ctl.ready&&!meOn())meStart(false,true)};
   try{navigator.permissions.query({name:'geolocation'}).then(p=>{if(p.state!=='denied')go()},go)}catch(e){go()}}
-function fail(m){M.st='error';M.skyk=null;M.msg=m;if(M.ctl){M.ctl.destroy();M.ctl=null}if(M.host){M.host.remove();M.host=null}if(S.v==='campus')keep()}
+function fail(m){M.st='error';M.skyk=null;M.msg=m;HWCampusHud.aware(false);if(M.ctl){M.ctl.destroy();M.ctl=null}if(M.host){M.host.remove();M.host=null}if(S.v==='campus')keep()}
 function unmount(){M.gen++;M.skyk=null;clearInterval(M.skyT);M.skyT=0;if(M.ctl){persist();M.ctl.destroy()}M.ctl=null;if(M.host)M.host.remove();M.host=null;M.st='off';M.msg=''}
 /** The loading / failure note over the map, changed in place (no redraw). */
 function paintMsg(){const e=$id('cmpmsg');if(!e)return;e.hidden=M.st==='ready';e.textContent=M.st==='error'?M.msg:'Loading the campus map…'}
@@ -142,11 +142,12 @@ const ME={st:'off',last:null,far:false,follow:true,first:true,msg:'',km:null,loc
 const meOn=()=>ME.st==='gps'||ME.st==='demo'||ME.st==='asking';
 function meStop(quiet){if(ME.loc)ME.loc.stop();ME.loc=null;ME.gen++;ME.st='off';ME.last=null;ME.far=false;ME.msg='';ME.km=null;if(M.ctl)M.ctl.me(null);if(!quiet&&S.v==='campus')keep()}
 function meStart(demo,auto){if(!M.ctl||!M.ctl.ready)return;if(!auto&&!avSex()&&!avGet()){ME.choose=true;keep();return}
-  const g=++ME.gen;ME.follow=true;ME.first=true;ME.msg='';if(!ME.used)persist();ME.used=true;
+  const g=++ME.gen;ME.follow=true;ME.first=true;ME.msg='';
   window.HWObsMap.locator({onFix:f=>{if(g!==ME.gen||!M.ctl)return;onFix(f)},onState:(st2,info)=>{if(g!==ME.gen)return;ME.st=st2;ME.msg=st2==='error'?info.message:'';if(st2==='error'||st2==='off'){ME.last=null;if(M.ctl)M.ctl.me(null)}if(S.v==='campus')keep()}})
     .then(l=>{if(g!==ME.gen){l.stop();return}ME.loc=l;if(demo)l.startDemo(window.HWObsMap.demoPath((x,y)=>M.ctl.near(x,y)));else l.startGps()})
     .catch(e=>{ME.st='error';ME.msg='Location could not start ('+String(e&&e.message||e).slice(0,80)+').';keep()})}
-function onFix(f){const c=M.ctl,was=ME.st;ME.last={lng:f.lng,lat:f.lat,accuracy:f.accuracy,source:f.source};
+// the first fix: the view from before is kept for the tab (the camera then follows the avatar)
+function onFix(f){const c=M.ctl,was=ME.st;if(!ME.used){persist();ME.used=true}ME.last={lng:f.lng,lat:f.lat,accuracy:f.accuracy,source:f.source};
   ME.far=f.source==='gps'&&!c.near(f.lng,f.lat);ME.km=window.HWObsMap.kmFromCampus(f.lng,f.lat);
   const first=ME.first;if(ME.far)c.me(null);else{c.me(ME.last,ME.first,avUrl());if(ME.follow)c.followMe(ME.last,ME.first);ME.first=false}
   // later fixes change the status bar in place; the first (or a change between far and near) redraws the page once

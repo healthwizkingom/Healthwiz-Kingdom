@@ -53,8 +53,15 @@ export async function openApp({ seed, fresh = false, viewport, before, context, 
   if (before) await before(page);
   await page.goto(url || APP_URL);
   // the loading screen (js/v6-loader.js) covers the app until the first page has loaded
-  await page.waitForFunction(() => !window.HWLoader || HWLoader.done, null, { timeout: 20000 }).catch(() => {});
+  await page.waitForFunction(() => typeof HWLoader === 'undefined' || HWLoader.done, null, { timeout: 20000 }).catch(() => {});
   return { page, ctx, errors };
+}
+
+/** OK on the Stay Aware notice (js/v6-campus-hud.js), which opens with the campus map each time; tests/89 checks the notice
+    itself. It waits for the page to be the campus page and for the notice, or for a page without the map (no notice). */
+export async function dismissAware(page) {
+  await page.waitForFunction(() => S.v === 'campus' && (document.getElementById('hudaware') || HWCampus.why() || HWCampus.state.map === 'error'), null, { timeout: 15000 }).catch(() => {});
+  await page.evaluate(() => { if (typeof HWCampusHud !== 'undefined') HWCampusHud.aware(false); });
 }
 
 /** Navigate with the app's own router. */
