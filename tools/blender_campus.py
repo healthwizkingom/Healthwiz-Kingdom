@@ -686,7 +686,7 @@ def sign():
     cxy = c
     lng, lat = LNG0 + cxy[0] / KX, LAT0 + cxy[1] / (RAD * R)
     ob = B.object('sign_kmk', (cxy[0], cxy[1], 0))
-    ob['osm'] = 'none'; ob['type'] = 'sign'; ob['lng'] = round(lng, 8); ob['lat'] = round(lat, 8); ob['look'] = 'owner-photo'
+    ob['type'] = 'sign'; ob['lng'] = round(lng, 8); ob['lat'] = round(lat, 8); ob['look'] = 'owner-photo'   # no 'osm': it is not in OpenStreetMap
 sign()
 
 scene['origin_lng'], scene['origin_lat'] = LNG0, LAT0
