@@ -241,13 +241,19 @@ which buildings hide too. The selected heart spins, redrawing the map about 12 t
 selected (never with reduced motion, still mode or Performance mode, when the hearts face the viewer instead). If the
 model cannot load, the drawn hearts stay.
 
+**Owner's corrections (2026-10-22).** The stair illustration is back at the top of Details, above the step ranges, the climb
+form and Stair Sense, and opens with the pick; Full screen is its own button on the map again; the Sky panel has a x; the
+sky caption sits bottom left, clear of the HealthWiz button; the white layer beyond the campus is gone; the sheet follows
+the app's theme; the terrain switch flattens the terrain instead of removing it, so nothing has to be redrawn into the
+terrain's tiles.
+
 **A map like a game, inside one screen (2026-10-21).** After two screen recordings of Pokemon GO the owner sent (a
 reference for the mechanics and the look; every drawing is original), the map's buttons down the right, the search and
 the Legend are in one HealthWiz button at the bottom middle of the map (`js/v6-campus-hud.js`): it opens a mint menu over
 the map with the search on top and every button as a round icon under its name; the round x at the bottom, Escape or any
 button in it closes it. The Details are inside the map: a sheet rises from the bottom with two tabs, STAIRS (the forms to
 log a climb, the staircase's 3D preview on request, its data) and WORKOUT (the workout with heart rate). It opens a fifth
-of the screen high and is dragged (or its handle tapped) to half the map; its content scrolls inside it; its x closes it and
+of the screen high and is dragged (or its handle tapped) to half the map or the whole map; its content scrolls inside it; its x closes it and
 the selection bar's Details button opens it again. Opened without the map (from the device, or without WebGL) the page
 keeps the Details below the map as before. NEAREST STAIRS replaces the GPS check-in section: a round button sends a
 wave out of the avatar and opens the closest staircases, with CHECK IN for one you stand at (one position, never saved;
@@ -257,8 +263,8 @@ stands in until one is picked. Each time the map opens a notice asks the player 
 Switching a map feature (terrain, buildings, the look) no longer redraws the page, and no redraw of the same page
 replays the page's entrance fade, which made it look as if the screen reloaded. The terrain switch swaps two ready
 position buffers for the ground details instead of rewriting every vertex, the map resizes only when its size changes,
-and the 3D stair preview opens only on request and, on phones, draws without anti-aliasing or bloom at up to 30 frames a
-second. The map ends at Kolej MARA Kulim: an airbrushed mist, clear over the campus and thickening with distance from its outline, covers the land beyond it (a light 2D layer over the map, drawn only when the map draws). The
+and the 3D stair preview, on phones, draws without anti-aliasing or bloom at up to 30 frames a
+second. The map stays within Kolej MARA Kulim (it pans no further than the campus data). The
 Fantasy buildings follow the owner's architecture design sheets (a style reference only): a coursed-stone ground storey
 under jettied timber-framed storeys, steeper roofs in teal shingles or terracotta tiles (slate for the maroon and white
 roofs) and teal-coned turrets; Realistic keeps the colours filmed. The KM KULIM sign ("Selangkah ke Menara Gading") from

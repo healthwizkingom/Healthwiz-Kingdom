@@ -79,9 +79,9 @@ test('modes share the positions; terrain and buildings switch; selection flies t
   assert.deepEqual(await page.evaluate(() => [HWCampus.map.mode, document.querySelector('#cmpcard').dataset.mode]), ['realistic', 'realistic']);
   assert.equal(await pos(), p0, 'a mode switch changes no positions');
   await menu(page, 'cmpterr');
-  assert.deepEqual(await page.evaluate(() => [!!HWCampus.map.map.getTerrain(), HWCampus.state.terr, [...document.querySelectorAll('.zlab')].every(z => z.closest('.maplibregl-marker').hidden)]), [false, false, true]);
+  assert.deepEqual(await page.evaluate(() => [HWCampus.map.map.getTerrain().exaggeration < .01, HWCampus.state.terr, [...document.querySelectorAll('.zlab')].every(z => z.closest('.maplibregl-marker').hidden)]), [true, false, true], 'off: flattened (kept, so switching back is quick)');
   await menu(page, 'cmpterr');
-  assert.equal(await page.evaluate(() => !!HWCampus.map.map.getTerrain()), true);
+  assert.equal(await page.evaluate(() => HWCampus.map.map.getTerrain().exaggeration), 1);
   await menu(page, 'cmpbld');
   assert.equal(await page.evaluate(() => HWCampus.map.map.getPaintProperty('bld', 'fill-extrusion-height')), 0);
   // the list flies to the marker and highlights it

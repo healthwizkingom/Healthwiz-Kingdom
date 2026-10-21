@@ -71,8 +71,7 @@ test('a staircase without coordinates has a preview; the shapes; closing keeps t
   const { ctx, page, errors } = await openHttp();
   await goView(page, 'campus'); assert.equal(await ready(page), 'ready');
   // a staircase with no coordinates has a preview too
-  await page.click('#cmplist .cmpitem[data-id="ST02"]');
-  await page.click('[data-a="cmpvwopen"]'); await shown(page, 'ST02'); // with the map the preview opens on request (2026-10-21), then follows the pick
+  await page.click('#cmplist .cmpitem[data-id="ST02"]'); await shown(page, 'ST02');
   // the shapes, and closing keeps the selection
   await page.click('[data-a="cmpvwshape"][data-shape="U"]');
   assert.deepEqual(await page.evaluate(() => [HWCampus.viewer.shape, document.querySelector('[data-shape="U"]').getAttribute('aria-pressed')]), ['U', 'true']);

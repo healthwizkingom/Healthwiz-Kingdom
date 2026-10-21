@@ -67,10 +67,10 @@ test('FULL SCREEN: the map fills the window over the app, keeps working, DETAILS
   for (const vp of [{ width: 760, height: 640 }, { width: 380, height: 760 }]) {
     const { ctx, page, errors } = await openHttp({ viewport: vp });
     await goView(page, 'campus'); assert.equal(await ready(page), 'ready'); await idle(page);
-    await menu(page, 'cmpfull'); await idle(page);
+    await page.click('[data-a="cmpfull"]'); await idle(page); // its own button on the map
     const r = await page.evaluate(() => { const b = document.querySelector('#cmpstage').getBoundingClientRect(), c = HWCampus.map.map.getCanvas().getBoundingClientRect(), t = document.elementFromPoint(innerWidth / 2, innerHeight / 2);
       return { stage: [b.left, b.top, b.width, b.height], canvas: [Math.round(c.width), Math.round(c.height)], html: document.documentElement.classList.contains('cmp-fs'), onTop: !!t.closest('#cmpstage'),
-        pressed: String(HWCampus.state.full), dialog: document.querySelector('#cmpstage').getAttribute('role') }; });
+        pressed: document.querySelector('#cmpfullb').getAttribute('aria-pressed'), dialog: document.querySelector('#cmpstage').getAttribute('role') }; });
     assert.deepEqual(r.stage, [0, 0, vp.width, vp.height], 'the map covers the whole window');
     assert.deepEqual(r.canvas, [vp.width, vp.height], 'the map itself is resized to the window');
     assert.ok(r.html && r.onTop, 'over the app (nothing of the page in front of it)');
@@ -89,7 +89,7 @@ test('FULL SCREEN: the map fills the window over the app, keeps working, DETAILS
     await goView(page, 'campus'); assert.equal(await ready(page), 'ready');
     assert.equal(await page.evaluate(() => HWCampus.state.full && document.documentElement.classList.contains('cmp-fs')), true);
     await page.keyboard.press('Escape');
-    assert.deepEqual(await page.evaluate(() => [HWCampus.state.full, document.documentElement.classList.contains('cmp-fs'), document.activeElement.className]), [false, false, 'hudbtn']);
+    assert.deepEqual(await page.evaluate(() => [HWCampus.state.full, document.documentElement.classList.contains('cmp-fs'), document.activeElement.id]), [false, false, 'cmpfullb']);
     assert.deepEqual(errors, []);
     await ctx.close();
   }
