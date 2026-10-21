@@ -119,6 +119,8 @@ tools/blender_campus.py    makes those two GLBs: footprints from data/campus-osm
 assets/models/campus-props-realistic.glb, campus-props-fantasy.glb  the ground details for each look: roads with red-and-white kerbs and a centre line, drains and manholes, street lights, goal posts and pitch lines, the tennis net and fence, car parks
 tools/blender_campus_props.py  makes those two GLBs (run through tools/blender_campus.py --props); data/campus-props.json says where each comes from (car park places estimated)
 tools/make_elevation_zones.py  writes data/elevation-zones.geojson: the estimated, illustrative terrain levels and the evidence for each
+observatory/landmarks.js   landmarks: optional markers for places mapped in OSM (gate, named buildings, squares, pitches, water towers), the discovery animation
+js/v6-campus-magic.js      the landmark card and discovery (device only), the Map journal, the Layers panel, a saved session's feedback, staircase sigils, the map's instrument-style buttons
 observatory/sky.js         the map's sky: live Kulim weather and modelled haze plus the time of day from the clock (or a preview) → sky, light, a tint, fog, rain
 tools/campus-clip.mjs      cuts the prototype's OpenStreetMap export to Kolej MARA Kulim (data/campus-osm.geojson): lines clipped to the export's bounds, features outside the campus dropped
 data/                      campus-osm.geojson (the prototype's OSM export cut to the campus by tools/campus-clip.mjs), elevation-zones.geojson (copied unchanged), campus-looks.json (each building's look from the drone video, with its frames and a confidence) and stair-survey.json
@@ -167,6 +169,22 @@ computer the map spans the page's width and Staircases and Details sit below it.
 Observatory keeps the history. The map no longer redraws itself while it sits still (the Fantasy walkways and plateau
 rims used to animate on a timer, which made the whole 3D scene redraw about five times a second), draws at most 1.5×
 the screen's pixel ratio, uses a 2048-pixel shadow map, and stays inside the OpenStreetMap export's own area.
+
+**A fantasy map to explore (2026-10-20).** The Fantasy look takes its mood from a fan-made fantasy town video the owner
+chose (a reference only; every model is an original design): the small buildings are timber-framed with lit windows,
+the academic halls carry red banners and the hostels blue ones, and a gatehouse with two crenellated towers stands at
+the gate OpenStreetMap maps (Realistic shows the red portal of the drone video there). Signposts at road junctions,
+notice boards and rune waystones with blue crystals in the squares are labelled decoration (`data/campus-props.json`).
+Seventeen optional landmark markers point to mapped places only: the gate, the named buildings, the squares and the
+Astaka, the pitches and the water towers. Opening one plays a discovery animation the first time, and its card says what
+it is, its OSM id, its level and the nearest staircases. The Map journal counts discoveries and explored areas. Both are
+kept on the device, apart from the save: exploring is not climbing, and it gives no XP, badges or sigils. A Layers
+panel hides staircase markers, landmarks, building labels, contours, paths or the decorative effects. The selected
+staircase stands on a bright rune circle, with fireflies, glowing leaves and sparks around it (fewer motes when zoomed
+out). A saved stair session lights a sigil over its marker and, in Fantasy, sends a short pulse of light along the
+nearest path: feedback for a real save, never a loop. The map's buttons are small instruments: a compass whose needle
+shows north, rotate left and right, zoom, 2D/3D and layers. Staircase sigils mark recorded sessions (1, 5, 10, 25, 50)
+and different staircases (3, 8); at most two sessions a day count, and they give no XP.
 
 **A more detailed map: terrain, ground details, sky and avatar (2026-10-20).** The raised ground has three levels: the
 north (middle), a terrace at Blok C and the south (highest). Which area is higher is the owner's annotation; where each

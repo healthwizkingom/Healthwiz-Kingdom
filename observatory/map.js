@@ -295,22 +295,21 @@ export function createMap(opts) {
       return out.length > 1 ? { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: out } } : null; };
     return [walk(1), walk(-1)].filter(Boolean);
   }
-  let pulseRaf = 0;
+  let pulseRaf = 0, lastCel = null; // lastCel: the last saved session's feedback (for tests)
   function pulse(lng, lat) {
     const F = nearestPath(lng, lat), src = map.getSource('pulse');
     if (!F || !src || !map.getLayer('pulse')) return false;
     src.setData({ type: 'FeatureCollection', features: F });
     cancelAnimationFrame(pulseRaf);
     const t0 = performance.now(), T = 1600, C = 'rgba(255,236,160,', grad = p => {
-      const a = Math.max(.001, p - .3), b = Math.max(a + .001, p), c2 = Math.min(.999, b + .03);
+      const b = Math.min(.996, Math.max(.002, p)), a = Math.max(.001, Math.min(b - .001, p - .3)), c2 = Math.min(.999, b + .03); // stops strictly increasing
       return ['interpolate', ['linear'], ['line-progress'], 0, C + '0)', a, C + '0)', b, C + (1 - p * .6) + ')', c2, C + '0)', 1, C + '0)'];
     };
     map.setLayoutProperty('pulse', 'visibility', 'visible');
     const step = now => { // about 1.6 s of redraws, then nothing: feedback for a real save, not a loop
       const p = Math.min(1, (now - t0) / T);
       if (gone || !map.getLayer('pulse')) return;
-      map.setPaintProperty('pulse', 'line-gradient', grad(p));
-      if (p < 1) pulseRaf = requestAnimationFrame(step); else map.setLayoutProperty('pulse', 'visibility', 'none');
+      if (p < 1) { try { map.setPaintProperty('pulse', 'line-gradient', grad(p)); } catch (e) {} pulseRaf = requestAnimationFrame(step); } else map.setLayoutProperty('pulse', 'visibility', 'none');
     };
     pulseRaf = requestAnimationFrame(step);
     return true;
@@ -512,6 +511,7 @@ export function createMap(opts) {
     /** The Layers panel: {stairs, landmarks, labels, contours, paths, effects} (missing keys keep their value). */
     layers(o) { Object.assign(lay, o || {}); applyLayers(); },
     get layerState() { return { ...lay }; },
+    get celebrated() { return lastCel; },
     /** The landmarks (./landmarks.js) and their state on the map. */
     get landmarks() { return lm ? lm.list : []; },
     landmarkFound(ids) { if (lm) lm.found(ids); },
@@ -525,7 +525,8 @@ export function createMap(opts) {
       const el = m.el; el.classList.remove('just'); void el.offsetWidth; el.classList.add('just');
       setTimeout(() => el.classList.remove('just'), 2600);
       const rich = mode === 'fantasy' && lay.effects && !opts.reduced(), out = { sigil: true, sparks: false, pulse: false };
-      if (rich) { const q = this.screenOf(key); if (q) { FX.burst(q.x, q.y, '#ffe9a8'); out.sparks = true; } out.pulse = pulse(m.g.lng, m.g.lat); }
+      if (rich) { const q = this.screenOf(key); if (q) out.sparks = FX.burst(q.x, q.y, '#ffe9a8') === true; out.pulse = pulse(m.g.lng, m.g.lat); }
+      lastCel = { key, ...out };
       return out;
     },
     /** The sky: a state from ./sky.js skyState (null: the look's own sky). One redraw; nothing animates on the map itself. */

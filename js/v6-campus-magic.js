@@ -99,6 +99,7 @@ html.hw-rm .cmplmk.new,html.hw-still .cmplmk.new{animation:none}
 .cmpsigs li{display:flex;gap:8px;align-items:center;opacity:.6}.cmpsigs li.on{opacity:1}.cmpsigs li span{display:flex;flex-direction:column}.cmpsigs small{color:var(--mut);font-size:12px}
 .cmpsig{flex:0 0 40px;width:40px;height:40px}.cmpsig .sg1{fill:var(--p2,#eee);stroke:var(--mut,#888);stroke-width:2}.cmpsig .sg2{fill:none;stroke:var(--mut,#888);stroke-width:2.5;stroke-linejoin:round}
 .cmpsig.on .sg1{fill:#3a2a12;stroke:#ffd36a}.cmpsig.on .sg2{stroke:#ffe9a8}.cmpsig.on{filter:drop-shadow(0 0 4px rgba(255,211,106,.6))}
+.cmplg.lmk{border-radius:50% 50% 50% 2px;transform:rotate(-45deg);background:#b8862a}
 .cmpareas{list-style:none;margin:6px 0;padding:0;display:flex;flex-wrap:wrap;gap:6px}.cmpareas li{font-size:12px;padding:2px 8px;border-radius:10px;border:1px dashed var(--line);color:var(--mut)}.cmpareas li.on{border-style:solid;border-color:#b8862a;color:var(--ink)}
 .cmplmks{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}.cmplmkb{min-height:36px;margin:0;font-size:13px;opacity:.75}.cmplmkb.on{opacity:1;border-color:#b8862a}
 /* arcane controls: the map's buttons as small brass-ringed instruments (Fantasy); the same familiar symbols */

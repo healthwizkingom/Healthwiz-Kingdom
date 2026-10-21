@@ -87,14 +87,16 @@ export function createFx(canvas) {
     zoom(z) { zk = Math.max(.25, Math.min(1, (z - 15.5) / 2.5 * .75 + .25)); if (W) size(); },
     get motes() { return motes.length; },
     get running() { return !!raf; },
+    /** Sparks flying out from a screen point; false when the effects are off. */
     burst(x, y, colour) {
-      if (!on) return;
+      if (!on) return false;
       for (let i = 0; i < 26; i++) {
         const a = Math.random() * Math.PI * 2, s = 40 + Math.random() * 110;
         sparks.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 60, life: .5 + Math.random() * .5, s: Math.random() < .3 ? 4 : 2,
           c: Math.random() < .5 ? colour : COLS[Math.floor(Math.random() * COLS.length)] });
       }
       start();
+      return true;
     },
   };
 }

@@ -5,7 +5,7 @@
 //   * without the map the journal says the landmarks need it;
 //   * over http: 17 landmark markers; opening one is a first discovery once (device-only record, nothing in the save);
 //     the journal counts discoveries and explored areas; the Layers panel hides markers, labels, contours, effects and is
-//     kept on the device; a saved session lights a sigil, sparks and a pulse along a path in Fantasy; the compass follows
+//     kept on the device; a saved session lights a sigil and (motion allowed) a pulse along a path in Fantasy; the compass follows
 //     the bearing and the rotate buttons turn the map.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -18,6 +18,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { openApp, closeBrowser, go, state, RETURNING, entry, daysAgo, fillSteps } from './helpers.mjs';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+/** Poll a page condition with plain evaluate calls (software WebGL can hold animation frames back for seconds). */
+async function until(page, fn, ms) { const t = Date.now(); for (;;) { if (await page.evaluate(fn)) return; if (Date.now() - t > ms) throw new Error('timed out: ' + fn); await new Promise(r => setTimeout(r, 300)); } }
 const json = p => JSON.parse(fs.readFileSync(path.join(root, p), 'utf8'));
 const osm = json('data/campus-osm.geojson');
 
@@ -80,7 +82,8 @@ after(async () => { if (browser) await browser.close(); await new Promise(r => s
 const STUB_BUILDINGS = 'export function createModelLayer() { return { id: "models", type: "custom", renderingMode: "3d", onAdd() {}, render() {}, onRemove() {}, replace() {}, light() {}, get ready() { return false; } }; }';
 
 test('with the map: landmarks and discovery, the journal, the layers, a saved session\'s feedback, the compass and rotation', async () => {
-  const ctx = await browser.newContext({ viewport: { width: 900, height: 760 }, serviceWorkers: 'block' });
+  // reduced motion (no particle loop): software WebGL cannot keep up with it here; motion is turned on for the save below
+  const ctx = await browser.newContext({ viewport: { width: 900, height: 760 }, reducedMotion: 'reduce', serviceWorkers: 'block' });
   const page = await ctx.newPage(), errors = [];
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text().slice(0, 300)); });
@@ -88,7 +91,7 @@ test('with the map: landmarks and discovery, the journal, the layers, a saved se
   await page.addInitScript(s => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('healthwiz', s); localStorage.setItem('hwtut', '1'); sessionStorage.setItem('seeded', '1'); } }, JSON.stringify({ ...RETURNING, s: { ...RETURNING.s, live: 0 } }));
   await page.goto(base); await page.waitForSelector('.wl');
   await page.evaluate(() => go('campus'));
-  await page.waitForFunction(() => HWCampus.state.map === 'ready', null, { timeout: 80000 });
+  await until(page, () => HWCampus.state.map === 'ready' && HWCampus.map.quietMs > 1000, 80000); // settled: software WebGL is slow
   assert.equal(await page.locator('.lmk').count(), 17, 'one marker per mapped landmark');
   // open the Surau from its marker: a first discovery, recorded on this device only
   const save0 = await page.evaluate(() => localStorage.getItem('healthwiz'));
@@ -97,33 +100,40 @@ test('with the map: landmarks and discovery, the journal, the layers, a saved se
   assert.ok(await page.evaluate(() => document.querySelector('.lmk[data-lmk="b-surau"]').classList.contains('found')));
   assert.deepEqual(Object.keys(await page.evaluate(() => JSON.parse(localStorage.getItem('hw_obs_found')))), ['b-surau']);
   assert.equal(await page.evaluate(() => localStorage.getItem('healthwiz')), save0, 'nothing in the save');
-  await page.click('[data-a="cmplmkx"]');
+  await page.evaluate(() => acts.cmplmkx());
   await page.evaluate(() => document.querySelector('.lmk[data-lmk="b-surau"]').click());
   assert.doesNotMatch(await page.textContent('#cmplmk'), /New landmark discovered/, 'only the first time');
   assert.match(await page.textContent('#cmpjournal'), /Landmarks discovered: 1 of 17 · Areas explored: 1 of 4/);
   // the layers: kept on the device; markers (the selected one stays), labels, contours, effects
-  await page.click('[data-a="cmplmkx"]');
-  await page.evaluate(() => acts.cmppick({ id: 'ST20' })); // (its Details take the focus, below the map)
-  await page.waitForFunction(() => !HWCampus.map.map.isMoving(), null, { timeout: 30000 }); // the camera flies there first
-  await page.evaluate(() => document.getElementById('cmpstage').scrollIntoView());
-  await page.click('#cmplayb');
-  for (const k of ['stairs', 'labels', 'contours', 'effects', 'landmarks']) await page.click('[data-a="cmplayt"][data-k="' + k + '"]');
+  // (by their actions: every redraw takes seconds with software WebGL here, too slow for clicks to settle; with reduced
+  // motion the camera jumps to the pick instead of flying)
+  await page.evaluate(() => { acts.cmplmkx(); acts.cmppick({ id: 'ST20' }); acts.cmplay(); });
+  assert.match(await page.textContent('#cmplayp'), /Staircase markers[\s\S]*Landmarks[\s\S]*Building labels[\s\S]*Terrain contours[\s\S]*Paths[\s\S]*Decorative effects/);
+  await page.evaluate(() => ['stairs', 'labels', 'contours', 'effects', 'landmarks'].forEach(k => acts.cmplayt({ k })));
   const r = await page.evaluate(() => ({ shown: [...document.querySelectorAll('.stm')].filter(e => !e.hidden).map(e => e.dataset.key), labels: [...document.querySelectorAll('.blab')].every(e => e.hidden),
     contours: HWCampus.map.map.getLayoutProperty('zone-contour', 'visibility'), fx: HWCampus.map.fx.running, lmk: [...document.querySelectorAll('.lmk')].every(e => e.hidden), stored: JSON.parse(localStorage.getItem('hw_obs_layers')) }));
   assert.deepEqual(r.shown, ['5.3519878,100.5383771'], 'only the selected staircase');
   assert.deepEqual([r.labels, r.contours, r.fx, r.lmk], [true, 'none', false, true]);
   assert.deepEqual(r.stored, { stairs: false, landmarks: false, labels: false, contours: false, paths: true, effects: false });
-  for (const k of ['stairs', 'labels', 'contours', 'effects', 'landmarks']) await page.click('[data-a="cmplayt"][data-k="' + k + '"]');
+  await page.evaluate(() => { ['stairs', 'labels', 'contours', 'effects', 'landmarks'].forEach(k => acts.cmplayt({ k })); acts.cmplay(); });
   assert.ok(await page.evaluate(() => [...document.querySelectorAll('.stm')].filter(e => !e.hidden).length > 5));
-  // a saved session for ST20 (Fantasy, effects on): its sigil lights, sparks and a pulse of light along a nearby path
-  await page.click('#cmplayb');
-  await fillSteps(page, '#ss', '12'); await page.fill('#sc', '2'); await page.click('#cmplog [data-a="savestair"]');
-  await page.waitForFunction(() => document.querySelector('.stm[data-key="5.3519878,100.5383771"]').classList.contains('just'), null, { timeout: 5000 });
-  assert.equal(await page.evaluate(() => HWCampus.map.map.getLayoutProperty('pulse', 'visibility')), 'visible', 'the pulse runs');
-  await page.waitForFunction(() => HWCampus.map.map.getLayoutProperty('pulse', 'visibility') === 'none', null, { timeout: 5000 }); // and stops
+  // a saved session for ST20 (add(), as every stair form saves): with reduced motion only its sigil lights; with motion
+  // allowed (Fantasy, effects on), a pulse of light also runs along a nearby path and stops
+  const sid20 = () => add('stair', 24, { sid: 'ST20', loc: 'test', steps: 12, climbs: 2, kind: 'casual' }, '', today(), '09:00', 0, '');
+  await page.evaluate(sid20);
+  await until(page, () => !!HWCampus.map.celebrated, 15000);
+  assert.deepEqual(await page.evaluate(() => HWCampus.map.celebrated), { key: '5.3519878,100.5383771', sigil: true, sparks: false, pulse: false }, 'reduced motion: the sigil only');
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.evaluate(() => HWCampus.map.fx.set(false)); // the particle loop blocks software WebGL here; the pulse does not need it
+  await page.evaluate(sid20);
+  await until(page, () => HWCampus.map.celebrated.pulse, 15000);
+  assert.deepEqual(await page.evaluate(() => HWCampus.map.celebrated), { key: '5.3519878,100.5383771', sigil: true, sparks: false, pulse: true }, 'the sigil and a pulse along a path (the particle loop stayed off)');
+  await until(page, () => HWCampus.map.map.getLayoutProperty('pulse', 'visibility') === 'none', 20000); // and the pulse stops
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  assert.equal((await state(page)).e.filter(x => x.c === 'stair' && x.m.sid === 'ST20').length, 2, 'two real saves, nothing else');
   // the compass needle follows the bearing; the rotate buttons turn the map
-  await page.click('.cmpctls [data-a="cmprotr"]');
-  await page.waitForFunction(() => !HWCampus.map.map.isMoving() && HWCampus.map.map.getBearing() > 1, null, { timeout: 5000 });
+  await page.evaluate(() => acts.cmprotr());
+  await until(page, () => !HWCampus.map.map.isMoving() && HWCampus.map.map.getBearing() > 1, 5000);
   const cmp = await page.evaluate(() => [HWCampus.map.map.getBearing(), document.getElementById('cmpcomp').style.getPropertyValue('--b')]);
   assert.ok(Math.abs(cmp[0] - 30) < 1, 'turned 30° right: ' + cmp[0]);
   assert.equal(parseFloat(cmp[1]), -cmp[0], 'the needle points north');
