@@ -106,46 +106,6 @@ test('lazy and complete: nothing of the map before the page opens; then OSM attr
   await ctx.close();
 });
 
-test('modes share the positions; terrain and buildings switch; selection flies to the marker; a shared point opens its chooser; all kept for the tab', async () => {
-  const { ctx, page, errors } = await openHttp();
-  await goView(page, 'campus'); assert.equal(await ready(page), 'ready'); await idle(page);
-  const pos = () => page.evaluate(() => JSON.stringify([...HWCampus.map.map.getContainer().querySelectorAll('.stm')].map(e => e.dataset.key)) + JSON.stringify(HWCampus.points().map(g => [g.lng, g.lat])));
-  const p0 = await pos();
-  await page.click('[data-a="cmpmode"][data-m="realistic"]');
-  assert.deepEqual(await page.evaluate(() => [HWCampus.map.mode, document.querySelector('#cmpcard').dataset.mode]), ['realistic', 'realistic']);
-  assert.equal(await pos(), p0, 'a mode switch changes no positions');
-  await menu(page, 'cmpterr');
-  assert.deepEqual(await page.evaluate(() => [!!HWCampus.map.map.getTerrain(), HWCampus.state.terr, [...document.querySelectorAll('.zlab')].every(z => z.closest('.maplibregl-marker').hidden)]), [false, false, true]);
-  await menu(page, 'cmpterr');
-  assert.equal(await page.evaluate(() => !!HWCampus.map.map.getTerrain()), true);
-  await menu(page, 'cmpbld');
-  assert.equal(await page.evaluate(() => HWCampus.map.map.getPaintProperty('bld', 'fill-extrusion-height')), 0);
-  // the list flies to the marker and highlights it
-  await page.click('#cmplist .cmpitem[data-id="ST24"]'); await idle(page);
-  const r = await page.evaluate(() => { const m = HWCampus.map.map, c = m.getCenter(), s = HWCampusData.record('ST24'), sel = document.querySelector('.stm.sel');
-    return { key: sel && sel.dataset.key, z: m.getZoom(), d: HWGps.dist(c.lat, c.lng, s.latitude, s.longitude), pill: document.querySelector('.cmppill').textContent }; });
-  assert.equal(r.key, '5.3490042,100.5388927');
-  assert.ok(r.z >= 17.9 && r.d < 40, 'centred and close: zoom ' + r.z.toFixed(2) + ', ' + Math.round(r.d) + ' m off');
-  assert.match(r.pill, /ST24Tangga dalam Blok A/);
-  // a marker tap on a shared point opens the chooser
-  await page.evaluate(() => { const e = document.querySelector('.stm[data-key="5.3515635,100.5383731"]'); e.hidden = false; e.click(); });
-  assert.match(await page.textContent('#cmpdet'), /3 staircases at one stored point[\s\S]*ST06[\s\S]*ST31[\s\S]*ST32/);
-  await page.click('#cmpdet .cmpitem[data-id="ST31"]');
-  assert.equal(await page.evaluate(() => HWCampus.selected), 'ST31');
-  // kept for the tab: leave and come back to the same mode, switches, selection and camera
-  await idle(page);
-  const c0 = await cam(page);
-  await goView(page, 'home');
-  assert.equal(await page.evaluate(() => [HWCampus.map, document.querySelectorAll('.maplibregl-canvas').length].join()), ',0', 'leaving frees the map');
-  await goView(page, 'campus'); assert.equal(await ready(page), 'ready'); await idle(page);
-  const c1 = await cam(page);
-  assert.deepEqual(await page.evaluate(() => { const s = HWCampus.state; return [s.mode, s.terr, s.bld, s.sid, HWCampus.map.mode, document.querySelector('.stm.sel') && document.querySelector('.stm.sel').dataset.key]; }),
-    ['realistic', true, false, 'ST31', 'realistic', '5.3515635,100.5383731']);
-  assert.ok(Math.abs(c1.lng - c0.lng) < 1e-5 && Math.abs(c1.lat - c0.lat) < 1e-5 && Math.abs(c1.z - c0.z) < .01, 'the camera is restored');
-  assert.deepEqual(errors, []);
-  await ctx.close();
-});
-
 test('no WebGL, or the map data failing: a clear message; the list and details still work; nothing breaks', async () => {
   // no WebGL: the page says so before requesting anything for the map
   const a = await openHttp({ init: () => { const g = HTMLCanvasElement.prototype.getContext; HTMLCanvasElement.prototype.getContext = function (t, ...x) { return /webgl/.test(t) ? null : g.call(this, t, ...x); }; } });

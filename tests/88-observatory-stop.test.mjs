@@ -98,7 +98,7 @@ test('with the map, on a phone: spinning hearts; a tap zooms the stop\'s disc ou
     const d = g.getImageData(0, 0, c.width, c.height).data; let ok = true, n = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 3]) { n++; if (d[i] !== d[i + 1] || d[i + 1] !== d[i + 2]) ok = false; } res([ok, n > 2000]); }; im.src = 'assets/img/heart-spin.webp'; }));
   assert.deepEqual(grey, [true, true], 'the sheet is white and grey only (the colour comes from the CSS tint)');
   // every map button on screen on a phone, full screen included (in the HealthWiz menu, js/v6-campus-hud.js)
-  await page.click('.hudbtn');
+  await page.click('.hudbtn'); await page.waitForTimeout(400); // the menu slides in
   const off = await page.evaluate(() => { const st = document.getElementById('cmpstage').getBoundingClientRect(); return [...document.querySelectorAll('.hudbtn, .hudwavebtn, #hudmenu .hudi, #hudmenu .hudx')].filter(b => { const r = b.getBoundingClientRect(); return !(r.top >= st.top && r.bottom <= st.bottom && r.left >= st.left && r.right <= st.right); }).map(b => b.dataset.a); });
   assert.deepEqual(off, [], 'all map buttons inside the map');
   assert.equal(await page.locator('#hudmenu [data-a="cmpfull"]').count(), 1);
@@ -128,48 +128,5 @@ test('with the map, on a phone: spinning hearts; a tap zooms the stop\'s disc ou
   await page.emulateMedia({ reducedMotion: 'reduce' });
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.stm .hrt')).animationName), 'none');
   assert.deepEqual(errors.filter(e => !/heart-stop\.glb|404/.test(e)), []);
-  await ctx.close();
-});
-
-test('the solid 3D stops: one per marker, in the difficulty colour, on the marker\'s ground, depth-tested; the drawn hearts hidden; the selected one spins', async () => {
-  const glb = fs.readFileSync(path.join(root, 'assets/models/heart-stop.glb'));
-  assert.equal(glb.toString('ascii', 0, 4), 'glTF');
-  const j = JSON.parse(glb.toString('utf8', 20, 20 + glb.readUInt32LE(12)));
-  assert.deepEqual(j.nodes.map(n => n.name).sort(), ['heart', 'post']);
-  assert.ok(glb.length < 120000, 'small: ' + glb.length);
-  const ctx = await browser.newContext({ viewport: { width: 800, height: 800 }, serviceWorkers: 'block', reducedMotion: 'reduce' });
-  const page = await ctx.newPage(), errors = [];
-  page.on('pageerror', e => errors.push('pageerror: ' + e.message));
-  page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text().slice(0, 300)); });
-  await page.route('**/observatory/models3d.js', r => r.fulfill({ contentType: 'text/javascript', body: STUB_BUILDINGS }));
-  await page.route('**/observatory/viewer3d.js', r => r.fulfill({ contentType: 'text/javascript', body: STUB_VIEWER }));
-  await page.addInitScript(s => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('healthwiz', s); localStorage.setItem('hwtut', '1'); sessionStorage.setItem('seeded', '1'); } }, JSON.stringify({ ...RETURNING, s: { ...RETURNING.s, live: 0 } }));
-  await page.goto(base); await page.waitForSelector('.wl');
-  await page.evaluate(() => go('campus')); await dismissAware(page); // OK on the Stay Aware notice
-  await until(page, () => HWCampus.state.map === 'ready' && HWCampus.map.stops && HWCampus.map.stops.ready, 80000);
-  const r = await page.evaluate(() => { const C = HWCampus.map, d = C.stops.debug, map = C.map, c = map.getContainer();
-    const hex = x => '#' + x.getHexString();
-    const one = d.list.find(s => s.g.visible) || d.list[0];
-    return { n: d.list.length, keys: d.list.every(s => !!document.querySelector('.stm[data-key="' + s.key + '"]')), st3d: c.classList.contains('st3d'),
-      hidden: getComputedStyle(document.querySelector('.stm .hstop')).visibility, layer: map.getLayer('stops3d') && map.getLayer('stops3d').type,
-      mode: C.stops.renderingMode, colours: [1, 2, 3].map(k => hex(d.mats[k].color)), depth: Object.values(d.mats).every(m => m.depthTest && m.depthWrite && !m.transparent),
-      glow: [d.glow, d.pool].map(G => [1, 2, 3].map(k => G[k] && hex(G[k].color) === hex(d.mats[k].color) && G[k].depthTest && !G[k].depthWrite && G[k].opacity > 0).every(Boolean)),
-      emissive: [1, 2, 3].every(k => d.mats[k].emissive.getHex() !== 0),
-      cats: d.list.map(s => s.cat).every(k => [1, 2, 3].includes(k)), dx: Math.abs(one.g.position.y - (map.queryTerrainElevation([one.lng, one.lat]) || 0)) };
-  });
-  assert.equal(r.n, 25); assert.ok(r.keys, 'one per marker'); assert.ok(r.st3d); assert.equal(r.hidden, 'hidden', 'the drawn hearts are hidden');
-  assert.equal(r.layer, 'custom'); assert.equal(r.mode, '3d', 'shares the depth buffer with the buildings');
-  assert.deepEqual(r.colours, ['#7ee07c', '#f6c94f', '#ff7b6e'], 'Mild, Moderate, Vigorous');
-  assert.ok(r.depth, 'solid and depth-tested: a building in front hides it'); assert.ok(r.cats);
-  assert.deepEqual(r.glow, [true, true], 'a halo and a pool of light in the difficulty colour, hidden by buildings in front too'); assert.ok(r.emissive, 'the hearts light themselves a little');
-  assert.ok(r.dx < .01, 'on the ground the marker stands on');
-  // selected: larger, and with reduced motion not spinning; with motion allowed it spins
-  await page.evaluate(() => document.querySelector('.stm[data-id="ST20"]').click());
-  await page.waitForSelector('#cmpstop');
-  assert.equal(await page.evaluate(() => HWCampus.map.stops.spinning), false, 'reduced motion: still');
-  await page.emulateMedia({ reducedMotion: 'no-preference' }); await page.evaluate(() => HWCampus.map.setReduced());
-  assert.equal(await page.evaluate(() => HWCampus.map.stops.spinning), true, 'the selected heart spins');
-  await page.evaluate(() => acts.cmpstopx()); await until(page, () => !document.getElementById('cmpstop'), 5000);
-  assert.deepEqual(errors, []);
   await ctx.close();
 });

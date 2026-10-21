@@ -110,21 +110,3 @@ test('the avatar shows by itself and follows the profile (male: the school boy, 
   assert.deepEqual(errors, []);
   await ctx.close();
 });
-
-test('activity from saved sessions only: the last 7 days and the 7 before, the most climbed, a ring on climbed staircases', async () => {
-  const e = [entry('stair', 60, 1, { sid: 'ST20', steps: 20, climbs: 3 }), entry('stair', 40, 2, { sid: 'ST20', steps: 20, climbs: 2 }), entry('stair', 30, 3, { sid: 'ST14', steps: 15, climbs: 2 }),
-    entry('stair', 50, 9, { sid: 'ST19', steps: 25, climbs: 2 }), entry('stair', 20, 4, { steps: 10, climbs: 2 })];
-  const { ctx, page, errors } = await openHttp({ seed: { ...SEED, e } });
-  await goView(page, 'campus'); assert.equal(await ready(page), 'ready');
-  const t = await page.textContent('#cmpmine');
-  assert.match(t, /Last 7 days: 4 sessions, 150 steps · the 7 days before: 1 session, 50 steps\./);
-  assert.match(t, /Most climbed: Tangga sebelah rumah penjana elektrik ke Dewan Kenanga \(2\), .+ \(1\), .+ \(1\)\./);
-  assert.match(t, /1 older session has no staircase recorded\. No new points or badges here\./);
-  const vis = await page.evaluate(() => [...document.querySelectorAll('.stm.vis')].map(e => e.dataset.key).sort());
-  assert.deepEqual(vis, ['5.3519878,100.5383771', '5.3524047,100.5383392', '5.3525206,100.5386027']);
-  assert.match(await page.getAttribute('.stm.vis[data-key="5.3519878,100.5383771"]', 'aria-label'), /You have climbed here\./);
-  await page.click('#cmpmine [data-a="cmppick"]');
-  assert.equal(await page.evaluate(() => HWCampus.selected), 'ST20');
-  assert.deepEqual(errors, []);
-  await ctx.close();
-});

@@ -22,8 +22,8 @@ const reduced=()=>typeof HWUI!=='undefined'&&HWUI.reduced();
 
 /* ---------- the HealthWiz button and its menu ---------- */
 const WAVE='<svg viewBox="0 0 24 24" aria-hidden="true" class="cmpsv2"><circle cx="12" cy="12" r="2.5"/><path d="M7.5 7.5a6.4 6.4 0 0 0 0 9M16.5 7.5a6.4 6.4 0 0 1 0 9"/><path d="M4.6 4.6a10.5 10.5 0 0 0 0 14.8M19.4 4.6a10.5 10.5 0 0 1 0 14.8"/></svg>';
-function menuHtml(o){
-  return '<div class="hudmenu" id="hudmenu" role="dialog" aria-modal="false" aria-label="HealthWiz map menu"><div class="hudscr">'
+function menuHtml(o,still){
+  return '<div class="hudmenu'+(still?' still':'')+'" id="hudmenu" role="dialog" aria-modal="false" aria-label="HealthWiz map menu"><div class="hudscr">'
     +'<div class="hudfind">'+o.find+'</div>'
     +'<ul class="hudgrid">'+o.items.map(([a,l,t,i,x])=>'<li><span class="hudl" aria-hidden="true">'+l+'</span><button type="button" class="hudi" data-a="'+a+'" aria-label="'+t+'" title="'+t+'"'+(x||'')+'>'+i+'</button></li>').join('')+'</ul></div>'
     +'<button type="button" class="hudx" data-a="hudmenu" aria-label="Close the menu">×</button></div>'}
@@ -35,7 +35,7 @@ function show(id,on,make){const st=$id('cmpstage'),old=$id(id);if(old)old.remove
 function html(o){
   return (o.sheet||'')+'<button type="button" class="hudbtn" data-a="hudmenu" aria-expanded="'+menu+'" aria-controls="hudmenu" aria-label="HealthWiz menu: map buttons, search and legend"><img src="assets/icons/icon-192.png" alt="" width="56" height="56"></button>'
     +'<button type="button" class="hudwavebtn" data-a="hudwave" aria-label="Find the nearest stairs" title="Find the nearest stairs">'+WAVE+'<span>Nearest stairs</span></button>'
-    +(menu?menuHtml(o):'')
+    +(menu?menuHtml(o,true):'') // a redraw while it is open: no second slide-in
     +(leg?legHtml(o.legend):'')}
 
 /* ---------- Details: the sheet inside the map ---------- */
@@ -118,6 +118,7 @@ HWUI.css('campushud',`
 .hudmenu{position:absolute;inset:0;z-index:11;background:linear-gradient(180deg,rgba(236,250,240,.97),rgba(196,236,210,.97));color:#2d5a5f;animation:hudin .22s ease-out}
 .hudscr{position:absolute;inset:0 0 72px;overflow:auto;overscroll-behavior:contain;padding:12px 12px 8px;display:flex;flex-direction:column;gap:8px}
 .hudmenu::after{content:'';position:absolute;left:0;right:0;bottom:72px;height:18px;background:linear-gradient(rgba(196,236,210,0),rgba(196,236,210,.97));pointer-events:none}
+.hudmenu.still{animation:none}
 .hudfind{position:relative}.hudmenu .cmpfind{position:relative;left:auto;top:auto;width:100%}
 .hudmenu .cmpfind input{border-radius:999px;border:0;background:#fff;color:#22424a;text-align:center;box-shadow:0 1px 4px rgba(30,90,80,.2)}
 .hudmenu .cmpfres{background:#fff;border:0}
