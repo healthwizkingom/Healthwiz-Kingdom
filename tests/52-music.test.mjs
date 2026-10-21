@@ -43,8 +43,7 @@ test('recorded theme on Home; original generated track on Sleep; off with the bu
 });
 
 test('if the recording cannot load, the original home tune plays instead', async () => {
-  const { page, ctx } = await openApp({ seed: RETURNING, url: URL_ });
-  await page.route('**/assets/audio/home-theme.mp3', r => r.abort());
+  const { page, ctx } = await openApp({ seed: RETURNING, url: URL_, context: { serviceWorkers: 'block' }, before: p => p.route('**/assets/audio/home-theme.mp3', r => r.abort()) }); // failing from the start (no service worker cache to serve it either)
   await go(page, 'home');
   await page.click('#mus');
   const s = await until(page, x => x.failed);

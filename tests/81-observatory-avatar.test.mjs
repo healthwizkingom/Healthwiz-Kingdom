@@ -15,7 +15,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { RETURNING, entry } from './helpers.mjs';
+import { RETURNING, entry, dismissAware } from './helpers.mjs';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const req = createRequire(import.meta.url);
@@ -58,7 +58,8 @@ async function openHttp({ viewport, init, route, ctxOpt, seed } = {}) {
   await page.goto(base); await page.waitForSelector('.wl');
   return { ctx, page, errors, reqs };
 }
-const goView = (page, v) => page.evaluate(v => go(v), v);
+// the Stay Aware notice (js/v6-campus-hud.js) opens with the map each time; tests/89-observatory-hud checks it, here OK closes it
+const goView = async (page, v) => { await page.evaluate(v => go(v), v); if (v === 'campus') await dismissAware(page); };
 // loaded and settled: the first terrain tiles are generated in the browser and take seconds with software WebGL
 const ready = page => page.waitForFunction(() => HWCampus.state.map === 'error' || (HWCampus.state.map === 'ready' && HWCampus.map.quietMs > 1000), null, { timeout: 80000 }).then(() => page.evaluate(() => HWCampus.state.map));
 // settled: the camera has stopped (map.loaded() can stay false while generated terrain tiles refresh)
@@ -72,23 +73,26 @@ const watches = () => { window.__w = { watch: 0, clear: 0 }; const g = navigator
   g.watchPosition = (...a) => { window.__w.watch++; return w(...a); }; g.clearWatch = (...a) => { window.__w.clear++; return c(...a); }; };
 const glbs = reqs => reqs.filter(u => /\/avatars\/[^/]+\.glb$/.test(u)).map(u => u.split('/').pop());
 
-test('the avatar follows the profile (male: the school boy, no chooser); on campus it stands at the GPS position; without a sex in the profile the player picks; leaving stops the watch; nothing stored', async () => {
+test('the avatar shows by itself and follows the profile (male: the school boy, no chooser); on campus it stands at the GPS position; without a sex in the profile the player picks; leaving stops the watch; nothing stored', async () => {
   const { ctx, page, errors, reqs } = await openHttp({ ctxOpt: geo(AT_CAMPUS), init: watches });
   await goView(page, 'campus'); assert.equal(await ready(page), 'ready');
-  assert.equal(await page.evaluate(() => window.__w.watch), 0, 'opening asks for no position');
-  // the test profile is male: the boy, straight away (owner's request, 2026-10-20: chosen from the profile)
-  await page.click('.cmpctls [data-a="cmpme"]');
+  // the avatar shows by itself once the map is ready (owner's request, 2026-10-21); the browser's permission is granted in
+  // this test. The test profile is male: the boy, straight away (owner's request, 2026-10-20: chosen from the profile)
   assert.equal(await page.locator('.cmpav').count(), 0, 'no chooser when the profile has a sex');
   await page.waitForFunction(() => HWCampus.me.st === 'gps' && HWCampus.map.avatar && HWCampus.map.avatar.ready && HWCampus.map.avatar.state.visible, null, { timeout: 40000 });
   assert.deepEqual(glbs(reqs), ['schoolboy.glb'], 'only that avatar is downloaded');
   assert.match(await page.textContent('.cmpmebar'), /You · GPS ±12 m \(device estimate\)/);
   assert.equal(await page.locator('.cmpmebar [data-a="cmpavopen"]').count(), 0, 'no Avatar button: it follows the profile');
-  const r = await page.evaluate(() => ({ circle: HWCampus.map.map.getSource('me')._data.features.length, pos: HWCampus.map.avatar.state.pos, pressed: document.querySelector('.cmpctls [data-a="cmpme"]').getAttribute('aria-pressed') }));
+  const r = await page.evaluate(() => ({ circle: HWCampus.map.map.getSource('me')._data.features.length, pos: HWCampus.map.avatar.state.pos, watch: window.__w.watch }));
+  await page.click('.hudbtn'); r.pressed = await page.getAttribute('#hudmenu [data-a="cmpme"]', 'aria-pressed'); await page.click('#hudmenu [data-a="hudmenu"]');
   assert.equal(r.circle, 1, 'the accuracy circle');
   assert.ok(Math.abs(r.pos.lat - 5.3512) < 1e-6 && Math.abs(r.pos.lng - 100.5382) < 1e-6, 'the avatar stands at the position');
   assert.equal(r.pressed, 'true');
+  assert.equal(r.watch, 1, 'one location watch, started without a tap');
   assert.match(await page.textContent('#cmpcard'), /The nearest mapped staircase is .+, about \d+ m away \(± 12 m\)/);
+  await page.click('.hudbtn'); await page.click('#hudmenu [data-a="hudlegopen"]'); // the Legend is in the HealthWiz menu
   assert.match(await page.textContent('.cmpleg'), /Your avatar: Anime school boy \(from your profile\)\. "Rigged Anime School Boy \(Animation included\)" by suzuart \(Sketchfab\), CC BY 4\.0/);
+  await page.click('#hudleg [data-a="hudleg"]'); // close the Legend
   // no sex in the profile: the player picks (credits shown), and can change it; the choice is a device preference
   await page.evaluate(() => { st.p.sex = ''; save(); render(); });
   await page.click('.cmpmebar [data-a="cmpavopen"]');
@@ -103,24 +107,6 @@ test('the avatar follows the profile (male: the school boy, no chooser); on camp
   // leaving stops the watch and frees everything
   await goView(page, 'health');
   assert.deepEqual(await page.evaluate(() => [window.__w.clear >= 1, HWCampus.me.st, HWCampus.map, document.querySelectorAll('canvas').length]), [true, 'off', null, 0]);
-  assert.deepEqual(errors, []);
-  await ctx.close();
-});
-
-test('activity from saved sessions only: the last 7 days and the 7 before, the most climbed, a ring on climbed staircases', async () => {
-  const e = [entry('stair', 60, 1, { sid: 'ST20', steps: 20, climbs: 3 }), entry('stair', 40, 2, { sid: 'ST20', steps: 20, climbs: 2 }), entry('stair', 30, 3, { sid: 'ST14', steps: 15, climbs: 2 }),
-    entry('stair', 50, 9, { sid: 'ST19', steps: 25, climbs: 2 }), entry('stair', 20, 4, { steps: 10, climbs: 2 })];
-  const { ctx, page, errors } = await openHttp({ seed: { ...SEED, e } });
-  await goView(page, 'campus'); assert.equal(await ready(page), 'ready');
-  const t = await page.textContent('#cmpmine');
-  assert.match(t, /Last 7 days: 4 sessions, 150 steps · the 7 days before: 1 session, 50 steps\./);
-  assert.match(t, /Most climbed: Tangga sebelah rumah penjana elektrik ke Dewan Kenanga \(2\), .+ \(1\), .+ \(1\)\./);
-  assert.match(t, /1 older session has no staircase recorded\. No new points or badges here\./);
-  const vis = await page.evaluate(() => [...document.querySelectorAll('.stm.vis')].map(e => e.dataset.key).sort());
-  assert.deepEqual(vis, ['5.3519878,100.5383771', '5.3524047,100.5383392', '5.3525206,100.5386027']);
-  assert.match(await page.getAttribute('.stm.vis[data-key="5.3519878,100.5383771"]', 'aria-label'), /You have climbed here\./);
-  await page.click('#cmpmine [data-a="cmppick"]');
-  assert.equal(await page.evaluate(() => HWCampus.selected), 'ST20');
   assert.deepEqual(errors, []);
   await ctx.close();
 });

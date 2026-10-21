@@ -13,7 +13,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { RETURNING, fillSteps } from './helpers.mjs';
+import { RETURNING, fillSteps, dismissAware } from './helpers.mjs';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const req = createRequire(import.meta.url);
@@ -56,7 +56,8 @@ async function openHttp({ viewport, init, route, ctxOpt } = {}) {
   await page.goto(base); await page.waitForSelector('.wl');
   return { ctx, page, errors, reqs };
 }
-const goView = (page, v) => page.evaluate(v => go(v), v);
+// the Stay Aware notice (js/v6-campus-hud.js) opens with the map each time; tests/89-observatory-hud checks it, here OK closes it
+const goView = async (page, v) => { await page.evaluate(v => go(v), v); if (v === 'campus') await dismissAware(page); };
 // loaded and settled: the first terrain tiles are generated in the browser and take seconds with software WebGL
 const ready = page => page.waitForFunction(() => HWCampus.state.map === 'error' || (HWCampus.state.map === 'ready' && HWCampus.map.quietMs > 1000), null, { timeout: 80000 }).then(() => page.evaluate(() => HWCampus.state.map));
 // settled: the camera has stopped (map.loaded() can stay false while generated terrain tiles refresh)
@@ -69,6 +70,7 @@ test('with the map: the search on the map keeps only matching markers; a pick lo
   const shownMk = () => page.evaluate(() => [...document.querySelectorAll('.stm')].filter(e => !e.hidden).length);
   const all = await shownMk();
   // the search on the map: only the markers that match stay; the matches are offered under the box
+  await page.click('.hudbtn'); // the search is in the HealthWiz menu (js/v6-campus-hud.js)
   await page.fill('#cmpfind', 'penjana');
   await page.waitForFunction(n => [...document.querySelectorAll('.stm')].filter(e => !e.hidden).length < n, all);
   assert.ok(await shownMk() >= 1, 'the matching marker stays');
@@ -78,7 +80,7 @@ test('with the map: the search on the map keeps only matching markers; a pick lo
   await page.waitForSelector('#cmpstop');
   await page.evaluate(() => acts.cmpstopx());
   await page.waitForFunction(() => !document.getElementById('cmpstop'), null, { timeout: 5000 });
-  await page.click('[data-a="cmpzin"]'); await idle(page);
+  await page.click('.hudbtn'); await page.click('#hudmenu [data-a="cmpzin"]'); await idle(page);
   const c0 = await cam(page);
   // log in Details: the map stays as it was
   assert.deepEqual(await page.evaluate(() => [S.v, HWStairs.pick, !!HWCampus.map]), ['campus', 'ST20', true]);
@@ -88,6 +90,7 @@ test('with the map: the search on the map keeps only matching markers; a pick lo
   assert.equal(await page.evaluate(() => document.querySelector('.stm.sel').dataset.key), '5.3519878,100.5383771');
   assert.match(await page.textContent('#cmpdet'), /You saved 1 stair session here/);
   // ST02 (no coordinates) from the search: its details, the camera unchanged, nothing highlighted
+  await page.click('.hudbtn');
   await page.fill('#cmpfind', 'ST02');
   await page.click('#cmpfindres [data-a="cmppick"][data-id="ST02"]'); await idle(page);
   const c2 = await cam(page);

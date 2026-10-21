@@ -15,7 +15,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { RETURNING, fillSteps } from './helpers.mjs';
+import { RETURNING, fillSteps, dismissAware } from './helpers.mjs';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const req = createRequire(import.meta.url);
@@ -54,7 +54,8 @@ async function openHttp({ viewport, init, route, ctxOpt } = {}) {
   await page.goto(base); await page.waitForSelector('.wl');
   return { ctx, page, errors, reqs };
 }
-const goView = (page, v) => page.evaluate(v => go(v), v);
+// the Stay Aware notice (js/v6-campus-hud.js) opens with the map each time; tests/89-observatory-hud checks it, here OK closes it
+const goView = async (page, v) => { await page.evaluate(v => go(v), v); if (v === 'campus') await dismissAware(page); };
 // loaded and settled: the first terrain tiles are generated in the browser and take seconds with software WebGL
 const ready = page => page.waitForFunction(() => HWCampus.state.map === 'error' || (HWCampus.state.map === 'ready' && HWCampus.map.quietMs > 1000), null, { timeout: 80000 }).then(() => page.evaluate(() => HWCampus.state.map));
 // settled: the camera has stopped (map.loaded() can stay false while generated terrain tiles refresh)
@@ -70,7 +71,8 @@ test('a staircase without coordinates has a preview; the shapes; closing keeps t
   const { ctx, page, errors } = await openHttp();
   await goView(page, 'campus'); assert.equal(await ready(page), 'ready');
   // a staircase with no coordinates has a preview too
-  await page.click('#cmplist .cmpitem[data-id="ST02"]'); await shown(page, 'ST02');
+  await page.click('#cmplist .cmpitem[data-id="ST02"]');
+  await page.click('[data-a="cmpvwopen"]'); await shown(page, 'ST02'); // with the map the preview opens on request (2026-10-21), then follows the pick
   // the shapes, and closing keeps the selection
   await page.click('[data-a="cmpvwshape"][data-shape="U"]');
   assert.deepEqual(await page.evaluate(() => [HWCampus.viewer.shape, document.querySelector('[data-shape="U"]').getAttribute('aria-pressed')]), ['U', 'true']);

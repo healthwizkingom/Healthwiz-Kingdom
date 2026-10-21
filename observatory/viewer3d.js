@@ -99,11 +99,14 @@ function rod(a, b, r, mat) { // a cylinder from point a to point b
 const ease = t => 1 - Math.pow(1 - t, 3);
 
 export function createViewer({ host, msg, reduced, onView }) {
-  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'low-power' });
-  // lighter on phones (the map is a second WebGL scene on the same page): 1x pixels there, at most 1.5x elsewhere
+  // lighter on phones (the map is a second WebGL scene on the same page): 1x pixels there, at most 1.5x elsewhere; and on
+  // phones and small devices (lite) no anti-aliasing, hard-edged shadows, no bloom pass and at most 30 frames a second
+  // (the owner still found the stair illustration laggy, 2026-10-21)
   const small = () => (host.clientWidth || innerWidth) < 600 || (navigator.hardwareConcurrency || 8) <= 4;
+  const lite = small();
+  const renderer = new THREE.WebGLRenderer({ antialias: !lite, powerPreference: 'low-power' });
   renderer.setPixelRatio(small() ? 1 : Math.min(window.devicePixelRatio || 1, 1.5));
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = lite ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
   host.appendChild(renderer.domElement);
@@ -378,9 +381,11 @@ export function createViewer({ host, msg, reduced, onView }) {
 
   let t0 = 0, quiet = 0, lastAct = 0; // lastAct: the last open, button, drag or resize; the scene's own little motions run for 4 s after it
   controls.addEventListener('change', () => run());
+  let drawn = 0;
   function loop(t) {
     raf = 0;
     if (!open) return;
+    if (lite && t - drawn < 32) { raf = requestAnimationFrame(loop); return; } drawn = t;
     const dt = Math.min(.05, (t - (t0 || t)) / 1000); t0 = t;
     const still = reduced();
     if (intro) { // entrance: the model grows into place while the camera glides in
@@ -403,7 +408,7 @@ export function createViewer({ host, msg, reduced, onView }) {
       });
     }
     const moved = controls.update();
-    composer.render();
+    if (lite) renderer.render(scene, camera); else composer.render();
     // reduced motion: nothing moves by itself, so draw only while something changes and then stop (battery, and the
     // main thread on slow devices); a camera change, a button, a new model or a resize starts the loop again
     // draw only while something changes: an entrance, a button turn, a drag, the spin, or 4 s of the scene's own motions after

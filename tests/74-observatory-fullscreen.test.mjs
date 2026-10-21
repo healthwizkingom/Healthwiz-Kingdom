@@ -10,7 +10,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { RETURNING } from './helpers.mjs';
+import { RETURNING, dismissAware } from './helpers.mjs';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const req = createRequire(import.meta.url);
@@ -53,40 +53,43 @@ async function openHttp({ viewport, init, route, ctxOpt } = {}) {
   await page.goto(base); await page.waitForSelector('.wl');
   return { ctx, page, errors, reqs };
 }
-const goView = (page, v) => page.evaluate(v => go(v), v);
+// the Stay Aware notice (js/v6-campus-hud.js) opens with the map each time; tests/89-observatory-hud checks it, here OK closes it
+const goView = async (page, v) => { await page.evaluate(v => go(v), v); if (v === 'campus') await dismissAware(page); };
 // loaded and settled: the first terrain tiles are generated in the browser and take seconds with software WebGL
 const ready = page => page.waitForFunction(() => HWCampus.state.map === 'error' || (HWCampus.state.map === 'ready' && HWCampus.map.quietMs > 1000), null, { timeout: 80000 }).then(() => page.evaluate(() => HWCampus.state.map));
 // settled: the camera has stopped (map.loaded() can stay false while generated terrain tiles refresh)
 const idle = page => page.waitForFunction(() => { const m = HWCampus.map && HWCampus.map.map; return !!m && !m.isMoving(); }, null, { timeout: 20000 }).then(() => page.waitForTimeout(400));
 const cam = page => page.evaluate(() => { const m = HWCampus.map.map, c = m.getCenter(); return { lng: c.lng, lat: c.lat, z: m.getZoom() }; });
 
-test('FULL SCREEN: the map fills the window over the app, keeps working, DETAILS leaves it for the details, Escape closes it; kept for the tab', async () => {
+// the map's buttons are in the HealthWiz menu (js/v6-campus-hud.js); the Details are a sheet inside the map, so they open in full screen too
+const menu = async (page, a) => { await page.click('.hudbtn'); await page.click('#hudmenu [data-a="' + a + '"]'); };
+test('FULL SCREEN: the map fills the window over the app, keeps working, DETAILS opens inside it, Escape closes it; kept for the tab', async () => {
   for (const vp of [{ width: 760, height: 640 }, { width: 380, height: 760 }]) {
     const { ctx, page, errors } = await openHttp({ viewport: vp });
     await goView(page, 'campus'); assert.equal(await ready(page), 'ready'); await idle(page);
-    await page.click('[data-a="cmpfull"]'); await idle(page);
+    await menu(page, 'cmpfull'); await idle(page);
     const r = await page.evaluate(() => { const b = document.querySelector('#cmpstage').getBoundingClientRect(), c = HWCampus.map.map.getCanvas().getBoundingClientRect(), t = document.elementFromPoint(innerWidth / 2, innerHeight / 2);
       return { stage: [b.left, b.top, b.width, b.height], canvas: [Math.round(c.width), Math.round(c.height)], html: document.documentElement.classList.contains('cmp-fs'), onTop: !!t.closest('#cmpstage'),
-        pressed: document.querySelector('#cmpfullb').getAttribute('aria-pressed'), dialog: document.querySelector('#cmpstage').getAttribute('role') }; });
+        pressed: String(HWCampus.state.full), dialog: document.querySelector('#cmpstage').getAttribute('role') }; });
     assert.deepEqual(r.stage, [0, 0, vp.width, vp.height], 'the map covers the whole window');
     assert.deepEqual(r.canvas, [vp.width, vp.height], 'the map itself is resized to the window');
     assert.ok(r.html && r.onTop, 'over the app (nothing of the page in front of it)');
     assert.deepEqual([r.pressed, r.dialog], ['true', 'dialog']);
     if (vp.width < 600) { assert.deepEqual(errors, []); await ctx.close(); continue; } // the phone: covering is what differs; the rest is the same code
     // it keeps working: the controls and a selection; DETAILS leaves full screen and opens the details
-    await page.click('[data-a="cmpzin"]'); await idle(page);
+    await menu(page, 'cmpzin'); await idle(page);
     await page.evaluate(() => { HWCampus.focus('ST20'); render(); }); await idle(page);
     assert.equal(await page.evaluate(() => document.querySelector('.stm.sel').dataset.key), '5.3519878,100.5383771');
-    await page.click('[data-a="cmpdetfs"]');
-    assert.deepEqual(await page.evaluate(() => [HWCampus.state.full, HWCampus.state.tab, document.documentElement.classList.contains('cmp-fs')]), [false, 'det', false]);
+    await page.click('.cmppill [data-a="hudsheetopen"]');
+    assert.deepEqual(await page.evaluate(() => [HWCampus.state.full, HWCampus.state.tab, document.documentElement.classList.contains('cmp-fs'), !!document.querySelector('#cmpstage #hudsheet #cmpdet')]), [true, 'det', true, true]);
     assert.match(await page.textContent('#cmpdet'), /penjana elektrik/);
     // kept for the tab, and Escape closes it
-    await page.click('[data-a="cmpfull"]'); await goView(page, 'home');
+    await goView(page, 'home');
     assert.equal(await page.evaluate(() => document.documentElement.classList.contains('cmp-fs')), false, 'leaving the page leaves full screen');
     await goView(page, 'campus'); assert.equal(await ready(page), 'ready');
     assert.equal(await page.evaluate(() => HWCampus.state.full && document.documentElement.classList.contains('cmp-fs')), true);
     await page.keyboard.press('Escape');
-    assert.deepEqual(await page.evaluate(() => [HWCampus.state.full, document.documentElement.classList.contains('cmp-fs'), document.activeElement.id]), [false, false, 'cmpfullb']);
+    assert.deepEqual(await page.evaluate(() => [HWCampus.state.full, document.documentElement.classList.contains('cmp-fs'), document.activeElement.className]), [false, false, 'hudbtn']);
     assert.deepEqual(errors, []);
     await ctx.close();
   }

@@ -46,10 +46,20 @@ FAN = STYLE == 'fantasy'
 R, RAD = 6371008.8, math.pi / 180
 STOREY_M, BASE_M = 3.6, .6
 TOWER_M = 12.0
-PITCH = {'low': (.55, .3), 'flat': (.55, .18)} if not FAN else {'low': (.55, .5), 'flat': (.55, .3)}  # inset in, up per roof step
+PITCH = {'low': (.55, .3), 'flat': (.55, .18)} if not FAN else {'low': (.5, .78), 'flat': (.55, .34)}  # inset in, up per roof step (fantasy: steep, as on the owner's design sheets)
 
 looks = json.load(open(LOOKS, encoding='utf-8'))
 PAL, DEF = looks['palette'], looks['default']
+
+# fantasy roofs in the colours of the owner's architecture design sheets (2026-10-21; a reference for the style, the
+# models are original): teal shingles and terracotta tiles for the campus's red roofs (one in three teal, by its OSM id),
+# teal for the blue roof, slate for the maroon and white ones. Decoration: Realistic keeps the colours filmed.
+FAN_TEAL, FAN_TERRA, FAN_SLATE = '#3f9c8b', '#b4643f', '#5f7189'
+def fan_roof(osm_id, key):
+    if key == 'roof_blue': return FAN_TEAL
+    if key in ('roof_maroon', 'roof_white'): return FAN_SLATE
+    if key == 'roof_tan': return '#9d7e51'
+    return FAN_TEAL if sum(map(ord, osm_id)) % 3 == 0 else FAN_TERRA
 
 # ---------------------------------------------------------------- scene
 bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -232,6 +242,8 @@ def mat(key):
         M[key] = material('stripe_' + rest[1:], stripe_tex('stripe_' + rest[1:], rest, '#f2eef0', 7), rough=.6, metal=0 if FAN else .25)
     elif kind == 'plain':
         M[key] = material('plain_' + rest[1:], color=hexc(rest), rough=.85)
+    elif kind == 'glow':      # fantasy: the sign's letters, softly lit at night
+        M[key] = material('glow_' + rest[1:], color=hexc(rest), rough=.6, emit=.45)
     elif key == 'trim':
         M[key] = material('trim', color=hexc('#e2ac3e'), metal=.55, rough=.35)
     elif key == 'gold':
@@ -514,6 +526,8 @@ for f in osm['features']:
     rel, cxy = local_rings(g)
     A = abs(area(rel[0])) - sum(abs(area(h)) for h in rel[1:])
     roof_c, wall_c, trim_c = colour(look['roof']), colour(look['wall']), look.get('trim', DEF['trim'])
+    if FAN and btype != 'tower':
+        roof_c = fan_roof(p['osm'], look['roof'])
     if btype == 'tower':
         wall_c, roof_c = '#b8b4ae', '#8f8b86'
     step_in, step_up = PITCH.get(look.get('pitch', 'low'), PITCH['low'])
@@ -525,10 +539,23 @@ for f in osm['features']:
         if btype != 'tower':
             B.add(prism([offset(P, -.28) for P in rel], 0, 1.0, B.mi('plinth')), tile=(2.4, 2.0))
         timber = A < 450 and btype not in ('tower', 'mosque')   # the small buildings timber-framed, the halls in stone
-        B.add(prism(rel, 0, H, B.mi(('timber:' + shade(wall_c, .3)) if timber else ('wall:' + wall_c + ':' + trim_c))), tile=(3.6, STOREY_M) if timber else (3.6, STOREY_M))
-        for zb in ([] if timber else [z for z in (STOREY_M * k + BASE_M for k in range(1, 6)) if z < H - 1.0]):
-            B.add(prism([offset(P, -.14) for P in rel], zb - .12, zb + .12, B.mi('band')))
-        eave = [offset(P, -.5) for P in rel]
+        # as on the design sheets: a coursed-stone ground storey, then timber-framed storeys that each jut out a little
+        # over the one below (a jetty) on a dark oak beam; the small buildings are timber-framed on a stone course
+        jet = 0.0
+        if btype in ('tower', 'mosque'):
+            B.add(prism(rel, 0, H, B.mi('wall:' + wall_c + ':' + trim_c)))
+        else:
+            g1 = min(H, STOREY_M if not timber else 1.2)
+            B.add(prism(rel, 0, g1, B.mi('wall:' + wall_c + ':' + trim_c)))
+            z, k = g1, 0
+            while z < H - .05:
+                z2 = min(H, (math.floor(z / STOREY_M + 1e-6) + 1) * STOREY_M) if H - z > STOREY_M * 1.2 else H
+                jet = .3 * min(k + (0 if timber else 1), 2)
+                if jet:
+                    B.add(prism([offset(P, -jet - .08) for P in rel], z - .1, z + .22, B.mi('plain:#3b2a22')))
+                B.add(prism([offset(P, -jet) for P in rel], z, z2, B.mi('timber:' + shade(wall_c, .3))))
+                z, k = z2, k + 1
+        eave = [offset(P, -.5 - jet) for P in rel]
         B.add(prism(eave, H, H + .32, B.mi('trim' if 'tan_panel' not in look.get('details', []) else 'plain:' + trim_c)))
         rb, top, steps = roof(eave, H + .32, B.mi('roof:' + roof_c), B.mi(ridge_key), step_in, step_up, 30 if btype == 'tower' else 14)
         B.add(rb, flat=3.2)
@@ -554,8 +581,8 @@ for f in osm['features']:
                 cc, tt = inner[i], top + 2.4
                 B.add(cylinder(cc[0], cc[1], 1.8, 0, tt, 10, B.mi('wall:' + wall_c + ':' + trim_c)))
                 B.add(cylinder(cc[0], cc[1], 2.05, tt, tt + .3, 10, B.mi('trim')))
-                B.add(cone(cc[0], cc[1], 2.2, tt + .3, 5.5, 10, B.mi('ridge:' + roof_c)))
-                B.add(sphere(cc[0], cc[1], tt + 5.95, .28, B.mi('gold')))
+                B.add(cone(cc[0], cc[1], 2.3, tt + .3, 7.2, 12, B.mi('roof:' + FAN_TEAL)))
+                B.add(sphere(cc[0], cc[1], tt + 7.65, .3, B.mi('gold')))
             # banners on the longest wall: red on the academic halls, blue on the hostels (fantasy decoration)
             if H > 6:
                 i = max(range(len(P)), key=lambda k: math.dist(P[k], P[(k + 1) % len(P)]))
@@ -603,6 +630,64 @@ for f in osm['features']:
         rb, _, _ = roof([rect(c, u, v, hl + .3, hw + .3)], eh, B.mi('roof:' + rc), B.mi('ridge:' + rc), .45, .22, 6)
         B.add(rb, flat=2.5)
     finish(B, p, 'roof', cxy, eh, look['confidence'])
+
+# ---------------------------------------------------------------- the KMKU sign (owner's request, 2026-10-21)
+# "KM KULIM" in big letters (the M red) on a beige plinth reading SELANGKAH KE MENARA GADING in blue, over a red stripe,
+# with the two crests as plain discs and a hedge in front, from the owner's photo of the sign. Where: the lawn the owner
+# circled on a screenshot, between the large academic block's west face and the road, north of its entrance (estimated
+# from that screenshot; the sign is not in OpenStreetMap). Drawn 1.6 times larger than life so it can be read on the map.
+def text_bm(body, size, depth, mat_i):
+    cu = bpy.data.curves.new('t', 'FONT'); cu.body = body; cu.size = size; cu.extrude = depth / 2; cu.align_x = 'CENTER'; cu.resolution_u = 2
+    ob = bpy.data.objects.new('t', cu); scene.collection.objects.link(ob)
+    me = bpy.data.meshes.new_from_object(ob.evaluated_get(bpy.context.evaluated_depsgraph_get()))
+    bm = bmesh.new(); bm.from_mesh(me)
+    for f in bm.faces:
+        f.material_index = mat_i
+    bpy.data.objects.remove(ob); bpy.data.curves.remove(cu); bpy.data.meshes.remove(me)
+    return bm
+def sign():
+    K = 1.6
+    blk = [f for f in osm['features'] if f['properties'].get('osm') == 'way/454535317']
+    if not blk:
+        return
+    P = [loc(*q) for q in blk[0]['geometry']['coordinates'][0]]
+    xw, yc = min(q[0] for q in P), (min(q[1] for q in P) + max(q[1] for q in P)) / 2
+    c = (xw - 9.0, yc + 12.0)                 # 9 m out from the west face, 12 m north of its middle (the entrance)
+    n, t = (-1.0, 0.0), (0.0, -1.0)            # it faces the road (west); read left to right toward the south
+    B = Builder()
+    glow = 'glow:' if FAN else 'plain:'
+    B.add(box((0, 0), n, t, 1.3 * K, 6.2 * K, 0, .45 * K, B.mi('plain:#c9c4bb')), tile=(1, 1))                    # the planter
+    B.add(box((n[0] * .55 * K, 0), n, t, .45 * K, 5.9 * K, .45 * K, 1.0 * K, B.mi('plain:#3f7a3a')), tile=(1, 1))  # the hedge
+    B.add(box((-n[0] * .35 * K, 0), n, t, .32 * K, 5.4 * K, .45 * K, .72 * K, B.mi('plain:#c8332f')), tile=(1, 1))  # the red stripe
+    B.add(box((-n[0] * .35 * K, 0), n, t, .3 * K, 5.3 * K, .72 * K, 2.0 * K, B.mi('plain:#b9a17a')), tile=(1, 1))   # the plinth
+    def place(bm, along, up, out):           # text space (x along, y up, z out of the face) to the sign's frame
+        for v in bm.verts:
+            x, y, z = v.co
+            v.co = Vector((t[0] * (x + along) + n[0] * (z + out), t[1] * (x + along) + n[1] * (z + out), y + up))
+        return bm
+    face = -.35 * K + .3 * K                 # the plinth's west face (in the n direction)
+    B.add(place(text_bm('SELANGKAH KE MENARA GADING', .34 * K, .04 * K, B.mi(glow + '#1f3f9a')), 0, 1.12 * K, face + .02), tile=(1, 1))
+    for s in (-1, 1):                         # the two crests, plain discs (their artwork is not reproduced)
+        dc = place(bmesh.new(), 0, 0, 0)
+        bmesh.ops.create_cone(dc, cap_ends=True, segments=16, radius1=.42 * K, radius2=.42 * K, depth=.06 * K)
+        for v in dc.verts:
+            x, y, z = v.co
+            v.co = Vector((t[0] * s * 4.55 * K + n[0] * (face + .04 + z), t[1] * s * 4.55 * K + n[1] * (face + .04 + z), 1.36 * K + y))
+        for f in dc.faces:
+            f.material_index = B.mi('plain:#f1efe9')
+        B.add(dc, tile=(1, 1))
+    # KM KULIM on top of the plinth: K and KULIM white, the M red, as in the photo
+    parts = [(text_bm(body, 1.55 * K, .28 * K, B.mi(glow + col)), gap) for body, col, gap in (('K', '#f4f4f2', .5), ('M', '#d0302c', .9), ('KULIM', '#f4f4f2', 0))]
+    wid = [max(v.co.x for v in bm.verts) - min(v.co.x for v in bm.verts) for bm, _ in parts]
+    x = -(sum(wid) + sum(g for _, g in parts)) / 2
+    for (bm, gap), w in zip(parts, wid):
+        mid = (max(v.co.x for v in bm.verts) + min(v.co.x for v in bm.verts)) / 2
+        B.add(place(bm, x + w / 2 - mid, 2.0 * K, -.35 * K), tile=(1, 1)); x += w + gap
+    cxy = c
+    lng, lat = LNG0 + cxy[0] / KX, LAT0 + cxy[1] / (RAD * R)
+    ob = B.object('sign_kmk', (cxy[0], cxy[1], 0))
+    ob['type'] = 'sign'; ob['lng'] = round(lng, 8); ob['lat'] = round(lat, 8); ob['look'] = 'owner-photo'   # no 'osm': it is not in OpenStreetMap
+sign()
 
 scene['origin_lng'], scene['origin_lat'] = LNG0, LAT0
 scene['style'] = STYLE

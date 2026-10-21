@@ -11,7 +11,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { RETURNING, entry } from './helpers.mjs';
+import { RETURNING, entry, dismissAware } from './helpers.mjs';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const req = createRequire(import.meta.url);
@@ -54,7 +54,8 @@ async function openHttp({ viewport, init, route, ctxOpt, seed } = {}) {
   await page.goto(base); await page.waitForSelector('.wl');
   return { ctx, page, errors, reqs };
 }
-const goView = (page, v) => page.evaluate(v => go(v), v);
+// the Stay Aware notice (js/v6-campus-hud.js) opens with the map each time; tests/89-observatory-hud checks it, here OK closes it
+const goView = async (page, v) => { await page.evaluate(v => go(v), v); if (v === 'campus') await dismissAware(page); };
 // loaded and settled: the first terrain tiles are generated in the browser and take seconds with software WebGL
 const ready = page => page.waitForFunction(() => HWCampus.state.map === 'error' || (HWCampus.state.map === 'ready' && HWCampus.map.quietMs > 1000), null, { timeout: 80000 }).then(() => page.evaluate(() => HWCampus.state.map));
 // settled: the camera has stopped (map.loaded() can stay false while generated terrain tiles refresh)
@@ -70,8 +71,7 @@ const glbs = reqs => reqs.filter(u => /\/avatars\/[^/]+\.glb$/.test(u)).map(u =>
 
 test('far from campus: how far, no avatar, a labelled demo walk; a female profile gives the girl without asking; no profile sex: the player picks, Tom first', async () => {
   const { ctx, page, errors, reqs } = await openHttp({ ctxOpt: geo(FAR), seed: { ...SEED, p: { ...SEED.p, sex: 'f' } } });
-  await goView(page, 'campus'); assert.equal(await ready(page), 'ready');
-  await page.click('.cmpctls [data-a="cmpme"]');
+  await goView(page, 'campus'); assert.equal(await ready(page), 'ready'); // the position is asked for by itself (2026-10-21)
   assert.equal(await page.locator('.cmpav').count(), 0, 'the profile is female: no chooser');
   await page.waitForFunction(() => HWCampus.me.st === 'gps' && HWCampus.me.far, null, { timeout: 30000 });
   assert.match(await page.textContent('.cmpmebar'), /You are about 2\d\d\.\d km from campus\. Your avatar only walks on the campus map\./);
@@ -87,7 +87,7 @@ test('far from campus: how far, no avatar, a labelled demo walk; a female profil
   assert.equal(await page.evaluate(() => [HWCampus.me.st, document.querySelectorAll('.cmpmebar').length].join()), 'off,0');
   // no profile sex: Tom first
   await page.evaluate(() => { localStorage.removeItem('hw_obs_avatar'); st.p.sex = ''; save(); render(); });
-  await page.click('.cmpctls [data-a="cmpme"]');
+  await page.click('.hudbtn'); await page.click('#hudmenu [data-a="cmpme"]'); // Me, in the HealthWiz menu
   assert.deepEqual(await page.$$eval('.cmpav [data-a="cmpavpick"]', b => b.map(x => x.dataset.v)), ['tom', 'schoolboy', 'schoolgirl']);
   assert.deepEqual(errors, []);
   await ctx.close();

@@ -15,7 +15,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { execSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { openApp, closeBrowser, go, state, RETURNING, entry, daysAgo, fillSteps } from './helpers.mjs';
+import { openApp, closeBrowser, go, state, RETURNING, entry, daysAgo, fillSteps, dismissAware } from './helpers.mjs';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 /** Poll a page condition with plain evaluate calls (software WebGL can hold animation frames back for seconds). */
@@ -90,7 +90,7 @@ test('with the map: landmarks and discovery, the journal, the layers, a saved se
   await page.route('**/observatory/models3d.js', r => r.fulfill({ contentType: 'text/javascript', body: STUB_BUILDINGS })); // the 3D models have their own tests
   await page.addInitScript(s => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('healthwiz', s); localStorage.setItem('hwtut', '1'); sessionStorage.setItem('seeded', '1'); } }, JSON.stringify({ ...RETURNING, s: { ...RETURNING.s, live: 0 } }));
   await page.goto(base); await page.waitForSelector('.wl');
-  await page.evaluate(() => go('campus'));
+  await page.evaluate(() => go('campus')); await dismissAware(page); // OK on the Stay Aware notice
   await until(page, () => HWCampus.state.map === 'ready' && HWCampus.map.quietMs > 1000, 80000); // settled: software WebGL is slow
   assert.equal(await page.locator('.lmk').count(), 17, 'one marker per mapped landmark');
   // open the Surau from its marker: a first discovery, recorded on this device only
@@ -134,6 +134,7 @@ test('with the map: landmarks and discovery, the journal, the layers, a saved se
   // the compass needle follows the bearing; the rotate buttons turn the map
   await page.evaluate(() => acts.cmprotr());
   await until(page, () => !HWCampus.map.map.isMoving() && HWCampus.map.map.getBearing() > 1, 5000);
+  await page.evaluate(() => acts.hudmenu()); await until(page, () => !!document.getElementById('cmpcomp') && !!document.getElementById('cmpcomp').style.getPropertyValue('--b'), 3000); // North is in the HealthWiz menu
   const cmp = await page.evaluate(() => [HWCampus.map.map.getBearing(), document.getElementById('cmpcomp').style.getPropertyValue('--b')]);
   assert.ok(Math.abs(cmp[0] - 30) < 1, 'turned 30° right: ' + cmp[0]);
   assert.equal(parseFloat(cmp[1]), -cmp[0], 'the needle points north');

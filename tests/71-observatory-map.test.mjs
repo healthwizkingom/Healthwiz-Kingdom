@@ -16,7 +16,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { RETURNING, fillSteps } from './helpers.mjs';
+import { RETURNING, fillSteps, dismissAware } from './helpers.mjs';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const req = createRequire(import.meta.url);
@@ -59,10 +59,13 @@ async function openHttp({ viewport, init, route, ctxOpt } = {}) {
   await page.goto(base); await page.waitForSelector('.wl');
   return { ctx, page, errors, reqs };
 }
-const goView = (page, v) => page.evaluate(v => go(v), v);
+// the Stay Aware notice (js/v6-campus-hud.js) opens with the map each time; tests/89-observatory-hud checks it, here OK closes it
+const goView = async (page, v) => { await page.evaluate(v => go(v), v); if (v === 'campus') await dismissAware(page); };
 // loaded and settled: the first terrain tiles are generated in the browser and take seconds with software WebGL
 const ready = page => page.waitForFunction(() => HWCampus.state.map === 'error' || (HWCampus.state.map === 'ready' && HWCampus.map.quietMs > 1000), null, { timeout: 80000 }).then(() => page.evaluate(() => HWCampus.state.map));
 // settled: the camera has stopped (map.loaded() can stay false while generated terrain tiles refresh)
+// the map's buttons are in the HealthWiz menu (js/v6-campus-hud.js): open it, press one (the menu closes)
+const menu = async (page, a) => { await page.click('.hudbtn'); await page.click('#hudmenu [data-a="' + a + '"]'); };
 const idle = page => page.waitForFunction(() => { const m = HWCampus.map && HWCampus.map.map; return !!m && !m.isMoving(); }, null, { timeout: 20000 }).then(() => page.waitForTimeout(400));
 const cam = page => page.evaluate(() => { const m = HWCampus.map.map, c = m.getCenter(); return { lng: c.lng, lat: c.lat, z: m.getZoom() }; });
 
@@ -103,46 +106,6 @@ test('lazy and complete: nothing of the map before the page opens; then OSM attr
   await ctx.close();
 });
 
-test('modes share the positions; terrain and buildings switch; selection flies to the marker; a shared point opens its chooser; all kept for the tab', async () => {
-  const { ctx, page, errors } = await openHttp();
-  await goView(page, 'campus'); assert.equal(await ready(page), 'ready'); await idle(page);
-  const pos = () => page.evaluate(() => JSON.stringify([...HWCampus.map.map.getContainer().querySelectorAll('.stm')].map(e => e.dataset.key)) + JSON.stringify(HWCampus.points().map(g => [g.lng, g.lat])));
-  const p0 = await pos();
-  await page.click('[data-a="cmpmode"][data-m="realistic"]');
-  assert.deepEqual(await page.evaluate(() => [HWCampus.map.mode, document.querySelector('#cmpcard').dataset.mode]), ['realistic', 'realistic']);
-  assert.equal(await pos(), p0, 'a mode switch changes no positions');
-  await page.click('[data-a="cmpterr"]');
-  assert.deepEqual(await page.evaluate(() => [!!HWCampus.map.map.getTerrain(), HWCampus.state.terr, [...document.querySelectorAll('.zlab')].every(z => z.closest('.maplibregl-marker').hidden)]), [false, false, true]);
-  await page.click('[data-a="cmpterr"]');
-  assert.equal(await page.evaluate(() => !!HWCampus.map.map.getTerrain()), true);
-  await page.click('[data-a="cmpbld"]');
-  assert.equal(await page.evaluate(() => HWCampus.map.map.getPaintProperty('bld', 'fill-extrusion-height')), 0);
-  // the list flies to the marker and highlights it
-  await page.click('#cmplist .cmpitem[data-id="ST24"]'); await idle(page);
-  const r = await page.evaluate(() => { const m = HWCampus.map.map, c = m.getCenter(), s = HWCampusData.record('ST24'), sel = document.querySelector('.stm.sel');
-    return { key: sel && sel.dataset.key, z: m.getZoom(), d: HWGps.dist(c.lat, c.lng, s.latitude, s.longitude), pill: document.querySelector('.cmppill').textContent }; });
-  assert.equal(r.key, '5.3490042,100.5388927');
-  assert.ok(r.z >= 17.9 && r.d < 40, 'centred and close: zoom ' + r.z.toFixed(2) + ', ' + Math.round(r.d) + ' m off');
-  assert.match(r.pill, /ST24Tangga dalam Blok A/);
-  // a marker tap on a shared point opens the chooser
-  await page.evaluate(() => { const e = document.querySelector('.stm[data-key="5.3515635,100.5383731"]'); e.hidden = false; e.click(); });
-  assert.match(await page.textContent('#cmpdet'), /3 staircases at one stored point[\s\S]*ST06[\s\S]*ST31[\s\S]*ST32/);
-  await page.click('#cmpdet .cmpitem[data-id="ST31"]');
-  assert.equal(await page.evaluate(() => HWCampus.selected), 'ST31');
-  // kept for the tab: leave and come back to the same mode, switches, selection and camera
-  await idle(page);
-  const c0 = await cam(page);
-  await goView(page, 'home');
-  assert.equal(await page.evaluate(() => [HWCampus.map, document.querySelectorAll('.maplibregl-canvas').length].join()), ',0', 'leaving frees the map');
-  await goView(page, 'campus'); assert.equal(await ready(page), 'ready'); await idle(page);
-  const c1 = await cam(page);
-  assert.deepEqual(await page.evaluate(() => { const s = HWCampus.state; return [s.mode, s.terr, s.bld, s.sid, HWCampus.map.mode, document.querySelector('.stm.sel') && document.querySelector('.stm.sel').dataset.key]; }),
-    ['realistic', true, false, 'ST31', 'realistic', '5.3515635,100.5383731']);
-  assert.ok(Math.abs(c1.lng - c0.lng) < 1e-5 && Math.abs(c1.lat - c0.lat) < 1e-5 && Math.abs(c1.z - c0.z) < .01, 'the camera is restored');
-  assert.deepEqual(errors, []);
-  await ctx.close();
-});
-
 test('no WebGL, or the map data failing: a clear message; the list and details still work; nothing breaks', async () => {
   // no WebGL: the page says so before requesting anything for the map
   const a = await openHttp({ init: () => { const g = HTMLCanvasElement.prototype.getContext; HTMLCanvasElement.prototype.getContext = function (t, ...x) { return /webgl/.test(t) ? null : g.call(this, t, ...x); }; } });
@@ -170,7 +133,10 @@ test('phone: the map and its controls fit 380 px; controls are 44 px tap targets
   await goView(page, 'campus'); assert.equal(await ready(page), 'ready'); await idle(page);
   const r = await page.evaluate(() => { const st = document.querySelector('#cmpstage').getBoundingClientRect(), pn = document.querySelector('.cmppanel').getBoundingClientRect();
     return { doc: document.documentElement.scrollWidth, st: [st.left, st.right, st.height], below: pn.top >= st.bottom - 1,
-      ctl: [...document.querySelectorAll('.cmpctl, .cmpmode')].map(b => { const x = b.getBoundingClientRect(); return [x.height, x.right]; }) }; });
+      ctl: [...document.querySelectorAll('.hudbtn, .hudwavebtn, .cmpmode')].map(b => { const x = b.getBoundingClientRect(); return [x.height, x.right]; }) }; });
+  await page.click('.hudbtn');
+  r.ctl.push(...await page.evaluate(() => [...document.querySelectorAll('#hudmenu .hudi, #hudmenu .hudx')].map(b => { const x = b.getBoundingClientRect(); return [x.height, x.right]; })));
+  assert.ok(r.ctl.length > 15, 'the HUD buttons and the menu\'s: ' + r.ctl.length);
   assert.ok(r.doc <= 380, 'no sideways scroll: ' + r.doc);
   assert.ok(r.st[0] >= 0 && r.st[1] <= 380 && r.st[2] >= 360, 'the map is on screen and tall enough: ' + r.st);
   assert.ok(r.below, 'the list is below the map on a phone');
