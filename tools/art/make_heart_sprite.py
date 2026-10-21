@@ -3,6 +3,12 @@ coloured according to difficulty"), modelled and rendered in Blender, packed int
 
     /opt/blender/blender -b --factory-startup -P tools/art/make_heart_sprite.py -- OUT_DIR   # 16 PNG frames
     python3 tools/art/make_heart_sprite.py --pack OUT_DIR assets/img/heart-spin.webp          # the sheet
+    /opt/blender/blender -b --factory-startup -P tools/art/make_heart_sprite.py -- --glb assets/models/heart-stop.glb
+
+--glb: the solid stop the 3D map draws (observatory/stops3d.js), after a Pokestop: a post on a round base, with the
+heart floating above it, one unit tall (the map scales it to a steady size on screen). Two meshes: "heart" (white, its
+origin on the post's axis, so it spins in place; tinted by difficulty in the browser) and "post" (silver post, stone base
+with a gold rim). Low-poly and without textures, so the file stays a few kilobytes.
 
 The heart is white and grey (light and shade only): the map tints it with the staircase's difficulty colour in CSS
 (multiply), so one small sheet serves Mild, Moderate and Vigorous. 16 frames of one full turn about the upright axis,
@@ -35,8 +41,10 @@ if '--pack' in sys.argv:
     pack(a[0], a[1]); sys.exit(0)
 
 import bpy
-out = sys.argv[sys.argv.index('--') + 1] if '--' in sys.argv else '/tmp/heart'
-os.makedirs(out, exist_ok=True)
+args = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
+GLB = args[1] if args[:1] == ['--glb'] else None
+out = args[0] if args and not GLB else '/tmp/heart'
+if not GLB: os.makedirs(out, exist_ok=True)
 bpy.ops.wm.read_factory_settings(use_empty=True)
 sc = bpy.context.scene
 
@@ -54,17 +62,39 @@ for v in [g for g in r['geom'] if isinstance(g, bmesh.types.BMVert)]:
 bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
 me = bpy.data.meshes.new('heart'); bm.to_mesh(me); bm.free()
 heart = bpy.data.objects.new('heart', me); sc.collection.objects.link(heart)
-bv = heart.modifiers.new('bevel', 'BEVEL'); bv.width = .09; bv.segments = 4; bv.limit_method = 'ANGLE'; bv.use_clamp_overlap = True
-sub = heart.modifiers.new('smooth', 'SUBSURF'); sub.levels = 2; sub.render_levels = 2
+bv = heart.modifiers.new('bevel', 'BEVEL'); bv.width = .09; bv.segments = 2 if GLB else 4; bv.limit_method = 'ANGLE'; bv.use_clamp_overlap = True
+sub = heart.modifiers.new('smooth', 'SUBSURF'); sub.levels = sub.render_levels = 1 if GLB else 2
 for p in me.polygons:
     p.use_smooth = True
-mat = bpy.data.materials.new('heart'); mat.use_nodes = True
-b = mat.node_tree.nodes['Principled BSDF']; b.inputs['Base Color'].default_value = (1, 1, 1, 1); b.inputs['Roughness'].default_value = .35
-b.inputs['Coat Weight'].default_value = .5
-me.materials.append(mat)
+def material(name, rgb, rough=.35, metal=0., coat=.5):
+    m = bpy.data.materials.new(name); m.use_nodes = True; b = m.node_tree.nodes['Principled BSDF']
+    b.inputs['Base Color'].default_value = (*rgb, 1); b.inputs['Roughness'].default_value = rough
+    b.inputs['Metallic'].default_value = metal; b.inputs['Coat Weight'].default_value = coat
+    return m
+me.materials.append(material('heart', (1, 1, 1)))
 heart.rotation_euler = (math.radians(90), 0, 0)   # stand it up: the curve's plane becomes vertical
-pivot = bpy.data.objects.new('pivot', None); sc.collection.objects.link(pivot); heart.parent = pivot
 
+if GLB:
+    # the stop: the heart (about .56 wide) floats on the post's axis; the post stands on a round base; 1 unit tall in all
+    heart.scale = (.37, .37, .37); heart.location = (0, 0, .8)
+    bpy.ops.object.select_all(action='DESELECT')
+    parts = []
+    bpy.ops.mesh.primitive_cylinder_add(vertices=10, radius=.05, depth=.5, location=(0, 0, .34)); parts.append(bpy.context.object)
+    bpy.ops.mesh.primitive_cylinder_add(vertices=16, radius=.2, depth=.06, location=(0, 0, .03)); parts.append(bpy.context.object)
+    bpy.ops.mesh.primitive_cylinder_add(vertices=16, radius=.215, depth=.02, location=(0, 0, .065)); parts.append(bpy.context.object)
+    bpy.ops.mesh.primitive_cone_add(vertices=10, radius1=.08, radius2=.05, depth=.06, location=(0, 0, .1)); parts.append(bpy.context.object)
+    mats = (material('post_silver', (.9, .92, .96), .35, .5, .2), material('base_stone', (.36, .38, .46), .8, 0, 0),
+            material('rim_gold', (.95, .74, .3), .3, .9, .2), material('post_silver', (.9, .92, .96), .35, .5, .2))
+    for o, m in zip(parts, (mats[0], mats[1], mats[2], mats[0])):
+        o.data.materials.append(m)
+    bpy.ops.object.select_all(action='DESELECT')
+    for o in parts: o.select_set(True)
+    bpy.context.view_layer.objects.active = parts[0]; bpy.ops.object.join(); parts[0].name = 'post'
+    heart.select_set(True)
+    os.makedirs(os.path.dirname(os.path.abspath(GLB)), exist_ok=True)
+    bpy.ops.export_scene.gltf(filepath=GLB, export_format='GLB', use_selection=True, export_apply=True, export_yup=True,
+                              export_texcoords=False, export_normals=True, export_materials='EXPORT', export_extras=False)
+    print('HEART stop', GLB, os.path.getsize(GLB), 'bytes'); sys.exit(0)
 # camera: orthographic, a little from above, like a stop seen on the map
 cam = bpy.data.objects.new('cam', bpy.data.cameras.new('cam')); sc.collection.objects.link(cam); sc.camera = cam
 cam.data.type = 'ORTHO'; cam.data.ortho_scale = 2.0

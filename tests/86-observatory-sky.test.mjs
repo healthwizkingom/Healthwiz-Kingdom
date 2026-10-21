@@ -144,6 +144,10 @@ test('with the map: the details load on the terrain; the Sky chooser tints, fogs
   assert.ok(key, 'a marker in the middle of the map, on top');
   await page.click('.stm[data-id="' + key + '"]');
   assert.equal(await page.evaluate(() => HWCampus.selected), key, 'tapped through the weather layers');
+  // the tap opens the staircase's stop over the map (tests/88); closing it gives the map back
+  await page.waitForSelector('#cmpstop');
+  await page.evaluate(() => acts.cmpstopx());
+  await page.waitForFunction(() => !document.getElementById('cmpstop'), null, { timeout: 5000 });
   // the choice is kept for the tab; Live returns to the clock
   assert.equal(await page.evaluate(() => JSON.parse(sessionStorage.getItem('hw_obs_view')).sky), 'fog');
   await page.click('[data-a="cmpsky"][data-v="live"]');

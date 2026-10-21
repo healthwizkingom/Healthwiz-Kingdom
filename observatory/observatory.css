@@ -132,3 +132,7 @@ html.hw-rm .lmk.disc .lmkr,html.hw-still .lmk.disc .lmkr{opacity:1}
 @media (prefers-reduced-motion:reduce){.stm .hrt{animation:none}}
 html.hw-rm .stm .hrt,html.hw-still .stm .hrt{animation:none}
 html.hw-q-performance .stm .hrt{animation:none} /* Performance mode: the hearts stand still */
+/* the solid 3D stops (./stops3d.js) are on the map: the marker stays the tap target, ring and label; its drawn heart goes */
+.st3d .stm .hstop{visibility:hidden}
+.cmpcard .st3d .stm,.st3d .stm{box-shadow:none;background:transparent} /* the app's button shadow, which the drawn heart used to cover */
+.st3d .stm .hrt{animation:none}

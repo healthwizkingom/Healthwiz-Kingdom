@@ -121,6 +121,7 @@ tools/blender_campus_props.py  makes those two GLBs (run through tools/blender_c
 tools/make_elevation_zones.py  writes data/elevation-zones.geojson: the estimated, illustrative terrain levels and the evidence for each
 observatory/landmarks.js   landmarks: optional markers for places mapped in OSM (gate, named buildings, squares, pitches, water towers), the discovery animation
 js/v6-campus-magic.js      the landmark card and discovery (device only), the Map journal, the Layers panel, a saved session's feedback, staircase sigils, the map's instrument-style buttons
+observatory/stops3d.js     the staircase stops as solid 3D models on the map (assets/models/heart-stop.glb), hidden by buildings in front, with a slight glow
 js/v6-campus-stop.js       the staircase stop on the Campus map: the disc that zooms out of a staircase's heart (name, ID, category, photo frame)
 observatory/sky.js         the map's sky: live Kulim weather and modelled haze plus the time of day from the clock (or a preview) → sky, light, a tint, fog, rain
 tools/campus-clip.mjs      cuts the prototype's OpenStreetMap export to Kolej MARA Kulim (data/campus-osm.geojson): lines clipped to the export's bounds, features outside the campus dropped
@@ -133,7 +134,7 @@ tools/build-standalone.mjs bundles everything back into one HTML file
 tools/make-icons.mjs       redraws the app icons
 tools/art/                 Python scripts that made assets/img/bedroom.webp, sleeper-react.webp, medius-reactions.webp, luna-faces.webp,
                            luna-poses.webp, luna-lab.webp (make_luna_poses.py), luna-props.webp (make_luna_props.py), lab-scene.webp and Luke's luke-*.webp (make_luke.py),
-                           heart-spin.webp (make_heart_sprite.py, Blender)
+                           heart-spin.webp and assets/models/heart-stop.glb (make_heart_sprite.py, Blender)
 tests/                     browser tests (Playwright + node:test): fidelity, every feature, performance budgets, device matrix
 docs/                      architecture audit and plan, event catalog, testing guide (docs/TESTING.md), pixel-art standard (docs/PIXEL_STYLE.md)
 ```
@@ -229,6 +230,14 @@ at its end shows the list. LOG A CLIMB HERE closes the disc and goes to the form
 and the disc simply appears. The elevation toggle reuses terrain heights it has already worked out instead of sampling
 the terrain again, the stair illustration (3D viewer) only redraws while something moves and draws fewer pixels on phones
 and small devices, and on a phone the map's buttons wrap into columns so all of them, full screen included, stay on screen.
+On the 3D map the stops are solid models, like a Pokestop (`observatory/stops3d.js`): a silver post on a stone base
+with a gold rim and the heart floating above it, modelled in the same Blender script (`--glb`, `assets/models/heart-stop.glb`,
+71 KB). They share the map's depth buffer, so a building in front of a stop hides it, and they stand on the ground the map
+draws, where their markers (still the tap targets and labels) are. Each keeps a steady size on screen and has a slight
+glow in its difficulty colour: the heart lights itself a little, with a soft halo around it and a pool of light under it,
+which buildings hide too. The selected heart spins, redrawing the map about 12 times a second only while a staircase is
+selected (never with reduced motion, still mode or Performance mode, when the hearts face the viewer instead). If the
+model cannot load, the drawn hearts stay.
 
 ## Campus stair survey data
 
