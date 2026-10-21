@@ -108,4 +108,8 @@ HWUI.css('campus',`
 .cmpskycap{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);z-index:5;margin:0;padding:2px 8px;border-radius:8px;background:var(--panel);color:var(--ink);font-size:12px;white-space:nowrap;max-width:calc(100% - 200px);overflow:hidden;text-overflow:ellipsis;pointer-events:none}
 .cmpskycap:empty{display:none}
 .cmplg.sky{border-radius:3px;background:linear-gradient(180deg,#5a6aa6,#f39a6b)}
+/* the map's buttons: a column on the right that wraps into a second column (leftward) when the map is short, as on a
+   phone, so every button, full screen included, stays on screen */
+.cmpctls{display:grid;grid-auto-flow:column;grid-template-rows:repeat(auto-fill,minmax(40px,auto));gap:6px;bottom:34px;direction:rtl;align-content:start}
+.cmpctls>*{direction:ltr}
 `);

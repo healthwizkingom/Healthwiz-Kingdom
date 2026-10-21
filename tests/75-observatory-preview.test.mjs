@@ -78,7 +78,7 @@ test('selection opens and updates the preview; the F21 set or the demonstration 
   assert.match(t, /3D staircase preview[\s\S]*Illustrative 3D model[\s\S]*Step size measured \(F21\)[\s\S]*Illustrative model — actual dimensions not surveyed\./);
   assert.match(t, /Step size: measured for this staircase \(rise 0\.169 m, run 0\.311 m, F21 report\)/);
   // ST03: the demonstration set; the stored angle (19.6°) sizes nothing
-  await page.click('#cmptab-list'); await page.click('#cmplist .cmpitem[data-id="ST03"]'); await shown(page, 'ST03');
+  await page.click('[data-a="cmptab"][data-t="list"]'); await page.click('#cmplist .cmpitem[data-id="ST03"]'); await shown(page, 'ST03');
   assert.ok(glbs(reqs).includes('demo-fantasy.glb') && !glbs(reqs).some(f => f.startsWith('ST03')), glbs(reqs).join());
   t = await page.textContent('#cmpvw');
   assert.match(t, /Illustrative 3D model[\s\S]*Not yet surveyed/);

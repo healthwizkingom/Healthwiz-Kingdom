@@ -100,7 +100,9 @@ const ease = t => 1 - Math.pow(1 - t, 3);
 
 export function createViewer({ host, msg, reduced, onView }) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'low-power' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  // lighter on phones (the map is a second WebGL scene on the same page): 1x pixels there, at most 1.5x elsewhere
+  const small = () => (host.clientWidth || innerWidth) < 600 || (navigator.hardwareConcurrency || 8) <= 4;
+  renderer.setPixelRatio(small() ? 1 : Math.min(window.devicePixelRatio || 1, 1.5));
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
@@ -127,7 +129,7 @@ export function createViewer({ host, msg, reduced, onView }) {
     const w = host.clientWidth, h = host.clientHeight;
     if (!w || !h) return false;
     renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
-    composer.setPixelRatio(Math.min(window.devicePixelRatio || 1, w < 500 ? 1.5 : 2)); composer.setSize(w, h);
+    composer.setPixelRatio(small() ? 1 : Math.min(window.devicePixelRatio || 1, 1.5)); composer.setSize(w, h);
     return true;
   }
 
@@ -334,13 +336,14 @@ export function createViewer({ host, msg, reduced, onView }) {
     // key light from the front left, so its soft shadows fall across the dais toward the right where the camera sees them
     const hemi = new THREE.HemisphereLight(F ? 0xb4a8ff : 0xdfe8f5, F ? 0x1a2350 : 0x8a8478, F ? .95 : .55);
     sun = new THREE.DirectionalLight(F ? 0xdfe6ff : 0xfff1dc, F ? 2.6 : 3.4);
-    sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -.0003; sun.shadow.normalBias = .02; sun.shadow.radius = 4;
+    sun.castShadow = true; sun.shadow.mapSize.set(small() ? 512 : 1024, small() ? 512 : 1024); sun.shadow.bias = -.0003; sun.shadow.normalBias = .02; sun.shadow.radius = 4;
     const fill = new THREE.DirectionalLight(F ? 0x8ff7ea : 0xbcd2ff, F ? .35 : .5); fill.position.set(8, 4, 6); // cool bounce from the camera side
     hemi.userData.light = sun.userData.light = sun.target.userData.light = fill.userData.light = true;
     scene.add(hemi, sun, sun.target, fill);
     scene.background = new THREE.Color(F ? 0x0d1430 : 0xd9dee4);
     scene.environmentIntensity = F ? .35 : .45;
     renderer.toneMappingExposure = F ? 1.05 : .95;
+    bloom.enabled = F && !small(); // the glow pass only where it shows (Fantasy) and not on phones
     bloom.strength = F ? .62 : .12; bloom.threshold = F ? .86 : .9; bloom.radius = F ? .5 : .3;
     scene.fog = new THREE.Fog(F ? 0x0d1430 : 0xf1f2ee, 18, 48);
   }
@@ -373,7 +376,7 @@ export function createViewer({ host, msg, reduced, onView }) {
     });
   }
 
-  let t0 = 0, quiet = 0;
+  let t0 = 0, quiet = 0, lastAct = 0; // lastAct: the last open, button, drag or resize; the scene's own little motions run for 4 s after it
   controls.addEventListener('change', () => run());
   function loop(t) {
     raf = 0;
@@ -403,11 +406,14 @@ export function createViewer({ host, msg, reduced, onView }) {
     composer.render();
     // reduced motion: nothing moves by itself, so draw only while something changes and then stop (battery, and the
     // main thread on slow devices); a camera change, a button, a new model or a resize starts the loop again
-    if (still && !intro && !tween && !moved) { if (++quiet > 8) { raf = 0; return; } } else quiet = 0;
+    // draw only while something changes: an entrance, a button turn, a drag, the spin, or 4 s of the scene's own motions after
+    // the last of those; then stop (it used to draw every frame while open, which made the page lag next to the map)
+    const busy = intro || tween || moved || (spinning && !still) || (!still && t - lastAct < 4000);
+    if (!busy) { if (++quiet > 8) { raf = 0; return; } } else quiet = 0;
     if (onView) { const az = THREE.MathUtils.radToDeg(controls.getAzimuthalAngle()); if (lastAz == null || Math.abs(az - lastAz) > .5) { lastAz = az; onView(az); } }
     raf = requestAnimationFrame(loop);
   }
-  const run = () => { quiet = 0; if (!raf && open) { t0 = 0; raf = requestAnimationFrame(loop); } };
+  const run = () => { quiet = 0; lastAct = performance.now(); if (!raf && open) { t0 = 0; raf = requestAnimationFrame(loop); } };
   const vis = () => { if (document.hidden) { cancelAnimationFrame(raf); raf = 0; } else run(); };
   document.addEventListener('visibilitychange', vis);
   let gone = false;

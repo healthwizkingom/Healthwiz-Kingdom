@@ -290,7 +290,7 @@ test('stairway counts agree (32 total, 28 mapped), every stairway shows θ and i
   assert.match(man, /Mild < 26°, Moderate 26–31\.2°, Vigorous > 31\.2°/);
   assert.match(man, /θ = tan⁻¹\(rise ÷ run\), estimated from the stairway's stored data/);
   // every stairway shows θ in the Observatory's list, and θ with its band once picked
-  await page.click('#cmptab-list');
+  await page.click('[data-a="cmptab"][data-t="list"]'); // ALL STAIRCASES (below the Details)
   const t = await page.$$eval('#cmplist .cmpmeta', e => e.map(x => x.textContent));
   assert.equal(t.length, 32);
   assert.ok(t.every(x => /θ \d+\.\d\d°/.test(x)), t.join('|'));

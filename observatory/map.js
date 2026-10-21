@@ -184,9 +184,10 @@ function style(osm, zonesFC, trees, parts, walks, demUrl) {
   };
 }
 
-const PIN = n => '<svg class="pinsvg" viewBox="0 0 32 42" aria-hidden="true" focusable="false"><path class="pbody" d="M16 41C16 41 3 26.5 3 15.5a13 13 0 1 1 26 0C29 26.5 16 41 16 41Z"/>'
-  + '<polygon class="pgem" points="16,7.5 23,11.5 23,19.5 16,23.5 9,19.5 9,11.5"/><path class="pshine" d="M10 12.2 16 8.8 18.6 10.3 11.2 14.6Z"/>'
-  + '<text x="16" y="19.6" text-anchor="middle" class="pnum">' + n + '</text></svg>';
+// the staircase stop (owner's request, 2026-10-21, after a Pokestop): a heart spinning on a post above a ring, tinted with the
+// difficulty colour (the white Blender heart of tools/art/make_heart_sprite.py, multiplied by --mc in observatory.css); the
+// difficulty number stays on the post for anyone who cannot tell the colours apart
+const PIN = n => '<span class="pinsvg hstop" aria-hidden="true"><i class="hpost"></i><i class="hrt"></i>' + (n ? '<b class="hcat">' + n + '</b>' : '') + '</span>';
 const locWord = s => s.locationStatus === 'measured' ? 'Measured location (survey)' : 'Estimated location';
 
 /** Build the map. opts: {container, osm, terrain, groups: [{key, lat, lng, items: [record]}], cam, mode, terr, bld,

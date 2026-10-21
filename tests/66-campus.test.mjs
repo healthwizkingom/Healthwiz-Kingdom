@@ -53,7 +53,7 @@ test('details in three groups with the player\'s own climbs and honest labels; p
   const id = 'ST20';
   await page.evaluate(id => { add('stair', 100, { sid: id, steps: 20, climbs: 5 }, '', today(), '08:00', 0, ''); st.gp = { ok: 1, v: { [id]: '2026-10-01' } }; save(); render(); }, id);
   await page.click('#cmplist .cmpitem[data-id="' + id + '"]');
-  assert.equal(await page.getAttribute('#cmptab-det', 'aria-selected'), 'true');
+  assert.equal(await page.locator('#cmppane > #cmpdet').count(), 1, 'its Details, right below the map');
   assert.deepEqual(await page.$$eval('#cmpdet .cmpgrp h3', a => a.map(x => x.textContent.trim())), ['Location', 'Staircase profile', 'Data quality']);
   const d = await page.textContent('#cmpdet');
   assert.match(d, /You saved 1 stair session here \(last \d{4}-\d\d-\d\d\) · first GPS check-in 2026-10-01/);
@@ -66,12 +66,12 @@ test('details in three groups with the player\'s own climbs and honest labels; p
   assert.match(d, /3D preview: it needs what the map needs \(the web address and WebGL\), so it is not shown here\./);
   assert.equal(await page.locator('#cmpvw').count(), 0);
   // a shared coordinate links to the other records
-  await page.click('#cmptab-list'); await page.click('#cmplist .cmpitem[data-id="ST31"]');
+  await page.click('[data-a="cmptab"][data-t="list"]'); await page.click('#cmplist .cmpitem[data-id="ST31"]');
   assert.match(await page.textContent('#cmpdet'), /Same point asST06, ST32[\s\S]*Needs checking/);
   await page.click('#cmpdet .cmplnk[data-id="ST06"]');
   assert.equal(await page.evaluate(() => HWCampus.selected), 'ST06');
   // picking it opens LOG A CLIMB HERE for it (logging lives in the Observatory since 2026-10-20)
-  await page.click('#cmptab-list'); await page.click('#cmplist .cmpitem[data-id="' + id + '"]');
+  await page.click('[data-a="cmptab"][data-t="list"]'); await page.click('#cmplist .cmpitem[data-id="' + id + '"]');
   const before = (await state(page)).e.length;
   assert.equal(await page.locator('#cmpdet [data-a="cmpstair"]').count(), 0, 'no START STAIR SESSION: the forms are right here');
   assert.match(await page.textContent('#cmpdet #cmplog h3'), /LOG A CLIMB HERE/);
@@ -96,7 +96,7 @@ test('search filters in place (focus kept), filters narrow the list, an unmapped
   const d = await page.textContent('#cmpdet');
   assert.match(d, /No location recorded, so it is not placed on the map\.[\s\S]*No location recorded[\s\S]*Needs checking/);
   assert.match(d, /Same name as ST21 in the app data: may be the same staircase\./);
-  await page.click('#cmptab-list'); await page.click('[data-a="cmpfilt"][data-f="all"]');
+  await page.click('[data-a="cmptab"][data-t="list"]'); await page.click('[data-a="cmpfilt"][data-f="all"]');
   assert.equal(await page.locator('#cmplist .cmpitem').count(), 32);
   assert.deepEqual(errors, []);
 });
@@ -165,7 +165,7 @@ test('the selection, tab, filter and search are kept for the tab: leaving and a 
 test('phone: fits 360 px, list buttons and controls are full-size tap targets', async () => {
   const { page, errors } = await open({ viewport: { width: 360, height: 760 }, context: { reducedMotion: 'reduce', isMobile: true, hasTouch: true } });
   const r = await page.evaluate(() => ({ doc: document.documentElement.scrollWidth, card: document.querySelector('#cmpcard').getBoundingClientRect().right,
-    items: [...document.querySelectorAll('.cmpitem, .cmpf, .cmptabs button')].map(b => b.getBoundingClientRect().height) }));
+    items: [...document.querySelectorAll('.cmpitem, .cmpf, .cmpback')].map(b => b.getBoundingClientRect().height) }));
   assert.ok(r.doc <= 360, 'no sideways scroll: ' + r.doc);
   assert.ok(r.card <= 360);
   assert.ok(r.items.every(h => h >= 44), 'tap targets ≥ 44 px: ' + Math.min(...r.items));

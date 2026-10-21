@@ -30,17 +30,23 @@ export function createModelLayer(opts) {
   let lng0, lat0, kx, ky;
   const toLngLat = (x, z) => [lng0 + x / kx, lat0 - z / ky];
 
+  // the terrain heights under every building, prop vertex and shadow-catcher vertex are worked out once and kept, so
+  // switching the terrain off and on again only moves things (it used to recompute ~30,000 heights each time)
+  const hOf = (xs, zs, n) => { const h = new Float32Array(n); for (let i = 0; i < n; i++) { const [lng, lat] = toLngLat(xs(i), zs(i)); h[i] = opts.heightAt(lng, lat); } return h; };
   function place() { // terrain height under each building (0 when the terrain is off), then the ground shadow catcher
     const on = opts.terrainOn();
-    for (const n of nodes) n.obj.position.y = n.y0 + (on ? opts.heightAt(n.lng, n.lat) : 0);
+    for (const n of nodes) { if (on && n.h == null) n.h = opts.heightAt(n.lng, n.lat); n.obj.position.y = n.y0 + (on ? n.h : 0); }
     for (const d of drapes) { // the props: every vertex lifted to the terrain under it (each post stays upright)
       const p = d.geo.attributes.position, b = d.base;
-      for (let i = 0; i < p.count; i++) { const [lng, lat] = toLngLat(b[i * 3], b[i * 3 + 2]); p.setY(i, b[i * 3 + 1] + (on ? opts.heightAt(lng, lat) : 0)); }
+      if (on && !d.h) d.h = hOf(i => b[i * 3], i => b[i * 3 + 2], p.count);
+      for (let i = 0; i < p.count; i++) p.setY(i, b[i * 3 + 1] + (on ? d.h[i] : 0));
       p.needsUpdate = true; d.geo.computeBoundingSphere();
     }
     if (catcher) {
       const p = catcher.geometry.attributes.position;
-      for (let i = 0; i < p.count; i++) { const [lng, lat] = toLngLat(p.getX(i), p.getZ(i)); p.setY(i, (on ? opts.heightAt(lng, lat) : 0) + .3); }
+      if (on && !catcher.userData.h) catcher.userData.h = hOf(i => p.getX(i), i => p.getZ(i), p.count);
+      const h = catcher.userData.h;
+      for (let i = 0; i < p.count; i++) p.setY(i, (on ? h[i] : 0) + .3);
       p.needsUpdate = true; catcher.geometry.computeBoundingSphere();
     }
     if (renderer) renderer.shadowMap.needsUpdate = true;
