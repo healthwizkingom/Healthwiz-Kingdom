@@ -34,6 +34,8 @@ const TREE_IMG = {
   realistic: ['match', ['get', 't'], 'px-tree-pine', 'px-palm', 'px-tree-glow', 'px-palm', 'px-tree-day'],
   fantasy: ['match', ['get', 't'], 'px-tree-pine', 'px-palm-night', ['get', 't']],
 };
+// the staircase stops as solid models, hidden by the buildings in front of them (./stops3d.js, tools/art/make_heart_sprite.py --glb)
+const STOP_URL = new URL('../assets/models/heart-stop.glb', import.meta.url).href;
 const CATCOL = { MILD: '#7ee07c', MODERATE: '#f6c94f', VIGOROUS: '#ff7b6e' };
 const ATTR = '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a> (ODbL)';
 const K = k => ['==', ['get', 'kind'], k];
@@ -184,9 +186,10 @@ function style(osm, zonesFC, trees, parts, walks, demUrl) {
   };
 }
 
-const PIN = n => '<svg class="pinsvg" viewBox="0 0 32 42" aria-hidden="true" focusable="false"><path class="pbody" d="M16 41C16 41 3 26.5 3 15.5a13 13 0 1 1 26 0C29 26.5 16 41 16 41Z"/>'
-  + '<polygon class="pgem" points="16,7.5 23,11.5 23,19.5 16,23.5 9,19.5 9,11.5"/><path class="pshine" d="M10 12.2 16 8.8 18.6 10.3 11.2 14.6Z"/>'
-  + '<text x="16" y="19.6" text-anchor="middle" class="pnum">' + n + '</text></svg>';
+// the staircase stop (owner's request, 2026-10-21, after a Pokestop): a heart spinning on a post above a ring, tinted with the
+// difficulty colour (the white Blender heart of tools/art/make_heart_sprite.py, multiplied by --mc in observatory.css); the
+// difficulty number stays on the post for anyone who cannot tell the colours apart
+const PIN = n => '<span class="pinsvg hstop" aria-hidden="true"><i class="hpost"></i><i class="hrt"></i>' + (n ? '<b class="hcat">' + n + '</b>' : '') + '</span>';
 const locWord = s => s.locationStatus === 'measured' ? 'Measured location (survey)' : 'Estimated location';
 
 /** Build the map. opts: {container, osm, terrain, groups: [{key, lat, lng, items: [record]}], cam, mode, terr, bld,
@@ -241,6 +244,7 @@ export function createMap(opts) {
     FANTASY_ONLY.forEach(id => map.getLayer(id) && map.setLayoutProperty(id, 'visibility', m === 'fantasy' ? 'visible' : 'none'));
     if (map.getLayer('trees')) map.setLayoutProperty('trees', 'icon-image', TREE_IMG[m]);
     loadModels();
+    if (stops && stops.night) stops.night(m === 'fantasy');
     FX.set(m === 'fantasy' && !opts.reduced() && lay.effects);
     if (m !== 'fantasy') FX.follow(null);
     setHeights();
@@ -361,6 +365,7 @@ export function createMap(opts) {
     TERRAIN_LAYERS.forEach(id => map.getLayer(id) && map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none'));
     zoneMarks.forEach(z => { z.getElement().hidden = !on; });
     if (models && models.replace) models.replace();
+    if (stops && stops.replace) stops.replace();
     applyLayers();
   }
   // fantasy: the walkways and plateau rims keep a steady glow. They used to flow and breathe on a timer, but every tick
@@ -422,6 +427,7 @@ export function createMap(opts) {
       el.setAttribute('aria-label', n + ' staircases close together. Zoom in to separate them.');
     }
     for (const a of pts) if (a.m.g.key === sel) a.m.el.hidden = false;
+    if (stops && stops.repaint) stops.repaint(); // a hidden marker hides its stop
   }
   /* ---------- labels: OSM building names, and the illustrative elevation levels ---------- */
   function addLabels() {
@@ -466,12 +472,27 @@ export function createMap(opts) {
       map.addLayer(avatar); // on top of everything, like a game avatar
     }).catch(e => { console.warn('[avatar]', e && e.message); avatar = 'failed'; });
   }
+  /* ---------- the staircase stops as solid 3D models (./stops3d.js): the HTML markers stay the tap targets; once the models
+     are on the map, the markers' drawn hearts are hidden (class st3d). If they cannot load, the drawn hearts stay. ---------- */
+  let stops = null;
+  const motion = () => !opts.reduced() && !/\bhw-(still|q-performance)\b/.test(document.documentElement.className);
+  function loadStops() {
+    import('./stops3d.js').then(mod => {
+      if (gone) return;
+      stops = mod.createStopLayer({ ML, url: STOP_URL, colours: { 1: CATCOL.MILD, 2: CATCOL.MODERATE, 3: CATCOL.VIGOROUS }, heightAt: terrain.heightAt, terrainOn: () => terrOn,
+        shown: k => { const m = markers.get(k); return !!m && !m.el.hidden; }, motion, night: () => mode === 'fantasy',
+        onReady: () => { if (gone) return; map.getContainer().classList.add('st3d'); stops.select(sel); },
+        onError: e => { console.warn('[stops] the 3D stops could not load; the drawn hearts stay.', e && e.message); stops = null; } });
+      stops.set([...markers.values()].map(m => ({ key: m.g.key, lng: m.g.lng, lat: m.g.lat, cat: catN(m.g.items[0].appCategory) || 2 })));
+      map.addLayer(stops, map.getLayer('trees') ? 'trees' : undefined); // among the 3D layers: drawn on top, MapLibre's terrain pass hid it
+    }).catch(e => { console.warn('[stops]', e && e.message); stops = null; });
+  }
   const camNow = () => { const c = map.getCenter(); return { c: [+c.lng.toFixed(7), +c.lat.toFixed(7)], z: +map.getZoom().toFixed(3), b: +map.getBearing().toFixed(2), p: +map.getPitch().toFixed(2) }; };
 
   map.on('load', () => {
     if (gone) return;
     ready = true;
-    addLabels(); addMarkers();
+    addLabels(); addMarkers(); loadStops();
     lm = createLandmarks({ ML, map, list: landmarksOf(osm), onOpen: id => opts.onLandmark && opts.onLandmark(id), reduced: opts.reduced });
     if (opts.found) lm.found(opts.found());
     applyMode(mode); setTerrain(terrOn);
@@ -503,11 +524,12 @@ export function createMap(opts) {
     get modelsReady() { return modelsReady; },
     get modelsLook() { return modelsReady ? modelsLook : null; },
     get fx() { return FX; },
+    get stops() { return stops; },
     get terrainOn() { return terrOn; },
     get buildingsOn() { return bldOn; },
     camera: camNow,
     setMode(m) { mode = m; if (ready) applyMode(m); if (avatar && avatar.setMode) avatar.setMode(m); },
-    setReduced() { if (ready) animate(); FX.set(mode === 'fantasy' && !opts.reduced() && lay.effects); skyEl.classList.toggle('still', !!opts.reduced()); },
+    setReduced() { if (ready) animate(); if (stops) stops.replace(); FX.set(mode === 'fantasy' && !opts.reduced() && lay.effects); skyEl.classList.toggle('still', !!opts.reduced()); },
     /** The Layers panel: {stairs, landmarks, labels, contours, paths, effects} (missing keys keep their value). */
     layers(o) { Object.assign(lay, o || {}); applyLayers(); },
     get layerState() { return { ...lay }; },
@@ -544,6 +566,7 @@ export function createMap(opts) {
       if (src) src.setData({ type: 'FeatureCollection', features: m ? [{ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [m.g.lng, m.g.lat] } }] : [] });
       if (m) { m.el.classList.add('sel'); m.el.style.zIndex = 5; m.el.setAttribute('aria-pressed', 'true'); }
       recluster();
+      if (stops) stops.select(sel);
       // fantasy: a burst of sparks once the camera arrives, then a slow ring of them at the selected waypoint
       if (m && mode === 'fantasy' && !opts.reduced()) {
         const col = CATCOL[m.g.items[0].appCategory] || '#fff0a8';

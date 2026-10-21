@@ -13,7 +13,7 @@ after(closeBrowser);
 const dupIds = page => page.evaluate(() => [...document.querySelectorAll('[id]')].map(e => e.id).filter((id, i, a) => a.indexOf(id) !== i));
 const stairs = s => s.e.filter(e => e.c === 'stair');
 /** Pick a staircase in the list (the page opened from the file has no map). */
-const listPick = async (page, id) => { await page.click('#cmptab-list'); await page.click('#cmplist .cmpitem[data-id="' + id + '"]'); await page.waitForSelector('#cmplog'); };
+const listPick = async (page, id) => { if (await page.locator('[data-a="cmptab"][data-t="list"]').count()) await page.click('[data-a="cmptab"][data-t="list"]'); await page.click('#cmplist .cmpitem[data-id="' + id + '"]'); await page.waitForSelector('#cmplog'); };
 
 test('the Health Hall card keeps its name, icon and place; it opens the Campus page at the top with the logging forms in Details', async () => {
   const { page, ctx, errors } = await openApp();
@@ -27,7 +27,7 @@ test('the Health Hall card keeps its name, icon and place; it opens the Campus p
   assert.equal(await page.evaluate(() => S.v), 'campus');
   assert.equal(await page.evaluate(() => scrollY), 0, 'the page opens at the top');
   assert.equal(await page.textContent('main .bn b'), 'Campus Health Observatory');
-  assert.equal(await page.getAttribute('#cmptab-det', 'aria-selected'), 'true', 'Details are open');
+  assert.equal(await page.locator('#cmppane > #cmpdet').count(), 1, 'Details are open, right below the map');
   assert.equal(await page.locator('#cmpdet #cmplog #v6gps, #cmpdet #cmplog #stman, #cmpdet #cmplog .sttabs').count(), 3, 'GPS check-in, the hand log and the two halves, in Details');
   assert.match(await page.textContent('#cmplog .stloc'), /No staircase picked yet/, 'nothing is pre-selected');
   assert.equal(await page.locator('#cmplog .sqlist .chip, #cmplog select#wk-loc').count(), 0, 'no stairway list to scroll and no dropdown');
@@ -146,7 +146,7 @@ test('the list, its filters and details work beside the forms; a staircase witho
   assert.match(await page.textContent('#cmplog .stloc'), /no map coordinates/);
   await fillSteps(page, '#ss', '10'); await page.fill('#sc', '1'); await page.click('[data-a="savestair"]');
   assert.equal(stairs(await state(page)).pop().m.sid, nol[0]);
-  await page.click('#cmptab-list'); await page.click('[data-a="cmpfilt"][data-f="all"]'); await listPick(page, 'ST20');
+  await page.click('[data-a="cmptab"][data-t="list"]'); await page.click('[data-a="cmpfilt"][data-f="all"]'); await listPick(page, 'ST20');
   assert.match(await page.textContent('#cmpdet'), /rise 0\.169 m/, 'the staircase facts stay in Details, below the forms');
   assert.ok(await page.$eval('#cmplog', e => e.compareDocumentPosition(document.querySelector('#cmpdet .cmpgrp')) & Node.DOCUMENT_POSITION_FOLLOWING), 'forms first');
   assert.deepEqual(errors, []); await ctx.close();

@@ -116,7 +116,7 @@ test('picking another staircase moves the log to it; HWCampusData.start selects 
   assert.equal(await page.evaluate(() => HWCampusData.start('ST20')), true);
   assert.deepEqual(await page.evaluate(() => [S.v, HWCampus.selected, HWCampus.state.tab, HWStairs.pick]), ['campus', 'ST20', 'det', 'ST20']);
   assert.equal(stairs(await state(page)).length, 2, 'start saves nothing');
-  await page.click('#cmptab-list'); await page.click('#cmplist .cmpitem[data-id="ST19"]'); await page.waitForSelector('#cmplog');
+  await page.click('[data-a="cmptab"][data-t="list"]'); await page.click('#cmplist .cmpitem[data-id="ST19"]'); await page.waitForSelector('#cmplog');
   assert.match(await page.textContent('#cmplog .stloc'), /Blok Aisyah/);
   await logClimb(page);
   assert.equal(stairs(await state(page)).at(-1).m.sid, 'ST19', 'saved for the staircase picked now');

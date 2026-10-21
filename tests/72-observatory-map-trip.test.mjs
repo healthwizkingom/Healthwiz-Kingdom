@@ -74,6 +74,10 @@ test('with the map: the search on the map keeps only matching markers; a pick lo
   assert.ok(await shownMk() >= 1, 'the matching marker stays');
   await page.click('#cmpfindres [data-a="cmppick"][data-id="ST20"]'); await idle(page);
   assert.equal(await page.evaluate(() => document.querySelector('.stm.sel').dataset.key), '5.3519878,100.5383771');
+  // a pick from the search opens the staircase's stop over the map (tests/88); closing it gives the map back, still picked
+  await page.waitForSelector('#cmpstop');
+  await page.evaluate(() => acts.cmpstopx());
+  await page.waitForFunction(() => !document.getElementById('cmpstop'), null, { timeout: 5000 });
   await page.click('[data-a="cmpzin"]'); await idle(page);
   const c0 = await cam(page);
   // log in Details: the map stays as it was

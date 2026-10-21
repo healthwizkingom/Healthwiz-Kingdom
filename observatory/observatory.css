@@ -113,3 +113,26 @@ html.hw-rm .stm .rune i,html.hw-still .stm .rune i,html.hw-rm .stm.just .done,ht
 .cmpcard[data-mode="fantasy"] .lmk.found{background:linear-gradient(135deg,#d9a441,#8a5a1c);border-color:#ffe9a8;box-shadow:0 0 12px rgba(255,211,106,.7)}
 .lo .lmk{transform:rotate(-45deg) scale(.8)}
 html.hw-rm .lmk.disc .lmkr,html.hw-still .lmk.disc .lmkr{opacity:1}
+/* the staircase stop: a heart spinning on a post (tools/art/make_heart_sprite.py; one white sheet, tinted per difficulty) */
+.stm{height:58px}
+.stm .hstop{position:absolute;left:0;top:0;width:40px;height:58px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+.stm .hrt{position:absolute;left:0;top:0;width:40px;height:40px;image-rendering:pixelated;
+  background:url(../assets/img/heart-spin.webp) 0 0/640px 40px no-repeat,linear-gradient(var(--mc),var(--mc));background-blend-mode:multiply;
+  -webkit-mask:url(../assets/img/heart-spin.webp) 0 0/640px 40px no-repeat;mask:url(../assets/img/heart-spin.webp) 0 0/640px 40px no-repeat;
+  animation:hspin 1.8s steps(16) infinite}
+@keyframes hspin{to{background-position:-640px 0,0 0;-webkit-mask-position:-640px 0;mask-position:-640px 0}}
+.stm .hpost{position:absolute;left:18px;top:33px;width:4px;height:20px;border-radius:2px;background:linear-gradient(90deg,#fff,color-mix(in srgb,var(--mc) 55%,#9aa4b8))}
+.stm .hcat{position:absolute;left:12px;top:38px;width:16px;height:14px;border-radius:7px;background:#fff;color:#14102e;font:800 10px/14px var(--font);text-align:center;box-shadow:0 0 0 2px var(--mc)}
+.stm .glow,.cmpcard[data-mode="fantasy"] .stm .glow{top:49px}
+.stm .tip{bottom:62px}
+.stm.sel .ring,.cmpcard[data-mode="fantasy"] .stm.sel .ring{top:44px}
+.stm .rune{top:34px}
+.stm .hstop{transform-origin:50% 100%}
+.stm.sel .hrt{animation-duration:.9s}
+@media (prefers-reduced-motion:reduce){.stm .hrt{animation:none}}
+html.hw-rm .stm .hrt,html.hw-still .stm .hrt{animation:none}
+html.hw-q-performance .stm .hrt{animation:none} /* Performance mode: the hearts stand still */
+/* the solid 3D stops (./stops3d.js) are on the map: the marker stays the tap target, ring and label; its drawn heart goes */
+.st3d .stm .hstop{visibility:hidden}
+.cmpcard .st3d .stm,.st3d .stm{box-shadow:none;background:transparent} /* the app's button shadow, which the drawn heart used to cover */
+.st3d .stm .hrt{animation:none}

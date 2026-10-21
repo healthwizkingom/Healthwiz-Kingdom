@@ -65,7 +65,7 @@ test('reduced motion: in Fantasy no particles, no sparks, the paths and the mark
   await page.waitForFunction(() => document.querySelector('.stm.sel'), null, { timeout: 20000 });
   const r = await page.evaluate(() => new Promise(res => { const m = HWCampus.map.map, d0 = JSON.stringify(m.getPaintProperty('walk', 'line-dasharray'));
     setTimeout(() => res({ fx: HWCampus.map.fx.running, dash: JSON.stringify(m.getPaintProperty('walk', 'line-dasharray')) === d0,
-      anim: [...document.querySelectorAll('.stm .pinsvg, .stm .glow, .stm .ring')].map(e => getComputedStyle(e).animationName).filter(a => a !== 'none') }), 1200); }));
+      anim: [...document.querySelectorAll('.stm .pinsvg, .stm .hrt, .stm .glow, .stm .ring')].map(e => getComputedStyle(e).animationName).filter(a => a !== 'none') }), 1200); }));
   assert.deepEqual(r, { fx: false, dash: true, anim: [] });
   assert.deepEqual(errors, []);
   await ctx.close();
