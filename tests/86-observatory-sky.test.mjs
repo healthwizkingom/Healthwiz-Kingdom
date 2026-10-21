@@ -125,7 +125,7 @@ test('with the map: the details load on the terrain; the Sky chooser tints, fogs
   // the layers sit inside the map, after its canvas and before the markers
   assert.ok(await page.evaluate(() => { const k = document.querySelector('.cmpsky'), m = document.querySelector('.stm'); return k && k.compareDocumentPosition(m) & Node.DOCUMENT_POSITION_FOLLOWING && getComputedStyle(k).pointerEvents === 'none'; }));
   assert.match(await page.textContent('#cmpskycap'), /^Sky: (day|dawn|dusk|night).*\(clock; no live weather\)$/, 'live data off: the clock only, said so');
-  await page.click('#cmpskyb');
+  await page.click('.hudbtn'); await page.click('#cmpskyb'); // Sky, in the HealthWiz menu (js/v6-campus-hud.js)
   assert.match(await page.textContent('#cmpskyp'), /Live[\s\S]*Clear day[\s\S]*Dusk[\s\S]*Night[\s\S]*Rain[\s\S]*Fog[\s\S]*Haze[\s\S]*A picture, not a forecast/);
   const css = () => page.evaluate(() => { const k = document.querySelector('.cmpsky'), s = getComputedStyle(k); return { tint: +s.getPropertyValue('--tint'), veil: +s.getPropertyValue('--veil'), wet: k.classList.contains('wet'), still: k.classList.contains('still'), glow: HWCampus.map.models.props.glow }; });
   await page.click('[data-a="cmpsky"][data-v="night"]');

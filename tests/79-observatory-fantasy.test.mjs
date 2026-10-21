@@ -91,7 +91,7 @@ test('Fantasy and Realistic: the Blender buildings of each look replace the stan
   await page.click('[data-a="cmpmode"][data-m="fantasy"]');
   await page.waitForFunction(() => HWCampus.map.modelsLook === 'fantasy', null, { timeout: 60000 });
   assert.equal(await visible(page, 'models'), true);
-  await page.click('[data-a="cmpbld"]');
+  await page.click('.hudbtn'); await page.click('#hudmenu [data-a="cmpbld"]'); // in the HealthWiz menu (js/v6-campus-hud.js)
   assert.deepEqual([await visible(page, 'models'), await visible(page, 'bx')], [false, false]);
   // leaving frees it all
   await goView(page, 'health');
