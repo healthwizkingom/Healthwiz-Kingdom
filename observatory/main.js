@@ -13,6 +13,7 @@
 //   zone, computed in the browser (not survey data).
 import { createTerrain } from './terrain.js';
 import { createMap, catN } from './map.js';
+import { skyState, skyWords, PREVIEWS } from './sky.js';
 import { nearestNamed } from './geo.js';
 
 const base = new URL('../', import.meta.url);
@@ -48,6 +49,8 @@ async function loadData() {
 
 window.HWObsMap = {
   catN,
+  /** The map's sky from the live reading and the clock (./sky.js). */
+  sky: { state: skyState, words: skyWords, previews: PREVIEWS },
   async create(opts) {
     await loadLib();
     const d = await loadData();

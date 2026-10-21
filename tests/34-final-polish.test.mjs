@@ -2,7 +2,7 @@
 // (js/v6-ambient.js), the new pixel icons, the badge audit (js/v6-badges.js), the tutorial and the navigation audit.
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { openApp, closeBrowser, go, RETURNING, entry, daysAgo } from './helpers.mjs';
+import { openApp, closeBrowser, go, RETURNING, entry, daysAgo, dass } from './helpers.mjs';
 
 after(closeBrowser);
 const appErrors = errors => errors.filter(e => !/integrity/.test(e));
@@ -11,11 +11,12 @@ const vars = (page) => page.evaluate(() => { const q = document.querySelector('#
   return Object.fromEntries(['sv', 'lbr', 'lid', 'mc', 'tee', 'swt', 'blu', 'brd'].map(k => [k, parseFloat(cs.getPropertyValue('--' + k))])); });
 async function toMeter(page) {
   await go(page, 'stress');
-  await page.click('[data-a="sqs"]'); await page.click('[data-a="sqf"][data-i="2"]'); await page.click('[data-a="sqy"]');
+  await dass(page, 1); // the DASS-21 result (js/v6-dass.js) sets the storm; it replaced the faces and the slider
 }
-const slide = (page, r) => page.evaluate(r => { const el = document.querySelector('[data-in="sqr"]'); el.value = r; el.dispatchEvent(new Event('input', { bubbles: true })); }, r);
+// the storm at another level, repainted in place as the app does (sqPaint, js/v6-storm.js); the level now comes from the DASS
+const slide = (page, r) => page.evaluate(r => { S.sq.r = r; sqPaint(); }, r);
 
-test('Storm Within: the knight\'s face follows the rating gradually, in words too, and the slider never rebuilds him', async () => {
+test('Storm Within: the knight\'s face follows the rating gradually, in words too, and a repaint never rebuilds him', async () => {
   const { page, ctx, errors } = await boot();
   await toMeter(page);
   assert.equal(await page.locator('#qsc .stk .hwr.rgk').count(), 1, 'the rig knight (same art) stands in the scene');
@@ -27,7 +28,7 @@ test('Storm Within: the knight\'s face follows the rating gradually, in words to
     await slide(page, r);
     seen.push({ r, v: await vars(page), word: (await page.textContent('#qmt .st6w b')).trim(), label: await page.getAttribute('#qsc .stk', 'aria-label') });
   }
-  assert.ok(await page.evaluate(() => document.querySelector('#qsc .stk') === window.__knight), 'the same knight element is kept while sliding');
+  assert.ok(await page.evaluate(() => document.querySelector('#qsc .stk') === window.__knight), 'the same knight element is kept while the level changes');
   // a full render at the top of the scale keeps the scene's structure (three creatures used to swallow the knight)
   await page.click('[data-a="sqe"]');
   assert.equal(await page.locator('#qsc .qs > .stk').count(), 1, 'knight is a direct part of the scene');
@@ -76,7 +77,7 @@ test('Storm Within: before a rating the knight is only a little uneasy; reduced 
 test('ambient world: one layer behind the app, themed by region, hidden on the title screen, calmer in Performance mode', async () => {
   const { page, ctx, errors } = await boot();
   assert.equal(await page.evaluate(() => document.querySelector('.amb').classList.contains('amoff')), true, 'title screen has its own scene');
-  const want = { home: 'meadow', food: 'water', water: 'water', sleep: 'night', stair: 'mountain', stress: 'forest', quests: 'hall', badges: 'hall', kingdom: 'hall', set: 'meadow' };
+  const want = { home: 'meadow', food: 'water', water: 'water', sleep: 'night', stress: 'forest', quests: 'hall', badges: 'hall', kingdom: 'hall', set: 'meadow' };
   for (const [v, th] of Object.entries(want)) {
     await go(page, v);
     const r = await page.evaluate(() => { const a = document.querySelector('.amb'), cs = getComputedStyle(a);
@@ -84,6 +85,11 @@ test('ambient world: one layer behind the app, themed by region, hidden on the t
     assert.equal(r.th, th, v); assert.equal(r.off, false); assert.equal(r.z, '-1'); assert.equal(r.pe, 'none');
     assert.match(r.img, /^url\("data:image\/png/, 'painted scenery');
   }
+  // Stairs opens the Observatory (its own map, no scenery) with the logging in Details; its history section has the mountain
+  await go(page, 'stair');
+  assert.equal(await page.evaluate(() => document.querySelector('.amb').classList.contains('amoff')), true, 'the Observatory has its own map');
+  await page.click('#stsec-btn');
+  assert.deepEqual(await page.evaluate(() => { const a = document.querySelector('.amb'); return [a.dataset.th, a.classList.contains('amoff')]; }), ['mountain', false], 'the open Stairs section');
   assert.equal(await page.locator('.amb').count(), 1, 'one layer for the whole app');
   // nothing in the layer can be clicked, and the page's own buttons still work above it
   await go(page, 'health');

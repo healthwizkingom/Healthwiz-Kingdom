@@ -68,18 +68,18 @@ const watches = () => { window.__w = { watch: 0, clear: 0 }; const g = navigator
   g.watchPosition = (...a) => { window.__w.watch++; return w(...a); }; g.clearWatch = (...a) => { window.__w.clear++; return c(...a); }; };
 const glbs = reqs => reqs.filter(u => /\/avatars\/[^/]+\.glb$/.test(u)).map(u => u.split('/').pop());
 
-test('far from campus: how far, no avatar, a labelled demo walk; a female profile suggests the girl, no profile sex suggests Tom', async () => {
-  const { ctx, page, errors } = await openHttp({ ctxOpt: geo(FAR), seed: { ...SEED, p: { ...SEED.p, sex: 'f' } } });
+test('far from campus: how far, no avatar, a labelled demo walk; a female profile gives the girl without asking; no profile sex: the player picks, Tom first', async () => {
+  const { ctx, page, errors, reqs } = await openHttp({ ctxOpt: geo(FAR), seed: { ...SEED, p: { ...SEED.p, sex: 'f' } } });
   await goView(page, 'campus'); assert.equal(await ready(page), 'ready');
   await page.click('.cmpctls [data-a="cmpme"]');
-  assert.deepEqual(await page.$$eval('.cmpav [data-a="cmpavpick"]', b => b.map(x => x.dataset.v)), ['schoolgirl', 'tom', 'schoolboy']);
-  await page.click('.cmpav [data-a="cmpavpick"][data-v="schoolgirl"]');
+  assert.equal(await page.locator('.cmpav').count(), 0, 'the profile is female: no chooser');
   await page.waitForFunction(() => HWCampus.me.st === 'gps' && HWCampus.me.far, null, { timeout: 30000 });
   assert.match(await page.textContent('.cmpmebar'), /You are about 2\d\d\.\d km from campus\. Your avatar only walks on the campus map\./);
   assert.equal(await page.evaluate(() => !!(HWCampus.map.avatar && HWCampus.map.avatar.state && HWCampus.map.avatar.state.visible)), false, 'not shown away from campus');
   await page.click('.cmpmebar [data-a="cmpmedemo"]');
   await page.waitForFunction(() => HWCampus.me.st === 'demo' && HWCampus.map.avatar && HWCampus.map.avatar.ready && HWCampus.map.avatar.state.visible, null, { timeout: 40000 });
   assert.match(await page.textContent('.cmpmebar'), /Demo walk · simulated position, not yours/);
+  assert.deepEqual(glbs(reqs), ['schoolgirl.glb'], 'the girl, from the profile');
   const p0 = await page.evaluate(() => HWCampus.map.avatar.state.goal); await page.waitForTimeout(2200);
   const p1 = await page.evaluate(() => HWCampus.map.avatar.state.goal);
   assert.notDeepEqual(p0, p1, 'the demo position moves along the road');

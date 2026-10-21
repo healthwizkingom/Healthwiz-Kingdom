@@ -2,7 +2,7 @@
 // Bluetooth is a fake device (navigator.bluetooth stub); Supabase is a fake REST endpoint (page.route).
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { openApp, go, state, closeBrowser, RETURNING, fillSteps } from './helpers.mjs';
+import { openApp, go, state, closeBrowser, RETURNING, fillSteps, pickStair, stairHistory } from './helpers.mjs';
 
 after(closeBrowser);
 const EMOJI = /\p{Extended_Pictographic}/u;
@@ -85,10 +85,11 @@ test('watch: connect, live pulsing heart + battery, steady reading → USE AS BE
   await page.evaluate(() => window.__feed(120, 13));
   await page.click('[data-a="hruse"][data-k="a"]');
   await fillSteps(page, '#wk-s', '20'); await page.fill('#wk-c', '3');
-  await page.selectOption('#wk-loc', { index: 1 });
+  await pickStair(page);
   await page.click('[data-a="stwsave"]');
   const e = (await state(page)).e.filter(x => x.c === 'stair').pop();
   assert.deepEqual([e.m.src, e.m.hrS, e.m.hrB, e.m.hrA, e.m.hrLo, e.m.hrAv, e.m.hrHi, e.m.hrPct, e.m.hrDev], ['device', 'device', 71, 121, 110, 142, 168, 82, { b: 1, a: 1, c: 1 }]);
+  await stairHistory(page); // the saved sessions are in the Stairs section's history
   assert.ok(await page.locator('#stlog .stses').first().locator('svg.pxi-watch').count() >= 1, 'pixel watch icon on the entry');
   assert.equal(EMOJI.test(await page.textContent('#hwhr')), false, 'no emoji in the device panel');
   // the link drops: auto-reconnect; DISCONNECT stops it
@@ -112,7 +113,7 @@ test('manual entry still works and is tagged manual; typing over a watch number 
   await page.fill('#wk-b', '105');
   assert.match(await page.textContent('#st-rest'), /Outside the usual resting range/);
   await page.fill('#wk-b', '72'); await page.fill('#wk-a', '130'); await fillSteps(page, '#wk-s', '10'); await page.fill('#wk-c', '2');
-  await page.selectOption('#wk-loc', { index: 1 });
+  await pickStair(page);
   await page.click('[data-a="stwsave"]');
   const e = (await state(page)).e.filter(x => x.c === 'stair').pop();
   assert.deepEqual([e.m.src, e.m.hrS, e.m.hrDev, e.m.hrLo], ['manual', 'manual', undefined, undefined]);

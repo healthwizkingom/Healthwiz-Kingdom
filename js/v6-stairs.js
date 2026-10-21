@@ -1,5 +1,9 @@
-/* v6 (stairs refactor): casual stair climbing, workouts and heart rate. Not part of the original. It builds the content of the
-   Stairs section of the Campus page (js/v6-campus-stairs.js); nothing navigates to a 'stair' view any more.
+/* v6 (stairs refactor): casual stair climbing, workouts and heart rate. Not part of the original.
+   Logging lives in the Campus Health Observatory (owner's request, 2026-10-20: "users need to log stairs data inside the
+   observatory section"): the player picks a staircase on the map (a marker, or the search on the map), and its Details
+   show logPanel(): GPS check-in, a climb logged by hand, and the workout with heart rate, for that staircase. There is
+   no stairway list to scroll any more. The Stairs section under the Observatory (js/v6-campus-stairs.js) keeps the
+   history: today's summary, the heart-rate chart, the Group 14 measured stairways and the Session Chronicle.
    The old Pulse page is retired from the navigation (its route, Heartstone Hall, opens the heart-rate card here) and
    Running moved to the Training Hall (js/v6-exercise.js shows the RUNNING ROAD section; the 'run' route opens it).
 
@@ -136,11 +140,11 @@ function tabs(){const d=today(),R=rng(7),L=all().filter(s=>R.includes(s.d)),n=sp
 function recAvg(L){const D=L.filter(s=>s.kind==='workout'&&s.hrA&&s.hrR1).map(s=>s.hrA-s.hrR1);if(D.length<2)return'';const n=Math.round(D.reduce((a,b)=>a+b,0)/D.length);
   return'<div class="ststat" id="st-recavg"><span class="stsv">'+ico('heart')+(n>0?'<b>'+n+'</b> <small>BPM drop</small>':'<b>No drop</b>')+'</span><span class="stsl">Average recovery, last 7 days</span></div>'}
 
+/** The staircase these forms log for: the one picked on the Observatory map (no list to scroll). */
 function picker(){const q=stair();
-  return '<div class="row stcats">'+CATS.map(c=>btn('cat',CATN[c[1]]+'<br><small>'+BAND_RANGE[c[1]]+' · '+stairsOf(c[1]).length+' stairways</small>','chip'+(S.cat===c[1]?' on':''),' data-c="'+c[1]+'"')).join('')+'</div>'
-    +'<div class="sqlist">'+stairsOf(S.cat).map(s=>'<button class="chip '+(q===s?'on':'')+'" data-a="loc" data-i="'+STAIRS.indexOf(s)+'"'+(q===s?' aria-pressed="true"':'')+'><span class="sqn">'+esc(s.name)+'</span><span class="sqf">'+esc(s.floor)+' · θ '+deg(s.angle)+' · '+CATN[bandOf(s.angle)]+'</span></button>').join('')+'</div>'
-    +'<p class="stnote mut">'+STAIRS.length+' stairways at Kolej MARA Kulim: '+CATS.map(c=>CATN[c[1]]+' '+stairsOf(c[1]).length).join(' + ')+'. Bands by angle: '+CATS.map(c=>CATN[c[1]]+' '+BAND_RANGE[c[1]]).join(', ')+'. θ = tan⁻¹(rise ÷ run), estimated from the stairway\'s stored data. It is an estimate, not a measurement.</p>'
-    +'<p class="stloc">'+ico('map')+' '+(q?'<b>'+esc(q.name)+'</b> · '+CATN[bandOf(q.angle)]+' · θ '+deg(q.angle)+' · '+(hasXY(q)?q.lat.toFixed(5)+', '+q.lng.toFixed(5):'no map coordinates'):'<span class="mut">No stairway chosen yet. Tap one above, or check in by GPS.</span>')+'</p>'}
+  return '<p class="stloc">'+ico('map')+' '+(q?'<b>'+esc(q.name)+'</b> · '+CATN[bandOf(q.angle)]+' · θ '+deg(q.angle)+' (estimated) · '+(hasXY(q)?q.lat.toFixed(5)+', '+q.lng.toFixed(5):'no map coordinates')
+    :'<span class="mut">No staircase picked yet. Tap one on the map, or search for it on the map, or check in by GPS.</span>')+'</p>'
+    +'<p class="stnote mut">'+STAIRS.length+' stairways at Kolej MARA Kulim: '+CATS.map(c=>CATN[c[1]]+' '+stairsOf(c[1]).length).join(' + ')+'. Bands by angle: '+CATS.map(c=>CATN[c[1]]+' '+BAND_RANGE[c[1]]).join(', ')+'. θ = tan⁻¹(rise ÷ run), estimated from the stairway\'s stored data. It is an estimate, not a measurement.</p>'}
 function study(){
   const row=r=>{const q=STAIRS.find(x=>x.id===r.id);return '<tr><td>'+r.k+' · '+esc(r.n)+' <small class="mut">('+r.id+')</small></td><td>'+r.rise.toFixed(3)+'</td><td>'+r.run.toFixed(3)+'</td><td>'+r.hyp.toFixed(3)+'</td><td>'+r.th.toFixed(2)+'</td><td>'+r.rank+'</td><td>'+CATN[bandOf(q?q.angle:r.th)]+'</td></tr>'};
   return '<div class="card stcard" id="ststudy"><details><summary><b>'+ico('chart')+' OUR MEASURED STAIRWAYS (GROUP 14 STUDY)</b></summary>'
@@ -175,7 +179,7 @@ acts.strng=d=>{const k=d.k==='w'?'w':'c',m=CK[k],o=cobj(k),inp=$id(m.s);if(!inp)
   const r=RNG[+d.r];if(!r)return;o.r=+d.r;o.steps=String(mid(r));inp.value=o.steps;k==='w'?INP.stw(inp):INP.stc();syncCnt(k)};
 acts.stcl=d=>{const k=d.k==='w'?'w':'c',m=CK[k],o=cobj(k),inp=$id(m.c);if(!inp)return;o.climbs=String(+d.n);inp.value=o.climbs;k==='w'?INP.stw(inp):INP.stc();syncCnt(k)};
 function casual(){
-  return '<div class="card stcard" id="stman"><h3>'+ico('scroll')+' OR LOG A CLIMB BY HAND</h3>'+picker()
+  return '<div class="card stcard" id="stman"><h3>'+ico('scroll')+' OR LOG A CLIMB BY HAND</h3><div class="sqlist" tabindex="-1">'+picker()+'</div>'
     +counter('c')
     +HWWhen.html({id:'stair',cats:['stair']})
     +btn('savestair','SAVE CLIMB','stsave')+'</div>'}
@@ -256,7 +260,7 @@ function kcalAll(){HWHelp.reg('stkcal','Estimated energy use',kcalBox()+projBox(
 function workout(){const P=PACES[S.pb.pace],q=stair(),run=!!S.pb.on,ds=durW();
   let cl=climber().replace(/<small>[\s\S]*<\/small>$/,'');
   return '<div class="card stcard"><h2>PACE & BREATHE</h2>'
-    +'<label>Stairway<select id="wk-loc" data-ch="stloc"><option value="">Choose a stairway</option>'+CATS.map(c=>'<optgroup label="'+CATN[c[1]]+'">'+stairsOf(c[1]).map(s=>'<option value="'+s.id+'"'+(q===s?' selected':'')+'>'+esc(s.name)+' ('+s.angle.toFixed(1)+'°)</option>').join('')+'</optgroup>').join('')+'</select></label>'
+    +'<div id="wk-loc" tabindex="-1">'+picker()+'</div>'
     +'<p>Choose your pace</p><div class="row">'+PACES.map((p,i)=>btn('pace',p[1],'chip'+(S.pb.pace===i?' on':''),' data-i="'+i+'"')).join('')+'</div>PACE'+bar(P[4],'var(--grn)')
     +cl+'<small>'+(q?esc(q.name)+' ('+CATN[q.cat]+'): ':'')+'your hero takes one step per breath count at the '+P[1]+' pace.</small>'
     +'<div id="bz" style="text-align:center">'+(run?bz():'<p class="mut">Press start for the rhythm guide. It also times your workout.</p>')+'</div>'
@@ -306,11 +310,19 @@ function chronicle(){const L=all().slice(-10).reverse();
   return '<div class="card" id="stlog"><h3>'+ico('scroll')+' SESSION CHRONICLE</h3><p class="mut">Every stair session in one place: GPS check-ins, climbs logged by hand and workouts.</p>'
     +(L.length?L.map(sessCard).join(''):'<p class="mut">No sessions yet.</p>')+'</div>'}
 
-pages.stair=()=>{const g=typeof HWGps!=='undefined'?HWGps.card():'';
+/** The GPS check-in card (it finds the nearest stairway itself, so it also works before a staircase is picked). */
+function gpsCard(){const g=typeof HWGps!=='undefined'?HWGps.card():'';return g?'<div class="card" id="v6gps">'+g+'</div>':''}
+/** The logging forms for one staircase (or none yet), shown in the Observatory's Details: the two halves (casual climb with GPS check-in
+    first, or the workout with heart rate), as before, for the staircase picked on the map. */
+function logPanel(id){pick=id&&STAIRS.some(s=>s.id===id)?id:null; // the Observatory's selection, or none (the forms then ask for one; LOG BPM works without)
   Promise.resolve().then(watch);
-  return hud()+tabs()+(typeof HWCampusData!=='undefined'?HWCampusData.bar():'')+(half==='casual'
-    ?'<p id="st-casual" class="stnote">Check in by GPS at a campus stairway first. If GPS is not available, log a climb by hand below. Climb at any time.</p>'+(g?'<div class="card" id="v6gps">'+g+'</div>':'')+casual()+study()
-    :workout()+chart())+chronicle()};
+  return tabs()+(half==='casual'
+    ?'<p id="st-casual" class="stnote">Check in by GPS when you are at the staircase. If GPS is not available, log a climb by hand below.</p>'+gpsCard()+casual()
+    :workout())}
+// the Stairs section under the Observatory: the history and the study (logging is in the Observatory's Details)
+pages.stair=()=>{Promise.resolve().then(watch);
+  return hud()+'<p class="stnote" id="st-where">'+ico('map')+' To log a climb or a workout, pick a staircase on the map above: its <b>Details</b> have GPS check-in, LOG A CLIMB BY HAND and WORKOUT & HEART.</p>'
+    +chart()+study()+chronicle()};
 // the old Pulse page now opens the Workout section (see go below); this keeps a direct call safe
 pages.pulse=()=>pages.stair();
 
@@ -383,7 +395,7 @@ function pause(){if(W.since){W.ms+=Date.now()-W.since;W.since=null;keepW()}clear
   acts.pstop=(...a)=>{pause();p0(...a)}}
 
 /* ---------- saving: both ways of logging feed the same entries ---------- */
-const need=sel=>{const q=stair();if(!q){toast('Choose a stairway first (or check in by GPS)');const l=document.querySelector(sel);if(l){l.scrollIntoView({block:'center'});if(l.focus)l.focus({preventScroll:true})}}return q};
+const need=sel=>{const q=stair();if(!q){toast('Pick a staircase on the map first (or check in by GPS)');const l=document.querySelector(sel);if(l){l.scrollIntoView({block:'center'});if(l.focus)l.focus({preventScroll:true})}}return q};
 const counts=(s,c)=>Number.isInteger(s)&&s>=1&&s<=1000&&Number.isInteger(c)&&c>=1&&c<=500;
 acts.savestair=()=>{INP.stc();const s=+C.steps,c=+C.climbs;
   if(!counts(s,c)){toast('Enter steps per climb (1–1000) and number of climbs (1–500)');return}
@@ -412,6 +424,7 @@ acts.stwsave=()=>{INP.stw();pause();const s=+W.steps,c=+W.climbs,b=W.hrB===''?nu
 function fill(k,o){
   const w=k==='w';half=w?'workout':'casual';
   if(o.sid&&STAIRS.some(s=>s.id===o.sid))acts.loc({i:String(STAIRS.findIndex(s=>s.id===o.sid))});
+  if(typeof HWCampus!=='undefined'){if(o.sid)HWCampus.focus(o.sid);HWCampus.openLog()} // the forms are in the Observatory's Details
   const ob=cobj(k);ob.steps=String(o.steps);ob.climbs=String(o.climbs||1);ob.r=null;
   if(w){if(o.dur>0){W.dur=String(o.dur);W.durSet=1}keepW()}
   render();const e=$id('stcnt-'+k);
@@ -450,55 +463,5 @@ HWEvents.on('data:reset',()=>{pick=null;W=W0();try{sessionStorage.removeItem(DK)
   const j=HUB.findIndex(h=>h[0]==='stair');if(j>=0)HUB[j]=['stair','🧗','Stairs','Stair Mountain',d=>sp(d)+' steps today']}
 DIS.stair=DIS.pulse='General exercise pacing aid, not medical treatment. Heart rates are the numbers you counted and entered, steady readings from your own heart-rate device, or camera estimates, that you chose to use; the trace is a picture, not an ECG, and nothing here is a diagnosis. Calorie numbers are estimates. Stop and get medical help for dizziness, chest pain, faintness or severe breathlessness.';
 
-HWUI.css('stairs',`
-.stlabr{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.stlabr .gvbtn{min-height:44px}
-.stfill{outline:3px solid var(--gold);outline-offset:2px}
-.stcnt{margin:10px 0}.stlab{display:block;margin:10px 0 2px;font:12px/1.6 var(--fl)}
-.stchips{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px;margin:8px 0}
-.stchips .chip{min-height:44px;min-width:44px;padding:6px 4px;font:14px/1.2 var(--fn)}
-.stbox[hidden]{display:none}.stot{margin:8px 0;font-size:16px;overflow-wrap:anywhere}
-.sthud{margin:0 0 8px}.sthud .pxst{flex:1 1 130px}
-.ststats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:0 0 10px}
-.ststat{padding:8px 10px;background:var(--pn);border:var(--px-bw-c) solid var(--ln);display:flex;flex-direction:column;gap:2px}
-.stsv{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.stsv b{font-size:22px;line-height:1.2}.stsv small,.stsl{font-size:13px;color:var(--mut)}
-.stgoal{margin:0 0 12px}.stgoal small{font-size:13px;color:var(--mut)}.stnote{font-size:13px;margin:8px 0}
-.stcard h3,#sthrg h3,#stlog h3{display:flex;align-items:center;gap:8px}
-.sthd{display:flex;align-items:center;gap:12px;margin:22px 0 12px;padding:10px 12px;background:var(--pn);border:var(--px-bw) solid var(--ln);box-shadow:var(--px-bevel),var(--px-sh);scroll-margin-top:12px} /* also used by js/v6-body.js */
-.sthd>div{min-width:0;display:flex;flex-direction:column;gap:4px;align-items:flex-start}.sthd b{font:var(--px-f2)/1.3 var(--fh);overflow-wrap:anywhere}.sthd small{font-size:13px}
-.sttabs{margin-bottom:20px}.sttabs .nst .bar{min-height:10px}
-.stkh{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:10px 0}.stkh>b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fl)}.stkh small{flex:1 1 100%}
-.stlogr{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px}.stlogb{flex:1 1 140px;min-height:44px;margin:0;justify-content:center}.stcam{flex:0 1 auto;min-height:44px;display:flex;align-items:center;justify-content:center;gap:6px}
-.stcount{margin:10px 0;padding:8px 10px;border:var(--px-bw-c) dashed var(--ln);background:var(--p2)}.stcount b:first-child{font:var(--px-f1)/1.6 var(--fl);margin-right:6px}
-.stlogs{margin:10px 0}.stlg{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:6px 0;border-top:2px dashed var(--p2)}.stlg .stsa2{margin-left:auto;display:flex;gap:6px}
-.stcats button{flex:1 1 90px}.stloc{display:flex;align-items:center;gap:6px;flex-wrap:wrap;overflow-wrap:anywhere}
-.stsave{width:100%;margin-top:8px}.stbtns button{flex:1 1 100px;justify-content:center}.stbtns button:first-child{flex-grow:3}
-.sttimer{display:flex;align-items:baseline;justify-content:center;gap:10px;margin-top:8px}.sttimer small{font:var(--px-f1)/1.6 var(--fl)}.sttimer b{font:var(--px-f2)/1.3 var(--fh)}
-.sthrs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
-.sthr{padding:8px;border:var(--px-bw-c) solid var(--ln);box-shadow:var(--px-sh-c);background:var(--p2)}.sthr.b{border-top-color:var(--blue);border-top-width:6px}.sthr.a{border-top-color:var(--red);border-top-width:6px}
-.sthrh{display:flex;align-items:center;gap:6px;margin-bottom:6px}.sthrh b{font:var(--px-f1)/1.6 var(--fl)}
-.stpm{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:4px 0 6px;font-size:13px}.stpm small{font-size:13px;overflow-wrap:anywhere}
-#ststudy summary{cursor:pointer;min-height:44px;display:flex;align-items:center}#ststudy summary b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fl)}
-#ststudy .tbl{min-width:0;width:100%;table-layout:fixed;font:12px/1.3 var(--fb)}#ststudy th,#ststudy td{text-align:left;padding:4px 2px;vertical-align:top}#ststudy td+td{white-space:nowrap}#ststudy th{font:600 12px/1.3 var(--fb);color:var(--mut);overflow-wrap:anywhere}#ststudy th:nth-child(1){width:17%}#ststudy th:nth-child(2),#ststudy th:nth-child(3){width:11%}#ststudy th:nth-child(5){width:10%}#ststudy th:nth-child(4){width:21%}#ststudy th:nth-child(6),#ststudy th:nth-child(7){width:16%}
-.sttr{width:100%;height:120px;display:block;border:3px solid var(--ln);image-rendering:pixelated}
-.stkc{margin:10px 0;padding:10px;border:var(--px-bw-c) dashed var(--ln);background:var(--p2)}.stkc>b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fl)}.stkc p{margin:6px 0}
-.sthrsvg{width:100%;max-width:560px;height:auto;display:block;shape-rendering:crispEdges}.sthrsvg text{font:12px var(--fb);fill:var(--mut)}
-.sthrsvg .gl{stroke:var(--mut);stroke-opacity:.35;stroke-width:1}.sthrsvg .jn{stroke:var(--ink);stroke-opacity:.5;stroke-width:2}
-.sthrsvg .hb{fill:var(--blue);stroke:var(--pn);stroke-width:2;shape-rendering:auto}.sthrsvg .ha{fill:var(--red);stroke:var(--pn);stroke-width:2}
-.sthrsvg .hr1{fill:var(--grn);stroke:var(--pn);stroke-width:2}.sthrsvg .dsh{stroke-dasharray:3 2}
-.sthrsvg .pt:hover .jn,.sthrsvg .pt:focus .jn{stroke-opacity:1}.sthrsvg .pt:focus{outline:none}.sthrsvg .pt:focus rect[fill=transparent]{stroke:var(--gold);stroke-width:2}
-.stleg{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:6px;font-size:13px}.stleg span{display:flex;align-items:center;gap:6px}
-.stleg i{display:inline-block;width:10px;height:10px;border:2px solid var(--ln)}.stleg i.hb{background:var(--blue);border-radius:50%}.stleg i.ha{background:var(--red)}.stleg i.hr1{background:var(--grn);clip-path:polygon(50% 0,100% 100%,0 100%)}
-#st-rec:empty{display:none}#st-recavg{border-color:var(--grn)}
-.sttab{width:100%;border-collapse:collapse;font-size:13px}.sttab th,.sttab td{text-align:left;padding:3px 6px;border-bottom:1px dashed var(--mut)}
-.stses{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:2px dashed var(--p2);animation:pgin .3s steps(4)}.stses:first-of-type{border-top:0}
-.stsi{flex:0 0 auto;padding:4px;background:var(--p2);border:var(--px-bw-s) solid var(--ln)}.stses.w .stsi{background:var(--pn);box-shadow:0 0 0 2px var(--red)}
-.stsb{flex:1 1 auto;min-width:0}.stsb>b{display:block;overflow-wrap:anywhere}.stsb>small{color:var(--mut)}.stsb p{margin:4px 0}
-.ststags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
-.stsh{display:grid;grid-template-columns:auto 1fr auto;gap:2px 8px;align-items:center;font-size:12px;max-width:340px}.stsh .bar{margin:0}
-.stsa{display:flex;flex-direction:column;gap:6px;flex:0 0 auto}
-.strest{display:flex;gap:6px;align-items:flex-start;margin-top:4px;font-size:13px}.strest:empty{display:none}
-.stclimb{margin:10px 0;padding:8px;border:var(--px-bw-c) dashed var(--ln);background:var(--p2)}.stclimb>b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fl)}
-.stclimb .row label{flex:1 1 90px}.stclimb p{margin:6px 0;font-size:14px}.stclimb small{display:flex;gap:6px;align-items:center}.stsh b{display:inline-flex;align-items:center;gap:2px}
-@media(prefers-reduced-motion:reduce){.stses{animation:none}}html.hw-rm .stses,html.hw-still .stses{animation:none}
-`);
-return{session,all,record,fill,arrive,leave,choose:id=>{const i=STAIRS.findIndex(s=>s.id===id);if(i<0)return!1;pick=id;S.loc=i;S.cat=STAIRS[i].cat;return!0},estimate,projectVO2,pulseSHM,shmTxt,STUDY,profile,peak,MET,bandOf,get pick(){return pick},get draft(){return Object.assign({},W,{secs:secsW()})}}})();
+// the styles are in v6-stairs-css.js (kept apart so each file stays under the 64 KB limit of tests/00-fidelity)
+return{session,all,record,fill,arrive,leave,logPanel,gpsCard,get half(){return half},choose:id=>{const i=STAIRS.findIndex(s=>s.id===id);if(i<0)return!1;pick=id;S.loc=i;S.cat=STAIRS[i].cat;return!0},estimate,projectVO2,pulseSHM,shmTxt,STUDY,profile,peak,MET,bandOf,get pick(){return pick},get draft(){return Object.assign({},W,{secs:secsW()})}}})();

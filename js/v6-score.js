@@ -111,9 +111,9 @@ function recs(I,sc){
   // 3 stress
   const st1=I.stress;let t=[];
   if(!st1)t.push('Do a stress check-in in the Mind Forest so this part of the score can be calculated.');
-  else if(st1.val>=7)t.push('Stress is high ('+st1.txt+'). Try the Calming Grove breathing, a short walk, and talk to a friend, a lecturer or the college counsellor.');
-  else if(st1.val>=4)t.push('Stress is moderate ('+st1.txt+'). Plan short breaks between study blocks and keep a regular bedtime.');
-  else t.push('Stress is low ('+st1.txt+'). Keep the habits that help: sleep, movement and time with friends.');
+  else if(st1.val>=7)t.push('Your stress check-ins put the storm high ('+st1.txt+', from your DASS-21 answers; not a diagnosis). Try the Calming Grove breathing, a short walk, and talk to a friend, a lecturer or the college counsellor.');
+  else if(st1.val>=4)t.push('Your stress check-ins put the storm in the middle ('+st1.txt+', from your DASS-21 answers). Plan short breaks between study blocks and keep a regular bedtime.');
+  else t.push('Your stress check-ins put the storm low ('+st1.txt+', from your DASS-21 answers). Keep the habits that help: sleep, movement and time with friends.');
   R.push(['🧠','Stress management',t]);
   // 4 BMI
   const b=I.bmi;let m=[];
@@ -176,7 +176,7 @@ const WHY={
   hr:'<b>Heart rate 15</b>: resting heart rate is a quick, objective fitness marker (typical 60–100 BPM, AHA), but caffeine, sleep and anxiety affect it.',
   sleep:'<b>Sleep 15</b>: 8–10 h for teens and 7–9 h for adults (AASM); short sleep is linked to stress, overeating and poorer learning.',
   bmi:'<b>BMI 10</b>: a screening tool only (WHO 18.5–24.9); it ignores muscle and body shape.',
-  stress:'<b>Stress 10</b>: linked to sleep, eating and wellbeing, but self-rated (perceived stress, Cohen et al., 1983), so its weight is limited.'};
+  stress:'<b>Stress 10</b>: linked to sleep, eating and wellbeing. Since 2026-10-20 the check-in is the DASS-21 (Lovibond &amp; Lovibond, 1995): its storm level (1–10) follows the total of the 21 answers, which share a general distress factor (Henry &amp; Crawford, 2005). It is a self-report questionnaire, not a diagnosis, so its weight is limited. Check-ins saved before then used a 1–10 slider.'};
 function whyCard(){
   return '<div class="card"><h3>🔬 WHY THESE WEIGHTS '+HWHelp.btn('scorewt')+'</h3><p>Nutrition 25 · Activity 25 · Heart rate 15 · Sleep 15 · BMI 10 · Stress 10 (total 100).</p>'
   +'<ul class="v6why">'+GROUP.map(g=>'<li>'+WHY[g[0]]+'</li>').join('')+'</ul>'

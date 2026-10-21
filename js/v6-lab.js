@@ -36,7 +36,7 @@ const SERIES={
   sleep:{n:'Sleep the night before',u:'h',day:d=>{const s=LC('sleep').filter(e=>e.d===d);return s.length?+s[s.length-1].v:null}},
   water:{n:'Water that day',u:'mL',day:d=>{const v=wt(d);return v>0?v:null}},
   steps:{n:'Stair steps that day',u:'steps',day:d=>{const v=sp(d);return v>0?v:null}},
-  stress:{n:'Stress rating that day',u:'/10',day:d=>{const s=LC('stress').filter(e=>e.d===d);return s.length?+s[0].v:null}},
+  stress:{n:'Stress check-in that day (storm level)',u:'/10',day:d=>{const s=LC('stress').filter(e=>e.d===d);return s.length?+s[0].v:null}},
   energy:{n:'Energy rating that day',u:'/5',day:d=>st.en&&st.en[d]?+st.en[d].v:null}};
 const IVS=['sleep','water','steps'],DVS=['stress','energy'];
 
@@ -64,7 +64,7 @@ recovery:{q:'Does my pulse recover faster over the weeks?',icon:'pulse',
     const rows=L2.map((e,i)=>({id:e.id,g:i<h?'EARLIER':'LATER',y:+e.m.hrA-+e.m.hrR1,d:e.d,o:hrOrigin(e.m),note:e.m.hrA+' → '+e.m.hrR1+' BPM after 1 minute'}));
     return{rows,groups:['EARLIER','LATER'],miss:workouts().length-L2.length,missWhy:'workouts without both the "after" and the "1 minute after" pulse',unit:'BPM'}}},
 sleep:{q:'Am I less stressed after a longer sleep?',icon:'sleep',
-  iv:'Sleep the night before: under your recommended minimum compared with at or above it',dv:'Stress rating that day (1 calm – 10 very stressed)',
+  iv:'Sleep the night before: under your recommended minimum compared with at or above it',dv:'Stress check-in that day: the storm level from the DASS-21 answers (1 calm – 10 stormy)',
   how:['Log your sleep each morning.','Do the stress check-in once a day, at about the same time.'],
   ctrl:['Stress checked at about the same time of day','Sleep logged every morning','Unusual days noted (exams, illness)'],
   preds:[['down','Longer sleep, lower stress'],['none','No difference'],['up','Longer sleep, higher stress']],

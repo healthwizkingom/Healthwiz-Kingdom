@@ -48,7 +48,7 @@ test('the door is last in the Health Hall; from the file the page says the map n
   assert.deepEqual(errors, []);
 });
 
-test('details in three groups with the player\'s own climbs and honest labels; START STAIR SESSION chooses it on the Stairs page and writes nothing', async () => {
+test('details in three groups with the player\'s own climbs and honest labels; picking it opens its logging forms and writes nothing', async () => {
   const { page, errors } = await open();
   const id = 'ST20';
   await page.evaluate(id => { add('stair', 100, { sid: id, steps: 20, climbs: 5 }, '', today(), '08:00', 0, ''); st.gp = { ok: 1, v: { [id]: '2026-10-01' } }; save(); render(); }, id);
@@ -70,15 +70,13 @@ test('details in three groups with the player\'s own climbs and honest labels; S
   assert.match(await page.textContent('#cmpdet'), /Same point asST06, ST32[\s\S]*Needs checking/);
   await page.click('#cmpdet .cmplnk[data-id="ST06"]');
   assert.equal(await page.evaluate(() => HWCampus.selected), 'ST06');
-  // START STAIR SESSION
+  // picking it opens LOG A CLIMB HERE for it (logging lives in the Observatory since 2026-10-20)
   await page.click('#cmptab-list'); await page.click('#cmplist .cmpitem[data-id="' + id + '"]');
   const before = (await state(page)).e.length;
-  assert.match(await page.textContent('#cmpdet [data-a="cmpstair"]'), /^START STAIR SESSION$/);
-  await page.click('#cmpdet [data-a="cmpstair"]');
-  assert.equal(await page.evaluate(() => [S.v, STAIRS[S.loc].id, HWStairs.pick].join()), 'campus,' + id + ',' + id);
-  const name = await page.evaluate(id => STAIRS.find(s => s.id === id).name, id);
-  assert.equal((await page.textContent('.sqlist .chip.on .sqn')).trim(), name);
-  assert.match(await page.textContent('.stloc'), /penjana elektrik/);
+  assert.equal(await page.locator('#cmpdet [data-a="cmpstair"]').count(), 0, 'no START STAIR SESSION: the forms are right here');
+  assert.match(await page.textContent('#cmpdet #cmplog h3'), /LOG A CLIMB HERE/);
+  assert.equal(await page.evaluate(() => [S.v, HWStairs.pick].join()), 'campus,' + id);
+  assert.match(await page.textContent('#cmplog .stloc'), /penjana elektrik/);
   assert.equal((await state(page)).e.length, before, 'nothing is written');
   assert.deepEqual(errors, []);
 });

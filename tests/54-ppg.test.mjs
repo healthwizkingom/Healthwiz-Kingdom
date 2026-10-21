@@ -3,7 +3,7 @@
 // pulses at 1.2 Hz), so no real camera is needed in CI.
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { openApp, go, state, closeBrowser, fillSteps } from './helpers.mjs';
+import { openApp, go, state, closeBrowser, fillSteps, pickStair, stairHistory } from './helpers.mjs';
 
 after(closeBrowser);
 const EMOJI = /\p{Extended_Pictographic}/u;
@@ -135,7 +135,7 @@ test('fake camera: sheet → START → countdown → 72 BPM CAMERA ESTIMATE with
   assert.deepEqual(await page.evaluate(() => [HWStairs.draft.hrB, HWStairs.draft.hrA, HWStairs.draft.hrR1]), [String(bpm), String(bpm), String(bpm)]);
   assert.match(await page.innerHTML('#st-hs-r'), /pxi-camera/);
   await fillSteps(page, '#wk-s', '20'); await page.fill('#wk-c', '3');
-  await page.selectOption('#wk-loc', { index: 1 });
+  await pickStair(page);
   await page.click('#stseal [data-hww="tog"]'); await page.click('#stseal [data-hww="yest"]');
   await page.click('[data-a="stwsave"]');
   await page.waitForFunction(() => /camera pulse estimates taken just now/.test(document.getElementById('toasts').textContent));
@@ -146,6 +146,7 @@ test('fake camera: sheet → START → countdown → 72 BPM CAMERA ESTIMATE with
   assert.deepEqual([e.m.hrB, e.m.hrA, e.m.hrR1, e.m.hrS, e.m.hrCam, e.m.hrDev, e.m.src], [bpm, bpm, bpm, 'camera', { b: 1, a: 1, r: 1 }, undefined, 'manual']);
   const sess = await page.evaluate(id => HWStairs.session(st.e.find(x => x.id === id)), e.id);
   assert.deepEqual(sess.cam, { b: 1, a: 1, r: 1 });
+  await stairHistory(page); // the saved sessions are in the Stairs section's history
   assert.ok(await page.locator('#stlog .stses').first().locator('svg.pxi-camera').count() >= 2, 'camera icon on the saved session');
   assert.deepEqual(errors, []);
   await ctx.close();
@@ -161,7 +162,7 @@ test('camera numbers mixed with typed or watch numbers seal as mixed; old entrie
   await go(page, 'pulse');
   assert.match(await page.innerHTML('#st-hs-b'), /pxi-camera/, 'the draft keeps the camera flag through a refresh');
   await fillSteps(page, '#wk-s', '10'); await page.fill('#wk-c', '2');
-  await page.selectOption('#wk-loc', { index: 1 });
+  await pickStair(page);
   await page.click('[data-a="stwsave"]');
   const e = (await state(page)).e.filter(x => x.c === 'stair').pop();
   assert.deepEqual([e.m.hrS, e.m.hrCam], ['mixed', { b: 1 }]);

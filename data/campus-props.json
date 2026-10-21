@@ -1,0 +1,53 @@
+{
+  "about": {
+    "what": "Ground-level details for the Observatory map's Blender scene (tools/blender_campus_props.py, run through tools/blender_campus.py --props): the campus roads as asphalt with red-and-white kerbs and a centre line, the roadside drains with manhole covers, street lights, goal posts and pitch lines on the playing fields, the tennis court's net and fence, and car parks with bay lines and a few parked cars. Decoration in the look of the owner's drone video: positions are estimated, not surveyed.",
+    "source": "The drone video by @ikraMRahim (TikTok, https://vt.tiktok.com/ZSgSngyPK/, used with the creator's permission, obtained by the owner, 2026-10-20) for what the ground looks like, and the OpenStreetMap export (data/campus-osm.geojson) for where the roads and fields are.",
+    "fromOsm": "Roads, drains, manholes and street lights follow the OSM service roads (highway=service) and the part of Jalan Air Merah inside the map; goal posts and pitch lines are placed on the OSM pitches (the Padang and the south-west field); the net and fence on the OSM tennis court. Their spacing (a light every 32 m, a manhole every 45 m, drains on one side) is illustrative.",
+    "estimated": "The car parks below are not in the OSM export: their places are estimated from the video and the staircase names that mention them (ST10, ST27, ST30 'parking Anjung Santap'; ST18 'tapak parking'; ST19 'parking Blok E'). The parked cars are illustrative."
+  },
+  "seen": {
+    "roads": "Grey asphalt roads, about 6 m wide, with red-and-white painted kerbs and yellow box markings near the entrance (frames 1-4, 33-35).",
+    "drains": "Concrete roadside drains along the campus roads (frames 12-15, 22).",
+    "lights": "Tall single-arm street lights beside the roads and car parks (frames 22, 33-35).",
+    "goals": "Goal posts on the Padang (frames 12, 37).",
+    "tennis": "Courts with green fencing (frames 9, 30).",
+    "parking": "Car parks with white or yellow bay lines in front of the blocks (frames 1-4, 13-15, 33-35)."
+  },
+  "parking": [
+    {
+      "id": "anjung-santap",
+      "name": "Anjung Santap car park (estimated place)",
+      "lng": 100.53905,
+      "lat": 5.35112,
+      "angle_deg": 0,
+      "rows": 2,
+      "bays": 10,
+      "cars": 4
+    },
+    {
+      "id": "blok-e",
+      "name": "Block E car park (estimated place)",
+      "lng": 100.53825,
+      "lat": 5.35181,
+      "angle_deg": 0,
+      "rows": 2,
+      "bays": 11,
+      "cars": 3
+    },
+    {
+      "id": "hostel",
+      "name": "Hostel car park (estimated place)",
+      "lng": 100.53985,
+      "lat": 5.34872,
+      "angle_deg": 90,
+      "rows": 2,
+      "bays": 9,
+      "cars": 3
+    }
+  ],
+  "wayfinding": {
+    "gate": "The gate is mapped in OpenStreetMap (node/8095311178, barrier=gate), so both looks put one there, across the entrance road: Realistic, the red portal seen in the drone video (frames 1-3); Fantasy, a gatehouse of two crenellated towers with red banners and a glowing keystone.",
+    "fantasyReference": "The Fantasy look takes its mood (stone gatehouses with banners, timber-framed houses with lit windows, iron lanterns, glowing rune stones and blue crystals) from a fan-made fantasy town video chosen by the owner (TikTok https://vt.tiktok.com/ZSgAnEarj/, 2026-10-20), as a reference only: every model here is an original design, nothing is copied from it.",
+    "decoration": "Fantasy only, and decoration: signposts at road junctions (OSM road crossings), wooden notice boards beside the three OSM squares and inside the gate, rune waystones with blue crystals in the squares, red banners on the academic halls and blue ones on the hostels, timber framing on the small buildings. None of these is mapped in the real campus."
+  }
+}

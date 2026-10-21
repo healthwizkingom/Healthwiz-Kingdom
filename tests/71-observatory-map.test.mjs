@@ -82,18 +82,19 @@ test('lazy and complete: nothing of the map before the page opens; then OSM attr
     for (const g of HWCampus.points()) { const e = document.querySelector('.stm[data-key="' + g.key + '"]'); if (!e || e.hidden) continue; const b = e.getBoundingClientRect(), p = m.project([g.lng, g.lat]);
       worst = Math.max(worst, Math.hypot(b.x + b.width / 2 - (c.x + p.x), b.bottom - 6 - (c.y + p.y))); }
     return { attr: document.querySelector('.maplibregl-ctrl-attrib').textContent, scale: !!document.querySelector('.maplibregl-ctrl-scale'),
-      t: { hi: q(100.5388927, 5.3490042), mid: q(100.5383771, 5.3519878), base: q(100.5368, 5.3509) }, markers: document.querySelectorAll('.stm').length,
+      t: { hi: q(100.5388927, 5.3490042), mid: q(100.5389, 5.3526), terrace: q(100.5392, 5.34955), slope: q(100.5383771, 5.3519878), base: q(100.5368, 5.3509) }, markers: document.querySelectorAll('.stm').length,
       clusters: document.querySelectorAll('.clu').length, worst, zl: [...document.querySelectorAll('.zlab')].map(z => z.textContent), est: document.querySelectorAll('.stm.est').length };
   });
   assert.match(r.attr, /© OpenStreetMap contributors/);
   assert.ok(r.scale, 'a scale bar');
   assert.ok(r.t.hi > r.t.mid && r.t.mid > r.t.base, 'terrain order: highest > middle > base ' + JSON.stringify(r.t));
-  assert.deepEqual([r.t.hi, r.t.mid], [24, 12], 'the illustrative heights from data/elevation-zones.geojson');
+  assert.deepEqual([r.t.hi, r.t.mid, r.t.terrace], [24, 12, 10], 'the illustrative heights from data/elevation-zones.geojson');
+  assert.ok(r.t.slope > r.t.base && r.t.slope < r.t.mid, 'ST20 (stairs going up) is on the estimated slope: ' + r.t.slope);
   assert.equal(r.markers, 25, 'one marker per stored point');
   assert.equal(r.est, 25, 'all estimated locations (no survey imported)');
   assert.ok(r.clusters > 0, 'close markers cluster at campus zoom');
   assert.ok(r.worst < 1.5, 'markers on their coordinates: ' + r.worst.toFixed(2) + ' px');
-  assert.deepEqual(r.zl.map(t => /illustrative height, not measured/.test(t)), [true, true]);
+  assert.deepEqual(r.zl.map(t => /estimated slope, illustrative height, not measured/.test(t)), [true, true, true], 'the three levels, labelled');
   // every marker is named for screen readers (MapLibre would otherwise call each one "Map marker")
   const names = await page.evaluate(() => [...document.querySelectorAll('.stm, .clu')].map(e => e.getAttribute('aria-label')));
   assert.ok(names.length && names.every(n => n && n !== 'Map marker'), names.filter(n => !n || n === 'Map marker').length + ' unnamed');

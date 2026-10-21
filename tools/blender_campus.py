@@ -7,6 +7,8 @@ Run headless (Blender 4.2 LTS, no add-ons; sh tools/get-blender.sh installs it),
     blender -b --factory-startup -P tools/blender_campus.py -- --style fantasy     # assets/models/campus-fantasy.glb
 
 Options: --src data/campus-osm.geojson  --looks data/campus-looks.json  --out <file.glb>
+         --props   the ground-level details instead (roads, kerbs, drains, lights, goal posts, car parks):
+                   assets/models/campus-props-<style>.glb, see tools/blender_campus_props.py
 
 What comes from where:
   * footprints and positions: the OSM export (data/campus-osm.geojson), unchanged; each building keeps its real outline;
@@ -38,7 +40,8 @@ if STYLE not in ('realistic', 'fantasy'):
     raise SystemExit('--style must be realistic or fantasy')
 SRC = arg('--src', 'data/campus-osm.geojson')
 LOOKS = arg('--looks', 'data/campus-looks.json')
-OUT = arg('--out', 'assets/models/campus-' + STYLE + '.glb')
+PROPS = '--props' in argv   # the ground-level details instead of the buildings (tools/blender_campus_props.py)
+OUT = arg('--out', 'assets/models/campus-' + ('props-' if PROPS else '') + STYLE + '.glb')
 FAN = STYLE == 'fantasy'
 R, RAD = 6371008.8, math.pi / 180
 STOREY_M, BASE_M = 3.6, .6
@@ -140,6 +143,28 @@ def fan_wall_tex(name, stone, mortar, deep, seed, narrow=False):
     for x in range(wx - 1, wx + ww + 1):
         G[bot + 1][x] = '#d8c39c'
     return image(name, G), image(name + '_glow', E)
+def fan_timber_tex(name, plaster, beam, seed):
+    """Fantasy: a timber-framed storey (32 px) by one bay (32 px): lime plaster between dark oak posts, rails and braces,
+    one small lit window (in the mood of the owner's fantasy reference video; an original pattern)."""
+    r, n = rng(seed), 32
+    P = [plaster, shade(plaster, -.04), shade(plaster, .05), shade(plaster, -.08)]
+    G = [[pick(r, P) for _ in range(n)] for _ in range(n)]
+    E = [[None] * n for _ in range(n)]
+    for y in range(n):
+        for x in range(n):
+            post = x in (0, 1, 16, 17)
+            rail = y in (0, 1, 2, 15, 30, 31)
+            brace = (2 < y < 15 and (x - 2 == y or 30 - x == y))   # a pair of braces under the upper rail
+            if post or rail or brace:
+                G[y][x] = beam if (x + y) % 7 else shade(beam, .18)
+    for y in range(18, 28):          # the window, lit from inside
+        for x in range(21, 29):
+            fr = x in (21, 28) or y in (18, 27) or x == 24 or y == 22
+            c = '#2a1d16' if fr else ('#fff1c0' if y < 20 else '#ffc864')
+            G[y][x] = c
+            if not fr:
+                E[y][x] = c
+    return image(name, G), image(name + '_glow', E)
 def slate_tex(name, base, seed):
     """Fantasy roof slates in a roof's measured colour."""
     edge, hi, mid, lo, gap = shade(base, .25), base, shade(base, -.12), shade(base, -.3), shade(base, -.6)
@@ -196,6 +221,9 @@ def mat(key):
             M[key] = material('wall_' + wall[1:], img, glow)
         else:
             M[key] = material('wall_' + wall[1:] + '_' + trim[1:], real_wall_tex('wall_' + wall[1:] + '_' + trim[1:], wall, trim, next(seeds)))
+    elif kind == 'timber':     # fantasy only: the small buildings, timber-framed
+        img, glow = fan_timber_tex('timber_' + rest[1:], shade(rest, .1), '#3b2a22', next(seeds))
+        M[key] = material('timber_' + rest[1:], img, glow)
     elif kind in ('roof', 'ridge'):
         base = rest if kind == 'roof' else shade(rest, .12)
         img = slate_tex(kind + '_' + rest[1:], base, next(seeds)) if FAN else real_roof_tex(kind + '_' + rest[1:], base, next(seeds))
@@ -470,6 +498,11 @@ def details(B, look, rel, H, top):
         B.add(box(at(dw + 3.0), west, along, .45, 4.65, H + .1, H + .9, B.mi('plain:' + red)), tile=(1, 1))
         B.add(box(at(dw + 1.6), west, along, 1.6, 4.0, 3.8, 4.1, B.mi('plain:#c9cdd3')), tile=(1, 1))
 
+if PROPS:   # roads, kerbs, drains, lights, goal posts, car parks: a separate GLB, made with the helpers above
+    _pp = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'blender_campus_props.py')
+    exec(compile(open(_pp, encoding='utf-8').read(), _pp, 'exec'))
+    sys.exit(0)
+
 for f in osm['features']:
     p, g = f['properties'], f['geometry']
     if g['type'] != 'Polygon' or p['kind'] not in ('building', 'water_tower'):
@@ -491,8 +524,9 @@ for f in osm['features']:
     if FAN:
         if btype != 'tower':
             B.add(prism([offset(P, -.28) for P in rel], 0, 1.0, B.mi('plinth')), tile=(2.4, 2.0))
-        B.add(prism(rel, 0, H, B.mi('wall:' + wall_c + ':' + trim_c)))
-        for zb in [z for z in (STOREY_M * k + BASE_M for k in range(1, 6)) if z < H - 1.0]:
+        timber = A < 450 and btype not in ('tower', 'mosque')   # the small buildings timber-framed, the halls in stone
+        B.add(prism(rel, 0, H, B.mi(('timber:' + shade(wall_c, .3)) if timber else ('wall:' + wall_c + ':' + trim_c))), tile=(3.6, STOREY_M) if timber else (3.6, STOREY_M))
+        for zb in ([] if timber else [z for z in (STOREY_M * k + BASE_M for k in range(1, 6)) if z < H - 1.0]):
             B.add(prism([offset(P, -.14) for P in rel], zb - .12, zb + .12, B.mi('band')))
         eave = [offset(P, -.5) for P in rel]
         B.add(prism(eave, H, H + .32, B.mi('trim' if 'tan_panel' not in look.get('details', []) else 'plain:' + trim_c)))
@@ -522,6 +556,16 @@ for f in osm['features']:
                 B.add(cylinder(cc[0], cc[1], 2.05, tt, tt + .3, 10, B.mi('trim')))
                 B.add(cone(cc[0], cc[1], 2.2, tt + .3, 5.5, 10, B.mi('ridge:' + roof_c)))
                 B.add(sphere(cc[0], cc[1], tt + 5.95, .28, B.mi('gold')))
+            # banners on the longest wall: red on the academic halls, blue on the hostels (fantasy decoration)
+            if H > 6:
+                i = max(range(len(P)), key=lambda k: math.dist(P[k], P[(k + 1) % len(P)]))
+                a, b = P[i], P[(i + 1) % len(P)]; L = math.dist(a, b); t = ((b[0] - a[0]) / L, (b[1] - a[1]) / L); nn = (t[1], -t[0])
+                col = '#2d4f9a' if btype == 'dormitory' else '#a8283a'
+                for f in (.3, .7):
+                    bc = (a[0] + (b[0] - a[0]) * f + nn[0] * .12, a[1] + (b[1] - a[1]) * f + nn[1] * .12)
+                    B.add(box(bc, t, nn, .7, .05, H - 4.4, H - .5, B.mi('plain:' + col)), tile=(1, 1))
+                    B.add(box(bc, t, nn, .8, .07, H - .7, H - .45, B.mi('gold')), tile=(1, 1))
+                    B.add(pyramid([(bc[0] - t[0] * .7, bc[1] - t[1] * .7), (bc[0] + t[0] * .7, bc[1] + t[1] * .7), (bc[0] + nn[0] * .06, bc[1] + nn[1] * .06)], H - 4.4, -.6, B.mi('plain:' + col)), flat=1.0)
     else:
         B.add(prism(rel, 0, H, B.mi('wall:' + wall_c + ':' + trim_c)))
         eave = [offset(P, -.45) for P in rel]

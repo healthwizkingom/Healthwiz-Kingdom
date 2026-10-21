@@ -94,7 +94,7 @@ const TILE={
   sleep:{val:d=>{const s=A('sleep',d).pop();return s?s.v+' h slept':'not logged today'},act:d=>done('sleep',d)?'Logged · tap to review':'Tap to enter bedtime + wake-up'},
   exercise:{keep:1,act:()=>'Tap to train · logs only when you finish'},
   stair:{keep:1,act:d=>done('stair',d)?'Tap to add a climb: steps × climbs':'Tap to enter steps × climbs'},
-  stress:{val:d=>str(d)==null?'no check-in yet':str(d)+'/10 today',act:d=>done('stress',d)?'Tap for another check-in':'Tap to pick how you feel'},
+  stress:{val:d=>str(d)==null?'no check-in yet':str(d)+'/10 today',act:d=>done('stress',d)?'Tap for another check-in':'Tap for the 21-statement check-in'},
   body:{val:()=>(st.s.onb||st.p.cfm?'BMI '+bmi():'BMI not set')+(st.s.set?' · '+fmt(st.s.kcal)+' kcal goal':''),act:()=>'Tap to enter height + weight'},
   stats:{val:()=>'all your trends',act:()=>'Nothing to enter'},
   score:{keep:1,act:()=>'Nothing to enter · uses your logs'}
@@ -177,4 +177,11 @@ HWUI.css('hall',`
 .hmq h3{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.hmq .big{margin-left:auto}
 .hmd{margin:0 0 14px}.hmd>summary{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;min-height:44px;margin:0;padding:8px 12px;cursor:pointer}.hmd>summary small{font-size:12px;color:var(--mut)}.hmd[open]>summary{margin-bottom:10px}.hmd>.card{margin-bottom:0}
 `);
-return{head,next,examples,compact,panel,tiles:TILE,heads:HEAD}})();
+return{head,next,examples,compact,panel,tiles:TILE,heads:HEAD}})();/* Health Hall cards (owner's request, 2026-10-20): the icon and every line of text centred in each card; on a tablet or a
+   computer the eight cards sit in four columns and two rows (a phone keeps the narrower grid). */
+HWUI.css('hallgrid',`
+#hub.hub .hb{text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#hub.hub .hb .bi{display:flex;justify-content:center;width:100%}
+#hub.hub .hb b,#hub.hub .hb small,#hub.hub .hb em,#hub.hub .hb .hwa{text-align:center;width:100%}
+@media(min-width:600px){#hub.hub{grid-template-columns:repeat(4,minmax(0,1fr))}}
+`);

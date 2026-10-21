@@ -2,7 +2,7 @@
 // Body & Energy. More items are added below by later commits.
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { openApp, closeBrowser, go, state, RETURNING, entry, APP_URL } from './helpers.mjs';
+import { openApp, closeBrowser, go, state, RETURNING, entry, APP_URL, pickStair, stairHistory } from './helpers.mjs';
 import { URL0, CLOUD, tok, fakeSupabase, device, signIn, synced, water } from './cloud-fake.mjs';
 
 after(closeBrowser);
@@ -13,6 +13,7 @@ test('every tracker page shows the same 3-line header; tiles show today and the 
   const { page, ctx, errors } = await openApp(M);
   for (const v of ['food', 'water', 'sleep', 'stair', 'body']) {
     await go(page, v);
+    if (v === 'stair') await stairHistory(page); // the Stairs header is on its section under the Observatory
     assert.equal(await page.locator('#hwh3').count(), 1, v + ' header');
     assert.deepEqual(await page.$$eval('#hwh3 .hwhr b', b => b.map(x => x.textContent)), ['WHAT THIS IS', 'WHAT TO ENTER', 'WHY IT MATTERS'], v);
     assert.ok(await noScroll(page), v + ' no horizontal scroll');
@@ -41,7 +42,7 @@ test('an example line sits under an empty input, links to it and hides once ther
 test('stairs: two taps fill a climb with a range midpoint and a count; 44px chips; total reads steps × climbs; saved shape unchanged', async () => {
   const { page, ctx, errors } = await openApp(M);
   await go(page, 'stair');
-  await page.tap('#stman .sqlist .chip >> nth=0');
+  await pickStair(page);
   assert.equal(await page.isHidden('#ss'), true, 'number box waits behind the chips');
   await page.tap('#stman [data-a="strng"][data-r="1"]');      // 6–10 → 8
   await page.tap('#stman [data-a="stcl"][data-n="3"]');
@@ -205,9 +206,9 @@ test('trackers: the first input is on screen at 390 × 844, on a first visit and
   for (const seen of [false, true]) {
     const seed = JSON.parse(JSON.stringify(RETURNING)); if (seen) seed.ex.r = { food: '2026-10-01', water: '2026-10-01', sleep: '2026-10-01', stair: '2026-10-01', body: '2026-10-01' };
     const { page, ctx, errors } = await openApp({ ...M, seed });
-    for (const [v, sel] of [['food', '#fpick .chip'], ['water', '[data-a="wa"]'], ['sleep', '#slb'], ['stair', '[data-a="gpsfind"]'] /* the Stairs page opens on the GPS check-in half; the first control is FIND STAIRS NEAR ME */, ['body', '#bh']]) {
+    for (const [v, sel] of [['food', '#fpick .chip'], ['water', '[data-a="wa"]'], ['sleep', '#slb'], ['stair', '#cmpstage'] /* Stairs opens the Observatory at the top (owner's request, 2026-10-20): the map, where the staircase is searched for and picked, starts on screen (its first 120 px; over http the search box is at its top) */, ['body', '#bh']]) {
       await go(page, v);
-      const r = await page.evaluate(s => { const e = document.querySelector(s).getBoundingClientRect(); return { bottom: e.bottom, nav: document.querySelector('#nav').getBoundingClientRect().top }; }, sel);
+      const r = await page.evaluate(s => { const e = document.querySelector(s).getBoundingClientRect(); return { bottom: s === '#cmpstage' ? e.top + 120 : e.bottom, nav: document.querySelector('#nav').getBoundingClientRect().top }; }, sel);
       assert.ok(r.bottom <= r.nav, `${v} (${seen ? 'later' : 'first'} visit): input bottom ${Math.round(r.bottom)} above the bar at ${Math.round(r.nav)}`);
       assert.equal(await page.isHidden('#hwh3'), true, v + ': the 3-line header stays behind the ? until tapped');
       assert.ok(await noScroll(page));

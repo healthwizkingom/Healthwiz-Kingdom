@@ -1,7 +1,8 @@
 // The Observatory's map, part 2 (integration Phase 2; part 1 is tests/71-observatory-map, split to keep each file
 // within the 90 s test budget): served over http on a local server, in Chromium with software WebGL (the
 // flags of prototypes/campus-observatory/qa/smoke.mjs; slow, so the checks are few and the motion is reduced).
-//   * START → save → RETURN restores the camera; FIND for a staircase with no coordinates leaves the camera alone;
+//   * the search on the map filters the markers; a staircase picked there is logged in its Details and the camera stays;
+//     a staircase with no coordinates leaves the camera alone;
 //   Leaving the page: tests/78-observatory-map-leave.
 //   Full screen: tests/74-observatory-fullscreen.
 import { test, before, after } from 'node:test';
@@ -62,24 +63,29 @@ const ready = page => page.waitForFunction(() => HWCampus.state.map === 'error' 
 const idle = page => page.waitForFunction(() => { const m = HWCampus.map && HWCampus.map.map; return !!m && !m.isMoving(); }, null, { timeout: 20000 }).then(() => page.waitForTimeout(400));
 const cam = page => page.evaluate(() => { const m = HWCampus.map.map, c = m.getCenter(); return { lng: c.lng, lat: c.lat, z: m.getZoom() }; });
 
-test('round trip with the map: START → save → RETURN restores the camera; FIND for a staircase with no coordinates leaves the camera where it was', async () => {
+test('with the map: the search on the map keeps only matching markers; a pick logs in Details and the camera stays; a staircase with no coordinates leaves the camera alone', async () => {
   const { ctx, page, errors } = await openHttp();
   await goView(page, 'campus'); assert.equal(await ready(page), 'ready'); await idle(page);
-  await page.click('#cmplist .cmpitem[data-id="ST20"]'); await idle(page);
+  const shownMk = () => page.evaluate(() => [...document.querySelectorAll('.stm')].filter(e => !e.hidden).length);
+  const all = await shownMk();
+  // the search on the map: only the markers that match stay; the matches are offered under the box
+  await page.fill('#cmpfind', 'penjana');
+  await page.waitForFunction(n => [...document.querySelectorAll('.stm')].filter(e => !e.hidden).length < n, all);
+  assert.ok(await shownMk() >= 1, 'the matching marker stays');
+  await page.click('#cmpfindres [data-a="cmppick"][data-id="ST20"]'); await idle(page);
+  assert.equal(await page.evaluate(() => document.querySelector('.stm.sel').dataset.key), '5.3519878,100.5383771');
   await page.click('[data-a="cmpzin"]'); await idle(page);
   const c0 = await cam(page);
-  await page.click('#cmpdet [data-a="cmpstair"][data-id="ST20"]');
-  assert.deepEqual(await page.evaluate(() => [S.v, HWStairs.pick, !!HWCampus.map]), ['campus', 'ST20', true]); // the Stairs section is on the same page: the map stays
-  await fillSteps(page, '#ss', '10'); await page.fill('#sc', '1'); await page.click('[data-a="savestair"]');
-  await page.click('[data-a="cmpback"]');
-  assert.equal(await ready(page), 'ready'); await idle(page);
+  // log in Details: the map stays as it was
+  assert.deepEqual(await page.evaluate(() => [S.v, HWStairs.pick, !!HWCampus.map]), ['campus', 'ST20', true]);
+  await fillSteps(page, '#ss', '10'); await page.fill('#sc', '1'); await page.click('#cmplog [data-a="savestair"]'); await idle(page);
   const c1 = await cam(page);
-  assert.ok(Math.abs(c1.lng - c0.lng) < 1e-5 && Math.abs(c1.lat - c0.lat) < 1e-5 && Math.abs(c1.z - c0.z) < .01, 'RETURN restores the map view');
+  assert.ok(Math.abs(c1.lng - c0.lng) < 1e-5 && Math.abs(c1.lat - c0.lat) < 1e-5 && Math.abs(c1.z - c0.z) < .01, 'saving keeps the map view');
   assert.equal(await page.evaluate(() => document.querySelector('.stm.sel').dataset.key), '5.3519878,100.5383771');
   assert.match(await page.textContent('#cmpdet'), /You saved 1 stair session here/);
-  // FIND for ST02 (no coordinates): its details, the camera unchanged, nothing highlighted
-  await goView(page, 'stair'); await page.evaluate(() => { HWStairs.choose('ST02'); render(); });
-  await page.click('[data-a="cmpfind"]'); assert.equal(await ready(page), 'ready'); await idle(page);
+  // ST02 (no coordinates) from the search: its details, the camera unchanged, nothing highlighted
+  await page.fill('#cmpfind', 'ST02');
+  await page.click('#cmpfindres [data-a="cmppick"][data-id="ST02"]'); await idle(page);
   const c2 = await cam(page);
   assert.ok(Math.abs(c2.lng - c1.lng) < 1e-5 && Math.abs(c2.z - c1.z) < .01, 'the map does not move');
   assert.equal(await page.locator('.stm.sel').count(), 0);

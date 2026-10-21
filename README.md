@@ -37,13 +37,15 @@ js/v6-uncert.js            the Uncertainty Engine: how unmeasured assumptions mo
 js/v6-plan.js              Stair Prescription on the Stairs page: a weekly stair plan the player chooses (st.s.pl); not a prescription
 js/v6-time.js              the Health Time Machine (route 'time', door on Statistics): saved records on a day / week / month timeline
 js/v6-campus-data.js        the Observatory's staircase records (STAIRS + the F21 step sizes + data/stair-survey.json), its links with the Stairs page
-js/v6-campus-stairs.js     the collapsible "Stairs" section under the Observatory on the Campus page: header, open/closed state, the `stair` and `pulse` routes and the address `#stairs` (stairs and heart rate used to be a page of their own); events `stairs:opened` / `stairs:closed`
-js/v6-campus.js            the Campus Health Observatory (route 'campus', door in the Health Hall): list, details, links and fallback; loads the map below over https
+js/v6-campus-stairs.js     the collapsible "Stairs" section under the Observatory on the Campus page (the history: summary, heart-rate chart, measured stairways, Session Chronicle), the `stair` and `pulse` routes and the address `#stairs`, which open the Campus page at the top with the Observatory's Details; events `stairs:opened` / `stairs:closed`
+js/v6-campus.js            the Campus Health Observatory (route 'campus', door in the Health Hall): the full-width map with its search, the list and the Details below it, where a staircase's climbs and workouts are logged (LOG A CLIMB HERE); fallback; loads the map over https
+js/v6-campus-css.js        the Observatory's styles (split from v6-campus.js to keep each file under 64 KB)
 js/v6-addfood.js           Add More Food: Luke (the apprentice) searches the web (Gemini + Google Search via food-guess) for any food, portion and changes, with a source per part; signed out, the canteen menu
 js/v6-arcane.js            the magical, modern look: Arcane Night default theme, glowing rounded panels and controls (docs/PIXEL_STYLE.md)
 js/v6-emoji.js             every emoji the app shows drawn as pixel art (hand-drawn icon or the emoji pixelated)
 js/v6-provisions.js        Nutrition & Hydration as one page (the Provisions Hall): 'food' and 'water' are its two halves
-js/v6-stairs.js            the Stairs features (shown as the Stairs section of the Campus page, see v6-campus-stairs.js): two halves side by side, casual stairs (GPS check-in first, then by hand) and workout & heart rate (LOG BPM before/after, f, T, ω of the pulse, calorie estimate and our project's VO₂ / kJ method behind a ? button), the Group 14 measured-stairways table; one session model
+js/v6-stairs.js            the Stairs features: the logging forms shown in the Observatory's Details for the staircase picked on the map (HWStairs.logPanel), and the history in the Stairs section (see v6-campus-stairs.js): two halves side by side, casual stairs (GPS check-in first, then by hand) and workout & heart rate (LOG BPM before/after, f, T, ω of the pulse, calorie estimate and our project's VO₂ / kJ method behind a ? button), the Group 14 measured-stairways table; one session model
+js/v6-stairs-css.js        the Stairs features' styles (split from v6-stairs.js to keep each file under 64 KB)
 js/v6-hrlog.js             hrLast(): the newest counted heart rate (logged BPM or a workout), used by the hub tile, kingdom panel and Stairs page
 js/v6-conditions.js        "Anything that affects your activity?": the conditions question in the registry, one rule table (quest order, stair goals behind a doctor note, pace note), st.p.conds
 js/v6-motion.js            animation settings + performance modes (High / Balanced / Performance), off-screen pause
@@ -69,6 +71,7 @@ js/v6-dream.js             Dream Battle: continuous sleep → strength, torch-li
 js/v6-storm.js             Storm Within: the knight's face, posture and surroundings follow the stress rating, smoothly
 js/v6-ambient.js           the living world behind every page (themed by region) and the shared finish for buttons, cards, bars
 js/v6-grove.js             Calming Grove mini-game (follow a light over the pond as it grows and shrinks with your breath)
+js/v6-dass.js              Stress Quest check-in: the 21 DASS-21 statements (0–3, over the past week), the three scale scores (× 2, 0–42, no severity labels), the storm level from the total, the help numbers; saved as before with an optional m.dass
 js/v6-relief.js            Stress Quest activity collection: illustrated cards replace the "what would help you handle this?" options (Shake It Off, Empower Yourself, Arrow Focus, Reaction Focus, Calming Sounds + the original tools)
 js/v6-badges.js            badge audit: duplicates retired, own icons, running / workout / Dream Battle badges
 js/v6-looks.js             themes (THEMES map, Settings swatches), the onboarding chamber, the Shadow Keep (title + Kingdom)
@@ -113,6 +116,12 @@ assets/models/avatars/     the map avatars: Tom, the anime school boy and girl (
 tools/blender_avatar.py    makes an avatar (reduced, one texture, skeleton, idle and walk) from a character model; tools/get-blender.sh installs Blender 4.2
 assets/models/campus-realistic.glb, campus-fantasy.glb  the campus buildings for each look, modelled in Blender from the OSM outlines in the look of the owner's drone video (tools/blender_campus.py, data/campus-looks.json); appearance is observed or campus-typical, heights estimated
 tools/blender_campus.py    makes those two GLBs: footprints from data/campus-osm.geojson, roof and wall colours, storeys and details from data/campus-looks.json
+assets/models/campus-props-realistic.glb, campus-props-fantasy.glb  the ground details for each look: roads with red-and-white kerbs and a centre line, drains and manholes, street lights, goal posts and pitch lines, the tennis net and fence, car parks
+tools/blender_campus_props.py  makes those two GLBs (run through tools/blender_campus.py --props); data/campus-props.json says where each comes from (car park places estimated)
+tools/make_elevation_zones.py  writes data/elevation-zones.geojson: the estimated, illustrative terrain levels and the evidence for each
+observatory/landmarks.js   landmarks: optional markers for places mapped in OSM (gate, named buildings, squares, pitches, water towers), the discovery animation
+js/v6-campus-magic.js      the landmark card and discovery (device only), the Map journal, the Layers panel, a saved session's feedback, staircase sigils, the map's instrument-style buttons
+observatory/sky.js         the map's sky: live Kulim weather and modelled haze plus the time of day from the clock (or a preview) → sky, light, a tint, fog, rain
 tools/campus-clip.mjs      cuts the prototype's OpenStreetMap export to Kolej MARA Kulim (data/campus-osm.geojson): lines clipped to the export's bounds, features outside the campus dropped
 data/                      campus-osm.geojson (the prototype's OSM export cut to the campus by tools/campus-clip.mjs), elevation-zones.geojson (copied unchanged), campus-looks.json (each building's look from the drone video, with its frames and a confidence) and stair-survey.json
 assets/img/                the 15 images that were embedded as base64 in the original (the PNG art re-encoded as lossless WebP)
@@ -150,6 +159,47 @@ shows the player's own stair activity from their saved sessions (no new points o
 single-file build, the page says so and lists the staircases with their details, without requesting anything. The map's
 files (`observatory/`, `vendor/`, `assets/models/`, `data/*.geojson`) load only when the page opens and are cached on first use.
 Map data © OpenStreetMap contributors (ODbL); the map shows the attribution.
+
+**Logging in the Observatory, and a lighter map (2026-10-20).** Stair climbs and workouts are logged in the Observatory:
+pick a staircase on the map (tap its marker, or type in the search on the map, which keeps only the matching markers and
+offers them as buttons), and its Details open with LOG A CLIMB HERE: GPS check-in, a climb logged by hand, and the workout
+with heart rate, for that staircase. There is no stairway list to scroll. With nothing picked, Details offer the GPS
+check-in, which picks the nearest staircase itself. The Stairs card (and `#stairs`) opens the Campus page at the top. On a
+computer the map spans the page's width and Staircases and Details sit below it. The Stairs section under the
+Observatory keeps the history. The map no longer redraws itself while it sits still (the Fantasy walkways and plateau
+rims used to animate on a timer, which made the whole 3D scene redraw about five times a second), draws at most 1.5×
+the screen's pixel ratio, uses a 2048-pixel shadow map, and stays inside the OpenStreetMap export's own area.
+
+**A fantasy map to explore (2026-10-20).** The Fantasy look takes its mood from a fan-made fantasy town video the owner
+chose (a reference only; every model is an original design): the small buildings are timber-framed with lit windows,
+the academic halls carry red banners and the hostels blue ones, and a gatehouse with two crenellated towers stands at
+the gate OpenStreetMap maps (Realistic shows the red portal of the drone video there). Signposts at road junctions,
+notice boards and rune waystones with blue crystals in the squares are labelled decoration (`data/campus-props.json`).
+Seventeen optional landmark markers point to mapped places only: the gate, the named buildings, the squares and the
+Astaka, the pitches and the water towers. Opening one plays a discovery animation the first time, and its card says what
+it is, its OSM id, its level and the nearest staircases. The Map journal counts discoveries and explored areas. Both are
+kept on the device, apart from the save: exploring is not climbing, and it gives no XP, badges or sigils. A Layers
+panel hides staircase markers, landmarks, building labels, contours, paths or the decorative effects. The selected
+staircase stands on a bright rune circle, with fireflies, glowing leaves and sparks around it (fewer motes when zoomed
+out). A saved stair session lights a sigil over its marker and, in Fantasy, sends a short pulse of light along the
+nearest path: feedback for a real save, never a loop. The map's buttons are small instruments: a compass whose needle
+shows north, rotate left and right, zoom, 2D/3D and layers. Staircase sigils mark recorded sessions (1, 5, 10, 25, 50)
+and different staircases (3, 8); at most two sessions a day count, and they give no XP.
+
+**A more detailed map: terrain, ground details, sky and avatar (2026-10-20).** The raised ground has three levels: the
+north (middle), a terrace at Blok C and the south (highest). Which area is higher is the owner's annotation; where each
+slope starts and ends was estimated from the drone video and the climbing staircases in the STAIRS list, and each level in
+`data/elevation-zones.geojson` names its evidence (`tools/make_elevation_zones.py`). Heights stay illustrative. The
+contour lines (every 2 m, every 10 m thicker) are traced from the height map itself, so terraces and banks get the right
+lines. Blender ground details in the look of the video sit on that terrain: the roads with red-and-white kerbs and a
+centre line, drains with manhole covers, street lights, goal posts and pitch lines on the Padang and the south-west
+field, the tennis net and fence, and three car parks with bay lines and a few parked cars (their places estimated). The
+map's sky follows the live Kulim weather and modelled haze (Settings, Live data) and the time of day from the clock (the
+sun's height at the campus): dawn and dusk tint the map, night darkens it and lights the street lamps, rain falls, fog and
+haze veil it. A Sky button previews a clear day, dusk, night, rain, fog or haze. These are pictures, not forecasts, and
+are plain CSS layers over the map (the map does not redraw for them; the rain is still with reduced motion). The avatar
+follows the profile: the anime school boy for a male profile and the school girl for a female one; only without a sex in
+the profile does the player pick (Tom, the boy or the girl).
 
 **Only Kolej MARA Kulim, in the look of the drone video (2026-10-20).** The map's data is cut to the campus
 (`tools/campus-clip.mjs`): the main road, river and housing that ran up to 6 km beyond it are gone, and the map no longer

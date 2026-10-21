@@ -26,8 +26,8 @@
      All decoration: none moves a marker or changes a number, nothing animates when motion is reduced, and Realistic
      shows plain blocks. The art is original (drawn in code or modelled in Blender for HealthWiz).
    * Location only on tap (decision 2). With the map (integration Phase 5): the locate button (or SHOW WHERE I AM) first
-     asks which avatar to show, if none is chosen yet: Tom, the anime school boy or the anime school girl, with the one
-     matching the profile suggested first (st.p.sex; Tom without one). The choice is a device preference
+     shows the avatar that matches the profile (st.p.sex: the anime school boy or girl; owner's request, 2026-10-20). Only
+     without a sex in the profile does it ask which avatar to show: Tom, the boy or the girl. That choice is a device preference
      (localStorage 'hw_obs_avatar', no health data) and can be changed at any time. The avatar then stands at the device's
      GPS position and walks as it moves (observatory/locate.js, watchPosition), with the device's accuracy circle; away
      from campus the page says how far; DEMO WALK moves it along a campus road and says the position is simulated.
@@ -36,9 +36,14 @@
    * Activity (Phase 5): only what the saved stair sessions support (HWCampusData.activity, by m.sid): sessions and steps
      in the last 7 days and the 7 before, the staircases climbed most, a ring on the markers of staircases climbed. No new
      XP, badges or store.
-   * HWCampus.focus(id): select a staircase from elsewhere (FIND ON OBSERVATORY, RETURN TO OBSERVATORY): the map flies
-     to it, or with no coordinates its details open without moving the map. START STAIR SESSION opens the Stairs section
-     of this page (js/v6-campus-stairs.js) with it chosen (HWCampusData.start); it never starts a session. Nothing here writes to the save. */
+   * HWCampus.focus(id): select a staircase from elsewhere (Stair Sense, a GPS check-in, the old routes): the map flies
+     to it, or with no coordinates its details open without moving the map.
+   * Logging lives here (owner's request, 2026-10-20): a staircase's Details start with LOG A CLIMB HERE, the Stairs
+     forms of js/v6-stairs.js (HWStairs.logPanel): GPS check-in, a climb by hand, and the workout with heart rate, for that
+     staircase. With nothing picked, Details offer the GPS check-in, which picks the nearest staircase itself. Staircases
+     are found on the map: tap a marker, or type in the search on the map, which shows only the matching markers and
+     offers them as buttons. The Stairs section below keeps the history (js/v6-campus-stairs.js).
+   * Layout: the map spans the page's width (the side navigation stays beside it); Staircases and Details are below it. */
 const HWCampus=(()=>{
 const ico=(n,s)=>HWPixel.icon(n,s||1),D0=document,$id=i=>D0.getElementById(i);
 // two of the prototype's pixel sprites (js/pixel.js) for the terrain and buildings switches: one character = one pixel
@@ -59,12 +64,12 @@ const unmapped=()=>R().filter(s=>!placed(s));
 
 /* ---------- state: kept for this tab (no position, no health data) ---------- */
 const VK='hw_obs_view',FILTERS=['all','map','nol','part','flag'];
-const V={sid:null,grp:null,mode:'fantasy',cam:null,terr:true,bld:true,full:false,vw:true,tab:'list',f:'all',q:'',me:null,gps:'',err:'',fly:false};
+const V={sid:null,grp:null,mode:'fantasy',cam:null,terr:true,bld:true,full:false,vw:true,tab:'list',f:'all',q:'',me:null,gps:'',err:'',fly:false,sky:'live',skyo:false};
 try{const o=JSON.parse(sessionStorage.getItem(VK)||'null');if(o&&typeof o==='object'){
   if(typeof o.sid==='string')V.sid=o.sid;if(typeof o.grp==='string')V.grp=o.grp;if(o.mode==='realistic')V.mode='realistic';
   if(o.cam&&Array.isArray(o.cam.c)&&o.cam.c.length===2&&o.cam.c.every(isFinite)&&isFinite(o.cam.z))V.cam={c:o.cam.c.map(Number),z:+o.cam.z,b:+o.cam.b||0,p:+o.cam.p||0};
-  if(o.terr===false)V.terr=false;if(o.bld===false)V.bld=false;if(o.full===true)V.full=true;if(o.vw===false)V.vw=false;if(o.tab==='det')V.tab='det';if(FILTERS.indexOf(o.f)>=0)V.f=o.f;if(typeof o.q==='string')V.q=o.q.slice(0,80)}}catch(e){}
-const persist=()=>{if(M.ctl&&M.ctl.ready&&!ME.used)V.cam=M.ctl.camera();try{sessionStorage.setItem(VK,JSON.stringify({sid:V.sid,grp:V.grp,mode:V.mode,cam:V.cam,terr:V.terr,bld:V.bld,full:V.full,vw:V.vw,tab:V.tab,f:V.f,q:V.q}))}catch(e){}};
+  if(o.terr===false)V.terr=false;if(o.bld===false)V.bld=false;if(o.full===true)V.full=true;if(o.vw===false)V.vw=false;if(o.tab==='det')V.tab='det';if(FILTERS.indexOf(o.f)>=0)V.f=o.f;if(typeof o.q==='string')V.q=o.q.slice(0,80);if(['day','dusk','night','rain','fog','haze'].includes(o.sky))V.sky=o.sky}}catch(e){}
+const persist=()=>{if(M.ctl&&M.ctl.ready&&!ME.used)V.cam=M.ctl.camera();try{sessionStorage.setItem(VK,JSON.stringify({sid:V.sid,grp:V.grp,mode:V.mode,cam:V.cam,terr:V.terr,bld:V.bld,full:V.full,vw:V.vw,tab:V.tab,f:V.f,q:V.q,sky:V.sky}))}catch(e){}};
 const selKey=()=>{if(V.grp)return V.grp;const s=V.sid&&rec(V.sid);return s&&placed(s)?keyOf(s):null};
 
 /* ---------- the map: availability, loading, one element across redraws ---------- */
@@ -90,17 +95,18 @@ function mount(){fsClass();const slot=$id('cmpmapslot');if(!slot||why())return;
   if(M.st==='off'){M.st='loading';M.msg='';const g=++M.gen;paintMsg();
     loadModule().then(X=>X.create({container:M.host,groups:points(),cam:V.cam,mode:V.mode,terr:V.terr,bld:V.bld,padding:pad,reduced:()=>HWUI.reduced(),
       onSelect:t=>{if(t&&t.group)pickGroup(t.group);else if(t&&t.id)pick(t.id,'map')},onCamera:c=>{if(!ME.used)V.cam=c;persist()},
-      visited:id=>HWCampusData.activity(id).sessions>0,onUserMove:()=>{if(meOn()&&ME.follow){ME.follow=false;if(S.v==='campus')keep()}},
-      onReady:()=>{if(g!==M.gen)return;M.st='ready';paintMsg();sync();const b=$id('cmptilt');if(b)b.setAttribute('aria-pressed',String(M.ctl.map.getPitch()>5))},
+      visited:id=>HWCampusData.activity(id).sessions>0,
+      onLandmark:id=>{if(typeof HWCampusMagic!=='undefined')HWCampusMagic.open(id)},found:()=>typeof HWCampusMagic!=='undefined'?HWCampusMagic.foundIds():[],layers:typeof HWCampusMagic!=='undefined'?HWCampusMagic.layers():undefined,onUserMove:()=>{if(meOn()&&ME.follow){ME.follow=false;if(S.v==='campus')keep()}},
+      onReady:()=>{if(g!==M.gen)return;M.st='ready';paintMsg();sync();if(typeof HWCampusMagic!=='undefined')HWCampusMagic.ready(M.ctl);const b=$id('cmptilt');if(b)b.setAttribute('aria-pressed',String(M.ctl.map.getPitch()>5))},
       onError:m=>{if(g!==M.gen)return;fail(m)}})).then(c=>{if(g!==M.gen){c.destroy();return}M.ctl=c;if(c.ready){M.st='ready';paintMsg();sync()}})
       .catch(e=>{if(g!==M.gen)return;fail('The campus map could not be loaded ('+String(e&&e.message||e).slice(0,120)+'). The staircases are listed with their details.')})}
   else if(M.ctl){M.ctl.resize();sync()}else paintMsg()}
-function fail(m){M.st='error';M.msg=m;if(M.ctl){M.ctl.destroy();M.ctl=null}if(M.host){M.host.remove();M.host=null}if(S.v==='campus')keep()}
-function unmount(){M.gen++;if(M.ctl){persist();M.ctl.destroy()}M.ctl=null;if(M.host)M.host.remove();M.host=null;M.st='off';M.msg=''}
+function fail(m){M.st='error';M.skyk=null;M.msg=m;if(M.ctl){M.ctl.destroy();M.ctl=null}if(M.host){M.host.remove();M.host=null}if(S.v==='campus')keep()}
+function unmount(){M.gen++;M.skyk=null;clearInterval(M.skyT);M.skyT=0;if(M.ctl){persist();M.ctl.destroy()}M.ctl=null;if(M.host)M.host.remove();M.host=null;M.st='off';M.msg=''}
 /** The loading / failure note over the map, changed in place (no redraw). */
 function paintMsg(){const e=$id('cmpmsg');if(!e)return;e.hidden=M.st==='ready';e.textContent=M.st==='error'?M.msg:'Loading the campus map…'}
 /** Make the map match the state: the highlighted marker, and a pending fly to the selection. */
-function sync(){const c=M.ctl;if(!c||!c.ready)return;const k=selKey();c.select(k);if(V.fly&&k){V.fly=false;c.flyToGroup(k)}else if(V.fly)V.fly=false;
+function sync(){const c=M.ctl;if(!c||!c.ready)return;skyApply();const k=selKey();c.select(k);filterMap();if(V.fly&&k){V.fly=false;c.flyToGroup(k)}else if(V.fly)V.fly=false;
   if(ME.last&&!ME.far)c.me(ME.last,true,avUrl())}
 
 /* ---------- the avatar and the live position (Phase 5) ---------- */
@@ -108,16 +114,19 @@ const AVK='hw_obs_avatar';
 const AV={tom:{n:'Tom',f:'tom.glb',c:'The model "Tom" supplied by the project owner; reduced and given a walk for HealthWiz.'},
   schoolboy:{n:'Anime school boy',f:'schoolboy.glb',c:'"Rigged Anime School Boy (Animation included)" by suzuart (Sketchfab), CC BY 4.0. Changed for HealthWiz: reduced, new skeleton, idle and walk.',u:'https://sketchfab.com/3d-models/rigged-anime-school-boy-animation-included-288cb16deac54a3c95697a4e2290b499'},
   schoolgirl:{n:'Anime school girl',f:'schoolgirl.glb',c:'"Stylized Anime Japanese High School Girl 2" by suzuart (Sketchfab), CC BY 4.0. Changed for HealthWiz: converted, reduced, new skeleton, idle and walk.',u:'https://skfb.ly/pMoto'}};
-const avOrder=()=>{const x=st.p&&st.p.sex;return x==='m'?['schoolboy','tom','schoolgirl']:x==='f'?['schoolgirl','tom','schoolboy']:['tom','schoolboy','schoolgirl']};
+const avOrder=()=>['tom','schoolboy','schoolgirl'];
 const avGet=()=>{try{const v=localStorage.getItem(AVK);return AV[v]?v:null}catch(e){return null}};
 const avSet=v=>{try{localStorage.setItem(AVK,v)}catch(e){}};
-const avUrl=()=>'assets/models/avatars/'+AV[avGet()||avOrder()[0]].f;
+// the avatar follows the profile's sex (owner's request, 2026-10-20); only without one does the player pick (and can change it)
+const avSex=()=>{const x=st.p&&st.p.sex;return x==='m'?'schoolboy':x==='f'?'schoolgirl':null};
+const avNow=()=>avSex()||avGet()||'tom';
+const avUrl=()=>'assets/models/avatars/'+AV[avNow()].f;
 // memory only. used: the position was shown during this visit, so the camera (which followed it) is not saved for the tab;
 // the view from before is kept instead, until the page closes
 const ME={st:'off',last:null,far:false,follow:true,first:true,msg:'',km:null,loc:null,choose:false,gen:0,used:false};
 const meOn=()=>ME.st==='gps'||ME.st==='demo'||ME.st==='asking';
 function meStop(quiet){if(ME.loc)ME.loc.stop();ME.loc=null;ME.gen++;ME.st='off';ME.last=null;ME.far=false;ME.msg='';ME.km=null;if(M.ctl)M.ctl.me(null);if(!quiet&&S.v==='campus')keep()}
-function meStart(demo){if(!M.ctl||!M.ctl.ready)return;if(!avGet()){ME.choose=true;keep();return}
+function meStart(demo){if(!M.ctl||!M.ctl.ready)return;if(!avSex()&&!avGet()){ME.choose=true;keep();return}
   const g=++ME.gen;ME.follow=true;ME.first=true;ME.msg='';if(!ME.used)persist();ME.used=true;
   window.HWObsMap.locator({onFix:f=>{if(g!==ME.gen||!M.ctl)return;onFix(f)},onState:(st2,info)=>{if(g!==ME.gen)return;ME.st=st2;ME.msg=st2==='error'?info.message:'';if(st2==='error'||st2==='off'){ME.last=null;if(M.ctl)M.ctl.me(null)}if(S.v==='campus')keep()}})
     .then(l=>{if(g!==ME.gen){l.stop();return}ME.loc=l;if(demo)l.startDemo(window.HWObsMap.demoPath((x,y)=>M.ctl.near(x,y)));else l.startGps()})
@@ -138,19 +147,19 @@ function meBar(){if(!meOn()&&ME.st!=='error')return '';
   return '<div class="cmpmebar" role="status" aria-live="polite" data-st="'+ME.st+'"><span class="cmpmed" aria-hidden="true"></span><span class="cmpmet" id="cmpmet">'+meText()+'</span>'
     +(ME.st==='error'||(ME.st==='gps'&&ME.far)?'<button type="button" class="cmpsb" data-a="cmpmedemo">Demo walk</button>':'')
     +(((ME.st==='gps'&&!ME.far)||ME.st==='demo')&&!ME.follow?'<button type="button" class="cmpsb" data-a="cmpmefollow">Follow me</button>':'')
-    +'<button type="button" class="cmpsb" data-a="cmpavopen">Avatar</button><button type="button" class="cmpsx" data-a="cmpmestop" aria-label="Stop showing my position">×</button></div>'}
-function chooser3(){if(!ME.choose)return '';const cur=avGet(),o=avOrder();
+    +(avSex()?'':'<button type="button" class="cmpsb" data-a="cmpavopen">Avatar</button>')+'<button type="button" class="cmpsx" data-a="cmpmestop" aria-label="Stop showing my position">×</button></div>'}
+function chooser3(){if(!ME.choose||avSex())return '';const cur=avGet(),o=avOrder();
   return '<div class="cmpav" role="dialog" aria-modal="false" aria-labelledby="cmpav-t"><b id="cmpav-t">Choose your avatar</b><p class="cmpsmall">It stands where your phone says you are. '
-    +(st.p&&(st.p.sex==='m'||st.p.sex==='f')?'The first one matches your profile; pick any.':'Pick any.')+' You can change it later.</p><ul>'
+    +'Your profile has no sex set, so pick any (with one, the avatar follows it). You can change it later.</p><ul>'
     +o.map((k,i)=>'<li><button type="button" class="g cmpavb" data-a="cmpavpick" data-v="'+k+'" aria-pressed="'+(cur===k)+'"><b>'+AV[k].n+'</b>'+(i===0&&!cur?' <small>(suggested)</small>':'')+'</button><small class="cmpcred">'+esc(AV[k].c)+(AV[k].u?' <a href="'+AV[k].u+'" target="_blank" rel="noopener">Source</a>':'')+'</small></li>').join('')
     +'</ul><button type="button" class="cmpsb" data-a="cmpavclose">Not now</button></div>'}
 acts.cmpme=()=>{if(!M.ctl||!M.ctl.ready)return locate();if(!meOn()){meStart(false);return}if(!ME.follow&&!ME.far&&ME.last){ME.follow=true;M.ctl.followMe(ME.last,false);keep();return}meStop()};
 acts.cmpmestop=()=>meStop();
 acts.cmpmedemo=()=>{if(ME.loc)ME.loc.stop();ME.gen++;ME.loc=null;meStart(true)};
 acts.cmpmefollow=()=>{ME.follow=true;if(ME.last&&M.ctl)M.ctl.followMe(ME.last,false);keep()};
-acts.cmpavopen=()=>{ME.choose=true;keep()};
+acts.cmpavopen=()=>{if(avSex())return;ME.choose=true;keep()};
 acts.cmpavclose=()=>{ME.choose=false;keep()};
-acts.cmpavpick=d=>{if(!AV[d.v])return;avSet(d.v);ME.choose=false;if(meOn()){if(ME.last&&!ME.far&&M.ctl)M.ctl.me(ME.last,true,avUrl());keep()}else meStart(ME.st==='demo')};
+acts.cmpavpick=d=>{if(!AV[d.v]||avSex())return;avSet(d.v);ME.choose=false;if(meOn()){if(ME.last&&!ME.far&&M.ctl)M.ctl.me(ME.last,true,avUrl());keep()}else meStart(ME.st==='demo')};
 
 /* ---------- the 3D preview: one element across redraws, like the map ---------- */
 const P3={st:'off',err:'',host:null,ctl:null,demo:null,shown:'',gen:0}; // st: off | loading | ready | error
@@ -212,8 +221,11 @@ function items(L){return L.length?L.map(s=>'<li><button type="button" class="g c
   :'<li class="mut">No staircase matches. Try another word or filter.</li>'}
 const countTxt=L=>L.length===R().length?R().length+' staircases':'Showing '+L.length+' of '+R().length;
 function listPane(){const L=shown(),u=unmapped().length;
-  return '<div class="cmpsearch"><label for="cmpq" class="cmpvh">Search staircases</label><input id="cmpq" type="search" value="'+esc(V.q)+'" placeholder="Search by name, ID or building (e.g. ST14, Kenanga)" autocomplete="off">'
+  // the search sits on the map; without the map (opened from the file, no WebGL, or the map failed) it stays here
+  const box=why()||M.st==='error'?'<div class="cmpsearch"><label for="cmpq" class="cmpvh">Search staircases</label><input id="cmpq" type="search" value="'+esc(V.q)+'" placeholder="Search by name, ID or building (e.g. ST14, Kenanga)" autocomplete="off">'
     +(V.q?'<button type="button" class="cmpqx" data-a="cmpqx" aria-label="Clear the search">×</button>':'')+'</div>'
+    :'<p class="mut cmpsmall">'+ico('map')+' To find one quickly, use the search on the map: only the matching staircases stay on it.</p>';
+  return box
     +'<div class="cmpfilters" role="group" aria-label="Filter">'+FILTERS.map(k=>'<button type="button" class="g cmpf" data-a="cmpfilt" data-f="'+k+'" aria-pressed="'+(V.f===k)+'">'+FL[k][0]+' <span>'+R().filter(FL[k][1]).length+'</span></button>').join('')+'</div>'
     +'<p class="cmpcount" id="cmpcount" aria-live="polite">'+countTxt(L)+'</p><ul class="cmplist" id="cmplist">'+items(L)+'</ul>'
     +(u?'<p class="mut cmpsmall">'+u+' staircases have no coordinates in the app data, so they are not on the map. You can still pick them here.</p>':'')}
@@ -247,13 +259,34 @@ function details(s){const m=s.measuredStep,f=facts(s),v=s.survey,a=HWCampusData.
   if(s.notes)q+='<p class="cmpnotes">'+esc(s.notes)+'</p>';
   const mine='<p class="cmpmine">'+(a.sessions?'You saved '+a.sessions+' stair session'+(a.sessions>1?'s':'')+' here (last '+esc(a.last)+')':'No stair sessions saved here yet')+(a.firstCheckIn?' · first GPS check-in '+esc(a.firstCheckIn):'')+'</p>';
   return '<button type="button" class="cmpback" data-a="cmptab" data-t="list">‹ All staircases</button><p class="cmpeye">'+s.id+' · '+CN[s.appCategory]+'</p><h3 class="cmph" tabindex="-1">'+esc(s.name)+'</h3>'+mine
-    +preview(s)+'<div class="row cmpact"><button type="button" data-a="cmpstair" data-id="'+s.id+'">START STAIR SESSION</button>'+(placed(s)&&M.st==='ready'?'<button type="button" class="g" data-a="cmpshow">SHOW ON MAP</button>':'')+'</div>'
+    +logBox(s)+preview(s)+(placed(s)&&M.st==='ready'?'<div class="row cmpact"><button type="button" class="g" data-a="cmpshow">SHOW ON MAP</button></div>':'')
     +grp('map','Location',loc)+grp('stairs','Staircase profile',pro)+grp('scroll','Data quality',q)}
 function chooser(g){return '<button type="button" class="cmpback" data-a="cmptab" data-t="list">‹ All staircases</button><p class="cmpeye">Shared point</p><h3 class="cmph" tabindex="-1">'+g.items.length+' staircases at one stored point</h3>'
   +'<p class="mut cmpsmall">'+g.lat+', '+g.lng+' · '+esc(g.items[0].locationStatus==='measured'?'Measured location (survey)':'Estimated location (app data)')+'. These records store the identical coordinate; on site they are probably separate stairs. Pick one.</p>'
   +'<ul class="cmplist">'+g.items.map(s=>'<li><button type="button" class="g cmpitem" data-a="cmppick" data-id="'+s.id+'">'+dot(s)+'<span class="cmpnm">'+esc(s.name)+'</span><span class="cmpmeta"><b>'+s.id+'</b><span>'+esc(s.appFloorLabel)+'</span></span></button></li>').join('')+'</ul>'}
+/** LOG A CLIMB HERE: the Stairs forms (js/v6-stairs.js) for this staircase. */
+function logBox(s){if(typeof HWStairs==='undefined')return '';
+  return '<section class="cmplog" id="cmplog" aria-labelledby="cmplog-t"><h3 id="cmplog-t">'+ico('stairs')+' LOG A CLIMB HERE</h3>'+HWStairs.logPanel(s.id)+'</section>'}
 function detPane(){const g=V.grp&&points().find(x=>x.key===V.grp),s=!g&&V.sid&&rec(V.sid);
-  return '<div class="cmpdet" id="cmpdet" tabindex="-1" role="region" aria-label="Selected staircase">'+(g?chooser(g):s?details(s):'<p class="mut">Pick a staircase on the map or in the list.</p>')+'</div>'}
+  const none='<p class="mut">Pick a staircase on the map (tap a marker, or search on the map) to log a climb or a workout there, or check in by GPS below. Heart rate can be logged without one.</p>'
+    +(typeof HWStairs!=='undefined'?'<section class="cmplog" id="cmplog" aria-labelledby="cmplog-t"><h3 id="cmplog-t">'+ico('stairs')+' LOG A CLIMB</h3>'+HWStairs.logPanel(null)+'</section>':'');
+  return '<div class="cmpdet" id="cmpdet" tabindex="-1" role="region" aria-label="Selected staircase">'+(g?chooser(g):s?details(s):none)+'</div>'}
+
+/* ---------- the sky (observatory/sky.js): live weather and haze (js/v6-live.js) and the clock; or a preview ---------- */
+const SKYN={live:'Live',day:'Clear day',dusk:'Dusk',night:'Night',rain:'Rain',fog:'Fog',haze:'Haze'};
+function skyPanel(){if(!V.skyo)return '';
+  return '<div class="cmpskyp" id="cmpskyp" role="group" aria-label="Sky on the map"><b>Sky</b>'+Object.keys(SKYN).map(k=>'<button type="button" class="cmpsb" data-a="cmpsky" data-v="'+k+'" aria-pressed="'+(V.sky===k)+'">'+SKYN[k]+'</button>').join('')
+    +'<small>Live: the Kulim weather and the modelled haze (Settings, Live data) with the time from your clock. The others are previews. A picture, not a forecast.</small></div>'}
+function skyApply(){const c=M.ctl,X=window.HWObsMap;if(!c||!c.ready||!X||!X.sky||!c.sky)return;
+  const L=typeof HWLive!=='undefined'&&HWLive.enabled()?HWLive:null,R0=L?L.state():null,wx=R0&&R0.wx&&R0.wx.st==='ok'&&R0.wx.d?R0.wx.d.current:null;
+  const P=points(),lat=P.length?P.reduce((a,g)=>a+g.lat,0)/P.length:5.3505,lng=P.length?P.reduce((a,g)=>a+g.lng,0)/P.length:100.5385;
+  const st2=X.sky.state({now:new Date(),lat,lng,wx,hazeLevel:L?L.level():0,preview:V.sky}),k=JSON.stringify([st2.tod,st2.rain,st2.fog,st2.haze,st2.cloud,Math.round(st2.az/5),Math.round(st2.alt/3),c.mode]);
+  if(k!==M.skyk){M.skyk=k;c.sky(st2)} // only when the picture changes: each change redraws the map once
+  if(!M.skyT)M.skyT=setInterval(()=>{if(!document.hidden)skyApply()},5*60e3); // the time of day moves on: one quiet check every 5 min, only while the map is open
+  const t=$id('cmpskycap');if(t)t.textContent='Sky: '+X.sky.words(st2)+(V.sky==='live'?(st2.src==='live'?' (live)':' (clock; no live weather)'):' (preview)')}
+acts.cmpskyb=()=>{V.skyo=!V.skyo;keep()};
+acts.cmpsky=d=>{if(!SKYN[d.v])return;V.sky=d.v;persist();keep();skyApply()};
+HWEvents.on('live:updated',()=>{if(S.v==='campus')skyApply()});
 
 /* ---------- the page ---------- */
 function stage(){const w=why(),s=V.sid&&rec(V.sid),g=V.grp&&points().find(x=>x.key===V.grp),on=(k,v)=>' aria-pressed="'+!!v+'"';
@@ -264,20 +297,35 @@ function stage(){const w=why(),s=V.sid&&rec(V.sid),g=V.grp&&points().find(x=>x.k
   const b=(a,lab,t,x)=>'<button type="button" class="cmpctl" data-a="'+a+'" aria-label="'+lab+'" title="'+lab+'"'+(x||'')+'>'+t+'</button>';
   return '<div class="cmpstage'+(V.full?' cmpfull':'')+'" id="cmpstage"'+(V.full?' role="dialog" aria-modal="true" aria-label="Campus map, full screen"':'')+'><div class="cmpslot" id="cmpmapslot"></div>'
     +'<div class="cmpmodes" role="group" aria-label="Map style"><button type="button" class="cmpmode" data-a="cmpmode" data-m="fantasy"'+on(0,V.mode==='fantasy')+'>Fantasy</button><button type="button" class="cmpmode" data-a="cmpmode" data-m="realistic"'+on(0,V.mode==='realistic')+'>Realistic</button></div>'
-    +pill+meBar()+chooser3()+'<div class="cmpctls" role="toolbar" aria-label="Map controls">'+b('cmpme','Show me on the map (uses your location)','<span class="cmploc" aria-hidden="true"></span>',' aria-pressed="'+meOn()+'"')+b('cmpzin','Zoom in','+')+b('cmpzout','Zoom out','−')+b('cmpnorth','North up','N')
+    +finder()+pill+meBar()+chooser3()+'<div class="cmpctls" role="toolbar" aria-label="Map controls">'+b('cmpme','Show me on the map (uses your location)','<span class="cmploc" aria-hidden="true"></span>',' aria-pressed="'+meOn()+'"')+b('cmpzin','Zoom in','+')+b('cmpzout','Zoom out','−')+b('cmpnorth','North up (the needle points north)','<span class="cmpcomp" id="cmpcomp" aria-hidden="true"><i></i><b>N</b></span>')+b('cmprotl','Rotate left','<svg viewBox="0 0 24 24" aria-hidden="true" class="cmpsv2"><path d="M9 5H4v5"/><path d="M4.5 9.5A8 8 0 1 1 6 17"/></svg>')+b('cmprotr','Rotate right','<svg viewBox="0 0 24 24" aria-hidden="true" class="cmpsv2"><path d="M15 5h5v5"/><path d="M19.5 9.5A8 8 0 1 0 18 17"/></svg>')
     +b('cmptilt','Tilted 3D view','3D',' id="cmptilt" aria-pressed="'+(M.ctl&&M.ctl.ready?M.ctl.map.getPitch()>5:!V.cam||V.cam.p>5)+'"')+b('cmpterr','Illustrative terrain',spr('peak'),on(0,V.terr))
-    +b('cmpbld','Raised buildings (illustrative heights)',spr('block'),on(0,V.bld))+b('cmpfit','Whole campus view',ico('map'))
+    +b('cmpbld','Raised buildings (illustrative heights)',spr('block'),on(0,V.bld))+b('cmpskyb','Sky and weather on the map',ico('cloud'),' id="cmpskyb" aria-expanded="'+V.skyo+'" aria-controls="cmpskyp"')+(typeof HWCampusMagic!=='undefined'?HWCampusMagic.layerBtn(b):'')+b('cmpfit','Whole campus view',ico('map'))
     +b('cmpfull',V.full?'Leave full screen':'Full screen map',ico('expand'),' id="cmpfullb" aria-pressed="'+V.full+'"')+'</div>'
-    +'<details class="cmpleg"><summary>Legend</summary><p><span class="cmplg m1"></span>Mild <span class="cmplg m2"></span>Moderate <span class="cmplg m3"></span>Vigorous <small>(app category)</small></p>'
-    +'<p><span class="cmplg est"></span>Estimated location <span class="cmplg part"></span>Step size measured (F21) or surveyed</p><p><span class="cmplg ter"></span>Raised ground: illustrative heights from the owner\'s annotated screenshot, not measured</p>'
-    +'<p><span class="cmplg osm"></span>Buildings, paths, fields: OpenStreetMap. Building heights are illustrative.</p>'+(V.mode==='fantasy'?'<p><span class="cmplg deco"></span>Roofs, turrets, trees, lanterns and glows are decoration on the real OSM outlines</p>':'')
+    +skyPanel()+(typeof HWCampusMagic!=='undefined'?HWCampusMagic.stage():'')+'<p class="cmpskycap" id="cmpskycap" role="status"></p>'+'<details class="cmpleg"><summary>Legend</summary><p><span class="cmplg m1"></span>Mild <span class="cmplg m2"></span>Moderate <span class="cmplg m3"></span>Vigorous <small>(app category)</small></p>'
+    +'<p><span class="cmplg est"></span>Estimated location <span class="cmplg part"></span>Step size measured (F21) or surveyed</p><p><span class="cmplg ter"></span>Raised ground and contour lines (every 2 m): which area is higher is from the owner\'s annotated screenshot; where the slopes start and end is estimated from the drone video and the staircase list. Heights are illustrative, not measured</p><p><span class="cmplg osm"></span>Roads with kerbs and drains, street lights, goal posts, the tennis net and car parks: modelled in Blender in the look of the drone video, on the OpenStreetMap roads and fields. Car park places are estimated; parked cars are decoration</p><p><span class="cmplg sky"></span>Sky: the live Kulim weather and modelled haze (Settings, Live data) and the time from your clock; a picture, not a forecast</p>'
+    +'<p><span class="cmplg osm"></span>Buildings, paths, fields: OpenStreetMap. Building heights are illustrative.</p>'+'<p><span class="cmplg lmkl"></span>Landmark: a place mapped in OpenStreetMap (gold once you have opened it). Exploring is not climbing</p>'+(V.mode==='fantasy'?'<p><span class="cmplg deco"></span>Roofs, turrets, banners, timber framing, trees, lanterns, signposts, notice boards, rune waystones and glows are decoration on the real OSM outlines; the gatehouse stands at the mapped gate</p>':'')
     +'<p><span class="cmplg vis"></span>A ring: you have saved a stair session there</p>'
-    +(meOn()?'<p>Your avatar: '+AV[avGet()||avOrder()[0]].n+'. '+esc(AV[avGet()||avOrder()[0]].c)+' It is drawn larger than life so it can be seen; its size and pace mark nothing.</p>':'')+'</details>'
+    +(meOn()?'<p>Your avatar: '+AV[avNow()].n+(avSex()?' (from your profile)':'')+'. '+esc(AV[avNow()].c)+' It is drawn larger than life so it can be seen; its size and pace mark nothing.</p>':'')+'</details>'
     +'<div class="cmpmsg" id="cmpmsg" role="status"'+(M.st==='ready'?' hidden':'')+'>'+esc(M.st==='error'?M.msg:'Loading the campus map…')+'</div></div>'}
+/** The search on the map: type a name, ID or building; only the matching markers stay on the map, and the matches are
+    offered as buttons under the box (no list to scroll). */
+const FINDN=6;
+function finds(){const q=V.q.trim();return q?shown().slice(0,FINDN):[]}
+function findRes(){const q=V.q.trim(),L=q?shown():[];if(!q)return '';
+  return L.length?L.slice(0,FINDN).map(s=>'<li><button type="button" class="cmpfr" data-a="cmppick" data-id="'+s.id+'">'+dot(s)+'<span><b>'+esc(s.name)+'</b><small>'+s.id+(placed(s)?'':' · no location on the map')+'</small></span></button></li>').join('')
+    +(L.length>FINDN?'<li class="cmpfmore">'+(L.length-FINDN)+' more: type more of the name</li>':'')
+    :'<li class="cmpfmore">No staircase matches.</li>'}
+function finder(){return '<div class="cmpfind" role="search"><label for="cmpfind" class="cmpvh">Find a staircase on the map</label>'
+  +'<input id="cmpfind" type="search" value="'+esc(V.q)+'" placeholder="Find a staircase: name, ID, building" autocomplete="off" aria-controls="cmpfindres">'
+  +(V.q?'<button type="button" class="cmpqx" data-a="cmpqx" aria-label="Clear the search">×</button>':'')
+  +'<ul class="cmpfres" id="cmpfindres" aria-live="polite">'+findRes()+'</ul></div>'}
+/** The map shows only the markers the search matches. */
+function filterMap(){if(!M.ctl||!M.ctl.ready||!M.ctl.only)return;const q=V.q.trim();if(!q){M.ctl.only(null);return}
+  const ids=new Set(shown().filter(placed).map(s=>s.id));M.ctl.only(points().filter(g=>g.items.some(s=>ids.has(s.id))).map(g=>g.key))}
 const nearTxt=(lat,lng,acc)=>{const n=points().map(g=>({g,d:dist(lat,lng,g.lat,g.lng)})).sort((a,b)=>a.d-b.d)[0];
   return n?'<p class="cmpyou" id="cmpnear">The nearest mapped staircase is <b>'+esc(n.g.items[0].name)+'</b>, about '+fmtD(n.d)+' away'+(acc?' (± '+Math.round(acc)+' m)':'')+'. Your position is used on this screen only: it is not saved or sent.</p>':''};
 /** The player's own stair activity, from saved sessions only (no new XP, badges or store). */
-function mine(){const L=typeof HWStairs!=='undefined'?HWStairs.all():[];if(!L.length)return '<div class="cmpwx"><b>'+ico('stairs')+' Your climbs on campus</b><p class="mut">No stair sessions saved yet. START STAIR SESSION on a staircase, then save it in the Stairs section below.</p>'+(typeof HWCampusStairs!=='undefined'?'<button type="button" class="g sm" data-a="stopen">OPEN STAIRS</button>':'')+'</div>';
+function mine(){const L=typeof HWStairs!=='undefined'?HWStairs.all():[];if(!L.length)return '<div class="cmpwx"><b>'+ico('stairs')+' Your climbs on campus</b><p class="mut">No stair sessions saved yet. Pick a staircase on the map, then log a climb in its Details.</p></div>';
   const d=new Date(),ymd=x=>x.getFullYear()+'-'+('0'+(x.getMonth()+1)).slice(-2)+'-'+('0'+x.getDate()).slice(-2),back=n=>{const x=new Date(d);x.setDate(x.getDate()-n);return ymd(x)};
   const t=today(),a7=back(6),b7=back(13),wk=L.filter(s=>s.d>=a7&&s.d<=t),pw=L.filter(s=>s.d>=b7&&s.d<a7),steps=A=>A.reduce((x,s)=>x+s.total,0);
   const C={};L.forEach(s=>{if(s.sid&&rec(s.sid))C[s.sid]=(C[s.sid]||0)+1});const top=Object.keys(C).sort((x,y)=>C[y]-C[x]||(x<y?-1:1)).slice(0,3),none=L.filter(s=>!s.sid||!rec(s.sid)).length;
@@ -297,7 +345,7 @@ function weather(){const L=typeof HWLive!=='undefined'?HWLive:null;if(!L)return'
   return '<div class="cmpwx"><b>'+ico('cloud')+' Weather and haze, live</b><p>'+(w?Math.round(w.temperature_2m)+' °C · '+esc(L.WMO[w.weather_code]||'Weather'):'')+(w&&a?' · ':'')
     +(bd?'Haze '+esc(bd.k.toLowerCase())+' (PM2.5 '+Math.round(a.pm2_5)+' µg/m³)':'')+'</p>'+note+'</div>'}
 function page(){Promise.resolve().then(()=>{mount();mount3d()});
-  return '<div class="card cmpcard" id="cmpcard" data-mode="'+V.mode+'"><p>The campus staircases on one map. Tap a marker, or search the list, to see a staircase, how its data was gathered, and your own climbs there.</p>'
+  return '<div class="card cmpcard" id="cmpcard" data-mode="'+V.mode+'"><p>The campus staircases on one map. Tap a marker, or search on the map, to pick a staircase: its Details are where you log a climb or a workout, see how its data was gathered, and your own climbs there.</p>'
     +'<p class="warn cmpwarn" role="note"><b>Locations are not verified.</b> They come from the original app data and have no recorded source, unless a staircase says "Measured location (survey)". The raised ground is illustrative.</p>'
     +'<div class="cmpwrap">'+stage()
     +'<div class="cmppanel"><div class="cmptabs" role="tablist"><button type="button" role="tab" id="cmptab-list" data-a="cmptab" data-t="list" aria-selected="'+(V.tab==='list')+'">Staircases</button><button type="button" role="tab" id="cmptab-det" data-a="cmptab" data-t="det" aria-selected="'+(V.tab==='det')+'">Details</button></div>'
@@ -305,7 +353,7 @@ function page(){Promise.resolve().then(()=>{mount();mount3d()});
     +'<p class="mut cmpsv">'+esc(HWCampusData.surveyNote())+'</p>'
     +(M.st==='ready'?'<div class="row"><button type="button" data-a="cmpme">'+(meOn()?'STOP SHOWING WHERE I AM':'SHOW WHERE I AM')+'</button></div>'
       :'<div class="row"><button type="button" data-a="cmpgps"'+(V.gps==='wait'?' disabled':'')+'>'+(V.gps==='wait'?'FINDING YOU...':'SHOW WHERE I AM')+'</button>'+(V.me?'<button type="button" class="g" data-a="cmpforget">HIDE MY POSITION</button>':'')+'</div>')
-    +(ME.last&&!ME.far&&ME.st==='gps'?nearTxt(ME.last.lat,ME.last.lng,ME.last.accuracy):'')+mine()
+    +(ME.last&&!ME.far&&ME.st==='gps'?nearTxt(ME.last.lat,ME.last.lng,ME.last.accuracy):'')+mine()+(typeof HWCampusMagic!=='undefined'?HWCampusMagic.below():'')
     +(V.err?'<p class="cmpe" role="alert">'+esc(V.err)+' Pick a staircase on the map or in the list instead.</p>':'')+where()+weather()
     +'<div class="cmpwx"><b>'+ico('map')+' Campus-wide activity</b><p class="mut">Not available. HealthWiz does not collect anyone else\'s location, so there is nothing to show here. Your own visits stay on your device.</p></div></div>'
     +(typeof HWCampusStairs!=='undefined'?HWCampusStairs.html():'')}
@@ -314,7 +362,9 @@ function page(){Promise.resolve().then(()=>{mount();mount3d()});
 const keep=()=>{persist();const y=window.scrollY;render();window.scrollTo(0,y)};
 const toDet=()=>{const e=D0.querySelector('#cmpdet .cmph');if(e)e.focus({preventScroll:true})};
 /** One path for every way of choosing a staircase: a marker, the list, a link in the details, focus(). */
-function pick(id,from){const s=rec(id);if(!s)return;V.sid=id;V.grp=null;V.tab='det';V.vw=true;V.fly=placed(s)&&from!=='restore';keep();if(from!=='map')toDet()}
+function pick(id,from){const s=rec(id);if(!s)return;V.sid=id;V.grp=null;V.tab='det';V.vw=true;V.fly=placed(s)&&from!=='restore';if(typeof HWStairs!=='undefined')HWStairs.choose(id);keep();if(from!=='map')toDet()}
+// a GPS check-in (js/v6-gps.js) found the staircase the player is at: it becomes the selection, its Details open
+HWEvents.on('activity:checkin',e=>{if(!e||!rec(e.sid))return;V.sid=e.sid;V.grp=null;V.tab='det';V.fly=placed(rec(e.sid));persist();if(S.v==='campus')setTimeout(()=>{if(S.v==='campus')keep()},0)});
 function pickGroup(key){if(!points().some(g=>g.key===key))return;V.grp=key;V.sid=null;V.tab='det';V.fly=false;keep();toDet()}
 acts.cmpgo=()=>go('campus');
 acts.cmppick=d=>pick(d.id,'list');
@@ -322,9 +372,10 @@ acts.cmptab=d=>{V.tab=d.t==='det'?'det':'list';keep()};
 acts.cmpfilt=d=>{if(FILTERS.indexOf(d.f)<0)return;V.f=d.f;keep()};
 acts.cmpqx=()=>{V.q='';keep();const q=$id('cmpq');if(q)q.focus()};
 acts.cmpclear=()=>{V.sid=V.grp=null;V.tab='list';keep()};
-acts.cmpstair=d=>{if(!rec(d.id))return;V.sid=d.id;V.grp=null;persist();HWCampusData.start(d.id)};
+acts.cmpstair=d=>{if(!rec(d.id))return;pick(d.id,'list');const l=$id('cmplog');if(l)l.scrollIntoView({block:'start'})};
 acts.cmpshow=()=>{const k=selKey();if(k&&M.ctl)M.ctl.flyToGroup(k)};
 acts.cmpmode=d=>{V.mode=d.m==='realistic'?'realistic':'fantasy';if(M.ctl)M.ctl.setMode(V.mode);keep()};
+acts.cmprotl=()=>{if(M.ctl)M.ctl.map.easeTo({bearing:M.ctl.map.getBearing()-30,duration:HWUI.reduced()?0:400})};acts.cmprotr=()=>{if(M.ctl)M.ctl.map.easeTo({bearing:M.ctl.map.getBearing()+30,duration:HWUI.reduced()?0:400})};
 acts.cmpzin=()=>{if(M.ctl)M.ctl.zoom(1)};acts.cmpzout=()=>{if(M.ctl)M.ctl.zoom(-1)};acts.cmpnorth=()=>{if(M.ctl)M.ctl.north()};
 acts.cmpfit=()=>{if(M.ctl)M.ctl.fit()};
 acts.cmptilt=()=>{if(!M.ctl)return;const on=M.ctl.map.getPitch()<=5;M.ctl.tilt(on);const b=$id('cmptilt');if(b)b.setAttribute('aria-pressed',String(on))};
@@ -341,7 +392,10 @@ acts.cmpvwc=d=>{const c=P3.ctl;if(!c)return;const v=d.v;if(v==='left')c.rotateBy
 acts.cmpvwshape=d=>{if(P3.ctl&&SHAPES.some(x=>x[0]===d.shape)){P3.ctl.setShape(d.shape);paintShapes()}};
 acts.cmpforget=()=>{V.me=null;V.err='';if(M.ctl)M.ctl.me(null);keep()};
 // the search filters the list in place, so typing keeps the focus
-D0.addEventListener('input',e=>{if(!e.target||e.target.id!=='cmpq')return;V.q=e.target.value.slice(0,80);persist();const L=shown(),l=$id('cmplist'),c=$id('cmpcount');if(l)l.innerHTML=items(L);if(c)c.textContent=countTxt(L)});
+D0.addEventListener('input',e=>{if(!e.target||(e.target.id!=='cmpq'&&e.target.id!=='cmpfind'))return;V.q=e.target.value.slice(0,80);persist();const L=shown(),l=$id('cmplist'),c=$id('cmpcount'),r=$id('cmpfindres');
+  if(l)l.innerHTML=items(L);if(c)c.textContent=countTxt(L);if(r)r.innerHTML=findRes();filterMap()});
+// Enter in the search on the map picks the first match
+D0.addEventListener('keydown',e=>{if(e.key!=='Enter'||!e.target||e.target.id!=='cmpfind')return;const f=finds()[0];if(f){e.preventDefault();V.q='';persist();pick(f.id,'list')}});
 /** Ask for one position (SHOW WHERE I AM only). On campus the nearest placed staircase is selected and the map goes there. */
 function locate(){const g=navigator.geolocation;V.err='';
   const fail=m=>{V.gps='';V.err=m;if(S.v==='campus')keep()};
@@ -356,11 +410,13 @@ function locate(){const g=navigator.geolocation;V.err='';
     e=>fail(e&&e.code===1?'Location permission is off for HealthWiz.':e&&e.code===3?'Finding your position took too long.':'Your position is not available right now.'),
     {enableHighAccuracy:true,timeout:20000,maximumAge:0})}
 acts.cmpgps=()=>locate();
-/** Select a staircase and bring the Observatory (the top of the page) into view: used by FIND / RETURN TO OBSERVATORY in the Stairs section. */
+/** Select a staircase and bring the Observatory (the top of the page) into view. */
 function show(id){if(V.sid===id&&rec(id)){V.grp=null;V.tab='det'}else if(!focus(id))return false; // already selected: the camera stays where it is
   persist();render();const e=$id('cmpcard');if(e)e.scrollIntoView({block:'start'});return true}
 /** Select a staircase from elsewhere (before go('campus')): the map flies to it; with no coordinates, it is not moved. */
-function focus(id){const s=rec(id);if(!s)return false;V.sid=id;V.grp=null;V.tab='det';V.vw=true;V.fly=placed(s);persist();if(M.ctl&&S.v==='campus')sync();return true}
+function focus(id){const s=rec(id);if(!s)return false;V.sid=id;V.grp=null;V.tab='det';V.vw=true;V.fly=placed(s);if(typeof HWStairs!=='undefined')HWStairs.choose(id);persist();if(M.ctl&&S.v==='campus')sync();return true}
+/** Open the Details tab (the Stairs card and its routes): the logging forms of the selection, or the GPS check-in. */
+function openLog(){V.grp=null;V.tab='det';V.full=false;if(V.sid&&typeof HWStairs!=='undefined')HWStairs.choose(V.sid);persist()}
 
 /* ---------- the page, and its door in the Health Hall (after the Science Laboratory's) ---------- */
 pages.campus=()=>page();
@@ -376,87 +432,7 @@ addEventListener('pagehide',()=>{if(M.ctl)persist()});
 
 /* Layout and the panel (they work without the map). The map's own pieces (markers, clusters, labels) are in
    observatory/observatory.css. The map stage takes the mode's colour tokens; the panel keeps the app's theme. */
-HWUI.css('campus',`
-.cmpwrap{display:grid;gap:12px;margin:10px 0}@media(min-width:900px){.cmpwrap{grid-template-columns:minmax(0,1fr) minmax(300px,380px);align-items:start}}
-.cmpstage{position:relative;height:clamp(380px,62vh,620px);border-radius:14px;overflow:hidden;border:1px solid var(--edge,var(--ln));
-  --panel:#ffffff;--panel2:#f4f5f2;--ink:#1d232b;--mut:#5a6470;--line:#d7dbe0;--acc:#2864d8;--acc-ink:#fff;--gold:#c99a2e;--cyan:#0f8f96;--font:var(--fn,system-ui,sans-serif);--head:var(--font);
-  --shadow:0 6px 24px rgba(20,30,50,.14),0 1px 3px rgba(20,30,50,.12);--m1:#2f9a5f;--m2:#c98a0b;--m3:#cc3f35;--est:#b26b00;--part:#0f7f86;--osm:#3f6fb5;--miss:#7a828c;--ter:#8a6d3b;background:#e6e9e2;color:var(--ink)}
-.cmpcard[data-mode="fantasy"] .cmpstage{--panel:rgba(14,22,54,.95);--panel2:#16224f;--ink:#eef1ff;--mut:#a9b3d9;--line:rgba(140,160,230,.26);--acc:#f2c14e;--acc-ink:#1a1430;--gold:#f2c14e;--cyan:#5fe1e6;--head:var(--fl,var(--font));
-  --shadow:0 0 0 1px rgba(242,193,78,.28),0 0 30px rgba(95,225,230,.10),0 12px 40px rgba(0,0,0,.5);--m1:#7ee07c;--m2:#f6c94f;--m3:#ff7b6e;--est:#ffd27a;--part:#63e6dc;--osm:#9cc0ff;--miss:#a6aed6;--ter:#d8c3ff;background:#0c2422}
-.cmpstage.cmpfull{position:fixed;inset:0;z-index:1000;height:auto;border-radius:0;border:0}html.cmp-fs,html.cmp-fs body{overflow:hidden}
-.cmpfull .cmpctls{top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right))}.cmpfull .cmpmodes{top:max(10px,env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left))}
-.cmpfull .cmpleg{bottom:max(30px,env(safe-area-inset-bottom))}
-.cmpstage.cmpoff{height:auto;min-height:0;background:var(--p2);color:inherit}.cmpnomap{padding:14px;font-size:15px}.cmpnomap svg{vertical-align:-3px}
-.cmpslot,.cmpslot>.cmpmap,.cmpslot>.cmpmap.maplibregl-map{position:absolute;inset:0;width:100%;height:100%}.cmpmsg[hidden]{display:none}.cmpmsg{position:absolute;inset:0;display:grid;place-items:center;padding:20px;text-align:center;background:var(--panel2);color:var(--mut);z-index:4}
-.cmpmodes{position:absolute;left:10px;top:10px;z-index:6;display:flex;gap:2px;padding:3px;border-radius:999px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow)}
-.cmpmode{border:0;margin:0;min-height:40px;padding:0 12px;border-radius:999px;background:transparent;color:var(--mut);font:600 13px var(--head);box-shadow:none}
-.cmpmode[aria-pressed="true"]{background:var(--acc);color:var(--acc-ink)}
-.cmpctls{position:absolute;right:10px;top:10px;z-index:6;display:flex;flex-direction:column;gap:6px}
-.cmpctl{width:44px;height:44px;min-height:44px;margin:0;padding:0;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);box-shadow:var(--shadow);font:700 16px var(--font);display:grid;place-items:center}
-.cmpctl[aria-pressed="true"]{background:var(--acc);color:var(--acc-ink);border-color:transparent}.cmpctl svg{width:20px;height:20px}
-.cmppill{position:absolute;z-index:6;left:10px;right:64px;top:62px;display:flex;align-items:center;gap:8px;max-width:max-content;padding:4px 4px 4px 12px;border-radius:999px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);color:var(--ink);font-size:14px}
-.cmppd{width:10px;height:10px;border-radius:50%;background:var(--acc);flex:0 0 auto}.cmppt{min-width:0;display:flex;gap:8px;align-items:baseline;overflow:hidden}.cmppt b{flex:0 0 auto}
-.cmppt span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--mut);font-size:13px}
-.cmpsb{margin:0;min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font:600 13px var(--font);flex:0 0 auto;box-shadow:none}
-.cmpsx{margin:0;width:36px;height:36px;min-height:36px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--ink);font-size:20px;flex:0 0 auto;box-shadow:none}
-.cmpleg{position:absolute;left:10px;bottom:30px;z-index:6;max-width:min(340px,calc(100% - 80px));background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);color:var(--ink);font-size:12.5px;padding:0 10px}
-.cmpleg summary{cursor:pointer;min-height:40px;display:flex;align-items:center;font:600 13px var(--head)}.cmpleg p{margin:6px 0}
-.cmplg{display:inline-block;width:12px;height:12px;border-radius:50%;margin:0 4px 0 6px;vertical-align:-1px}.cmplg:first-child{margin-left:0}
-.cmplg.m1{background:var(--m1)}.cmplg.m2{background:var(--m2)}.cmplg.m3{background:var(--m3)}.cmplg.est{border:2px dashed var(--est)}.cmplg.part{background:var(--part)}
-.cmplg.osm{border-radius:3px;background:var(--osm)}.cmplg.ter{border-radius:2px;background:linear-gradient(135deg,var(--cyan) 50%,var(--gold) 50%)}.cmplg.deco{background:radial-gradient(circle,#fff0a8,#f2c14e 45%,transparent 70%)}
-.cmppanel{border:1px solid var(--edge,var(--ln));border-radius:14px;background:var(--p2);overflow:hidden;min-width:0}
-@media(min-width:900px){.cmppanel{max-height:clamp(380px,62vh,620px);display:flex;flex-direction:column}.cmppane{overflow:auto;flex:1 1 auto}}
-.cmptabs{display:flex;border-bottom:1px solid var(--edge,var(--ln))}.cmptabs button{flex:1;margin:0;min-height:44px;border:0;border-radius:0;background:transparent;color:var(--mut);box-shadow:none;border-bottom:3px solid transparent}
-.cmptabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--gold,#f6c94f)}
-.cmppane{padding:10px 12px 14px;min-width:0}
-.cmpsearch{position:relative}.cmpsearch input{width:100%;min-height:44px;padding-right:44px;box-sizing:border-box}
-.cmpqx{position:absolute;right:4px;top:4px;margin:0;width:36px;height:36px;min-height:36px;padding:0;border:0;background:transparent;box-shadow:none;color:var(--mut);font-size:20px}
-.cmpvh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.cmpfilters{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}.cmpf{margin:0;min-height:44px;padding:0 12px;border-radius:999px;font-size:13px}.cmpf span{opacity:.75}
-.cmpf[aria-pressed="true"]{outline:2px solid var(--gold,#f6c94f);outline-offset:1px;color:var(--ink)}
-.cmpcount{margin:4px 0 8px;font-size:12px;color:var(--mut)}.cmpsmall{font-size:12.5px}
-.cmplist{list-style:none;margin:0;padding:0}.cmplist li+li{margin-top:6px}
-@media(max-width:899px){#cmplist{max-height:55vh;overflow:auto;overscroll-behavior:contain}}
-.cmpitem{width:100%;margin:0;color:var(--ink);text-align:left;display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:center;min-height:52px;padding:8px 10px;border-radius:12px;box-shadow:none}
-.cmpitem[aria-current="true"]{outline:2px solid var(--gold,#f6c94f);outline-offset:-2px}
-.cmpnm{font-weight:600;font-size:14px;line-height:1.3;overflow-wrap:anywhere}.cmpmeta{grid-column:2;font-size:12px;color:var(--mut);display:flex;flex-wrap:wrap;gap:4px 8px}
-.cmpdot{grid-row:span 2;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:700 12px var(--fn,sans-serif);color:#14102e}
-.cmpdot.c1{background:#7ee07c}.cmpdot.c2{background:#f6c94f}.cmpdot.c3{background:#ff8a7e}.cmpdot.nol{border:2px dashed var(--mut);color:var(--mut)}
-.cmpback,.cmplnk{margin:0;min-height:40px;padding:0 4px;border:0;background:transparent;box-shadow:none;color:var(--gold,#f6c94f)}.cmplnk{text-decoration:underline;min-height:32px}
-.cmpeye{margin:6px 0 0;font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}.cmph{margin:2px 0 6px;overflow-wrap:anywhere}.cmpmine{margin:4px 0;font-size:13px}
-.cmpact{margin:6px 0 4px}.cmpact button{min-height:44px}
-.cmpgrp{border:1px solid var(--edge,var(--ln));border-radius:12px;padding:10px 12px;margin-top:10px}.cmpgrp h3{margin:0 0 8px;font-size:14px}.cmpgrp h3 svg{vertical-align:-3px}
-.cmpfacts{margin:0;display:grid;grid-template-columns:minmax(92px,auto) 1fr;gap:6px 10px;font-size:13.5px}.cmpfacts dt{color:var(--mut);font-weight:600}.cmpfacts dd{margin:0;overflow-wrap:anywhere;min-width:0}
-.cmpsrc{display:block;font-size:12px;color:var(--mut)}.cmpna{color:var(--mut);font-style:italic}.cmpnum{font-variant-numeric:tabular-nums}
-.cmpchips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px;padding:0;list-style:none}
-.cmpchip{font-size:12px;font-weight:700;border-radius:999px;padding:3px 9px;border:1.5px solid currentColor;line-height:1.3}
-.cmpchip.est{color:#e7a93a;border-style:dashed}.cmpchip.miss{color:var(--mut);border-style:dashed}.cmpchip.part{color:#43c6bf}.cmpchip.calc{color:#43c6bf;border-style:dotted}.cmpchip.flag{color:var(--red,#ff6b5e)}
-.cmpnotes{margin:10px 0 0;padding:10px;border-radius:10px;border:1px dashed var(--edge,var(--ln));font-size:13px}
-.cmpwx{border-top:1px solid var(--edge,var(--ln));padding-top:8px;margin-top:10px}.cmpwx svg{vertical-align:-3px}.cmpe{color:var(--red);font-weight:bold}
-.cmpsv{font-size:12.5px;margin:4px 0}
-.cmpvw{border:1px solid var(--edge,var(--ln));border-radius:12px;padding:10px;margin:8px 0}.cmpvwh{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
-.cmpvwx{margin:0;width:44px;height:44px;min-height:44px;padding:0;font-size:20px;flex:0 0 auto}
-.cmpvws{position:relative;height:min(300px,42vh);min-height:220px;border-radius:10px;overflow:hidden;background:#0d1430;margin:6px 0}
-.cmpvwslot,.cmpvwhost,.cmpvwcv{position:absolute;inset:0}.cmpvwcv{touch-action:none}.cmpvwcv canvas{display:block;width:100%!important;height:100%!important}
-.cmpvwmsg{position:absolute;inset:0;display:grid;place-items:center;padding:16px;text-align:center;background:rgba(13,20,48,.92);color:#d8deff}.cmpvwmsg[hidden]{display:none}
-.cmpillus{position:absolute;left:8px;right:8px;bottom:8px;margin:0;padding:6px 10px;border-radius:9px;font-size:12.5px;font-weight:700;text-align:center;border:1.5px dashed #c9b6ff;color:#e6dcff;background:rgba(13,20,48,.82);pointer-events:none}
-.cmpvwc,.cmpvwshapes{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.cmpvb{margin:0;min-width:44px;min-height:44px;padding:0 10px;font-size:14px}.cmpvb[aria-pressed="true"]{outline:2px solid var(--gold,#f6c94f);outline-offset:1px}
-.cmpvwmore{margin-top:8px;font-size:13px}.cmpvwmore summary{cursor:pointer;min-height:40px;display:flex;align-items:center;font-weight:600}.cmpvwmore ul{margin:4px 0;padding-left:18px}
-.cmpchip.ill{color:#c9b6ff;border-style:dashed}
-.cmploc{display:block;width:20px;height:20px;border-radius:50%;border:2.5px solid currentColor;position:relative}.cmploc::after{content:"";position:absolute;inset:4px;border-radius:50%;background:currentColor}
-.cmpmebar{position:absolute;z-index:7;left:10px;right:64px;bottom:84px;display:flex;flex-wrap:wrap;align-items:center;gap:6px;max-width:max-content;padding:4px 4px 4px 12px;border-radius:16px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);color:var(--ink);font-size:13px}
-.cmpmed{width:12px;height:12px;border-radius:50%;background:#2864d8;flex:0 0 auto}.cmpmebar[data-st="demo"] .cmpmed{background:var(--gold)}.cmpmebar[data-st="error"] .cmpmed{background:#c9483c}.cmpmet{min-width:0;color:var(--mut)}.cmpmet b{color:var(--ink)}
-.cmpav{position:absolute;z-index:8;left:10px;right:64px;top:62px;max-width:420px;max-height:calc(100% - 80px);overflow:auto;padding:10px 12px;border-radius:14px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);color:var(--ink)}
-.cmpav ul{list-style:none;margin:6px 0;padding:0}.cmpav li{margin:6px 0}.cmpavb{width:100%;margin:0;min-height:44px;text-align:left;color:var(--ink)}.cmpavb[aria-pressed="true"]{outline:2px solid var(--gold,#f6c94f)}.cmpcred{display:block;color:var(--mut);font-size:12px;margin-top:2px}.cmpav a{color:var(--acc)}
-.cmplg.vis{border:2px solid #63e6dc}
-/* fantasy (integration Phase 4): the panels take the prototype's small gold corner brackets and a moonlit edge; the text,
-   numbers and labels keep the app's readable sans and contrast, so the health information stays ahead of the decoration */
-.cmpcard[data-mode="fantasy"] .cmppanel,.cmpcard[data-mode="fantasy"] .cmpvw{position:relative;border-color:rgba(242,193,78,.45);box-shadow:0 0 0 1px rgba(242,193,78,.12),0 0 22px rgba(95,225,230,.10)}
-.cmpcard[data-mode="fantasy"] .cmppanel::before,.cmpcard[data-mode="fantasy"] .cmpvw::before{content:"";position:absolute;inset:5px;pointer-events:none;z-index:1;opacity:.75;
-  background:linear-gradient(#f2c14e,#f2c14e) left top/12px 2px no-repeat,linear-gradient(#f2c14e,#f2c14e) left top/2px 12px no-repeat,linear-gradient(#f2c14e,#f2c14e) right top/12px 2px no-repeat,linear-gradient(#f2c14e,#f2c14e) right top/2px 12px no-repeat,
-  linear-gradient(#f2c14e,#f2c14e) left bottom/12px 2px no-repeat,linear-gradient(#f2c14e,#f2c14e) left bottom/2px 12px no-repeat,linear-gradient(#f2c14e,#f2c14e) right bottom/12px 2px no-repeat,linear-gradient(#f2c14e,#f2c14e) right bottom/2px 12px no-repeat}
-.cmpcard[data-mode="fantasy"] .cmpgrp h3,.cmpcard[data-mode="fantasy"] .cmpeye{color:var(--gold,#f6c94f)}
-`);
-return{points,unmapped,focus,show,why,get selected(){return V.sid},get map(){return M.ctl},get viewer(){return P3.ctl},
+// the styles are in v6-campus-css.js (kept apart so each file stays under the 64 KB limit of tests/00-fidelity)
+return{points,unmapped,focus,show,openLog,why,get selected(){return V.sid},get map(){return M.ctl},get viewer(){return P3.ctl},
   get me(){return{st:ME.st,far:ME.far,follow:ME.follow,choose:ME.choose,avatar:avGet(),last:ME.last}},
   get state(){return{sid:V.sid,grp:V.grp,mode:V.mode,full:V.full,vw:V.vw,v3:P3.st,shown:P3.shown,tab:V.tab,f:V.f,q:V.q,terr:V.terr,bld:V.bld,cam:V.cam,map:M.st,msg:M.msg,me:V.me,err:V.err}}}})();

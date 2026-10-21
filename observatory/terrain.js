@@ -1,5 +1,6 @@
-// Illustrative campus terrain. data/elevation-zones.geojson outlines two raised areas (traced from the owner's annotated
-// screenshot) with ILLUSTRATIVE heights. This module turns them into a height map the map drapes everything on:
+// Illustrative campus terrain. data/elevation-zones.geojson outlines the raised levels (which area is higher: the owner's
+// annotated screenshot; where the slopes start and end: estimated from the drone video and the staircase list) with
+// ILLUSTRATIVE heights. This module turns them into a height map the map drapes everything on:
 // a flat base, and for each zone a gentle rise (smooth, over slopeWidth_m metres) up to a flat top. No cliffs.
 // The height map is generated in the browser as Terrarium-encoded PNG tiles behind a custom URL scheme, so no server
 // or elevation service is used. Coordinates never change: only the ground under them rises.
@@ -97,35 +98,58 @@ export function createTerrain(zonesFC) {
   }
 
   /* ---------- draped overlays: the zone top, its edge, illustrative contour lines, and label points ---------- */
-  function outward(z, dist) { // the outline pushed outward by dist metres (per-vertex normal offset)
-    const P = z.P.slice(0, -1), n = P.length;
-    let area = 0; for (let i = 0; i < n; i++) { const [a, b] = P[i], [c, d] = P[(i + 1) % n]; area += a * d - c * b; }
-    const s = area > 0 ? 1 : -1; // counter-clockwise: outward is to the right of each edge
-    const out = P.map((p, i) => {
-      const a = P[(i - 1 + n) % n], b = P[(i + 1) % n];
-      let nx = (b[1] - a[1]) * s, ny = -(b[0] - a[0]) * s; const L = Math.hypot(nx, ny) || 1; nx /= L; ny /= L;
-      return [p[0] + nx * dist, p[1] + ny * dist];
-    });
-    out.push(out[0]);
-    const R = 6371008.8, k = Math.PI / 180;
-    return out.map(([x, y]) => [lng0 + x / (k * R * Math.cos(lat0 * k)), lat0 + y / (k * R)]);
+  /* ---------- illustrative contour lines, traced from the height field itself (marching squares), so terraces and the
+     banks between levels get the right lines where two levels meet ---------- */
+  const STEP = 2, CELL = 2.5; // contour interval and grid spacing, metres
+  function contours() {
+    if (!Z.length) return [];
+    const bx = [Math.min(...Z.map(z => z.box[0])), Math.min(...Z.map(z => z.box[1])), Math.max(...Z.map(z => z.box[2])), Math.max(...Z.map(z => z.box[3]))];
+    const nx = Math.ceil((bx[2] - bx[0]) / CELL) + 1, ny = Math.ceil((bx[3] - bx[1]) / CELL) + 1, H = new Float32Array(nx * ny);
+    for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) H[j * nx + i] = hLocal(bx[0] + i * CELL, bx[1] + j * CELL);
+    const top = Math.max(...Z.map(z => z.H)), out = [];
+    const R0 = 6371008.8, k = Math.PI / 180, ll = ([x, y]) => [+(lng0 + x / (k * R0 * Math.cos(lat0 * k))).toFixed(7), +(lat0 + y / (k * R0)).toFixed(7)];
+    for (let L = STEP; L < top; L += STEP) {
+      const segs = [];
+      const P = (i, j, i2, j2) => { const a = H[j * nx + i], b = H[j2 * nx + i2], t = (L - a) / (b - a); return [bx[0] + (i + (i2 - i) * t) * CELL, bx[1] + (j + (j2 - j) * t) * CELL]; };
+      for (let j = 0; j < ny - 1; j++) for (let i = 0; i < nx - 1; i++) {
+        const c = (H[j * nx + i] >= L ? 1 : 0) | (H[j * nx + i + 1] >= L ? 2 : 0) | (H[(j + 1) * nx + i + 1] >= L ? 4 : 0) | (H[(j + 1) * nx + i] >= L ? 8 : 0);
+        if (c === 0 || c === 15) continue;
+        const s = P(i, j, i + 1, j), e = P(i + 1, j, i + 1, j + 1), n = P(i, j + 1, i + 1, j + 1), w = P(i, j, i, j + 1);
+        const E = { 1: [[w, s]], 2: [[s, e]], 3: [[w, e]], 4: [[e, n]], 5: [[w, n], [s, e]], 6: [[s, n]], 7: [[w, n]], 8: [[n, w]], 9: [[n, s]], 10: [[s, w], [n, e]], 11: [[n, e]], 12: [[e, w]], 13: [[e, s]], 14: [[s, w]] }[c];
+        segs.push(...E);
+      }
+      // join the cell segments into lines
+      const key = p => p[0].toFixed(2) + ',' + p[1].toFixed(2), at = new Map();
+      segs.forEach((sg, x) => { for (const p of sg) { const q = key(p); (at.get(q) || at.set(q, []).get(q)).push(x); } });
+      const used = new Uint8Array(segs.length);
+      for (let x = 0; x < segs.length; x++) {
+        if (used[x]) continue; used[x] = 1;
+        const line = [segs[x][0], segs[x][1]];
+        for (const dir of [1, 0]) {
+          for (;;) {
+            const end = dir ? line[line.length - 1] : line[0], nxt = (at.get(key(end)) || []).find(y => !used[y]);
+            if (nxt == null) break;
+            used[nxt] = 1; const sg = segs[nxt], p = key(sg[0]) === key(end) ? sg[1] : sg[0];
+            dir ? line.push(p) : line.unshift(p);
+          }
+        }
+        if (line.length < 3) continue;
+        // the level whose rise makes this line (for its colour): the zone that gives the most height at its middle point
+        const m = line[line.length >> 1]; let lv = null, best = -1;
+        for (const z of Z) { if (m[0] < z.box[0] || m[0] > z.box[2] || m[1] < z.box[1] || m[1] > z.box[3]) continue; const d = sdist(z, m[0], m[1]), v = d <= 0 ? z.H : d < z.W ? z.H * smooth(1 - d / z.W) : 0; if (v > best) { best = v; lv = z.f.properties.level; } }
+        out.push({ type: 'Feature', properties: { zkind: 'contour', level: lv || 'middle', h: L, major: L % 10 === 0 }, geometry: { type: 'LineString', coordinates: line.map(ll) } });
+      }
+    }
+    return out;
   }
-  /** Distance outside the outline (m) where the gentle slope reaches height h: solve H·smooth(1 − d/W) = h. */
-  function distAt(z, h) {
-    let lo = 0, hi = 1; // t = 1 − d/W, smooth(t) rises from 0 to 1
-    for (let i = 0; i < 30; i++) { const t = (lo + hi) / 2; if (z.H * smooth(t) < h) lo = t; else hi = t; }
-    return (1 - (lo + hi) / 2) * z.W;
-  }
-  const STEP = 3; // illustrative contour interval, metres
   function overlays() {
     const F = [];
     for (const z of Z) {
       const p = z.f.properties;
       F.push({ type: 'Feature', properties: { zkind: 'top', level: p.level }, geometry: { type: 'Polygon', coordinates: [z.ring] } });
       F.push({ type: 'Feature', properties: { zkind: 'edge', level: p.level }, geometry: { type: 'LineString', coordinates: z.ring } });
-      for (let h = STEP; h < z.H; h += STEP) F.push({ type: 'Feature', properties: { zkind: 'contour', level: p.level, h }, geometry: { type: 'LineString', coordinates: outward(z, distAt(z, h)) } });
     }
-    return { type: 'FeatureCollection', features: F };
+    return { type: 'FeatureCollection', features: F.concat(contours()) };
   }
   /** Where each zone's label goes: the middle zone above its northern edge, the highest zone off its western side. */
   function labels() {

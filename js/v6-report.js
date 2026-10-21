@@ -66,7 +66,7 @@ function observe(W){
   else if(c.el.length>=3)O.push([2,'No stair sessions were logged this week.']);
   if(c.rest.length>=2)O.push([1,'Resting heart rate (before a workout or logged at rest) averaged '+f0(mean(c.rest))+' BPM from '+c.rest.length+' readings, ranging '+Math.min(...c.rest)+'–'+Math.max(...c.rest)+' BPM.']);
   if(c.rec.length>=2)O.push([1,'Across '+c.rec.length+' workouts with a 1-minute reading, the pulse dropped by '+f0(mean(c.rec))+' BPM on average after stopping.']);
-  if(c.stress.length>=3)O.push([1,'Self-rated stress averaged '+f1(mean(c.stress.map(x=>x[1])))+' / 10 over '+c.stress.length+' check-ins.']);
+  if(c.stress.length>=3)O.push([1,'Stress check-ins (the storm level from the DASS-21) averaged '+f1(mean(c.stress.map(x=>x[1])))+' / 10 over '+c.stress.length+' check-ins.']);
   return O.sort((a,b)=>b[0]-a[0]).slice(0,3).map(x=>x[1])}
 function suggest(W){
   const c=W.cur,S=[],hide=typeof HWCond!=='undefined'&&HWCond.stairsHidden();

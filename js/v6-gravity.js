@@ -1,4 +1,4 @@
-/* v6: Stair Sense, the Gravity Trial. A card on the Stairs page. Not part of the original.
+/* v6: Stair Sense, the Gravity Trial. A card in the Observatory's Details, under the logging forms (since 2026-10-20; it was on the Stairs page). Not part of the original.
    START CLIMB / PAUSE / FINISH time a climb, estimate steps and cadence from the phone's motion sensor, and turn the result
    into estimated physical quantities with the physics the Stairs page already teaches (rise ÷ run, js/v6-stairs.js STUDY):
 
@@ -109,11 +109,17 @@ function help(){return HWHelp.btn('gvhelp','Stair Sense: how it works and what i
   +'<p><b>Safety:</b> hold the handrail, look where you step and climb at a pace that is comfortable for you. Stop if you feel dizzy, faint or have chest pain. This is not a challenge or a race: slower is fine, and a lower power is not worse. It is not a medical measurement.</p>'
   +'<p>The sensor only runs while a climb is running. Pausing, finishing, cancelling or leaving the page turns it off, and nothing is sent anywhere.</p>'
   +(typeof HWSources!=='undefined'?'<b class="hwx-h">SOURCES</b><ul class="hwx-src">'+['nistg','nistcal'].map(HWSources.cite).join('')+'</ul>':''),{label:'About Stair Sense',ev:'gravity'})}
+// The staircase is the one picked in the Observatory (on the map, by its search, or by a GPS check-in): no list to scroll
+// (owner's request, 2026-10-20). It follows a new pick, except while a climb is running or paused.
+function follow(){
+  const p=typeof HWStairs.pick==='string'&&stairOf(HWStairs.pick)?HWStairs.pick:'';
+  if(!p&&G.ph==='idle')G.sid='';
+  if(p&&p!==G.sid&&G.ph!=='running'&&G.ph!=='paused'){G.sid=p;G.dup=0;
+    if(G.ph==='review'&&!G.ed.rise){const vr=verifiedRise(p);G.inp.rise=vr?String(Math.round(vr*1000)/10):''}}}
 function stairSelect(){
-  const cur=G.sid||(HWStairs.pick&&stairOf(HWStairs.pick)?HWStairs.pick:'');
-  if(!G.sid&&cur)G.sid=cur;
-  return '<label for="gv-sid">Staircase</label><select id="gv-sid" data-in="gv" data-f="sid"><option value="">Choose a staircase…</option>'
-    +CATS.map(c=>'<optgroup label="'+c[1]+'">'+stairsOf(c[1]).map(s=>'<option value="'+s.id+'"'+(s.id===G.sid?' selected':'')+'>'+esc(s.name)+(riseKind(s.id)==='study'?' · step height measured':riseKind(s.id)==='angle'?' · step height from angle':'')+'</option>').join('')+'</optgroup>').join('')+'</select>'}
+  const q=stairOf(G.sid),k=q?riseKind(q.id):'';
+  return '<p class="gvloc" id="gv-sid" tabindex="-1"><span>Staircase</span> '+(q?'<b>'+esc(q.name)+'</b> · '+q.id+(k==='study'?' · step height measured':k==='angle'?' · step height from angle':'')
+    :'<b>none picked yet</b>: tap one on the map, or search for it on the map')+'</p>'}
 function meter(){const k=(G.est%20)/20*100;return '<div class="gvm" id="gv-meter" role="img" aria-label="Ascent meter: decorative, it fills as steps are counted and starts again every 20 steps"><span class="gvml">ASCENT METER</span>'+bar(k,'var(--vio)')+'</div>'}
 function sensTxt(){
   if(G.sensor==='unsupported')return 'This browser has no motion sensor. The timer works; count your steps and type them in at the end.';
@@ -185,7 +191,7 @@ function results(){
     +'<small class="mut">Work against gravity is not the energy your body uses, which is several times larger. It is also not measured by the phone. Power is an average over the whole time, so resting inside the time lowers it. Slower and steadier is not worse.</small></div>'}
 function saved(){const s=G.saved;
   return '<p role="status"><b>Saved.</b> '+esc(s.loc)+' · '+s.n+' steps · '+s.min+' min added to your stair log'+(s.W!=null?' · W ≈ '+f1(s.W/1000,2)+' kJ':'')+'.</p><button type="button" class="g" data-a="gvnew">NEW CLIMB</button>'}
-function body(){return G.ph==='idle'?idle():G.ph==='running'||G.ph==='paused'?running():G.ph==='review'?review():saved()}
+function body(){follow();return G.ph==='idle'?idle():G.ph==='running'||G.ph==='paused'?running():G.ph==='review'?review():saved()}
 function card(){
   return '<div class="card stcard gv" id="gvtrial"><h3>'+ico('wizard')+' STAIR SENSE · THE GRAVITY TRIAL '+help()+'</h3><span class="pxtag gvtag">ESTIMATES ONLY</span>'+'<div id="gv-body">'+body()+'</div>'+(typeof HWAlchemy!=='undefined'?'<button type="button" class="g sm gvalc" data-a="alopen">COMPARE WITH FOOD ENERGY (OPTIONAL)</button>':'')+'</div>'}
 function repaint(focus){const b=$i('gv-body');if(!b)return;b.innerHTML=body();live();if(focus){const e=$i(focus);if(e)e.focus({preventScroll:true})}}
@@ -263,17 +269,17 @@ acts.gvsave=()=>{
   G.saved={loc:q.name,n,min:Math.round(min*10)/10,W:gv.W};G.ph='saved';G.dup=0;render()};
 
 // anywhere else, the sensor is off: leaving the page or hiding the tab pauses a running climb
-HWEvents.on('page:viewed',e=>{if(e.view!=='campus'&&(G.ph==='running'))acts.gvpause()});HWEvents.on('stairs:closed',()=>{if(G.ph==='running')acts.gvpause()});
+HWEvents.on('page:viewed',e=>{if(e.view!=='campus'&&(G.ph==='running'))acts.gvpause()});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&G.ph==='running')acts.gvpause()});
 HWEvents.on('data:reset',()=>{stop();G=fresh()});HWEvents.on('data:imported',()=>{stop();G=fresh()});
 
-{const p=pages.stair;pages.stair=function(){const h=p.apply(this,arguments),j=h.indexOf('<div class="card" id="stlog">');
-  const c=card();return j<0?h+c:h.slice(0,j)+c+h.slice(j)}} // below the page's own trackers, above the Session Chronicle
+// in the Observatory's Details, under the logging forms of both halves (the Stairs section below keeps only the history)
+{const p=HWStairs.logPanel;HWStairs.logPanel=function(){return p.apply(this,arguments)+card()}}
 
 HWUI.css('gravity',`
 .gv h3{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;margin-bottom:4px}.gvtag{display:inline-block;margin:0 0 6px}
 .gv label{display:block;margin:10px 0 2px;font-size:14px}.gv select,.gv input[type=number]{width:100%;min-height:44px;box-sizing:border-box}
-.gvq{margin:6px 0}.gvph{display:block;margin:10px 0}
+.gvq{margin:6px 0}.gvloc{margin:8px 0 2px}.gvloc span{display:block;font-size:14px}.gvph{display:block;margin:10px 0}
 .gvack{display:flex!important;gap:8px;align-items:flex-start;min-height:44px}.gvack input{width:24px;height:24px;flex:0 0 auto}
 .gvgo,.gvfin{width:100%;min-height:52px}.gvgo:disabled{opacity:.5}
 .gvsafe{margin:10px 0 0;font-size:13px}

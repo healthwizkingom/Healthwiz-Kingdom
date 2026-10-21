@@ -1,18 +1,22 @@
-// The Stairs features (js/v6-stairs.js), now the Stairs section of the Campus page (tests/83-stairs-in-campus): two halves side by side, CASUAL STAIRS (GPS check-in first, then by hand) and the
+// The Stairs features (js/v6-stairs.js): the logging forms in the Observatory's Details for the staircase picked there, the history in
+// the Stairs section of the Campus page (tests/83-stairs-in-campus): two halves side by side, CASUAL STAIRS (GPS check-in first, then by hand) and the
 // WORKOUT & HEART RATE half (Pace & Breathe timer, heart rate before / after with LOG BPM, calorie estimate behind a ?),
 // all logging one kind of stair session. Running lives on the Training Hall page. No Pulse page, no demo stairway, no
 // invented numbers.
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { openApp, closeBrowser, go, RETURNING, state, entry, fillSteps } from './helpers.mjs';
+import { openApp, closeBrowser, go, RETURNING, state, entry, fillSteps, pickStair, stairHistory } from './helpers.mjs';
 
 after(closeBrowser);
 const AT_ST20 = { latitude: 5.35202, longitude: 100.53838, accuracy: 12 };
-// boot: the workout half (the old Pulse route opens it); bootC: the casual half
-const boot = async (o = {}) => { const r = await openApp(o); await r.page.waitForSelector('.wl'); await go(r.page, 'pulse'); return r; };
-const bootC = async (o = {}) => { const r = await openApp(o); await r.page.waitForSelector('.wl'); await go(r.page, 'stair'); return r; };
+// boot: the workout half (the old Pulse route opens it); bootC: the casual half. Both also open the Stairs section (the
+// history: summary, chart, measured stairways, chronicle) under the Observatory, whose Details hold the forms.
+const boot = async (o = {}) => { const r = await openApp(o); await r.page.waitForSelector('.wl'); await go(r.page, 'pulse'); await stairHistory(r.page); return r; };
+const bootC = async (o = {}) => { const r = await openApp(o); await r.page.waitForSelector('.wl'); await go(r.page, 'stair'); await stairHistory(r.page); return r; };
 // the energy estimates live only in the "?" panel: open it fresh and return its text
 const est = async page => { await page.keyboard.press('Escape'); await page.click('#wk-kcal .hwh'); await page.waitForSelector('#hwh-pop:not([hidden])'); return page.textContent('#hwh-pop'); };
+// the history (the Stairs section's Session Chronicle) as text, opening the section first
+const hist = async page => { await stairHistory(page); return page.textContent('#stlog'); };
 // the page's HTML order of some markers
 const orderOf = (page, ids) => page.evaluate(ids => { const h = document.querySelector('#main').innerHTML; return ids.map(i => h.indexOf(i)); }, ids);
 const stairs = s => s.e.filter(e => e.c === 'stair');
@@ -22,8 +26,8 @@ const lit = (page, id) => page.evaluate(i => { const c = document.getElementById
 test('one page, two halves side by side; GPS first; Pulse opens the heart rate; Running is on the Training Hall; nothing pre-selected', async () => {
   const { page, ctx, errors } = await bootC();
   // casual half: halves, then GPS check-in, then the hand log
-  const o1 = await orderOf(page, ['id="stt-casual"', 'id="stt-workout"', 'id="st-casual"', 'id="v6gps"', 'id="stman"', 'id="stlog"']);
-  assert.ok(o1.every((v, i) => v >= 0 && (i === 0 || v > o1[i - 1])), 'halves → GPS check-in → hand log → chronicle: ' + o1);
+  const o1 = await orderOf(page, ['id="stt-casual"', 'id="stt-workout"', 'id="st-casual"', 'id="v6gps"', 'id="stman"']);
+  assert.ok(o1.every((v, i) => v >= 0 && (i === 0 || v > o1[i - 1])), 'halves → GPS check-in → hand log: ' + o1);
   const box = id => page.$eval(id, e => { const r = e.getBoundingClientRect(); return { x: r.left, w: r.width, y: r.top }; });
   const [c, w] = [await box('#stt-casual'), await box('#stt-workout')];
   assert.ok(Math.abs(c.y - w.y) < 2 && w.x > c.x + c.w - 2, 'the two halves are side by side, not one above the other');
@@ -35,15 +39,15 @@ test('one page, two halves side by side; GPS first; Pulse opens the heart rate; 
   // no demo / placeholder stairway, no default selection
   assert.equal(await page.evaluate(() => STAIRS.some(s => s.id === 'ST01' || s.angle === 7.26)), false);
   assert.doesNotMatch(await page.textContent('#main'), /7\.26/);
-  assert.equal(await page.locator('.sqlist .chip.on').count(), 0, 'no stairway is shown as chosen');
-  assert.match(await page.textContent('.stloc'), /No stairway chosen yet/);
+  assert.equal(await page.locator('.sqlist .chip, .stcats').count(), 0, 'no stairway list to scroll: staircases are picked on the map');
+  assert.match(await page.textContent('.stloc'), /No staircase picked yet/);
   assert.equal(await page.locator('#wk-loc').count(), 0, 'the workout is the other half');
   // the workout half
   await page.click('#stt-workout');
   assert.equal(await page.getAttribute('#stt-workout', 'aria-current'), 'page');
-  const o2 = await orderOf(page, ['id="stt-workout"', 'PACE &amp; BREATHE', 'id="sthrc"', 'id="stseal"', 'id="stlog"']);
-  assert.ok(o2.every((v, i) => v >= 0 && (i === 0 || v > o2[i - 1])), 'halves → workout → heart rate → seal → chronicle: ' + o2);
-  assert.equal(await page.inputValue('#wk-loc'), '');
+  const o2 = await orderOf(page, ['id="stt-workout"', 'PACE &amp; BREATHE', 'id="sthrc"', 'id="stseal"']);
+  assert.ok(o2.every((v, i) => v >= 0 && (i === 0 || v > o2[i - 1])), 'halves → workout → heart rate → seal: ' + o2);
+  assert.match(await page.textContent('#wk-loc'), /No staircase picked yet/);
   assert.equal(await page.locator('#stman').count(), 0);
   // no Pulse page, no separate pulse form or history, no Measure Pulse button
   for (const sel of ['#pb', '[data-a="savepulse"]', '#ecg', '#sd', '#sn']) assert.equal(await page.locator(sel).count(), 0, sel);
@@ -54,9 +58,9 @@ test('one page, two halves side by side; GPS first; Pulse opens the heart rate; 
   assert.ok(tiles.includes('stair:Stairs'));
   // old routes: Pulse (Heartstone Hall) opens the heart-rate card; Running opens the Training Hall's Running Road
   await go(page, 'pulse');
-  assert.equal(await page.evaluate(() => S.v), 'campus', 'the Stairs section of the Campus page');
+  assert.equal(await page.evaluate(() => S.v), 'campus', 'the Campus page, logging in the Observatory');
   assert.equal(await page.getAttribute('#stt-workout', 'aria-current'), 'page');
-  assert.ok(await page.evaluate(() => Math.abs(document.getElementById('sthrc').getBoundingClientRect().top) < 40), 'Pulse opens the heart-rate card');
+  assert.deepEqual(await page.evaluate(() => [scrollY, !!document.querySelector('#cmplog #sthrc')]), [0, true], 'Pulse opens the top, with the heart-rate card in Details');
   await page.evaluate(() => { window.L = { map: () => ({ on() {}, remove() {}, fitBounds() {}, setView() {} }), tileLayer: () => ({ addTo() {} }), polyline: () => ({ addTo() { return this; }, getBounds() {} }) }; });
   await go(page, 'run');
   assert.equal(await page.evaluate(() => S.v), 'exercise');
@@ -73,8 +77,7 @@ test('casual climb by hand: needs a stairway and valid counts, saves one unified
   await fillSteps(page, '#ss', '12'); await page.fill('#sc', '2');
   await page.click('[data-a="savestair"]');
   assert.equal((await state(page)).e.length, 0, 'no stairway chosen: nothing saved, nothing invented');
-  await page.click('[data-a="cat"][data-c="MODERATE"]');
-  await page.click('.sqlist .chip:has-text("penjana elektrik")');
+  await pickStair(page, 'ST20');
   assert.match(await page.textContent('.stloc'), /penjana elektrik[\s\S]*Moderate[\s\S]*5\.35199/);
   await fillSteps(page, '#ss', '0'); await page.click('[data-a="savestair"]');
   assert.equal((await state(page)).e.length, 0, 'invalid counts rejected');
@@ -86,7 +89,7 @@ test('casual climb by hand: needs a stairway and valid counts, saves one unified
   assert.equal(s.e.length, 1);
   assert.equal(e.c, 'stair'); assert.equal(e.v, 24); assert.equal(e.d, '2026-09-30'); assert.equal(e.t, '07:15'); assert.equal(e.n, '');
   assert.deepEqual([e.m.sid, e.m.kind, e.m.src, e.m.steps, e.m.climbs, e.m.hrB, e.m.hrA, e.m.kcal, e.m.lat], ['ST20', 'casual', 'manual', 12, 2, null, null, null, 5.3519878]);
-  assert.match(await page.textContent('#stlog'), /penjana elektrik[\s\S]*CASUAL[\s\S]*BY HAND[\s\S]*24 steps \(2 × 12\)/);
+  assert.match(await hist(page), /penjana elektrik[\s\S]*CASUAL[\s\S]*BY HAND[\s\S]*24 steps \(2 × 12\)/);
   assert.deepEqual(errors, []);
   await ctx.close();
 });
@@ -105,9 +108,10 @@ test('GPS check-in writes the same session shape (casual, gps) and selects that 
   assert.deepEqual([e.v, e.n, e.m.sid, e.m.kind, e.m.src, e.m.chk, e.m.hrB, e.m.hrA, e.m.kcal], [40, '', 'ST20', 'casual', 'gps', 'gps', null, null, null]);
   const norm = await page.evaluate(() => HWStairs.all()[0]);
   assert.deepEqual([norm.kind, norm.src, norm.total, norm.lat], ['casual', 'gps', 40, 5.3519878]);
+  assert.equal(await page.evaluate(() => HWCampus.selected), 'ST20', 'the check-in picks that staircase in the Observatory');
   await page.click('#stt-workout');
-  assert.equal(await page.inputValue('#wk-loc'), 'ST20', 'the workout uses the stairway checked in at');
-  assert.match(await page.textContent('#stlog'), /CASUAL[\s\S]*GPS CHECK-IN/);
+  assert.match(await page.textContent('#wk-loc'), /penjana elektrik/, 'the workout uses the stairway checked in at');
+  assert.match(await hist(page), /CASUAL[\s\S]*GPS CHECK-IN/);
   assert.deepEqual(errors, []);
   await ctx.close();
 });
@@ -121,7 +125,7 @@ test('workout: timer, heart rate before and after (two traces), calorie estimate
   assert.doesNotMatch(await page.textContent('#wk-kcal'), /≈|kcal/, 'no energy numbers until ? is pressed');
   assert.match(await est(page), /Pace & Breathe timer, or type the workout time/);
   await page.keyboard.press('Escape');
-  await page.selectOption('#wk-loc', 'ST24');
+  await pickStair(page, 'ST24');
   await page.fill('#wk-b', '72');
   await page.click('[data-a="pace"][data-i="2"]');
   await page.click('[data-a="pstart"]');
@@ -135,7 +139,7 @@ test('workout: timer, heart rate before and after (two traces), calorie estimate
   await page.reload(); await page.waitForSelector('.wl'); await go(page, 'pulse');
   assert.equal(await page.inputValue('#wk-b'), '72');
   assert.ok(await page.evaluate(() => HWStairs.draft.secs) >= 1, 'timer kept');
-  await page.selectOption('#wk-loc', 'ST24');
+  await pickStair(page, 'ST24');
   await page.click('[data-a="pace"][data-i="2"]');
   await page.fill('#wk-a', '130');
   await page.waitForTimeout(300);
@@ -157,9 +161,9 @@ test('workout: timer, heart rate before and after (two traces), calorie estimate
   assert.deepEqual([e.v, e.m.sid, e.m.kind, e.m.src, e.m.pace, e.m.dur, e.m.hrB, e.m.hrA, e.m.hrS, e.m.kcal.m], [90, 'ST24', 'workout', 'manual', 'Vigorous', 8, 72, 130, 'manual', 'met+hr']);
   assert.ok(e.m.kcal.v >= 79 && e.m.kcal.v <= 81, JSON.stringify(e.m.kcal));
   assert.equal(await page.inputValue('#wk-b'), '', 'the form is cleared after saving');
-  assert.match(await page.textContent('#stlog'), /Tangga dalam Blok A[\s\S]*WORKOUT[\s\S]*VIGOROUS[\s\S]*90 steps[\s\S]*8 min[\s\S]*Before[\s\S]*72[\s\S]*After[\s\S]*130/);
-  assert.doesNotMatch(await page.textContent('#stlog'), /≈ ?80|kcal est/, 'the session card shows no energy number until ? is pressed');
-  await page.click('#stlog [data-hwh^="sk-"]');
+  assert.match(await hist(page), /Tangga dalam Blok A[\s\S]*WORKOUT[\s\S]*VIGOROUS[\s\S]*90 steps[\s\S]*8 min[\s\S]*Before[\s\S]*72[\s\S]*After[\s\S]*130/);
+  assert.doesNotMatch(await hist(page), /≈ ?80|kcal est/, 'the session card shows no energy number until ? is pressed');
+  await stairHistory(page); await page.click('#stlog [data-hwh^="sk-"]');
   assert.match(await page.textContent('#hwh-pop'), /About 80 kcal[\s\S]*not a measurement/);
   await page.keyboard.press('Escape');
   assert.equal(await page.locator('#sthrg svg .hb').count(), 1, 'chart: before point');
@@ -192,7 +196,7 @@ test('missing data: no confirmed profile asks for it (no defaults used); invalid
   assert.match(k2, /≈ 63[\s\S]*kcal/);
   assert.doesNotMatch(k2, /range|under-18s/);
   await page.keyboard.press('Escape');
-  await page.selectOption('#wk-loc', 'ST03');
+  await pickStair(page, 'ST03');
   await fillSteps(page, '#wk-s', '10'); await page.fill('#wk-c', '1');
   await page.fill('#wk-a', '400');
   await page.click('[data-a="stwsave"]');
@@ -201,7 +205,7 @@ test('missing data: no confirmed profile asks for it (no defaults used); invalid
   await page.click('[data-a="stwsave"]');
   const e = stairs(await state(page))[0];
   assert.deepEqual([e.m.kind, e.m.hrB, e.m.hrA, e.m.hrS, e.m.dur, e.m.kcal.v, e.m.kcal.m], ['workout', null, null, undefined, 10, 63, 'met']);
-  assert.equal(await page.locator('#stlog .stsh').count(), 0, 'no heart-rate bars for a workout without heart rate');
+  assert.equal(await (await stairHistory(page), page).locator('#stlog .stsh').count(), 0, 'no heart-rate bars for a workout without heart rate');
   assert.match(await page.textContent('#sthrg'), /No heart rates yet/);
   assert.deepEqual(errors, []);
   await ctx.close();
@@ -240,7 +244,7 @@ test('old data: stair sessions and pulse entries kept untouched; sessions read t
   const before = JSON.stringify(seed.e);
   const S2 = await page.evaluate(() => HWStairs.all().map(s => [s.kind, s.src, s.hrB, s.hrA, s.loc]));
   assert.deepEqual(S2, [['workout', 'manual', 70, 96, 'Tangga Selangkah Menara Gading'], ['casual', 'gps', null, null, 'Tangga sebelah rumah penjana elektrik ke Dewan Kenanga']]);
-  const txt = await page.textContent('#stlog');
+  const txt = await hist(page);
   assert.match(txt, /Tangga Selangkah Menara Gading[\s\S]*WORKOUT/, 'a session logged at the removed placeholder stairway keeps its name');
   assert.doesNotMatch(await page.textContent('#main'), /After stairs|Resting/, 'old pulse entries are not listed');
   for (const v of ['home', 'stats', 'guide', 'kingdom', 'badges', 'quests', 'set']) await go(page, v);
@@ -285,16 +289,17 @@ test('stairway counts agree (32 total, 28 mapped), every stairway shows θ and i
   assert.match(man, /32 stairways[\s\S]*Mild 11 \+ Moderate 11 \+ Vigorous 10/);
   assert.match(man, /Mild < 26°, Moderate 26–31\.2°, Vigorous > 31\.2°/);
   assert.match(man, /θ = tan⁻¹\(rise ÷ run\), estimated from the stairway's stored data/);
-  for (const [c, n] of [['MILD', 11], ['MODERATE', 11], ['VIGOROUS', 10]]) {
-    await page.click(`[data-a="cat"][data-c="${c}"]`);
-    const t = await page.$$eval('.sqlist .sqf', e => e.map(x => x.textContent));
-    assert.equal(t.length, n);
-    assert.ok(t.every(x => /θ \d+\.\d\d° · (Mild|Moderate|Vigorous)/.test(x)), t.join('|'));
-  }
+  // every stairway shows θ in the Observatory's list, and θ with its band once picked
+  await page.click('#cmptab-list');
+  const t = await page.$$eval('#cmplist .cmpmeta', e => e.map(x => x.textContent));
+  assert.equal(t.length, 32);
+  assert.ok(t.every(x => /θ \d+\.\d\d°/.test(x)), t.join('|'));
+  for (const id of ['ST02', 'ST20', 'ST24']) { await pickStair(page, id); assert.match(await page.textContent('#cmplog .stloc'), /θ \d+\.\d\d° \(estimated\)/); assert.match(await page.textContent('#cmplog .stloc'), /Mild|Moderate|Vigorous/); }
+  await stairHistory(page); // the summary and the goal are in the Stairs section (the history)
   assert.match(await page.textContent('.sthud, .ststats'), /steps[\s\S]*Today[\s\S]*sessions[\s\S]*workouts[\s\S]*BPM/);
   assert.match(await page.textContent('.stgoal'), /Personal goal: 0 of 100 steps[\s\S]*not a health measurement/);
-  const small = await page.$$eval('#main button', b => b.filter(x => x.offsetParent && x.getBoundingClientRect().height < 44 && x.closest('.stjump,.stcats,.sqlist')).length);
-  assert.equal(small, 0, 'jump, category and stairway buttons are at least 44px tall');
+  const small = await page.$$eval('#main button', b => b.filter(x => x.offsetParent && x.getBoundingClientRect().height < 44 && x.closest('.stjump,.cmplog .nst,.cmpitem')).length);
+  assert.equal(small, 0, 'the halves and the staircase buttons are at least 44px tall');
   assert.deepEqual(errors, []);
   await ctx.close();
 });
@@ -302,7 +307,7 @@ test('stairway counts agree (32 total, 28 mapped), every stairway shows θ and i
 // Group 14 report methods: VO2 / kJ (Uth et al. 2004), the pulse as periodic motion, the measured-stairways table
 test('project method: VO2 and kJ appear only with both heart rates and a profile weight; never saved or fed to the kcal estimate', async () => {
   const { page, ctx, errors } = await boot();
-  await page.selectOption('#wk-loc', 'ST24'); await page.click('[data-a="pace"][data-i="2"]');
+  await pickStair(page, 'ST24'); await page.click('[data-a="pace"][data-i="2"]');
   await page.fill('#wk-b', '72');
   await est(page);
   assert.equal(await page.locator('#hwh-pop .stproj').count(), 0, 'one heart rate is not enough');
@@ -325,8 +330,8 @@ test('project method: VO2 and kJ appear only with both heart rates and a profile
   const e = stairs(await state(page))[0];
   assert.equal(JSON.stringify(e.m).includes('27.6'), false, 'the project value is not saved');
   assert.ok(e.m.kcal.v >= 79 && e.m.kcal.v <= 81, 'logged kcal is still MET + Keytel: ' + JSON.stringify(e.m.kcal));
-  assert.doesNotMatch(await page.textContent('#stlog'), /VO₂ ≈ 27/, 'the session card shows the project method only inside ?');
-  await page.click('#stlog [data-hwh^="sp-"]');
+  assert.doesNotMatch(await hist(page), /VO₂ ≈ 27/, 'the session card shows the project method only inside ?');
+  await stairHistory(page); await page.click('#stlog [data-hwh^="sp-"]');
   assert.match(await page.textContent('#hwh-pop'), /VO₂ ≈ 27\.6 mL\/kg\/min[\s\S]*267 kJ \(64 kcal\) in 8 min/);
   await page.keyboard.press('Escape');
   assert.deepEqual(errors, []); await ctx.close();
@@ -346,30 +351,23 @@ test('pulse as periodic motion: f, T and ω under each trace with a help button'
   assert.deepEqual(errors, []); await ctx.close();
 });
 
-test('HWStairs.choose(id) chooses a stairway as a tap does (chip, line, workout field); FIND ON OBSERVATORY only once one is chosen', async () => {
+test('picking a staircase in the Observatory chooses it for every form (line, workout); HWStairs.choose(id) rejects an unknown id; nothing is written', async () => {
   const { page, errors } = await bootC();
-  assert.equal(await page.locator('#cmpbar').count(), 0, 'no link before a stairway is chosen');
   assert.deepEqual(await page.evaluate(() => [HWStairs.choose('ST99'), HWStairs.pick]), [false, null], 'an unknown id chooses nothing');
-  assert.equal(await page.evaluate(() => { const ok = HWStairs.choose('ST19'); render(); return ok; }), true);
+  await pickStair(page, 'ST19');
   const name = await page.evaluate(() => STAIRS.find(s => s.id === 'ST19').name);
-  assert.deepEqual(await page.evaluate(() => [HWStairs.pick, STAIRS[S.loc].id, S.cat]), ['ST19', 'ST19', 'MODERATE']);
-  assert.equal((await page.textContent('.sqlist .chip.on .sqn')).trim(), name);
-  assert.match(await page.textContent('.stloc'), /Block Aisyah|Blok Aisyah/);
-  assert.equal(await page.getAttribute('#cmpbar [data-a="cmpfind"]', 'data-id'), 'ST19');
-  assert.equal(await page.locator('#cmpbar [data-a="cmpback"]').count(), 0, 'no RETURN without a trip from the Observatory');
+  assert.deepEqual(await page.evaluate(() => [HWStairs.pick, HWCampus.selected]), ['ST19', 'ST19']);
+  assert.match(await page.textContent('#cmplog .stloc'), /Block Aisyah|Blok Aisyah/);
+  assert.match(await page.textContent('#cmpdet'), new RegExp(name.replace(/[()/]/g, '.')), 'its Details hold the forms');
   await page.click('#stt-workout');
-  assert.equal(await page.inputValue('#wk-loc'), 'ST19', 'the workout half has it too');
-  assert.equal(await page.locator('#cmpbar [data-a="cmpfind"]').count(), 1);
-  // FIND ON OBSERVATORY selects it there (ST19 has coordinates: the map centres on it) and writes nothing
-  await page.click('#cmpbar [data-a="cmpfind"]');
-  assert.deepEqual(await page.evaluate(() => [S.v, HWCampus.selected]), ['campus', 'ST19']);
-  assert.match(await page.textContent('#cmpdet'), new RegExp(name.replace(/[()/]/g, '.')));
-  assert.equal(stairs(await state(page)).length, 0);
+  assert.match(await page.textContent('#wk-loc'), /Block Aisyah|Blok Aisyah/, 'the workout half has it too');
+  await page.evaluate(() => acts.cmpclear()); // from the file there is no map pill: clear by its action
+  assert.equal(stairs(await state(page)).length, 0, 'choosing writes nothing');
   assert.deepEqual(errors, []);
 });
-
 test('measured stairways card: the three report stairs, report rank vs app band', async () => {
   const { page, ctx, errors } = await bootC();
+  await stairHistory(page); // the measured stairways are in the Stairs section (the history)
   const rows = await page.$$eval('#ststudy tbody tr', r => r.map(x => [...x.cells].map(c => c.textContent.replace(/\s+/g, ' ').trim())));
   assert.equal(rows.length, 3);
   assert.deepEqual(rows.map(r => r.slice(1)), [['0.169', '0.311', '0.354', '28.52', 'Vigorous', 'Moderate'], ['0.157', '0.305', '0.343', '27.23', 'Moderate', 'Moderate'], ['0.149', '0.300', '0.335', '26.43', 'Mild', 'Moderate']]);
@@ -390,7 +388,7 @@ test('recovery: optional "1 minute after" field, saved in m.hrR1, validated like
   const { page, ctx, errors } = await boot();
   assert.match(await page.textContent('#sthrc'), /1 minute after you stop \(BPM\)[\s\S]*Rest quietly, count your pulse again one minute later\. Your heart should slow down after you stop\./);
   assert.deepEqual(await page.$eval('#wk-r', e => [e.type, e.min, e.max, e.required]), ['number', '30', '220', false]);
-  await page.selectOption('#wk-loc', 'ST24'); await page.click('[data-a="pace"][data-i="2"]');
+  await pickStair(page, 'ST24'); await page.click('[data-a="pace"][data-i="2"]');
   await fillSteps(page, '#wk-s', '30'); await page.fill('#wk-c', '3');
   await page.fill('#wk-r', '400'); await page.click('[data-a="stwsave"]');
   assert.equal(stairs(await state(page)).length, 0, '400 BPM rejected');
@@ -398,7 +396,7 @@ test('recovery: optional "1 minute after" field, saved in m.hrR1, validated like
   await page.click('[data-a="stwsave"]');
   const e0 = stairs(await state(page))[0];
   assert.equal('hrR1' in e0.m && e0.m.hrR1 != null, false, 'optional: a workout without it saves as before');
-  await page.selectOption('#wk-loc', 'ST24'); await page.click('[data-a="pace"][data-i="2"]');
+  await pickStair(page, 'ST24'); await page.click('[data-a="pace"][data-i="2"]');
   await fillSteps(page, '#wk-s', '30'); await page.fill('#wk-c', '3');
   await page.fill('#wk-b', '72'); await page.fill('#wk-a', '130'); await page.fill('#wk-r', '98');
   await page.waitForTimeout(100);
@@ -436,10 +434,11 @@ test('recovery: history table column and chart marker only when a listed workout
   const old = [wkEntry(3, { hrB: 70, hrA: 120 })];
   const { page, ctx, errors } = await boot({ seed: { ...RETURNING, e: old } });
   const before = JSON.stringify(old);
+  await stairHistory(page); // the heart-rate chart and table are in the Stairs section (the history)
   assert.deepEqual(await page.$$eval('#sthrg th', t => t.map(x => x.textContent)), ['Date', 'Before', 'After']);
   assert.equal(await page.locator('#sthrg svg .hr1').count(), 0);
   assert.doesNotMatch(await page.textContent('#sthrg'), /1 min after/);
-  assert.match(await page.textContent('#stlog'), /Before[\s\S]*70[\s\S]*After[\s\S]*120/);
+  assert.match(await hist(page), /Before[\s\S]*70[\s\S]*After[\s\S]*120/);
   assert.equal(JSON.stringify((await state(page)).e), before, 'old entry untouched');
   await ctx.close();
   const seed = { ...RETURNING, e: [wkEntry(3, { hrB: 70, hrA: 120 }), wkEntry(1, { hrB: 72, hrA: 130, hrR1: 98 })] };
@@ -468,7 +467,7 @@ test('recovery: 7-day average tile needs 2 qualifying workouts, shows nothing ot
   assert.match(await r.page.textContent('#st-recavg'), /33[\s\S]*BPM drop[\s\S]*Average recovery, last 7 days/);
   assert.deepEqual(r.errors, []); await r.ctx.close();
   // saving a recovery value gives the same XP as saving without it
-  const xp = async v => { const q = await boot(); await q.page.selectOption('#wk-loc', 'ST24'); await q.page.click('[data-a="pace"][data-i="2"]');
+  const xp = async v => { const q = await boot(); await pickStair(q.page, 'ST24'); await q.page.click('[data-a="pace"][data-i="2"]');
     await fillSteps(q.page, '#wk-s', '30'); await q.page.fill('#wk-c', '3'); await q.page.fill('#wk-a', '130'); await q.page.fill('#wk-r', v);
     await q.page.click('[data-a="stwsave"]'); const x = (await state(q.page)).xp; await q.ctx.close(); return x; };
   assert.equal(await xp('98'), await xp(''), 'no XP for the recovery value');
@@ -542,7 +541,7 @@ test('schema: hrR1 is kept when valid and repaired when it could carry markup', 
 
 test('before / after / 1-minute BPM tally with Heartstone Hall on the kingdom map, the Health Score reading and the home tile', async () => {
   const { page, ctx, errors } = await boot();
-  await page.selectOption('#wk-loc', 'ST24'); await page.click('[data-a="pace"][data-i="2"]');
+  await pickStair(page, 'ST24'); await page.click('[data-a="pace"][data-i="2"]');
   await fillSteps(page, '#wk-s', '30'); await page.fill('#wk-c', '3');
   await page.fill('#wk-b', '72'); await page.fill('#wk-a', '130'); await page.fill('#wk-r', '98');
   await page.click('[data-a="stwsave"]');
@@ -593,7 +592,7 @@ test('Heartstone Hall: LOG BEFORE / LOG AFTER save counted pulse entries; sealin
   assert.equal(await page.evaluate(() => rest(today())), 74, 'the average of the logged before-workout numbers: (72 + 76) ÷ 2 = 74');
   // seal a workout with the numbers that were logged last (76 before, 130 after): those two logs now count through the workout
   await page.fill('#wk-a', '130');
-  await page.selectOption('#wk-loc', 'ST24'); await page.click('[data-a="pace"][data-i="2"]');
+  await pickStair(page, 'ST24'); await page.click('[data-a="pace"][data-i="2"]');
   await fillSteps(page, '#wk-s', '30'); await page.fill('#wk-c', '3'); await page.fill('#wk-d', '8');
   await page.click('[data-a="stwsave"]');
   const s = await state(page), w = s.e.find(e => e.c === 'stair');

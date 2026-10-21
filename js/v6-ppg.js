@@ -227,6 +227,7 @@ D.addEventListener('visibilitychange',()=>{if(D.hidden&&(phase==='run'||phase===
 addEventListener('pagehide',()=>{gen++;stopCam()});
 
 HWUI.css('ppg',`
+#hwppg{scroll-margin-top:12px} /* brought into view by a camera button: a little room above, also while the page still slides in */
 .ppg{margin:0 0 12px;padding:10px;border:var(--px-bw-c) solid var(--ln);background:var(--p2);box-shadow:var(--px-sh-c)}
 .ppgrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}.ppgrow>b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fl)}
 .ppgrow .ppgbtn{flex:1 1 auto}.ppg button{min-height:44px}.ppg .hwh{min-height:0}

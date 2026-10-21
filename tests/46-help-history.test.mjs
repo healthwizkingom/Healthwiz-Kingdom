@@ -1,7 +1,7 @@
 // Contextual "?" help (js/v6-help.js) and backdated logging (js/v6-when.js).
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { openApp, closeBrowser, go, RETURNING, state, entry, daysAgo, fillSteps } from './helpers.mjs';
+import { openApp, closeBrowser, go, RETURNING, state, entry, daysAgo, fillSteps, pickStair } from './helpers.mjs';
 
 after(closeBrowser);
 const boot = async (view, o = {}) => { const r = await openApp(o); await r.page.waitForSelector('.wl'); if (view) await go(r.page, view); return r; };
@@ -263,8 +263,7 @@ test('sleep for today keeps the old behaviour (no control needed)', async () => 
 
 test('stairs by hand: backdated climb; workout for yesterday; a workout with device heart rates cannot be backdated', async () => {
   const { page, ctx, errors } = await boot('stair');
-  await page.click('[data-a="cat"][data-c="MODERATE"]');
-  await page.click('.sqlist .chip >> nth=0');
+  await pickStair(page, await page.evaluate(() => stairsOf('MODERATE')[0].id));
   await fillSteps(page, '#ss', '10'); await page.fill('#sc', '3');
   await openWhen(page, '#stman'); await page.click('#stman [data-hww="yest"]');
   await page.click('[data-a="savestair"]');
@@ -275,7 +274,7 @@ test('stairs by hand: backdated climb; workout for yesterday; a workout with dev
   // GPS check-in has no date control (never backdated)
   assert.equal(await page.locator('#v6gps .hww').count(), 0);
   await page.click('#stt-workout'); // the workout is the other half of the Stairs page
-  await page.selectOption('#wk-loc', { index: 1 });
+  await pickStair(page);
   await page.fill('#wk-b', '70'); await page.fill('#wk-a', '120');
   await fillSteps(page, '#wk-s', '12'); await page.fill('#wk-c', '2'); await page.fill('#wk-d', '8');
   await openWhen(page, '#stseal'); await page.click('#stseal [data-hww="yest"]'); await page.fill('#stseal [data-hww-in="t"]', '17:30');

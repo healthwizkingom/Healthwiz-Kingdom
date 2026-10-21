@@ -1,6 +1,6 @@
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { openApp, closeBrowser, go, RETURNING, fillSteps } from './helpers.mjs';
+import { openApp, closeBrowser, go, RETURNING, fillSteps, pickStair, stairHistory } from './helpers.mjs';
 
 after(closeBrowser);
 
@@ -80,14 +80,14 @@ test('quest:completed fires once when the original awards a daily quest; level:u
 test('edit, delete, undo, page views and energy emit their events', async () => {
   const { page, ctx, errors } = await openApp();
   await go(page, 'stair');
-  await page.click('.sqlist .chip >> nth=0');
+  await pickStair(page);
   await fillSteps(page, '#ss', '10'); await page.fill('#sc', '7');
   await page.click('[data-a="savestair"]');
   await listen(page);
-  await page.click('#stlog [data-a="edit"]');
+  await stairHistory(page); await page.click('#stlog [data-a="edit"]');
   await page.fill('#ev', '75');
   await page.click('[data-a="esave"]');
-  await page.click('#stlog [data-a="del"]');
+  await stairHistory(page); await page.click('#stlog [data-a="del"]');
   await page.click('#toasts [data-a="undo"]');
   await go(page, 'home');
   await page.click('[data-a="ener"][data-i="4"]');

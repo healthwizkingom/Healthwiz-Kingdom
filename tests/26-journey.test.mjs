@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { openApp, closeBrowser, go, state, yearOfLogs, fillSteps } from './helpers.mjs';
+import { openApp, closeBrowser, go, state, yearOfLogs, fillSteps, pickStair, stairHistory } from './helpers.mjs';
 
 after(closeBrowser);
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -35,7 +35,7 @@ test('no broken references: handlers, page links, images and asset paths on ever
   for (const v of PAGES) { await go(page, v); await run(v); }
   await go(page, 'onb');
   for (let i = 0; i <= 7; i++) { await page.evaluate(i => { S.ob.d = { name: 'Aina', age: 19, sex: 'f', h: 160, w: 52, act: 1.55 }; S.ob.i = i; render(); }, i); await run('onboarding step ' + i); }
-  await go(page, 'pulse'); await page.click('[data-a="edit"]'); await run('edit dialog'); await page.keyboard.press('Escape');
+  await go(page, 'pulse'); await stairHistory(page); await page.click('#stlog [data-a="edit"]'); await run('edit dialog'); await page.keyboard.press('Escape');
   await go(page, 'kingdom'); await page.click('[data-a="kreg"]'); await run('region panel'); await page.keyboard.press('Escape');
   for (const id of await page.evaluate(() => HWGames.games.map(g => g.id))) {
     await page.evaluate(id => HWGames.open(id), id); await page.waitForSelector('.v6g'); await run('game ' + id);
@@ -74,12 +74,12 @@ test('a new adventurer’s first day on a phone, end to end, with zero console e
   await go(page, 'water'); await page.tap('[data-a="wa"][data-v="250"]');
   await go(page, 'food'); await page.fill('#q', 'roti canai'); await page.tap('#fl .it'); await page.tap('[data-a="addfood"]');
   await go(page, 'sleep'); await page.fill('#slb', '23:00'); await page.fill('#slw', '07:00'); await page.tap('[data-a="slsave"]');
-  await go(page, 'pulse'); await page.selectOption('#wk-loc', 'ST03'); await page.fill('#wk-b', '72'); await page.fill('#wk-a', '118');
+  await go(page, 'pulse'); await pickStair(page, 'ST03'); await page.fill('#wk-b', '72'); await page.fill('#wk-a', '118');
   await fillSteps(page, '#wk-s', '12'); await page.fill('#wk-c', '3'); await page.fill('#wk-d', '5'); await page.tap('[data-a="stwsave"]');
-  await go(page, 'stair'); await page.tap('.sqlist .chip >> nth=0'); await fillSteps(page, '#ss', '12'); await page.fill('#sc', '2'); await page.tap('[data-a="savestair"]');
+  await go(page, 'stair'); await pickStair(page); await fillSteps(page, '#ss', '12'); await page.fill('#sc', '2'); await page.tap('[data-a="savestair"]');
   await go(page, 'bmi'); await page.fill('#bh', '160'); await page.fill('#bw', '52'); await page.tap('[data-a="savebmi"]');
   await go(page, 'home'); await page.tap('[data-a="ener"][data-i="4"]');
-  await go(page, 'stair'); await page.tap('#stlog [data-a="edit"]'); await page.fill('#ev', '74'); await page.tap('[data-a="esave"]');
+  await go(page, 'stair'); await stairHistory(page); await page.tap('#stlog [data-a="edit"]'); await page.fill('#ev', '74'); await page.tap('[data-a="esave"]');
   await page.tap('#stlog [data-a="del"]'); await page.tap('#toasts [data-a="undo"]');
   for (const v of PAGES) { await go(page, v); assert.equal(await snag(page), false, v); }
   await go(page, 'kingdom');
