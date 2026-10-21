@@ -5,10 +5,10 @@
 //     search on top and the buttons as round icons under their names; a button in it does its job with the menu closed;
 //   * Details are a sheet inside the map with Stairs and Workout tabs: a fifth of the screen high, its handle takes it to
 //     half; its content scrolls inside it; its x closes it and keeps the pick; nothing below the map but the list;
-//   * NEAREST STAIRS, the switches and the clouds: tests/90-observatory-nearest;
+//   * NEAREST STAIRS, the switches and the mist: tests/90-observatory-nearest;
 //   * the avatar shows by itself (the browser's location permission granted here);
 //   * a switch (terrain) or a redraw of the same page keeps the page still: no entrance fade, no map resize;
-//   * the clouds over the land beyond the campus; the KM KULIM sign in both campus models;
+//   * the KM KULIM sign in both campus models;
 //   * the loading screen: the heart filled in pixel by pixel with a percentage, gone once the first page has loaded.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -105,7 +105,7 @@ test('Stay Aware, the HealthWiz menu, the Details sheet with its tabs, and the a
   assert.ok(await page.evaluate(z => HWCampus.map.map.getZoom() > z + .5, z));
   // the Legend from the menu
   await page.click('.hudbtn'); await page.click('#hudmenu [data-a="hudlegopen"]');
-  assert.match(await page.textContent('#hudleg'), /Mild[\s\S]*Clouds: the land beyond the campus/);
+  assert.match(await page.textContent('#hudleg'), /Mild[\s\S]*Mist: the land beyond the campus/);
   await page.click('#hudleg [data-a="hudleg"]');
   // the search in the menu: picking a match closes the menu and opens the staircase
   await page.click('.hudbtn'); await page.fill('#cmpfind', 'ST14');

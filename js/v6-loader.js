@@ -35,7 +35,7 @@ function build(){const G=grid();
     +'#hwload.out{opacity:0;pointer-events:none}';
   host.appendChild(st);(D0.body||D0.documentElement).appendChild(host);cv=host.querySelector('canvas');pct=host.querySelector('.hwlp')}
 function draw(now){raf=0;if(gone)return;const g=cv.getContext('2d'),rm=reduced();
-  shown+=(want-shown)*Math.min(1,(now-(t0||now))/1000*4);t0=now;if(want-shown<.002)shown=want;
+  shown+=(want-shown)*Math.min(1,(now-(t0||now))/1000*(done?16:5));t0=now;if(want-shown<.01||rm)shown=want; // once loaded it fills quickly
   g.clearRect(0,0,cv.width,cv.height);g.fillStyle='#c9c9c9';out.forEach(([x,y])=>g.fillRect(x*C,y*C,C,C));
   let moving=false;
   for(const c of cells){if(c.t>shown)break;if(c.a==null)c.a=now;const k=rm?1:Math.min(1,(now-c.a)/650),e=1-Math.pow(1-k,3);if(k<1)moving=true;
@@ -56,7 +56,7 @@ function track(){let parts={dom:0,fonts:0,img:0};const upd=()=>set(parts.dom*.45
   if(D0.readyState==='loading'){let k=0;const tick=setInterval(()=>{if(parts.dom)return clearInterval(tick);parts.dom=Math.min(.9,(++k)/12);upd()},80);D0.addEventListener('DOMContentLoaded',dom,{once:true})}else dom();
   const fonts=(D0.fonts&&D0.fonts.ready?D0.fonts.ready:Promise.resolve()).then(()=>{parts.fonts=1;upd()});
   const page=new Promise(r=>D0.readyState==='complete'?r():addEventListener('load',r,{once:true})).then(imgs);
-  const min=new Promise(r=>setTimeout(r,reduced()?250:900)); // long enough to see it fill, never longer than loading
+  const min=new Promise(r=>setTimeout(r,350)); // no flash on a fast load; otherwise it lasts as long as the loading
   Promise.all([fonts,page,min]).then(()=>{set(1);done=true;kick()});
   setTimeout(()=>{set(1);done=true;kick()},12000)} // never stuck: whatever has not loaded by then loads behind the app
 try{build();track();kick()}catch(e){console.error('[HWLoader]',e);if(host)host.remove()}

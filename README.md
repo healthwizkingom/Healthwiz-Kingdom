@@ -258,7 +258,7 @@ Switching a map feature (terrain, buildings, the look) no longer redraws the pag
 replays the page's entrance fade, which made it look as if the screen reloaded. The terrain switch swaps two ready
 position buffers for the ground details instead of rewriting every vertex, the map resizes only when its size changes,
 and the 3D stair preview opens only on request and, on phones, draws without anti-aliasing or bloom at up to 30 frames a
-second. The map ends at Kolej MARA Kulim: clouds with a soft edge cover everything outside the campus outline. The
+second. The map ends at Kolej MARA Kulim: an airbrushed mist, clear over the campus and thickening with distance from its outline, covers the land beyond it (a light 2D layer over the map, drawn only when the map draws). The
 Fantasy buildings follow the owner's architecture design sheets (a style reference only): a coursed-stone ground storey
 under jettied timber-framed storeys, steeper roofs in teal shingles or terracotta tiles (slate for the maroon and white
 roofs) and teal-coned turrets; Realistic keeps the colours filmed. The KM KULIM sign ("Selangkah ke Menara Gading") from

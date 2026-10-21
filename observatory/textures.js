@@ -24,12 +24,6 @@ function blob(G, cx, cy, rad, fn) {
 }
 
 const T = {
-  // the clouds over the undiscovered land beyond the campus (owner's request, 2026-10-21): soft white puffs, tiling
-  'px-cloud': () => { const r = rng(77), n = 48, G = grid(n);
-    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) G[y][x] = '#e9eef6';
-    for (let k = 0; k < 16; k++) { const cx = Math.floor(r() * n), cy = Math.floor(r() * n), R = 4 + Math.floor(r() * 6);
-      blob(G, cx, cy, R, (x, y, d) => d > R - 1 ? '#d6deeb' : (y < -R / 3 ? '#ffffff' : y < R / 3 ? '#f4f7fb' : '#dfe6f0')); }
-    return toImage(G, 3); },
   // night forest canopy around the campus
   'px-forest': () => { const r = rng(41), n = 32, G = grid(n);
     for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) G[y][x] = pick(r, ['#0c2422', '#0e2825', '#0b201f']);

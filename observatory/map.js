@@ -117,13 +117,14 @@ const LIGHT = {
   fantasy: { anchor: 'map', position: [1.4, 215, 38], color: '#c9d4ff', intensity: .5 },
 };
 
-/** The clouds' shape: a wide frame around the export's area with the campus outline cut out, and that outline as a line for the soft edge. */
-function fogOf(osm) {
-  const c = osm.features.find(f => f.properties.kind === 'campus'), [x0, y0, x1, y1] = osm.bounds, P = .02;
-  const outer = [[x0 - P, y0 - P], [x1 + P, y0 - P], [x1 + P, y1 + P], [x0 - P, y1 + P], [x0 - P, y0 - P]];
+/** The mist's rings: the campus outline scaled out from its centre (the outline is star-shaped from there), from the
+    outline itself (no mist inside) to well past the export's area. [scale, ring] pairs, innermost first. */
+function mistRings(osm) {
+  const c = osm.features.find(f => f.properties.kind === 'campus');
   const ring = c && (c.geometry.type === 'Polygon' ? c.geometry.coordinates[0] : c.geometry.type === 'MultiPolygon' ? c.geometry.coordinates[0][0] : null);
-  return { type: 'FeatureCollection', features: [{ type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: ring ? [outer, ring] : [outer] } }]
-    .concat(ring ? [{ type: 'Feature', properties: { e: 1 }, geometry: { type: 'LineString', coordinates: ring } }] : []) };
+  if (!ring) return [];
+  const cx = ring.reduce((a, p) => a + p[0], 0) / ring.length, cy = ring.reduce((a, p) => a + p[1], 0) / ring.length;
+  return Array.from({ length: 12 }, (_, i) => { const k = 1 + .03 * i * (1 + i * .1); return ring.map(([x, y]) => [cx + (x - cx) * k, cy + (y - cy) * k]); });
 }
 function style(osm, zonesFC, trees, parts, walks, demUrl) {
   const L = (id, type, filter, paint = {}, layout = {}, source = 'osm') => ({ id, type, source, ...(filter ? { filter } : {}), paint, layout });
@@ -142,7 +143,6 @@ function style(osm, zonesFC, trees, parts, walks, demUrl) {
       sel: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
       pulse: { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, lineMetrics: true }, // a saved session's pulse of light
       me: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
-      fog: { type: 'geojson', data: fogOf(osm) },
       dem, demhs: { ...dem },
     },
     layers: [
@@ -188,10 +188,6 @@ function style(osm, zonesFC, trees, parts, walks, demUrl) {
       L('wt', 'fill-extrusion', ['all', K('water_tower'), POLY], { 'fill-extrusion-height': 12 }),
       L('trees', 'symbol', null, {}, { visibility: 'visible', 'icon-image': TREE_IMG.realistic, 'icon-allow-overlap': true, 'icon-ignore-placement': true, 'icon-anchor': 'bottom',
         'icon-pitch-alignment': 'viewport', 'icon-rotation-alignment': 'viewport', 'icon-size': ['interpolate', ['linear'], ['zoom'], 15, ['*', ['get', 's'], .55], 17, ['*', ['get', 's'], 1], 19.5, ['*', ['get', 's'], 2.1]] }, 'deco'),
-      // undiscovered land: clouds over everything outside the campus outline, with a soft edge, so the world ends at the
-      // campus instead of an empty plain (owner's request, 2026-10-21); decoration, it hides nothing that is mapped
-      L('fog', 'fill', null, { 'fill-pattern': 'px-cloud', 'fill-opacity': .97 }, {}, 'fog'),
-      L('fog-edge', 'line', ['==', ['get', 'e'], 1], { 'line-color': '#eef2f8', 'line-opacity': .85, 'line-width': ['interpolate', ['exponential', 1.6], ['zoom'], 15, 22, 19, 160], 'line-blur': ['interpolate', ['exponential', 1.6], ['zoom'], 15, 18, 19, 130] }, { 'line-join': 'round' }, 'fog'),
       L('lanterns', 'symbol', ['all', K('footway_covered'), LINE], {}, { visibility: 'none', 'symbol-placement': 'line', 'symbol-spacing': 90, 'icon-image': 'px-lantern',
         'icon-allow-overlap': true, 'icon-ignore-placement': true, 'icon-anchor': 'bottom', 'icon-pitch-alignment': 'viewport', 'icon-rotation-alignment': 'viewport',
         'icon-size': ['interpolate', ['linear'], ['zoom'], 15, .45, 17, .8, 19.5, 1.5] }),
@@ -234,6 +230,28 @@ export function createMap(opts) {
   skyEl.className = 'cmpsky'; skyEl.setAttribute('aria-hidden', 'true');
   skyEl.innerHTML = '<i class="cmpsky-tint"></i><i class="cmpsky-veil"></i><i class="cmpsky-rain"></i>';
   map.getCanvasContainer().insertBefore(skyEl, map.getCanvas().nextSibling);
+  // undiscovered land (owner's request, 2026-10-21): an airbrushed mist, clear over the campus, thickening ring by ring
+  // with distance from its outline. A 2D layer over the map canvas, redrawn only when the map draws, at half resolution
+  // (the browser's scaling softens it like an airbrush); it adds nothing to the 3D scene. Decoration; it hides nothing mapped.
+  const mistEl = document.createElement('canvas');
+  mistEl.className = 'cmpmist'; mistEl.setAttribute('aria-hidden', 'true');
+  map.getCanvasContainer().insertBefore(mistEl, skyEl);
+  const mist = mistRings(opts.osm);
+  function drawMist() {
+    const W = Math.max(1, Math.round(mistEl.clientWidth / 2)), H = Math.max(1, Math.round(mistEl.clientHeight / 2));
+    if (mistEl.width !== W || mistEl.height !== H) { mistEl.width = W; mistEl.height = H; }
+    const g = mistEl.getContext('2d'); g.globalCompositeOperation = 'source-over'; g.clearRect(0, 0, W, H);
+    if (!mist.length) return;
+    g.fillStyle = mode === 'fantasy' ? 'rgba(74,86,146,.95)' : 'rgba(236,240,244,.95)';
+    g.fillRect(0, 0, W, H);
+    // from the outermost ring in: each erases a little more of the mist inside it, the outline all of it
+    g.globalCompositeOperation = 'destination-out';
+    for (let i = mist.length - 1; i >= 0; i--) {
+      g.globalAlpha = i === 0 ? 1 : .28;
+      g.beginPath(); mist[i].forEach(([x, y], k) => { const q = map.project([x, y]); k ? g.lineTo(q.x / 2, q.y / 2) : g.moveTo(q.x / 2, q.y / 2); }); g.closePath(); g.fill();
+    }
+    g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+  }
   let skySt = opts.sky || null, skyNow = null;
   map.addControl(new ML.ScaleControl({ unit: 'metric', maxWidth: 100 }), 'bottom-left');
   map.on('styleimagemissing', e => { if (!map.hasImage(e.id)) { const im = makeImage(e.id); if (im) map.addImage(e.id, im, { pixelRatio: 2 }); } });
@@ -246,7 +264,7 @@ export function createMap(opts) {
   let lm = null; // the landmarks (./landmarks.js)
 
   function applyMode(m) {
-    mode = m;
+    mode = m; drawMist();
     const P = PAINT[m], other = PAINT[m === 'fantasy' ? 'realistic' : 'fantasy'];
     for (const id of new Set([...Object.keys(P), ...Object.keys(other)])) {
       if (!map.getLayer(id)) continue;
@@ -516,7 +534,7 @@ export function createMap(opts) {
   // the time of the last drawn frame: the map draws on demand, so a gap means it has settled (MapLibre's own 'idle' can
   // wait on hillshade tiles that stay 'reloading' after a paint change, so it is not used)
   let drawn = performance.now();
-  map.on('render', () => { drawn = performance.now(); });
+  map.on('render', () => { drawn = performance.now(); drawMist(); });
   map.on('moveend', () => { recluster(); if (ready && opts.onCamera) opts.onCamera(camNow()); });
   map.on('dragstart', () => opts.onUserMove && opts.onUserMove());
   map.on('click', () => {}); // a tap on empty map keeps the selection
