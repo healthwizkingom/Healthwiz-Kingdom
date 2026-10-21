@@ -134,6 +134,7 @@ test('with the map: landmarks and discovery, the journal, the layers, a saved se
   // the compass needle follows the bearing; the rotate buttons turn the map
   await page.evaluate(() => acts.cmprotr());
   await until(page, () => !HWCampus.map.map.isMoving() && HWCampus.map.map.getBearing() > 1, 5000);
+  await page.evaluate(() => acts.hudmenu()); await until(page, () => !!document.getElementById('cmpcomp') && !!document.getElementById('cmpcomp').style.getPropertyValue('--b'), 3000); // North is in the HealthWiz menu
   const cmp = await page.evaluate(() => [HWCampus.map.map.getBearing(), document.getElementById('cmpcomp').style.getPropertyValue('--b')]);
   assert.ok(Math.abs(cmp[0] - 30) < 1, 'turned 30° right: ' + cmp[0]);
   assert.equal(parseFloat(cmp[1]), -cmp[0], 'the needle points north');
