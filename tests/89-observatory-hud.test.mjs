@@ -3,10 +3,9 @@
 //   * the Stay Aware notice opens with the map each time (a snake, HealthWiz Kingdom), OK closes it;
 //   * every map button, the search and the Legend sit in one HealthWiz button at the bottom middle: its menu has the
 //     search on top and the buttons as round icons under their names; a button in it does its job with the menu closed;
-//   * Details are a sheet inside the map with Stairs and Workout tabs: a fifth of the map high, its handle takes it to
+//   * Details are a sheet inside the map with Stairs and Workout tabs: a fifth of the screen high, its handle takes it to
 //     half; its content scrolls inside it; its x closes it and keeps the pick; nothing below the map but the list;
-//   * NEAREST STAIRS: a wave out of the avatar, then the nearest staircases with CHECK IN (the GPS check-in, compact);
-//     a demo walk's position is simulated: no check-in;
+//   * NEAREST STAIRS, the switches and the clouds: tests/90-observatory-nearest;
 //   * the avatar shows by itself (the browser's location permission granted here);
 //   * a switch (terrain) or a redraw of the same page keeps the page still: no entrance fade, no map resize;
 //   * the clouds over the land beyond the campus; the KM KULIM sign in both campus models;
@@ -64,7 +63,8 @@ const STUB_VIEWER = 'export function createViewer() { return { show() { return P
 const AT = { latitude: 5.35154, longitude: 100.53803, accuracy: 10 };
 
 async function mapPage(o = {}) {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 800 }, isMobile: true, hasTouch: true, serviceWorkers: 'block', permissions: ['geolocation'], geolocation: AT, ...o });
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 760 }, isMobile: true, hasTouch: true, serviceWorkers: 'block', reducedMotion: 'reduce', // software WebGL: a still map keeps each frame quick
+    permissions: ['geolocation'], geolocation: AT, ...o });
   const page = await ctx.newPage(), errors = [];
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text().slice(0, 300)); });
@@ -112,10 +112,10 @@ test('Stay Aware, the HealthWiz menu, the Details sheet with its tabs, and the a
   await page.click('#cmpfindres [data-a="cmppick"][data-id="ST14"]');
   await until(page, () => !document.getElementById('hudmenu') && HWCampus.selected === 'ST14', 5000);
   if (await page.locator('#cmpstop').count()) { await page.evaluate(() => acts.cmpstopx()); await until(page, () => !document.getElementById('cmpstop'), 5000); }
-  // Details: the sheet inside the map, a fifth of it high; nothing below the map but the list
-  const sh = await page.evaluate(() => { const s = document.getElementById('hudsheet'), st = document.getElementById('cmpstage'); return { inMap: st.contains(s), size: s.dataset.size, h: s.getBoundingClientRect().height / st.getBoundingClientRect().height, below: !!document.querySelector('#cmppane #cmpdet'), list: !!document.querySelector('#cmppane #cmplist'), log: !!s.querySelector('#cmplog'), scroll: getComputedStyle(s.querySelector('.hudbody')).overflowY }; });
+  // Details: the sheet inside the map, a fifth of the screen high; nothing below the map but the list
+  const sh = await page.evaluate(() => { const s = document.getElementById('hudsheet'), st = document.getElementById('cmpstage'); return { inMap: st.contains(s), size: s.dataset.size, h: s.getBoundingClientRect().height / innerHeight, below: !!document.querySelector('#cmppane #cmpdet'), list: !!document.querySelector('#cmppane #cmplist'), log: !!s.querySelector('#cmplog'), scroll: getComputedStyle(s.querySelector('.hudbody')).overflowY }; });
   assert.deepEqual([sh.inMap, sh.size, sh.below, sh.list, sh.log, sh.scroll], [true, 'peek', false, true, true, 'auto']);
-  assert.ok(sh.h > .15 && sh.h < .36, 'about a fifth of the map: ' + sh.h);
+  assert.ok(sh.h > .17 && sh.h < .24, 'about a fifth of the screen: ' + sh.h);
   assert.ok(await page.evaluate(() => [...document.querySelectorAll('.hudbtn, .hudwavebtn')].every(b => b.getBoundingClientRect().bottom <= document.getElementById('hudsheet').getBoundingClientRect().top + 1)), 'the HealthWiz button and NEAREST STAIRS ride above the sheet');
   await page.click('.hudgrab');
   await until(page, () => document.getElementById('hudsheet').dataset.size === 'half', 3000);
@@ -134,54 +134,6 @@ test('Stay Aware, the HealthWiz menu, the Details sheet with its tabs, and the a
   // leaving and coming back: the notice again
   await page.evaluate(() => go('health')); await page.evaluate(() => go('campus'));
   assert.equal(await page.locator('#hudaware').count(), 1, 'each time the map opens');
-  assert.deepEqual(errors(), []);
-  await ctx.close();
-});
-
-test('NEAREST STAIRS: a wave, then the nearest staircases with CHECK IN; a switch keeps the page still; the clouds', async () => {
-  const { ctx, page, errors } = await mapPage();
-  await page.evaluate(() => HWCampusHud.aware(false));
-  await until(page, () => HWCampus.me.st === 'gps' && !!HWCampus.me.last, 20000);
-  await page.click('.hudwavebtn');
-  assert.equal(await page.locator('#cmpstage .hudwave i').count(), 3, 'the wave out of the avatar');
-  await until(page, () => !!document.querySelector('#hudsheet #v6gps'), 5000);
-  const t = await page.textContent('#hudsheet #v6gps');
-  assert.match(t, /Position accurate to ±10 m[\s\S]*YOU ARE HERE/);
-  assert.doesNotMatch(t, /GPS CHECK-IN|Standing at a stairway/, 'no long text');
-  assert.equal(await page.evaluate(() => document.getElementById('hudsheet').dataset.size), 'half');
-  assert.ok(await page.evaluate(() => !!HWCampus.selected), 'the nearest staircase is picked');
-  // CHECK IN: the check-in form, then a saved casual GPS session
-  const n0 = await page.evaluate(() => st.e.filter(e => e.c === 'stair').length);
-  await page.click('#v6gps [data-a="gpspick"]');
-  await page.fill('#gps-s', '12'); await page.fill('#gps-c', '2');
-  await page.click('[data-a="gpsconfirm"]');
-  await until(page, () => /Checked in at/.test((document.getElementById('v6gps') || {}).textContent || ''), 5000);
-  const last = await page.evaluate(() => st.e.filter(e => e.c === 'stair').at(-1));
-  assert.equal(await page.evaluate(() => st.e.filter(e => e.c === 'stair').length), n0 + 1);
-  assert.deepEqual([last.v, last.m.src, last.m.kind], [24, 'gps', 'casual']);
-  // a demo walk: simulated, so no check-in
-  await page.evaluate(() => acts.cmpmedemo());
-  await until(page, () => HWCampus.me.st === 'demo' && !!HWCampus.me.last, 10000);
-  await page.click('.hudwavebtn'); await page.waitForTimeout(1500);
-  const d = await page.textContent('#hudsheet #v6gps');
-  assert.match(d, /Demo walk: the position is simulated, so there is no check-in\./);
-  assert.equal(await page.locator('#v6gps [data-a="gpspick"]').count(), 0);
-  // the terrain switch: the map changes, the page is not redrawn, the map not resized
-  await page.click('#hudsheet [data-a="hudsheetx"]'); // close the details first
-  await page.click('.hudbtn');
-  await page.evaluate(() => { window.__r = 0; HWCampus.map.map.on('resize', () => window.__r++); document.getElementById('cmpcard').dataset.mark = '1'; });
-  await page.click('#hudmenu [data-a="cmpterr"]');
-  await page.waitForTimeout(500);
-  assert.deepEqual(await page.evaluate(() => [HWCampus.state.terr, document.getElementById('cmpcard').dataset.mark, window.__r]), [false, '1', 0]);
-  // a redraw of the same page: no entrance fade, no resize
-  await page.evaluate(() => render());
-  assert.deepEqual(await page.evaluate(() => [document.querySelector('#main>.pg').classList.contains('pgstay'), getComputedStyle(document.querySelector('#main>.pg')).animationName, window.__r]), [true, 'none', 0]);
-  await page.evaluate(() => go('health'));
-  assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('#main>.pg')).animationName), 'pgin', 'a new page still fades in');
-  await page.evaluate(() => go('campus')); await until(page, () => HWCampus.state.map === 'ready', 80000);
-  // the clouds: everything outside the campus outline, with a soft edge
-  const c = await page.evaluate(() => { const m = HWCampus.map.map, f = m.getSource('fog')._data.features; return [m.getLayer('fog').type, m.getLayoutProperty('fog', 'visibility') !== 'none', f[0].geometry.coordinates.length, m.getLayer('fog-edge').type]; });
-  assert.deepEqual(c, ['fill', true, 2, 'line'], 'a frame with the campus cut out');
   assert.deepEqual(errors(), []);
   await ctx.close();
 });

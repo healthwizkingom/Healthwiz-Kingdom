@@ -4,7 +4,7 @@
      search and the Legend from the left: tapped, a mint menu opens over the map with the search on top and the buttons as
      round icons under their names. The round x at the bottom, Escape, or any button in it closes it.
    * Details live inside the map: a sheet rises from the bottom with two tabs, STAIRS (the staircase, its climb forms and
-     its data) and WORKOUT (the workout with heart rate). It opens as a strip a fifth of the map high; dragging its handle
+     its data) and WORKOUT (the workout with heart rate). It opens as a strip a fifth of the screen high; dragging its handle
      (or tapping it) takes it to half the map. Its content scrolls inside it. The round x closes it; the staircase stays
      picked and the selection bar's Details button opens it again.
    * NEAREST STAIRS: a round button that sends a wave out of the avatar (or the middle of the map while no position is
@@ -106,8 +106,8 @@ HWUI.css('campushud',`
 .hudbtn:active{transform:translateX(-50%) scale(.94)}
 .hudwavebtn{position:absolute;z-index:7;right:12px;bottom:max(18px,env(safe-area-inset-bottom));min-height:0;margin:0;width:56px;height:56px;padding:0;border-radius:50%;border:2px solid #fff;background:#3fa5a0;color:#fff;box-shadow:0 3px 10px rgba(0,0,0,.3);display:grid;place-items:center}
 /* the HealthWiz button and NEAREST STAIRS stay usable while Details are open: they ride just above the sheet */
-#cmpstage:has(#hudsheet) .hudwavebtn{z-index:9;bottom:calc(max(170px,20%) + 24px)}#cmpstage:has(#hudsheet[data-size="half"]) .hudwavebtn{bottom:calc(max(260px,50%) + 24px)}
-#cmpstage:has(#hudsheet) .hudbtn{z-index:9;width:56px;height:56px;bottom:calc(max(170px,20%) + 10px)}#cmpstage:has(#hudsheet) .hudbtn img{width:44px;height:44px}
+#cmpstage:has(#hudsheet) .hudwavebtn{z-index:9;bottom:calc(max(140px,20%,20vh) + 24px)}#cmpstage:has(#hudsheet[data-size="half"]) .hudwavebtn{bottom:calc(max(260px,50%) + 24px)}
+#cmpstage:has(#hudsheet) .hudbtn{z-index:9;width:56px;height:56px;bottom:calc(max(140px,20%,20vh) + 10px)}#cmpstage:has(#hudsheet) .hudbtn img{width:44px;height:44px}
 #cmpstage:has(#hudsheet[data-size="half"]) .hudbtn{bottom:calc(max(260px,50%) + 10px)}
 #cmpstage:has(#hudsheet.drag) .hudwavebtn,#cmpstage:has(#hudsheet.drag) .hudbtn{visibility:hidden}
 .hudwavebtn svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}.hudwavebtn svg circle{fill:currentColor;stroke:none}
@@ -130,7 +130,7 @@ HWUI.css('campushud',`
 .hudleg .cmpleg{position:static;max-width:none;background:none;border:0;box-shadow:none;padding:0;color:inherit}
 .hudleg .cmpsx{position:absolute;right:6px;top:6px}
 /* Details: the sheet */
-.hudsheet{position:absolute;z-index:8;left:0;right:0;bottom:0;height:max(170px,20%);display:flex;flex-direction:column;background:#f3fbf6;color:#22333b;border-radius:18px 18px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.28);transition:height .25s ease;animation:hudup .28s cubic-bezier(.2,.8,.25,1)}
+.hudsheet{position:absolute;z-index:8;left:0;right:0;bottom:0;height:max(140px,20%,20vh);display:flex;flex-direction:column;background:#f3fbf6;color:#22333b;border-radius:18px 18px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.28);transition:height .25s ease;animation:hudup .28s cubic-bezier(.2,.8,.25,1)}
 .hudsheet[data-size="half"]{height:max(260px,50%)}.hudsheet.drag{transition:none}
 .hudgrab{flex:0 0 auto;height:22px;display:grid;place-items:center;cursor:grab;touch-action:none}.hudgrab i{width:44px;height:5px;border-radius:3px;background:#9cc8bf}
 .hudtabs{flex:0 0 auto;display:flex;border-bottom:1px solid #d3e8de}

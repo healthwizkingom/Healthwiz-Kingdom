@@ -247,7 +247,7 @@ the Legend are in one HealthWiz button at the bottom middle of the map (`js/v6-c
 the map with the search on top and every button as a round icon under its name; the round x at the bottom, Escape or any
 button in it closes it. The Details are inside the map: a sheet rises from the bottom with two tabs, STAIRS (the forms to
 log a climb, the staircase's 3D preview on request, its data) and WORKOUT (the workout with heart rate). It opens a fifth
-of the map high and is dragged (or its handle tapped) to half the map; its content scrolls inside it; its x closes it and
+of the screen high and is dragged (or its handle tapped) to half the map; its content scrolls inside it; its x closes it and
 the selection bar's Details button opens it again. Opened without the map (from the device, or without WebGL) the page
 keeps the Details below the map as before. NEAREST STAIRS replaces the GPS check-in section: a round button sends a
 wave out of the avatar and opens the closest staircases, with CHECK IN for one you stand at (one position, never saved;
