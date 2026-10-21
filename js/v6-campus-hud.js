@@ -5,7 +5,7 @@
      round icons under their names. The round x at the bottom, Escape, or any button in it closes it.
    * Details live inside the map: a sheet rises from the bottom with two tabs, STAIRS (the staircase, its climb forms and
      its data) and WORKOUT (the workout with heart rate). It opens as a strip a fifth of the screen high; dragging its handle
-     (or tapping it) takes it to half the map. Its content scrolls inside it. The round x closes it; the staircase stays
+     (or tapping it) takes it to half the map, then the whole map. Its content scrolls inside it. The round x closes it; the staircase stays
      picked and the selection bar's Details button opens it again.
    * NEAREST STAIRS: a round button that sends a wave out of the avatar (or the middle of the map while no position is
      known) and opens the closest staircases with CHECK IN for one you are standing at: the GPS check-in of
@@ -41,18 +41,18 @@ function html(o){
 /* ---------- Details: the sheet inside the map ---------- */
 function sheet(tab,body){const t=(k,ic,n)=>'<button type="button" role="tab" class="hudtab" data-a="hudtab" data-t="'+k+'" aria-selected="'+(tab===k)+'">'+ico(ic)+'<span>'+n+'</span></button>';
   return '<section class="hudsheet" id="hudsheet" data-size="'+size+'" aria-label="Details">'
-    +'<div class="hudgrab" data-a="hudgrow" role="button" tabindex="0" aria-label="Make the details '+(size==='peek'?'taller':'shorter')+'"><i></i></div>'
+    +'<div class="hudgrab" data-a="hudgrow" role="button" tabindex="0" aria-label="Make the details '+(size==='full'?'shorter':'taller')+'"><i></i></div>'
     +'<div class="hudtabs" role="tablist" aria-label="Details">'+t('stairs','stairs','Stairs')+t('workout','energy','Workout')+'</div>'
     +'<div class="hudbody" id="hudbody" role="tabpanel">'+body+'</div>'
     +'<button type="button" class="hudx" data-a="hudsheetx" aria-label="Close the details (the staircase stays picked)">×</button></section>'}
-function setSize(v){size=v==='half'?'half':'peek';const s=$id('hudsheet');if(!s)return;s.style.height='';s.dataset.size=size;
-  const g=s.querySelector('.hudgrab');if(g)g.setAttribute('aria-label','Make the details '+(size==='peek'?'taller':'shorter'))}
+function setSize(v){size=v==='half'||v==='full'?v:'peek';const s=$id('hudsheet');if(!s)return;s.style.height='';s.dataset.size=size;
+  const g=s.querySelector('.hudgrab');if(g)g.setAttribute('aria-label','Make the details '+(size==='full'?'shorter':'taller'))}
 // drag the handle: the sheet follows the finger and settles at the nearer of its two heights
 D0.addEventListener('pointerdown',e=>{const g=e.target.closest&&e.target.closest('.hudgrab');if(!g)return;const s=$id('hudsheet'),st=$id('cmpstage');if(!s||!st)return;
   const y0=e.clientY,h0=s.getBoundingClientRect().height,H=st.getBoundingClientRect().height;let moved=false;
-  const mv=ev=>{const dy=y0-ev.clientY;if(Math.abs(dy)>6)moved=true;if(moved){s.classList.add('drag');s.style.height=Math.max(120,Math.min(H*.6,h0+dy))+'px'}};
+  const mv=ev=>{const dy=y0-ev.clientY;if(Math.abs(dy)>6)moved=true;if(moved){s.classList.add('drag');s.style.height=Math.max(120,Math.min(H,h0+dy))+'px'}};
   const up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);s.classList.remove('drag');
-    if(moved){dragged=true;setSize(s.getBoundingClientRect().height>H*.35?'half':'peek')}};
+    if(moved){dragged=true;const h=s.getBoundingClientRect().height;setSize(h>H*.75?'full':h>H*.35?'half':'peek')}};
   addEventListener('pointermove',mv);addEventListener('pointerup',up);addEventListener('pointercancel',up)});
 D0.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target&&e.target.classList&&e.target.classList.contains('hudgrab')){e.preventDefault();acts.hudgrow()}});
 
@@ -83,7 +83,7 @@ function aware(v){const was=aw;aw=!!v;const e=$id('hudaware');if(!aw&&e)e.remove
 acts.hudmenu=()=>{menu=!menu;leg=false;show('hudleg',false);show('hudmenu',menu,menuHtml);const f=menu?$id('cmpfind'):D0.querySelector('.hudbtn');if(f)f.focus({preventScroll:true})};
 acts.hudleg=()=>{leg=!leg;show('hudleg',leg,o=>legHtml(o.legend))};
 acts.hudtab=d=>{const c=C();if(c)c.openSheet(d.t==='workout'?'workout':'stairs')};
-acts.hudgrow=()=>{if(dragged){dragged=false;return}setSize(size==='peek'?'half':'peek')};
+acts.hudgrow=()=>{if(dragged){dragged=false;return}setSize(size==='peek'?'half':size==='half'?'full':'peek')};
 acts.hudsheetx=()=>{const c=C();if(c)c.closeSheet()};
 acts.hudwave=()=>scan();
 acts.hudaware=()=>aware(false);
@@ -103,6 +103,10 @@ HWEvents.on('page:viewed',e=>{if(!e)return;if(e.view!=='campus'){menu=false;leg=
 
 HWUI.css('campushud',`
 .pg.pgstay{animation:none}
+/* the Details sheet takes the app's theme, not the map's own colours: the page's text colours, kept before the map stage
+   redefines --ink and --mut for its buttons */
+.cmpcard{--app-ink:var(--ink);--app-mut:var(--mut)}
+.hudsheet{--ink:var(--app-ink,#22333b);--mut:var(--app-mut,#5d7d80)}
 .hudbtn{position:absolute;z-index:7;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);width:68px;height:68px;min-height:0;margin:0;padding:4px;border-radius:50%;border:3px solid #fff;background:radial-gradient(circle at 50% 40%,#2b3a7a,#141c45);box-shadow:0 4px 14px rgba(0,0,0,.35),0 0 0 3px rgba(242,193,78,.65);display:grid;place-items:center}
 .hudbtn img{width:56px;height:56px;border-radius:50%;image-rendering:pixelated}
 .hudbtn:active{transform:translateX(-50%) scale(.94)}
@@ -133,12 +137,13 @@ HWUI.css('campushud',`
 .hudleg .cmpleg{position:static;max-width:none;background:none;border:0;box-shadow:none;padding:0;color:inherit}
 .hudleg .cmpsx{position:absolute;right:6px;top:6px}
 /* Details: the sheet */
-.hudsheet{position:absolute;z-index:8;left:0;right:0;bottom:0;height:max(140px,20%,20vh);display:flex;flex-direction:column;background:#f3fbf6;color:#22333b;border-radius:18px 18px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.28);transition:height .25s ease;animation:hudup .28s cubic-bezier(.2,.8,.25,1)}
-.hudsheet[data-size="half"]{height:max(260px,50%)}.hudsheet.drag{transition:none}
+.hudsheet{position:absolute;z-index:8;left:0;right:0;bottom:0;height:max(140px,20%,20vh);display:flex;flex-direction:column;background:var(--pn,#f3fbf6);color:var(--ink,#22333b);border-radius:18px 18px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.28);transition:height .25s ease;animation:hudup .28s cubic-bezier(.2,.8,.25,1)}
+.hudsheet[data-size="half"]{height:max(260px,50%)}.hudsheet[data-size="full"]{height:100%;border-radius:0}
+#hudsheet[data-size="full"]~.hudbtn,#hudsheet[data-size="full"]~.hudwavebtn{display:none}.hudsheet.drag{transition:none}
 .hudgrab{flex:0 0 auto;height:22px;display:grid;place-items:center;cursor:grab;touch-action:none}.hudgrab i{width:44px;height:5px;border-radius:3px;background:#9cc8bf}
-.hudtabs{flex:0 0 auto;display:flex;border-bottom:1px solid #d3e8de}
-.hudtab{flex:1 1 0;min-height:44px;margin:0;padding:4px 6px 6px;border:0;border-radius:0;background:none;color:#5d7d80;display:flex;flex-direction:column;align-items:center;gap:2px;font:700 11px/1 var(--font);letter-spacing:.06em;text-transform:uppercase;box-shadow:inset 0 -3px 0 transparent}
-.hudtab[aria-selected="true"]{color:#2f7f80;box-shadow:inset 0 -3px 0 #3fa5a0}
+.hudtabs{flex:0 0 auto;display:flex;border-bottom:1px solid color-mix(in srgb,var(--ink,#22333b) 18%,transparent)}
+.hudtab{flex:1 1 0;min-height:44px;margin:0;padding:4px 6px 6px;border:0;border-radius:0;background:none;color:var(--mut,#5d7d80);display:flex;flex-direction:column;align-items:center;gap:2px;font:700 11px/1 var(--font);letter-spacing:.06em;text-transform:uppercase;box-shadow:inset 0 -3px 0 transparent}
+.hudtab[aria-selected="true"]{color:var(--ink,#2f7f80);box-shadow:inset 0 -3px 0 #3fa5a0}
 .hudbody{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;padding:10px 12px 24px;-webkit-overflow-scrolling:touch}
 .hudbody .cmpdet{padding:0;border:0;background:none}
 .hudsheet .hudx{left:auto;right:8px;top:24px;bottom:auto;transform:none;width:40px;height:40px;border-width:2px;font-size:20px}

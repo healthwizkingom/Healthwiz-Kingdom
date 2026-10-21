@@ -112,4 +112,9 @@ HWUI.css('campus',`
    phone, so every button, full screen included, stays on screen */
 .cmpctls{display:grid;grid-auto-flow:column;grid-template-rows:repeat(auto-fill,minmax(40px,auto));gap:6px;bottom:34px;direction:rtl;align-content:start}
 .cmpctls>*{direction:ltr}
+
+/* full screen stays on the map, top right (owner's request, 2026-10-22); the sky caption bottom left, clear of the HealthWiz button */
+.cmpfsb{position:absolute;right:10px;top:10px;z-index:7}.cmpfull .cmpfsb{top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right))}
+.cmpstage .cmpskycap{left:10px;bottom:8px;transform:none;max-width:calc(50% - 52px)}
+.cmpskyp{padding-right:44px}.cmpskyp .cmpskyx{position:absolute;right:6px;top:6px}
 `);

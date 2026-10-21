@@ -64,7 +64,7 @@ const unmapped=()=>R().filter(s=>!placed(s));
 
 /* ---------- state: kept for this tab (no position, no health data) ---------- */
 const VK='hw_obs_view',FILTERS=['all','map','nol','part','flag'];
-const V={sid:null,grp:null,mode:'fantasy',cam:null,terr:true,bld:true,full:false,vw:false,tab:'list',f:'all',q:'',me:null,gps:'',err:'',fly:false,sky:'live',skyo:false};
+const V={sid:null,grp:null,mode:'fantasy',cam:null,terr:true,bld:true,full:false,vw:true,tab:'list',f:'all',q:'',me:null,gps:'',err:'',fly:false,sky:'live',skyo:false};
 try{const o=JSON.parse(sessionStorage.getItem(VK)||'null');if(o&&typeof o==='object'){
   if(typeof o.sid==='string')V.sid=o.sid;if(typeof o.grp==='string')V.grp=o.grp;if(o.mode==='realistic')V.mode='realistic';
   if(o.cam&&Array.isArray(o.cam.c)&&o.cam.c.length===2&&o.cam.c.every(isFinite)&&isFinite(o.cam.z))V.cam={c:o.cam.c.map(Number),z:+o.cam.z,b:+o.cam.b||0,p:+o.cam.p||0};
@@ -277,7 +277,7 @@ function details(s,tab){if(tab==='workout')return '<p class="cmpeye">'+s.id+' ·
   if(s.notes)q+='<p class="cmpnotes">'+esc(s.notes)+'</p>';
   const mine='<p class="cmpmine">'+(a.sessions?'You saved '+a.sessions+' stair session'+(a.sessions>1?'s':'')+' here (last '+esc(a.last)+')':'No stair sessions saved here yet')+(a.firstCheckIn?' · first GPS check-in '+esc(a.firstCheckIn):'')+'</p>';
   return '<p class="cmpeye">'+s.id+' · '+CN[s.appCategory]+'</p><h3 class="cmph" tabindex="-1">'+esc(s.name)+'</h3>'
-    +(tab?logBox(s,tab)+preview(s):preview(s)+logBox(s))+mine+(placed(s)&&M.st==='ready'?'<div class="row cmpact"><button type="button" class="g" data-a="cmpshow">SHOW ON MAP</button></div>':'')
+    +preview(s)+logBox(s,tab)+mine+(placed(s)&&M.st==='ready'?'<div class="row cmpact"><button type="button" class="g" data-a="cmpshow">SHOW ON MAP</button></div>':'')
     +grp('map','Location',loc)+grp('stairs','Staircase profile',pro)+grp('scroll','Data quality',q)
     +'<div class="row cmpact"><button type="button" class="g cmpback" data-a="cmptab" data-t="list">ALL STAIRCASES</button></div>'}
 function chooser(g){return '<button type="button" class="cmpback" data-a="cmptab" data-t="list">‹ All staircases</button><p class="cmpeye">Shared point</p><h3 class="cmph" tabindex="-1">'+g.items.length+' staircases at one stored point</h3>'
@@ -297,7 +297,7 @@ function detPane(tab){const g=V.grp&&points().find(x=>x.key===V.grp),s=!g&&V.sid
 /* ---------- the sky (observatory/sky.js): live weather and haze (js/v6-live.js) and the clock; or a preview ---------- */
 const SKYN={live:'Live',day:'Clear day',dusk:'Dusk',night:'Night',rain:'Rain',fog:'Fog',haze:'Haze'};
 function skyPanel(){if(!V.skyo)return '';
-  return '<div class="cmpskyp" id="cmpskyp" role="group" aria-label="Sky on the map"><b>Sky</b>'+Object.keys(SKYN).map(k=>'<button type="button" class="cmpsb" data-a="cmpsky" data-v="'+k+'" aria-pressed="'+(V.sky===k)+'">'+SKYN[k]+'</button>').join('')
+  return '<div class="cmpskyp" id="cmpskyp" role="group" aria-label="Sky on the map"><b>Sky</b><button type="button" class="cmpsx cmpskyx" data-a="cmpskyb" aria-label="Close the sky panel">×</button>'+Object.keys(SKYN).map(k=>'<button type="button" class="cmpsb" data-a="cmpsky" data-v="'+k+'" aria-pressed="'+(V.sky===k)+'">'+SKYN[k]+'</button>').join('')
     +'<small>Live: the Kulim weather and the modelled haze (Settings, Live data) with the time from your clock. The others are previews. A picture, not a forecast.</small></div>'}
 function skyApply(){const c=M.ctl,X=window.HWObsMap;if(!c||!c.ready||!X||!X.sky||!c.sky)return;
   const L=typeof HWLive!=='undefined'&&HWLive.enabled()?HWLive:null,R0=L?L.state():null,wx=R0&&R0.wx&&R0.wx.st==='ok'&&R0.wx.d?R0.wx.d.current:null;
@@ -314,7 +314,7 @@ HWEvents.on('live:updated',()=>{if(S.v==='campus')skyApply()});
 /** The map's buttons, in the HealthWiz menu (js/v6-campus-hud.js): [action, name, label, icon, attributes]. */
 function ctls(){const on=v=>' aria-pressed="'+!!v+'"';
   return [['cmpme','Me','Show me on the map (uses your location)','<span class="cmploc" aria-hidden="true"></span>',on(meOn())],['hudsheetopen','Details','Open the details',ico('scroll'),''],
-    ['cmpfull',V.full?'Exit full':'Full screen',V.full?'Leave full screen':'Full screen map',ico('expand'),' id="cmpfullb"'+on(V.full)],['cmpzin','Zoom in','Zoom in','+',''],['cmpzout','Zoom out','Zoom out','−',''],
+['cmpzin','Zoom in','Zoom in','+',''],['cmpzout','Zoom out','Zoom out','−',''],
     ['cmpnorth','North','North up (the needle points north)','<span class="cmpcomp" id="cmpcomp" aria-hidden="true"><i></i><b>N</b></span>',''],
     ['cmprotl','Turn left','Rotate left','<svg viewBox="0 0 24 24" aria-hidden="true" class="cmpsv2"><path d="M9 5H4v5"/><path d="M4.5 9.5A8 8 0 1 1 6 17"/></svg>',''],
     ['cmprotr','Turn right','Rotate right','<svg viewBox="0 0 24 24" aria-hidden="true" class="cmpsv2"><path d="M15 5h5v5"/><path d="M19.5 9.5A8 8 0 1 0 18 17"/></svg>',''],
@@ -325,7 +325,7 @@ function ctls(){const on=v=>' aria-pressed="'+!!v+'"';
 function legend(){return '<p><span class="cmplg m1"></span>Mild <span class="cmplg m2"></span>Moderate <span class="cmplg m3"></span>Vigorous <small>(app category)</small></p>'
     +'<p><span class="cmplg est"></span>Estimated location <span class="cmplg part"></span>Step size measured (F21) or surveyed</p><p><span class="cmplg ter"></span>Raised ground and contour lines (every 2 m): which area is higher is from the owner\'s annotated screenshot; where the slopes start and end is estimated from the drone video and the staircase list. Heights are illustrative, not measured</p><p><span class="cmplg osm"></span>Roads with kerbs and drains, street lights, goal posts, the tennis net and car parks: modelled in Blender in the look of the drone video, on the OpenStreetMap roads and fields. Car park places are estimated; parked cars are decoration</p><p><span class="cmplg sky"></span>Sky: the live Kulim weather and modelled haze (Settings, Live data) and the time from your clock; a picture, not a forecast</p>'
     +'<p><span class="cmplg osm"></span>Buildings, paths, fields: OpenStreetMap. Building heights are illustrative.</p>'+'<p><span class="cmplg lmkl"></span>Landmark: a place mapped in OpenStreetMap (gold once you have opened it). Exploring is not climbing</p>'+(V.mode==='fantasy'?'<p><span class="cmplg deco"></span>Roofs, turrets, banners, timber framing, trees, lanterns, signposts, notice boards, rune waystones and glows are decoration on the real OSM outlines; the gatehouse stands at the mapped gate</p>':'')
-    +'<p><span class="cmplg vis"></span>A ring: you have saved a stair session there</p><p><span class="cmplg osm"></span>Mist: the land beyond the campus, not mapped here. The KM KULIM sign: its place is estimated from the owner\'s screenshot; drawn larger than life</p>'
+    +'<p><span class="cmplg vis"></span>A ring: you have saved a stair session there</p><p><span class="cmplg osm"></span>The KM KULIM sign: its place is estimated from the owner\'s screenshot; drawn larger than life</p>'
     +(meOn()?'<p>Your avatar: '+AV[avNow()].n+(avSex()?' (from your profile)':'')+'. '+esc(AV[avNow()].c)+' It is drawn larger than life so it can be seen; its size and pace mark nothing.</p>':'')}
 function stage(){const w=why(),s=V.sid&&rec(V.sid),g=V.grp&&points().find(x=>x.key===V.grp),on=(k,v)=>' aria-pressed="'+!!v+'"';
   if(w)return '<div class="cmpstage cmpoff" id="cmpstage"><div class="cmpnomap" id="cmpnomap" role="note">'+ico('map')+' '+esc(WHY[w])+'</div></div>';
@@ -334,6 +334,7 @@ function stage(){const w=why(),s=V.sid&&rec(V.sid),g=V.grp&&points().find(x=>x.k
     +'<button type="button" class="cmpsb" data-a="hudsheetopen">Details</button>'+'<button type="button" class="cmpsb" data-a="cmpfit">Campus view</button><button type="button" class="cmpsx" data-a="cmpclear" aria-label="Clear the selection">×</button></div>':'';
   return '<div class="cmpstage'+(V.full?' cmpfull':'')+'" id="cmpstage"'+(V.full?' role="dialog" aria-modal="true" aria-label="Campus map, full screen"':'')+'><div class="cmpslot" id="cmpmapslot"></div>'
     +'<div class="cmpmodes" role="group" aria-label="Map style"><button type="button" class="cmpmode" data-a="cmpmode" data-m="fantasy"'+on(0,V.mode==='fantasy')+'>Fantasy</button><button type="button" class="cmpmode" data-a="cmpmode" data-m="realistic"'+on(0,V.mode==='realistic')+'>Realistic</button></div>'
+    +'<button type="button" class="cmpctl cmpfsb" data-a="cmpfull" id="cmpfullb" aria-label="'+(V.full?'Leave full screen':'Full screen map')+'" title="'+(V.full?'Leave full screen':'Full screen map')+'" aria-pressed="'+V.full+'">'+ico('expand')+'</button>'
     +pill+meBar()+chooser3()+HWCampusHud.html({items:ctls(),find:finder(),legend:legend(),sheet:V.tab==='det'?HWCampusHud.sheet(half(),detPane(half())):''})
     +skyPanel()+(typeof HWCampusMagic!=='undefined'?HWCampusMagic.stage():'')+'<p class="cmpskycap" id="cmpskycap" role="status"></p>'
     +(typeof HWCampusStop!=='undefined'?HWCampusStop.html():'')+'<div class="cmpmsg" id="cmpmsg" role="status"'+(M.st==='ready'?' hidden':'')+'>'+esc(M.st==='error'?M.msg:'Loading the campus map…')+'</div></div>'}
@@ -393,7 +394,7 @@ function page(){Promise.resolve().then(()=>{mount();mount3d()});
 const keep=()=>{persist();const y=window.scrollY;render();window.scrollTo(0,y)};
 const toDet=()=>{const e=D0.querySelector('#cmpdet .cmph');if(e)e.focus({preventScroll:true})};
 /** One path for every way of choosing a staircase: a marker, the list, a link in the details, focus(). */
-function pick(id,from){const s=rec(id);if(!s)return;const fresh=V.sid!==id;V.sid=id;V.grp=null;V.tab='det';if(!onMap())V.vw=true;V.fly=placed(s)&&from!=='restore';V.pop=fresh;if(from==='find')V.q='';if(fresh&&onMap())HWCampusHud.setSize('peek');if(typeof HWStairs!=='undefined')HWStairs.choose(id);
+function pick(id,from){const s=rec(id);if(!s)return;const fresh=V.sid!==id;V.sid=id;V.grp=null;V.tab='det';V.vw=true;V.fly=placed(s)&&from!=='restore';V.pop=fresh;if(from==='find')V.q='';if(fresh&&onMap())HWCampusHud.setSize('peek');if(typeof HWStairs!=='undefined')HWStairs.choose(id);
   // a heart tapped on the map, or picked in the search on the map: the stop's disc zooms out of it (js/v6-campus-stop.js)
   const stop=(from==='map'||from==='find')&&placed(s)&&M.st==='ready'&&typeof HWCampusStop!=='undefined';keep();V.pop=false;if(stop)HWCampusStop.open(id);else if(from!=='map'){if(onMap()){const e=$id('cmpstage');if(e)e.scrollIntoView({block:'nearest'})}toDet()}}
 // a GPS check-in (js/v6-gps.js) found the staircase the player is at: it becomes the selection, its Details open
@@ -450,7 +451,7 @@ acts.cmpgps=()=>locate();
 function show(id){if(V.sid===id&&rec(id)){V.grp=null;V.tab='det'}else if(!focus(id))return false; // already selected: the camera stays where it is
   persist();render();const e=$id('cmpcard');if(e)e.scrollIntoView({block:'start'});return true}
 /** Select a staircase from elsewhere (before go('campus')): the map flies to it; with no coordinates, it is not moved. */
-function focus(id){const s=rec(id);if(!s)return false;V.sid=id;V.grp=null;V.tab='det';if(!onMap())V.vw=true;V.fly=placed(s);if(typeof HWStairs!=='undefined')HWStairs.choose(id);persist();if(M.ctl&&S.v==='campus')sync();return true}
+function focus(id){const s=rec(id);if(!s)return false;V.sid=id;V.grp=null;V.tab='det';V.vw=true;V.fly=placed(s);if(typeof HWStairs!=='undefined')HWStairs.choose(id);persist();if(M.ctl&&S.v==='campus')sync();return true}
 /** Open the Details tab (the Stairs card and its routes): the logging forms of the selection, or the GPS check-in. */
 function openLog(){V.grp=null;V.tab='det';V.full=false;if(V.sid&&typeof HWStairs!=='undefined')HWStairs.choose(V.sid);persist()}
 

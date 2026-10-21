@@ -79,8 +79,7 @@ test('complete survey flights: the preview is built from them, labelled so, with
   const { ctx, page, errors, reqs } = await openHttp({ route: p => p.route('**/data/stair-survey.json', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(FIXTURE) })) });
   await goView(page, 'campus'); assert.equal(await ready(page), 'ready');
   await page.waitForFunction(() => HWCampusData.survey.stairs === 1, null, { timeout: 20000 });
-  await page.click('#cmplist .cmpitem[data-id="ST20"]');
-  await page.click('[data-a="cmpvwopen"]'); await shown(page, 'ST20'); // with the map the preview opens on request (2026-10-21), then follows the pick
+  await page.click('#cmplist .cmpitem[data-id="ST20"]'); await shown(page, 'ST20');
   assert.equal(await page.evaluate(() => HWCampus.viewer.debug.source), 'survey');
   const t = await page.textContent('#cmpvw');
   assert.match(t, /Built from survey measurements[\s\S]*Finishes illustrative[\s\S]*Built from survey measurements · finishes illustrative/);

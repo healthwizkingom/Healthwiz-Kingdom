@@ -137,5 +137,3 @@ html.hw-q-performance .stm .hrt{animation:none} /* Performance mode: the hearts 
 .cmpcard .st3d .stm,.st3d .stm{box-shadow:none;background:transparent} /* the app's button shadow, which the drawn heart used to cover */
 .st3d .stm .hrt{animation:none}
 
-/* the mist over the land beyond the campus (observatory/map.js): over the map canvas, under the sky layers and markers */
-.cmpmist{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}

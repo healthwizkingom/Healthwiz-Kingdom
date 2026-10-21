@@ -1,7 +1,7 @@
 // NEAREST STAIRS on the Campus map (js/v6-campus-hud.js, owner's request 2026-10-21): a wave out of the avatar, then the
 // nearest staircases with CHECK IN (the GPS check-in of js/v6-gps.js, compact; a saved casual GPS session); a demo walk's
 // position is simulated, so no check-in; a switch (terrain) or a redraw of the same page keeps the page still (no
-// entrance fade, no map resize); the mist over the land beyond the campus. The rest of the HUD: tests/89-observatory-hud.
+// entrance fade, no map resize). The rest of the HUD: tests/89-observatory-hud.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -56,16 +56,10 @@ async function mapPage(o = {}) {
   return { ctx, page, errors: () => errors.filter(e => !/\.glb|404/.test(e)) };
 }
 
-test('NEAREST STAIRS: a wave, then the nearest staircases with CHECK IN; a switch keeps the page still; the mist', async () => {
+test('NEAREST STAIRS: a wave, then the nearest staircases with CHECK IN; a switch keeps the page still', async () => {
   const { ctx, page, errors } = await mapPage();
   await page.evaluate(() => HWCampusHud.aware(false));
-  // the mist: clear over the campus, thick far beyond it (a 2D layer over the map canvas, drawn with the map)
-  const c = await page.evaluate(() => { const m = HWCampus.map.map; m.jumpTo({ center: [100.5384, 5.3511], zoom: 15.6, pitch: 0, bearing: 0 }); m.triggerRepaint(); return new Promise(r => m.once('render', () => setTimeout(() => {
-    const cv = document.querySelector('.cmpmist'), g = cv.getContext('2d'), a = (x, y) => g.getImageData(Math.round(x * cv.width), Math.round(y * cv.height), 1, 1).data[3], q = m.project([100.5384, 5.3511]), R = m.getContainer().getBoundingClientRect();
-    r([a(q.x / R.width, q.y / R.height), Math.max(a(.01, .01), a(.99, .01), a(.01, .99), a(.99, .99)), getComputedStyle(cv).pointerEvents]); }, 50))); });
-  assert.equal(c[0], 0, 'clear over the campus');
-  assert.ok(c[1] > 60, 'mist far out: alpha ' + c[1]);
-  assert.equal(c[2], 'none', 'it never takes a tap');
+  assert.equal(await page.locator('.cmpmist').count(), 0, 'no layer over the map beyond the campus (owner, 2026-10-22)');
   await until(page, () => HWCampus.me.st === 'gps' && !!HWCampus.me.last, 20000);
   await page.emulateMedia({ reducedMotion: 'no-preference' }); // the wave is motion: with reduced motion it is not drawn
   await page.click('.hudwavebtn');

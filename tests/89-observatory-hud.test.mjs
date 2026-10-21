@@ -90,13 +90,14 @@ test('Stay Aware, the HealthWiz menu, the Details sheet with its tabs, and the a
   await until(page, () => HWCampus.me.st === 'gps' && !!HWCampus.me.last, 20000);
   assert.equal(await page.evaluate(() => HWCampus.me.choose), false, 'no avatar question first');
   // no map buttons down the side and no legend in the corner: one HealthWiz button
-  assert.deepEqual(await page.evaluate(() => [document.querySelectorAll('#cmpstage .cmpctls, #cmpstage .cmpctl, #cmpstage > .cmpfind, #cmpstage > details.cmpleg').length, document.querySelectorAll('#cmpstage .hudbtn').length]), [0, 1]);
+  assert.deepEqual(await page.evaluate(() => [document.querySelectorAll('#cmpstage .cmpctls, #cmpstage .cmpctl:not(#cmpfullb), #cmpstage > .cmpfind, #cmpstage > details.cmpleg').length, document.querySelectorAll('#cmpstage .hudbtn').length]), [0, 1], 'only full screen stays on the map, beside one HealthWiz button');
   const hb = await page.evaluate(() => { const b = document.querySelector('.hudbtn').getBoundingClientRect(), s = document.getElementById('cmpstage').getBoundingClientRect(); return [Math.abs((b.left + b.right) / 2 - (s.left + s.right) / 2) < 2, s.bottom - b.bottom < 30]; });
   assert.deepEqual(hb, [true, true], 'at the bottom middle of the map');
   await page.click('.hudbtn');
   const m = await page.evaluate(() => ({ find: !!document.querySelector('#hudmenu #cmpfind'), names: [...document.querySelectorAll('#hudmenu .hudl')].map(e => e.textContent) }));
   assert.ok(m.find, 'the search is in the menu');
-  for (const n of ['Me', 'Details', 'Full screen', 'Zoom in', 'Zoom out', 'North', 'Turn left', 'Turn right', '3D', 'Terrain', 'Buildings', 'Sky', 'Layers', 'Campus', 'Legend']) assert.ok(m.names.includes(n), n);
+  assert.ok(!m.names.includes('Full screen'), 'full screen stays on the map');
+  for (const n of ['Me', 'Details', 'Zoom in', 'Zoom out', 'North', 'Turn left', 'Turn right', '3D', 'Terrain', 'Buildings', 'Sky', 'Layers', 'Campus', 'Legend']) assert.ok(m.names.includes(n), n);
   // a button in it does its job with the menu closed
   const z = await page.evaluate(() => HWCampus.map.map.getZoom());
   await page.click('#hudmenu [data-a="cmpzin"]');
@@ -105,7 +106,7 @@ test('Stay Aware, the HealthWiz menu, the Details sheet with its tabs, and the a
   assert.ok(await page.evaluate(z => HWCampus.map.map.getZoom() > z + .5, z));
   // the Legend from the menu
   await page.click('.hudbtn'); await page.click('#hudmenu [data-a="hudlegopen"]');
-  assert.match(await page.textContent('#hudleg'), /Mild[\s\S]*Mist: the land beyond the campus/);
+  assert.match(await page.textContent('#hudleg'), /Mild[\s\S]*The KM KULIM sign: its place is estimated/);
   await page.click('#hudleg [data-a="hudleg"]');
   // the search in the menu: picking a match closes the menu and opens the staircase
   await page.click('.hudbtn'); await page.fill('#cmpfind', 'ST14');
@@ -121,11 +122,17 @@ test('Stay Aware, the HealthWiz menu, the Details sheet with its tabs, and the a
   await until(page, () => document.getElementById('hudsheet').dataset.size === 'half', 3000);
   await page.waitForTimeout(400);
   assert.ok(await page.evaluate(() => { const r = document.getElementById('hudsheet').getBoundingClientRect().height / document.getElementById('cmpstage').getBoundingClientRect().height; return r > .45 && r < .56; }), 'half the map');
+  // once more: the whole map
+  await page.click('.hudgrab');
+  await until(page, () => document.getElementById('hudsheet').dataset.size === 'full', 3000); await page.waitForTimeout(400);
+  assert.ok(await page.evaluate(() => document.getElementById('hudsheet').getBoundingClientRect().height >= document.getElementById('cmpstage').getBoundingClientRect().height - 2), 'the whole map');
+  // the Stairs tab: the stair illustration first, then the forms
+  assert.ok(await page.evaluate(() => { const b = document.getElementById('hudbody'), v = b.querySelector('#cmpvw, .cmpvwna'), l = b.querySelector('#cmplog'); return !!v && !!l && (v.compareDocumentPosition(l) & Node.DOCUMENT_POSITION_FOLLOWING); }), 'illustration, then the forms');
   // the tabs: Stairs (the climb forms), Workout (the heart-rate workout)
   assert.match(await page.textContent('#hudbody'), /LOG A CLIMB HERE[\s\S]*Steps per climb/);
   await page.click('[data-a="hudtab"][data-t="workout"]');
   assert.deepEqual(await page.evaluate(() => [document.querySelector('[data-t="workout"]').getAttribute('aria-selected'), !!document.querySelector('#hudbody #wk-b'), !!document.querySelector('#hudbody #stman')]), ['true', true, false]);
-  assert.equal(await page.evaluate(() => document.getElementById('hudsheet').dataset.size), 'half', 'the size is kept');
+  assert.equal(await page.evaluate(() => document.getElementById('hudsheet').dataset.size), 'full', 'the size is kept');
   // its x closes it; the staircase stays picked; the selection bar's Details opens it again
   await page.click('#hudsheet [data-a="hudsheetx"]');
   assert.deepEqual(await page.evaluate(() => [!!document.getElementById('hudsheet'), HWCampus.selected]), [false, 'ST14']);

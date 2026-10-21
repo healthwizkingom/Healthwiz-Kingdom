@@ -99,9 +99,9 @@ test('with the map, on a phone: spinning hearts; a tap zooms the stop\'s disc ou
   assert.deepEqual(grey, [true, true], 'the sheet is white and grey only (the colour comes from the CSS tint)');
   // every map button on screen on a phone, full screen included (in the HealthWiz menu, js/v6-campus-hud.js)
   await page.click('.hudbtn'); await page.waitForTimeout(400); // the menu slides in
-  const off = await page.evaluate(() => { const st = document.getElementById('cmpstage').getBoundingClientRect(); return [...document.querySelectorAll('.hudbtn, .hudwavebtn, #hudmenu .hudi, #hudmenu .hudx')].filter(b => { const r = b.getBoundingClientRect(); return !(r.top >= st.top && r.bottom <= st.bottom && r.left >= st.left && r.right <= st.right); }).map(b => b.dataset.a); });
+  const off = await page.evaluate(() => { const st = document.getElementById('cmpstage').getBoundingClientRect(); return [...document.querySelectorAll('.hudbtn, .hudwavebtn, #cmpfullb, #hudmenu .hudi, #hudmenu .hudx')].filter(b => { const r = b.getBoundingClientRect(); return !(r.top >= st.top && r.bottom <= st.bottom && r.left >= st.left && r.right <= st.right); }).map(b => b.dataset.a); });
   assert.deepEqual(off, [], 'all map buttons inside the map');
-  assert.equal(await page.locator('#hudmenu [data-a="cmpfull"]').count(), 1);
+  assert.equal(await page.locator('#cmpstage > #cmpfullb').count(), 1, 'full screen on the map, outside the menu');
   await page.click('#hudmenu [data-a="hudmenu"]');
   // tap ST20's heart: the stop opens with its disc zooming out, the Details in the map's sheet
   await page.evaluate(() => document.querySelector('.stm[data-id="ST20"]').click());
