@@ -92,6 +92,7 @@ test('the avatar shows by itself and follows the profile (male: the school boy, 
   assert.match(await page.textContent('#cmpcard'), /The nearest mapped staircase is .+, about \d+ m away \(± 12 m\)/);
   await page.click('.hudbtn'); await page.click('#hudmenu [data-a="hudlegopen"]'); // the Legend is in the HealthWiz menu
   assert.match(await page.textContent('.cmpleg'), /Your avatar: Anime school boy \(from your profile\)\. "Rigged Anime School Boy \(Animation included\)" by suzuart \(Sketchfab\), CC BY 4\.0/);
+  await page.click('#hudleg [data-a="hudleg"]'); // close the Legend
   // no sex in the profile: the player picks (credits shown), and can change it; the choice is a device preference
   await page.evaluate(() => { st.p.sex = ''; save(); render(); });
   await page.click('.cmpmebar [data-a="cmpavopen"]');
