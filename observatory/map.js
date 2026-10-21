@@ -117,6 +117,14 @@ const LIGHT = {
   fantasy: { anchor: 'map', position: [1.4, 215, 38], color: '#c9d4ff', intensity: .5 },
 };
 
+/** The clouds' shape: a wide frame around the export's area with the campus outline cut out, and that outline as a line for the soft edge. */
+function fogOf(osm) {
+  const c = osm.features.find(f => f.properties.kind === 'campus'), [x0, y0, x1, y1] = osm.bounds, P = .02;
+  const outer = [[x0 - P, y0 - P], [x1 + P, y0 - P], [x1 + P, y1 + P], [x0 - P, y1 + P], [x0 - P, y0 - P]];
+  const ring = c && (c.geometry.type === 'Polygon' ? c.geometry.coordinates[0] : c.geometry.type === 'MultiPolygon' ? c.geometry.coordinates[0][0] : null);
+  return { type: 'FeatureCollection', features: [{ type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: ring ? [outer, ring] : [outer] } }]
+    .concat(ring ? [{ type: 'Feature', properties: { e: 1 }, geometry: { type: 'LineString', coordinates: ring } }] : []) };
+}
 function style(osm, zonesFC, trees, parts, walks, demUrl) {
   const L = (id, type, filter, paint = {}, layout = {}, source = 'osm') => ({ id, type, source, ...(filter ? { filter } : {}), paint, layout });
   const join = { 'line-join': 'round', 'line-cap': 'round' };
@@ -134,6 +142,7 @@ function style(osm, zonesFC, trees, parts, walks, demUrl) {
       sel: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
       pulse: { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, lineMetrics: true }, // a saved session's pulse of light
       me: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
+      fog: { type: 'geojson', data: fogOf(osm) },
       dem, demhs: { ...dem },
     },
     layers: [
@@ -179,6 +188,10 @@ function style(osm, zonesFC, trees, parts, walks, demUrl) {
       L('wt', 'fill-extrusion', ['all', K('water_tower'), POLY], { 'fill-extrusion-height': 12 }),
       L('trees', 'symbol', null, {}, { visibility: 'visible', 'icon-image': TREE_IMG.realistic, 'icon-allow-overlap': true, 'icon-ignore-placement': true, 'icon-anchor': 'bottom',
         'icon-pitch-alignment': 'viewport', 'icon-rotation-alignment': 'viewport', 'icon-size': ['interpolate', ['linear'], ['zoom'], 15, ['*', ['get', 's'], .55], 17, ['*', ['get', 's'], 1], 19.5, ['*', ['get', 's'], 2.1]] }, 'deco'),
+      // undiscovered land: clouds over everything outside the campus outline, with a soft edge, so the world ends at the
+      // campus instead of an empty plain (owner's request, 2026-10-21); decoration, it hides nothing that is mapped
+      L('fog', 'fill', null, { 'fill-pattern': 'px-cloud', 'fill-opacity': .97 }, {}, 'fog'),
+      L('fog-edge', 'line', ['==', ['get', 'e'], 1], { 'line-color': '#eef2f8', 'line-opacity': .85, 'line-width': ['interpolate', ['exponential', 1.6], ['zoom'], 15, 22, 19, 160], 'line-blur': ['interpolate', ['exponential', 1.6], ['zoom'], 15, 18, 19, 130] }, { 'line-join': 'round' }, 'fog'),
       L('lanterns', 'symbol', ['all', K('footway_covered'), LINE], {}, { visibility: 'none', 'symbol-placement': 'line', 'symbol-spacing': 90, 'icon-image': 'px-lantern',
         'icon-allow-overlap': true, 'icon-ignore-placement': true, 'icon-anchor': 'bottom', 'icon-pitch-alignment': 'viewport', 'icon-rotation-alignment': 'viewport',
         'icon-size': ['interpolate', ['linear'], ['zoom'], 15, .45, 17, .8, 19.5, 1.5] }),

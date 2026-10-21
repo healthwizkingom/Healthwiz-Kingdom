@@ -38,7 +38,8 @@ function html(){const s=cur&&rec(cur);if(!s)return '';const c=CAT[s.appCategory]
     +'<div class="cmpstopa"><button type="button" data-a="cmpstoplog">LOG A CLIMB HERE</button></div>'
     +'<button type="button" class="cmpstopx" data-a="cmpstopx" aria-label="Close and go back to the map">×</button></div>'}
 acts.cmpstopx=()=>close();
-acts.cmpstoplog=()=>close(()=>{const e=document.getElementById('cmpdet')||document.getElementById('cmplog');if(e)e.scrollIntoView({block:'start',behavior:HWUI.reduced()?'auto':'smooth'})});
+// with the map, Details are the sheet inside it (js/v6-campus-hud.js): it rises to half the map
+acts.cmpstoplog=()=>close(()=>{if(typeof HWCampusHud!=='undefined'&&document.querySelector('.hudbtn')){HWCampus.openSheet('stairs','half');return}const e=document.getElementById('cmpdet')||document.getElementById('cmplog');if(e)e.scrollIntoView({block:'start',behavior:HWUI.reduced()?'auto':'smooth'})});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&cur&&S.v==='campus'&&!document.querySelector('dialog[open], .hwh-pop:not([hidden])'))close()});
 HWEvents.on('page:viewed',e=>{if(e&&e.view!=='campus'){cur=null;enter=false}});
 HWEvents.on('data:reset',()=>{cur=null});

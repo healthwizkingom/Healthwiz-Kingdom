@@ -52,6 +52,8 @@ export async function openApp({ seed, fresh = false, viewport, before, context, 
   if (init) await page.addInitScript(s => { if (window !== window.top) return; if (!sessionStorage.getItem('seeded')) { localStorage.setItem('healthwiz', s); localStorage.setItem('hwtut', '1'); sessionStorage.setItem('seeded', '1'); } }, init);
   if (before) await before(page);
   await page.goto(url || APP_URL);
+  // the loading screen (js/v6-loader.js) covers the app until the first page has loaded
+  await page.waitForFunction(() => !window.HWLoader || HWLoader.done, null, { timeout: 20000 }).catch(() => {});
   return { page, ctx, errors };
 }
 

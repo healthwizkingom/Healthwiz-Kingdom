@@ -86,7 +86,7 @@ test('with the map, on a phone: spinning hearts; a tap zooms the stop\'s disc ou
   await page.route('**/assets/models/heart-stop.glb', r => r.fulfill({ status: 404, body: 'not found' })); // the fallback; the 3D stops: below
   await page.addInitScript(s => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('healthwiz', s); localStorage.setItem('hwtut', '1'); sessionStorage.setItem('seeded', '1'); } }, JSON.stringify({ ...RETURNING, s: { ...RETURNING.s, live: 0 } }));
   await page.goto(base); await page.waitForSelector('.wl');
-  await page.evaluate(() => go('campus'));
+  await page.evaluate(() => { go('campus'); if (window.HWCampusHud) HWCampusHud.aware(false); }); // OK on the Stay Aware notice
   await until(page, () => HWCampus.state.map === 'ready', 80000);
   // the hearts: one per stored point, in the difficulty colour, spinning (16 steps), the difficulty number on the post
   // (the 3D stops cannot load in this test: the drawn hearts stay)
@@ -97,18 +97,20 @@ test('with the map, on a phone: spinning hearts; a tap zooms the stop\'s disc ou
   const grey = await page.evaluate(() => new Promise(res => { const im = new Image(); im.onload = () => { const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; const g = c.getContext('2d'); g.drawImage(im, 0, 0);
     const d = g.getImageData(0, 0, c.width, c.height).data; let ok = true, n = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 3]) { n++; if (d[i] !== d[i + 1] || d[i + 1] !== d[i + 2]) ok = false; } res([ok, n > 2000]); }; im.src = 'assets/img/heart-spin.webp'; }));
   assert.deepEqual(grey, [true, true], 'the sheet is white and grey only (the colour comes from the CSS tint)');
-  // every map button on screen on a phone, full screen included
-  const off = await page.evaluate(() => { const st = document.getElementById('cmpstage').getBoundingClientRect(); return [...document.querySelectorAll('.cmpctls .cmpctl')].filter(b => { const r = b.getBoundingClientRect(); return !(r.top >= st.top && r.bottom <= st.bottom && r.left >= st.left && r.right <= st.right); }).map(b => b.dataset.a); });
+  // every map button on screen on a phone, full screen included (in the HealthWiz menu, js/v6-campus-hud.js)
+  await page.click('.hudbtn');
+  const off = await page.evaluate(() => { const st = document.getElementById('cmpstage').getBoundingClientRect(); return [...document.querySelectorAll('.hudbtn, .hudwavebtn, #hudmenu .hudi, #hudmenu .hudx')].filter(b => { const r = b.getBoundingClientRect(); return !(r.top >= st.top && r.bottom <= st.bottom && r.left >= st.left && r.right <= st.right); }).map(b => b.dataset.a); });
   assert.deepEqual(off, [], 'all map buttons inside the map');
-  assert.equal(await page.locator('.cmpctls [data-a="cmpfull"]').count(), 1);
-  // tap ST20's heart: the stop opens with its disc zooming out, the Details below the map
+  assert.equal(await page.locator('#hudmenu [data-a="cmpfull"]').count(), 1);
+  await page.click('#hudmenu [data-a="hudmenu"]');
+  // tap ST20's heart: the stop opens with its disc zooming out, the Details in the map's sheet
   await page.evaluate(() => document.querySelector('.stm[data-id="ST20"]').click());
   await page.waitForSelector('#cmpstop');
   const t = await page.textContent('#cmpstop');
   assert.match(t, /Tangga sebelah rumah penjana elektrik[\s\S]*ST20 · Moderate \(app category\) · estimated location[\s\S]*No photo yet[\s\S]*LOG A CLIMB HERE/);
   assert.equal(await page.locator('#cmpstop img').count(), 0, 'no photo is made up');
   assert.deepEqual(await page.evaluate(() => [document.getElementById('cmpstop').classList.contains('enter'), getComputedStyle(document.querySelector('#cmpstop .cmpdisc')).animationName]), [true, 'stopin']);
-  assert.deepEqual(await page.evaluate(() => [HWCampus.selected, !!document.querySelector('#cmppane > #cmpdet #cmplog')]), ['ST20', true], 'the Details below the map');
+  assert.deepEqual(await page.evaluate(() => [HWCampus.selected, !!document.querySelector('#cmpstage #hudsheet #cmpdet #cmplog')]), ['ST20', true], 'the Details in the map');
   const vis = await page.evaluate(() => { const r = document.querySelector('#cmpstop [data-a="cmpstoplog"]').getBoundingClientRect(), n = document.getElementById('nav').getBoundingClientRect(); return r.top >= 0 && r.bottom <= n.top; });
   assert.ok(vis, 'the whole stop is on screen, above the bottom bar');
   // close: the disc shrinks back; the staircase stays picked
@@ -121,6 +123,7 @@ test('with the map, on a phone: spinning hearts; a tap zooms the stop\'s disc ou
   await page.waitForSelector('#cmpstop');
   await page.evaluate(() => acts.cmpstoplog());
   await until(page, () => !document.getElementById('cmpstop'), 5000);
+  await until(page, () => (document.getElementById('hudsheet') || {}).dataset.size === 'half', 3000); // the sheet rises to half the map
   // reduced motion: the hearts stand still
   await page.emulateMedia({ reducedMotion: 'reduce' });
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.stm .hrt')).animationName), 'none');
@@ -142,7 +145,7 @@ test('the solid 3D stops: one per marker, in the difficulty colour, on the marke
   await page.route('**/observatory/viewer3d.js', r => r.fulfill({ contentType: 'text/javascript', body: STUB_VIEWER }));
   await page.addInitScript(s => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('healthwiz', s); localStorage.setItem('hwtut', '1'); sessionStorage.setItem('seeded', '1'); } }, JSON.stringify({ ...RETURNING, s: { ...RETURNING.s, live: 0 } }));
   await page.goto(base); await page.waitForSelector('.wl');
-  await page.evaluate(() => go('campus'));
+  await page.evaluate(() => { go('campus'); if (window.HWCampusHud) HWCampusHud.aware(false); }); // OK on the Stay Aware notice
   await until(page, () => HWCampus.state.map === 'ready' && HWCampus.map.stops && HWCampus.map.stops.ready, 80000);
   const r = await page.evaluate(() => { const C = HWCampus.map, d = C.stops.debug, map = C.map, c = map.getContainer();
     const hex = x => '#' + x.getHexString();

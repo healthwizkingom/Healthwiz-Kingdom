@@ -115,7 +115,7 @@ assets/models/stairs/      the Blender staircase models for the 3D preview (from
 assets/models/avatars/     the map avatars: Tom, the anime school boy and girl (CC BY 4.0, suzuart): sources, licences and changes in CREDITS.md
 tools/blender_avatar.py    makes an avatar (reduced, one texture, skeleton, idle and walk) from a character model; tools/get-blender.sh installs Blender 4.2
 assets/models/campus-realistic.glb, campus-fantasy.glb  the campus buildings for each look, modelled in Blender from the OSM outlines in the look of the owner's drone video (tools/blender_campus.py, data/campus-looks.json); appearance is observed or campus-typical, heights estimated
-tools/blender_campus.py    makes those two GLBs: footprints from data/campus-osm.geojson, roof and wall colours, storeys and details from data/campus-looks.json
+tools/blender_campus.py    makes those two GLBs: footprints from data/campus-osm.geojson, roof and wall colours, storeys and details from data/campus-looks.json; the KM KULIM sign
 assets/models/campus-props-realistic.glb, campus-props-fantasy.glb  the ground details for each look: roads with red-and-white kerbs and a centre line, drains and manholes, street lights, goal posts and pitch lines, the tennis net and fence, car parks
 tools/blender_campus_props.py  makes those two GLBs (run through tools/blender_campus.py --props); data/campus-props.json says where each comes from (car park places estimated)
 tools/make_elevation_zones.py  writes data/elevation-zones.geojson: the estimated, illustrative terrain levels and the evidence for each
@@ -123,6 +123,8 @@ observatory/landmarks.js   landmarks: optional markers for places mapped in OSM 
 js/v6-campus-magic.js      the landmark card and discovery (device only), the Map journal, the Layers panel, a saved session's feedback, staircase sigils, the map's instrument-style buttons
 observatory/stops3d.js     the staircase stops as solid 3D models on the map (assets/models/heart-stop.glb), hidden by buildings in front, with a slight glow
 js/v6-campus-stop.js       the staircase stop on the Campus map: the disc that zooms out of a staircase's heart (name, ID, category, photo frame)
+js/v6-campus-hud.js        the Campus map's HUD: the HealthWiz button and its menu (every map button, the search, the Legend), the Details sheet inside the map (Stairs and Workout tabs), NEAREST STAIRS (the wave and the GPS check-in), the Stay Aware notice; redraws of the same page without the entrance fade
+js/v6-loader.js            the loading screen: the HealthWiz heart filled pixel by pixel while the app and the welcome page load, with the percentage
 observatory/sky.js         the map's sky: live Kulim weather and modelled haze plus the time of day from the clock (or a preview) → sky, light, a tint, fog, rain
 tools/campus-clip.mjs      cuts the prototype's OpenStreetMap export to Kolej MARA Kulim (data/campus-osm.geojson): lines clipped to the export's bounds, features outside the campus dropped
 data/                      campus-osm.geojson (the prototype's OSM export cut to the campus by tools/campus-clip.mjs), elevation-zones.geojson (copied unchanged), campus-looks.json (each building's look from the drone video, with its frames and a confidence) and stair-survey.json
@@ -238,6 +240,34 @@ glow in its difficulty colour: the heart lights itself a little, with a soft hal
 which buildings hide too. The selected heart spins, redrawing the map about 12 times a second only while a staircase is
 selected (never with reduced motion, still mode or Performance mode, when the hearts face the viewer instead). If the
 model cannot load, the drawn hearts stay.
+
+**A map like a game, inside one screen (2026-10-21).** After two screen recordings of Pokemon GO the owner sent (a
+reference for the mechanics and the look; every drawing is original), the map's buttons down the right, the search and
+the Legend are in one HealthWiz button at the bottom middle of the map (`js/v6-campus-hud.js`): it opens a mint menu over
+the map with the search on top and every button as a round icon under its name; the round x at the bottom, Escape or any
+button in it closes it. The Details are inside the map: a sheet rises from the bottom with two tabs, STAIRS (the forms to
+log a climb, the staircase's 3D preview on request, its data) and WORKOUT (the workout with heart rate). It opens a fifth
+of the map high and is dragged (or its handle tapped) to half the map; its content scrolls inside it; its x closes it and
+the selection bar's Details button opens it again. Opened without the map (from the device, or without WebGL) the page
+keeps the Details below the map as before. NEAREST STAIRS replaces the GPS check-in section: a round button sends a
+wave out of the avatar and opens the closest staircases, with CHECK IN for one you stand at (one position, never saved;
+a demo walk's position is simulated and never checks in). The avatar now shows by itself when the map opens; the
+browser still asks for location the first time, which no web page can skip, and without a sex in the profile Tom
+stands in until one is picked. Each time the map opens a notice asks the player to stay aware of their surroundings.
+Switching a map feature (terrain, buildings, the look) no longer redraws the page, and no redraw of the same page
+replays the page's entrance fade, which made it look as if the screen reloaded. The terrain switch swaps two ready
+position buffers for the ground details instead of rewriting every vertex, the map resizes only when its size changes,
+and the 3D stair preview opens only on request and, on phones, draws without anti-aliasing or bloom at up to 30 frames a
+second. The map ends at Kolej MARA Kulim: clouds with a soft edge cover everything outside the campus outline. The
+Fantasy buildings follow the owner's architecture design sheets (a style reference only): a coursed-stone ground storey
+under jettied timber-framed storeys, steeper roofs in teal shingles or terracotta tiles (slate for the maroon and white
+roofs) and teal-coned turrets; Realistic keeps the colours filmed. The KM KULIM sign ("Selangkah ke Menara Gading") from
+the owner's photo stands on the lawn the owner circled, in front of the large academic block's west face, north of its
+entrance, in both looks: its place is estimated from that screenshot (it is not in OpenStreetMap), the crests are plain
+discs, and it is drawn 1.6 times larger than life so it can be read on the map. A loading screen (`js/v6-loader.js`)
+shows the HealthWiz heart in its wizard hat with an ECG line, an empty grey outline that tiny pixels fill in pinkish red
+as the app, the fonts and the welcome page's images load, with the percentage under it; it fades out once they are
+ready.
 
 ## Campus stair survey data
 

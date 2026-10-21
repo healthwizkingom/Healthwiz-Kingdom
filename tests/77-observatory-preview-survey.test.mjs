@@ -54,7 +54,8 @@ async function openHttp({ viewport, init, route, ctxOpt } = {}) {
   await page.goto(base); await page.waitForSelector('.wl');
   return { ctx, page, errors, reqs };
 }
-const goView = (page, v) => page.evaluate(v => go(v), v);
+// the Stay Aware notice (js/v6-campus-hud.js) opens with the map each time; tests/88-observatory-stop checks it, here OK closes it
+const goView = (page, v) => page.evaluate(v => { go(v); if (v === 'campus' && window.HWCampusHud) HWCampusHud.aware(false); }, v);
 // loaded and settled: the first terrain tiles are generated in the browser and take seconds with software WebGL
 const ready = page => page.waitForFunction(() => HWCampus.state.map === 'error' || (HWCampus.state.map === 'ready' && HWCampus.map.quietMs > 1000), null, { timeout: 80000 }).then(() => page.evaluate(() => HWCampus.state.map));
 // settled: the camera has stopped (map.loaded() can stay false while generated terrain tiles refresh)
@@ -78,7 +79,8 @@ test('complete survey flights: the preview is built from them, labelled so, with
   const { ctx, page, errors, reqs } = await openHttp({ route: p => p.route('**/data/stair-survey.json', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(FIXTURE) })) });
   await goView(page, 'campus'); assert.equal(await ready(page), 'ready');
   await page.waitForFunction(() => HWCampusData.survey.stairs === 1, null, { timeout: 20000 });
-  await page.click('#cmplist .cmpitem[data-id="ST20"]'); await shown(page, 'ST20');
+  await page.click('#cmplist .cmpitem[data-id="ST20"]');
+  await page.click('[data-a="cmpvwopen"]'); await shown(page, 'ST20'); // with the map the preview opens on request (2026-10-21), then follows the pick
   assert.equal(await page.evaluate(() => HWCampus.viewer.debug.source), 'survey');
   const t = await page.textContent('#cmpvw');
   assert.match(t, /Built from survey measurements[\s\S]*Finishes illustrative[\s\S]*Built from survey measurements · finishes illustrative/);

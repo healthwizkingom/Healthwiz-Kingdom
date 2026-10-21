@@ -90,7 +90,7 @@ test('with the map: landmarks and discovery, the journal, the layers, a saved se
   await page.route('**/observatory/models3d.js', r => r.fulfill({ contentType: 'text/javascript', body: STUB_BUILDINGS })); // the 3D models have their own tests
   await page.addInitScript(s => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('healthwiz', s); localStorage.setItem('hwtut', '1'); sessionStorage.setItem('seeded', '1'); } }, JSON.stringify({ ...RETURNING, s: { ...RETURNING.s, live: 0 } }));
   await page.goto(base); await page.waitForSelector('.wl');
-  await page.evaluate(() => go('campus'));
+  await page.evaluate(() => { go('campus'); if (window.HWCampusHud) HWCampusHud.aware(false); }); // OK on the Stay Aware notice
   await until(page, () => HWCampus.state.map === 'ready' && HWCampus.map.quietMs > 1000, 80000); // settled: software WebGL is slow
   assert.equal(await page.locator('.lmk').count(), 17, 'one marker per mapped landmark');
   // open the Surau from its marker: a first discovery, recorded on this device only

@@ -46,8 +46,10 @@ html.hw-rm #v6gps .v6gpw,html.hw-still #v6gps .v6gpw{animation:none}
 const CAT={MILD:'🌿 Mild',MODERATE:'⚔️ Moderate',VIGOROUS:'🔥 Vigorous'};
 const btn=(a,t,cls,extra)=>'<button class="'+(cls||'')+'" data-a="'+a+'"'+(extra||'')+'>'+t+'</button>';
 const manual='<p class="mut" style="margin-top:8px">You can always log a climb by hand with the form below.</p>';
-function card(){const K=counts(),n=K.mapped,un=K.unmapped,found=K.found;
-  let h='<h2>📍 GPS CHECK-IN</h2>';
+function card(compact){const K=counts(),n=K.mapped,un=K.unmapped,found=K.found;
+  // compact (the map's Details sheet): nothing until NEAREST STAIRS has a result, then the short list
+  if(compact&&(U.k==='idle'||U.k==='explain'))return '';if(compact&&U.k==='done')return '<p role="status">'+HWPixel.icon('success')+' Checked in at <b>'+esc(U.name)+'</b>.</p>';
+  let h=compact?'':'<h2>📍 GPS CHECK-IN</h2>';
   if(U.k==='idle'||U.k==='done'){
     if(U.k==='done')h+='<p role="status">✅ Checked in at <b>'+esc(U.name)+'</b>. Your stair log, quests and Stair Mountain are updated.</p>';
     h+=btn('gpsfind','FIND STAIRS NEAR ME')   // the main action first, so it is on screen on a phone before the explanation
@@ -59,8 +61,8 @@ function card(){const K=counts(),n=K.mapped,un=K.unmapped,found=K.found;
   if(U.k==='locating')return h+'<p role="status"><span class="v6gpw" aria-hidden="true"></span>Finding your position… stand still for a moment.</p>'+btn('gpsno','CANCEL','sm g');
   if(U.k==='error')return h+'<div class="warn" role="alert"><b>'+esc(U.title)+'</b><br>'+esc(U.msg)+'<br>Nothing was saved.</div><div class="row" style="margin-top:8px">'+btn('gpsfind','TRY AGAIN')+btn('gpsno','CLOSE','g')+'</div>'+manual;
   if(U.k==='result'){const L=U.list,weak=U.acc>WEAK,close=L.filter(x=>x.d<=NEAR).slice(0,SHOW);
-    h+='<p class="mut" role="status">Position accurate to ±'+Math.round(U.acc)+' m.</p>';
-    if(weak)h+='<div class="warn">The GPS signal is weak (±'+Math.round(U.acc)+' m), so check-in is paused. Indoors and between buildings this is common: step outside or wait a moment, then refresh.</div>';
+    h+=U.sim?'<p class="mut" role="status">Demo walk: the position is simulated, so there is no check-in.</p>':'<p class="mut" role="status">Position accurate to ±'+Math.round(U.acc)+' m.</p>';
+    if(weak&&!U.sim)h+='<div class="warn">The GPS signal is weak (±'+Math.round(U.acc)+' m), so check-in is paused. Indoors and between buildings this is common: step outside or wait a moment, then refresh.</div>';
     if(!L.length)h+='<p>No stairway has map coordinates yet.</p>';
     else if(L[0].d>OFF)h+='<p>You seem to be away from '+CAMPUS+'. GPS check-in only works at the campus stairways ('+fmt(L[0].d)+' away). You can still log a session by hand.</p>';
     else if(!close.length)h+='<p>No mapped stairway within '+NEAR+' m. The nearest is <b>'+esc(L[0].s.name)+'</b>, '+fmt(L[0].d)+' away.</p>';
@@ -74,10 +76,10 @@ function card(){const K=counts(),n=K.mapped,un=K.unmapped,found=K.found;
       +'<label>Pace<select id="gps-p">'+PACES.map(p=>'<option>'+p[1]+'</option>').join('')+'</select></label>'
       +'<div class="row" style="margin-top:8px">'+btn('gpsconfirm','CONFIRM CHECK-IN')+btn('gpscancel','BACK','g')+'</div>'}
   return h}
-const paint=()=>{const el=document.getElementById('v6gps');if(el)el.innerHTML=card()};
+const paint=()=>{const el=document.getElementById('v6gps');if(el)el.innerHTML=card(el.dataset.c==='1')};
 
 // the card is placed by the Stairs page (js/v6-stairs.js) at the top of its casual-climbing section
-function cardSafe(){try{return card()}catch(e){console.error('[HWGps] card failed:',e);return ''}}
+function cardSafe(c){try{return card(c)}catch(e){console.error('[HWGps] card failed:',e);return ''}}
 
 const ERR={1:['Location permission is off','Your browser is not sharing your location with HealthWiz. You can allow it in the browser\'s site settings, or log by hand below.'],
   2:['Position unavailable','Your device could not work out where you are (no GPS fix). Try again outdoors, or log by hand below.'],
@@ -95,6 +97,11 @@ function locate(){const G=geo();
     e=>{if(my!==gen)return;const m=ERR[e&&e.code]||ERR[2];fail(m[0],m[1])},
     {enableHighAccuracy:true,timeout:20000,maximumAge:0})}catch(e){fail('Location failed','The browser refused the request ('+(e&&e.message)+'). You can log by hand below.')}}
 
+/** NEAREST STAIRS on the map (js/v6-campus-hud.js): a position the map already has (the avatar's live GPS, or a demo walk's,
+    which is simulated and never allows a check-in) instead of a new reading. Tapping the button is the request; the
+    position stays in memory, as above. Returns the sorted list. */
+function scan(p){gen++;const sim=!!p.sim,acc=+p.acc>=0?+p.acc:WEAK+1,list=nearby({lat:+p.lat,lng:+p.lng,acc:sim?WEAK+1:acc});
+  U={k:'result',acc,sim,list,at:Date.now()};paint();return list}
 acts.gpsfind=()=>{if(!gp().ok){U={k:'explain'};paint();return}locate()};
 acts.gpsok=()=>{gp().ok=1;save();locate()};
 acts.gpsno=()=>{gen++;U={k:'idle'};paint()};
@@ -116,4 +123,4 @@ acts.gpsconfirm=()=>{if(U.k!=='confirm')return;
 HWEvents.on('data:reset',()=>{gen++;U={k:'idle'}});HWEvents.on('data:imported',()=>{gen++;U={k:'idle'}});
 HWEvents.on('page:viewed',e=>{if(e.view!=='campus'){gen++;U={k:'idle'}}});HWEvents.on('stairs:closed',()=>{gen++;U={k:'idle'}}); // the Stairs section lives on the Campus page
 
-return{nearby,dist,radius,counts,WEAK,card:cardSafe,get state(){return U.k}}})();
+return{nearby,dist,radius,counts,WEAK,scan,card:cardSafe,get state(){return U.k}}})();

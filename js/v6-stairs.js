@@ -314,8 +314,11 @@ function chronicle(){const L=all().slice(-10).reverse();
 function gpsCard(){const g=typeof HWGps!=='undefined'?HWGps.card():'';return g?'<div class="card" id="v6gps">'+g+'</div>':''}
 /** The logging forms for one staircase (or none yet), shown in the Observatory's Details: the two halves (casual climb with GPS check-in
     first, or the workout with heart rate), as before, for the staircase picked on the map. */
-function logPanel(id){pick=id&&STAIRS.some(s=>s.id===id)?id:null; // the Observatory's selection, or none (the forms then ask for one; LOG BPM works without)
+function logPanel(id,only){pick=id&&STAIRS.some(s=>s.id===id)?id:null; // the Observatory's selection, or none (the forms then ask for one; LOG BPM works without)
   Promise.resolve().then(watch);
+  // one half only, for the map's Details sheet (its tabs are the switch): no summary cards; the GPS check-in is the map's
+  // NEAREST STAIRS button, and its result (or check-in form) shows here once it has one
+  if(only){half=only==='workout'?'workout':'casual';if(half==='workout')return workout();const g=typeof HWGps!=='undefined'?HWGps.card(true):'';return (g?'<div class="card" id="v6gps" data-c="1">'+g+'</div>':'')+casual()}
   return tabs()+(half==='casual'
     ?'<p id="st-casual" class="stnote">Check in by GPS when you are at the staircase. If GPS is not available, log a climb by hand below.</p>'+gpsCard()+casual()
     :workout())}

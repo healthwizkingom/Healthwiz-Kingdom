@@ -36,19 +36,18 @@ export function createModelLayer(opts) {
   function place() { // terrain height under each building (0 when the terrain is off), then the ground shadow catcher
     const on = opts.terrainOn();
     for (const n of nodes) { if (on && n.h == null) n.h = opts.heightAt(n.lng, n.lat); n.obj.position.y = n.y0 + (on ? n.h : 0); }
-    for (const d of drapes) { // the props: every vertex lifted to the terrain under it (each post stays upright)
-      const p = d.geo.attributes.position, b = d.base;
-      if (on && !d.h) d.h = hOf(i => b[i * 3], i => b[i * 3 + 2], p.count);
-      for (let i = 0; i < p.count; i++) p.setY(i, b[i * 3 + 1] + (on ? d.h[i] : 0));
-      p.needsUpdate = true; d.geo.computeBoundingSphere();
-    }
-    if (catcher) {
-      const p = catcher.geometry.attributes.position;
-      if (on && !catcher.userData.h) catcher.userData.h = hOf(i => p.getX(i), i => p.getZ(i), p.count);
-      const h = catcher.userData.h;
-      for (let i = 0; i < p.count; i++) p.setY(i, (on ? h[i] : 0) + .3);
-      p.needsUpdate = true; catcher.geometry.computeBoundingSphere();
-    }
+    // the props and the shadow catcher keep two position buffers, flat and lifted to the terrain under each vertex (each
+    // post stays upright), and the terrain switch swaps them: both stay on the GPU, so nothing is rewritten or uploaded
+    // again (rewriting every vertex on each switch made the elevation button lag, owner's report 2026-10-21)
+    const swap = (g, k, lift) => {
+      if (!k.off) { k.off = g.attributes.position; g.computeBoundingSphere(); k.sOff = g.boundingSphere.clone(); }
+      if (on && !k.on) { const b = k.off.array, a = Float32Array.from(b), h = lift(); for (let i = 0; i < k.off.count; i++) a[i * 3 + 1] = b[i * 3 + 1] + h[i]; k.on = new THREE.BufferAttribute(a, 3); g.setAttribute('position', k.on); g.computeBoundingSphere(); k.sOn = g.boundingSphere.clone(); }
+      g.setAttribute('position', on ? k.on : k.off); g.boundingSphere = (on ? k.sOn : k.sOff).clone();
+    };
+    for (const d of drapes) { const b = d.base; swap(d.geo, d, () => d.h || (d.h = hOf(i => b[i * 3], i => b[i * 3 + 2], b.length / 3))); }
+    if (catcher) { const c = catcher.userData, p0 = (c.off || catcher.geometry.attributes.position);
+      if (!c.off) { const p = catcher.geometry.attributes.position; for (let i = 0; i < p.count; i++) p.setY(i, .3); p.needsUpdate = true; }
+      swap(catcher.geometry, c, () => c.h || (c.h = hOf(i => p0.getX(i), i => p0.getZ(i), p0.count))); }
     if (renderer) renderer.shadowMap.needsUpdate = true;
   }
   /** A grid over the buildings that only shows shadows (ShadowMaterial), following the terrain. */

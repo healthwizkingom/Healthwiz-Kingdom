@@ -54,7 +54,8 @@ async function openHttp({ viewport, init, route, ctxOpt } = {}) {
   await page.goto(base); await page.waitForSelector('.wl');
   return { ctx, page, errors, reqs };
 }
-const goView = (page, v) => page.evaluate(v => go(v), v);
+// the Stay Aware notice (js/v6-campus-hud.js) opens with the map each time; tests/88-observatory-stop checks it, here OK closes it
+const goView = (page, v) => page.evaluate(v => { go(v); if (v === 'campus' && window.HWCampusHud) HWCampusHud.aware(false); }, v);
 // loaded and settled: the first terrain tiles are generated in the browser and take seconds with software WebGL
 const ready = page => page.waitForFunction(() => HWCampus.state.map === 'error' || (HWCampus.state.map === 'ready' && HWCampus.map.quietMs > 1000), null, { timeout: 80000 }).then(() => page.evaluate(() => HWCampus.state.map));
 // settled: the camera has stopped (map.loaded() can stay false while generated terrain tiles refresh)
@@ -66,12 +67,13 @@ const shown = (page, id) => page.waitForFunction(id => HWCampus.state.shown.star
 // the staircase models only (the fantasy map also loads its buildings, assets/models/campus-fantasy.glb)
 const glbs = reqs => reqs.filter(u => /\/stairs\/[^/]+\.glb$/.test(u)).map(u => u.split('/').pop());
 
-test('selection opens and updates the preview; the F21 set or the demonstration set, with their labels; leaving frees it', async () => {
+test('SHOW 3D PREVIEW opens it and a new selection updates it; the F21 set or the demonstration set, with their labels; leaving frees it', async () => {
   const { ctx, page, errors, reqs } = await openHttp({ init: () => { window.__raf = 0; const r = requestAnimationFrame; window.requestAnimationFrame = function (f) { return r.call(this, t => { window.__raf++; f(t); }); }; } });
   await goView(page, 'campus'); assert.equal(await ready(page), 'ready');
   assert.deepEqual(glbs(reqs), [], 'no staircase model before a staircase is picked');
   // ST20: the measured F21 step size, as the Blender set made for it
-  await page.click('#cmplist .cmpitem[data-id="ST20"]'); await shown(page, 'ST20');
+  await page.click('#cmplist .cmpitem[data-id="ST20"]');
+  await page.click('[data-a="cmpvwopen"]'); await shown(page, 'ST20'); // with the map the preview opens on request (2026-10-21), then follows the pick
   assert.equal(await page.evaluate(() => HWCampus.viewer.debug.source), 'blender');
   assert.ok(glbs(reqs).includes('ST20-fantasy.glb') && glbs(reqs).includes('pedestals.glb'), glbs(reqs).join());
   let t = await page.textContent('#cmpvw');

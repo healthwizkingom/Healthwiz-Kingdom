@@ -53,7 +53,8 @@ async function openHttp({ viewport, init, route, ctxOpt } = {}) {
   await page.goto(base); await page.waitForSelector('.wl');
   return { ctx, page, errors, reqs };
 }
-const goView = (page, v) => page.evaluate(v => go(v), v);
+// the Stay Aware notice (js/v6-campus-hud.js) opens with the map each time; tests/88-observatory-stop checks it, here OK closes it
+const goView = (page, v) => page.evaluate(v => { go(v); if (v === 'campus' && window.HWCampusHud) HWCampusHud.aware(false); }, v);
 // loaded and settled: the first terrain tiles are generated in the browser and take seconds with software WebGL
 const ready = page => page.waitForFunction(() => HWCampus.state.map === 'error' || (HWCampus.state.map === 'ready' && HWCampus.map.quietMs > 1000), null, { timeout: 80000 }).then(() => page.evaluate(() => HWCampus.state.map));
 // settled: the camera has stopped (map.loaded() can stay false while generated terrain tiles refresh)
