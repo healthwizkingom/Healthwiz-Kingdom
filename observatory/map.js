@@ -200,6 +200,16 @@ const locWord = s => s.locationStatus === 'measured' ? 'Measured location (surve
 export function createMap(opts) {
   const { osm, terrain } = opts;
   ML = window.maplibregl;
+  // With a terrain on the map (the terrain switch only flattens it, so it is always there), MapLibre checks every marker for
+  // being hidden by the ground: two gl.readPixels of the depth buffer per marker, about ten times a second. Each one makes
+  // the GPU finish everything drawn so far, and with ~60 markers (stops, labels, clusters) that was ~140 stalls a frame,
+  // the lag when moving the map, switching full screen or the terrain (owner's report, 2026-10-23). The markers here do not
+  // dim behind the ground (the stops and the avatar already had opacityWhenCovered 1; the labels now stay as well), so the
+  // check is skipped: the opacity is just set.
+  if (!ML.Marker.prototype._hwNoDepth) {
+    ML.Marker.prototype._hwNoDepth = true;
+    ML.Marker.prototype._updateOpacity = function () { if (this._element.style.opacity !== this._opacity) this._element.style.opacity = this._opacity; };
+  }
   const campus = osm.features.find(f => f.properties.kind === 'campus');
   // the first view and FIT: the campus outline and every placed staircase
   const bb = bbox((campus ? [campus] : osm.features).concat(opts.groups.map(g => ({ geometry: { coordinates: [g.lng, g.lat] } }))));
@@ -449,13 +459,13 @@ export function createMap(opts) {
     for (const [name, c] of Object.entries(best)) {
       const el = document.createElement('div');
       el.className = 'blab'; el.textContent = name;
-      labels.push(new ML.Marker({ element: el, anchor: 'center' }).setLngLat([c.lng, c.lat]).addTo(map));
+      labels.push(new ML.Marker({ element: el, anchor: 'center', opacity: '1', opacityWhenCovered: '1' }).setLngLat([c.lng, c.lat]).addTo(map));
     }
     for (const z of terrain.labels()) {
       const el = document.createElement('div');
       el.className = 'zlab zl-' + z.level;
       el.innerHTML = '<span class="zico" aria-hidden="true"></span><span><b>' + esc(z.name) + '</b><small>' + esc(z.region) + ' · estimated slope, illustrative height, not measured</small></span>';
-      zoneMarks.push(new ML.Marker({ element: el, anchor: z.anchor, offset: z.anchor === 'right' ? [-14, 0] : [0, -16] }).setLngLat([z.lng, z.lat]).addTo(map));
+      zoneMarks.push(new ML.Marker({ element: el, anchor: z.anchor, offset: z.anchor === 'right' ? [-14, 0] : [0, -16], opacity: '1', opacityWhenCovered: '1' }).setLngLat([z.lng, z.lat]).addTo(map));
     }
     const lo = () => map.getContainer().classList.toggle('lo', map.getZoom() < 16.4);
     map.on('zoom', lo); lo();
