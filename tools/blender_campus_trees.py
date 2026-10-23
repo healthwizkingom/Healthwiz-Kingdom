@@ -5,7 +5,8 @@
 
 PACK_DIR: the unzipped .usdz (scene.usdc and its folder 0/ of textures). OUT defaults to assets/models/campus-trees.glb.
 
-Taken from the pack: Medium_oak_tree__001/002/003 at their lowest mesh LOD (LOD2, about 1,100 triangles each), summer
+Taken from the pack: Small_oak_tree__001/002/003 at their lowest mesh LOD (LOD2, 160 to 250 triangles each: the medium
+oaks' 1,100 made the map lag with ~900 of them, owner's report 2026-10-23, and look the same at map scale), summer
 leaves (Cluster_Mat) and bark. Each tree becomes one mesh named oak1..oak3 with its trunk base at the origin, y up, and
 a height of exactly 1 (the map scales every tree to the same fixed height: observatory/trees3d.js). The leaf texture is
 reduced to 256 x 256 and the bark to 64 x 128; the leaves are drawn with an alpha test, so the alpha stays.
@@ -16,7 +17,7 @@ from mathutils import Vector
 argv = sys.argv[sys.argv.index('--') + 1:]
 PACK = argv[0]
 OUT = argv[1] if len(argv) > 1 else 'assets/models/campus-trees.glb'
-TREES = ['Medium_oak_tree__001', 'Medium_oak_tree__002', 'Medium_oak_tree__003']
+TREES = ['Small_oak_tree__001', 'Small_oak_tree__002', 'Small_oak_tree__003']
 TMP = os.path.join(os.path.dirname(os.path.abspath(OUT)), '.trees_tmp')
 os.makedirs(TMP, exist_ok=True)
 

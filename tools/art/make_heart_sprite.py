@@ -65,7 +65,7 @@ bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
 me = bpy.data.meshes.new('heart'); bm.to_mesh(me); bm.free()
 heart = bpy.data.objects.new('heart', me); sc.collection.objects.link(heart)
 bv = heart.modifiers.new('bevel', 'BEVEL'); bv.width = .09; bv.segments = 2 if GLB else 4; bv.limit_method = 'ANGLE'; bv.use_clamp_overlap = True
-sub = heart.modifiers.new('smooth', 'SUBSURF'); sub.levels = sub.render_levels = 1 if GLB else 2
+sub = heart.modifiers.new('smooth', 'SUBSURF'); sub.levels = sub.render_levels = 0 if GLB else 2   # the map's stop: smooth shading only (25 of them)
 for p in me.polygons:
     p.use_smooth = True
 def material(name, rgb, rough=.35, metal=0., coat=.5):
@@ -84,15 +84,15 @@ if GLB:
     bpy.ops.object.select_all(action='DESELECT')
     pearl, gold, dot = material('disc_pearl', (.97, .96, .99), .3, 0, .6), material('rim_gold', (.95, .74, .3), .3, .9, .2), material('dot_pearl', (.97, .96, .99), .3, 0, .6)
     rot = (math.radians(90), 0, 0)   # the cylinders' axis toward the viewer (y), so their round faces stand upright
-    bpy.ops.mesh.primitive_cylinder_add(vertices=40, radius=.3, depth=.035, location=(0, 0, C), rotation=rot); d = bpy.context.object
+    bpy.ops.mesh.primitive_cylinder_add(vertices=28, radius=.3, depth=.035, location=(0, 0, C), rotation=rot); d = bpy.context.object
     d.data.materials.append(pearl)
-    bpy.ops.mesh.primitive_torus_add(major_segments=40, minor_segments=6, major_radius=.3, minor_radius=.018, location=(0, 0, C), rotation=rot); rim = bpy.context.object
+    bpy.ops.mesh.primitive_torus_add(major_segments=28, minor_segments=4, major_radius=.3, minor_radius=.018, location=(0, 0, C), rotation=rot); rim = bpy.context.object
     rim.data.materials.append(gold)
     bpy.ops.object.select_all(action='DESELECT'); d.select_set(True); rim.select_set(True)
     bpy.context.view_layer.objects.active = d; bpy.ops.object.join(); d.name = 'disc'
     dots = []
     for r, z in ((.055, .3), (.04, .17), (.026, .06)):
-        bpy.ops.mesh.primitive_uv_sphere_add(segments=12, ring_count=8, radius=r, location=(0, 0, z)); dots.append(bpy.context.object)
+        bpy.ops.mesh.primitive_uv_sphere_add(segments=10, ring_count=6, radius=r, location=(0, 0, z)); dots.append(bpy.context.object)
         dots[-1].data.materials.append(dot)
         for p in dots[-1].data.polygons: p.use_smooth = True
     bpy.ops.object.select_all(action='DESELECT')

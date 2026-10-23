@@ -521,7 +521,7 @@ if PROPS:   # roads, kerbs, drains, lights, goal posts, car parks: a separate GL
 
 # ---------------------------------------------------------------- Fantasy: medieval houses and the castle (owner's request, 2026-10-23)
 # Each footprint is cut, along its own long axis, into rows about 15 m deep and each row into the runs that lie inside the
-# outline (an L or U shape leaves its courtyard empty), each run into strips up to 26 m long. Every strip gets the kit house
+# outline (an L or U shape leaves its courtyard empty), each run into strips up to 34 m long. Every strip gets the kit house
 # whose proportions are closest (a fixed pick among the three closest, by the OSM id, for variety), stretched to the strip
 # (94 %) and as tall as its proportions make it, kept between 7 and 15 m. The castle fills the large academic block's
 # rectangle, its height at 65 % of its proportions so its spires do not tower over the campus. The pieces share their meshes.
@@ -569,7 +569,7 @@ def place_medieval(p, g, look_conf, btype):
                 L = a1 - a0
                 if L < 4:
                     continue
-                k = math.ceil(L / 26); seg = L / k
+                k = math.ceil(L / 34); seg = L / k
                 for i in range(k):
                     long_, short_ = max(seg, w), min(seg, w)
                     d = u if seg >= w else v
