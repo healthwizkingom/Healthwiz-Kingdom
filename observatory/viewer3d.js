@@ -103,7 +103,11 @@ export function createViewer({ host, msg, reduced, onView }) {
   // phones and small devices (lite) no anti-aliasing, hard-edged shadows, no bloom pass and at most 30 frames a second
   // (the owner still found the stair illustration laggy, 2026-10-21)
   const small = () => (host.clientWidth || innerWidth) < 600 || (navigator.hardwareConcurrency || 8) <= 4;
-  const lite = small();
+  // owner's report, 2026-10-23: the preview crashed the PC. It is a second full 3D scene beside the map's own (which has a
+  // 2048 px shadow map and three renderers), and its soft shadows, anti-aliasing and glow pass (a composer with a full-size
+  // target and five blur targets) added GPU memory and work on top. It is now always the light version: hard shadows, no
+  // anti-aliasing, no glow pass (not even allocated) and at most 30 frames a second.
+  const lite = true;
   const renderer = new THREE.WebGLRenderer({ antialias: !lite, powerPreference: 'low-power' });
   renderer.setPixelRatio(small() ? 1 : Math.min(window.devicePixelRatio || 1, 1.5));
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = lite ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
@@ -118,10 +122,9 @@ export function createViewer({ host, msg, reduced, onView }) {
   const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(36, 1, .05, 200);
   scene.environment = envTex;
   // bloom: glowing runes, crystals and gold catch a soft halo (strong in fantasy, faint in realistic)
-  const composer = new EffectComposer(renderer);
-  composer.addPass(new RenderPass(scene, camera));
-  const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), .5, .45, .82);
-  composer.addPass(bloom); composer.addPass(new OutputPass());
+  const composer = lite ? null : new EffectComposer(renderer);
+  const bloom = lite ? { enabled: false } : new UnrealBloomPass(new THREE.Vector2(256, 256), .5, .45, .82);
+  if (composer) { composer.addPass(new RenderPass(scene, camera)); composer.addPass(bloom); composer.addPass(new OutputPass()); }
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true; controls.minDistance = 2; controls.maxDistance = 30; controls.maxPolarAngle = Math.PI * .495;
   let rec = null, demo = null, mode = 'realistic', shape = null, model = null, stand = null, raf = 0, open = false, spinning = false, motes = null;
@@ -132,7 +135,7 @@ export function createViewer({ host, msg, reduced, onView }) {
     const w = host.clientWidth, h = host.clientHeight;
     if (!w || !h) return false;
     renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
-    composer.setPixelRatio(small() ? 1 : Math.min(window.devicePixelRatio || 1, 1.5)); composer.setSize(w, h);
+    if (composer) { composer.setPixelRatio(small() ? 1 : Math.min(window.devicePixelRatio || 1, 1.5)); composer.setSize(w, h); }
     return true;
   }
 
@@ -347,7 +350,7 @@ export function createViewer({ host, msg, reduced, onView }) {
     scene.environmentIntensity = F ? .35 : .45;
     renderer.toneMappingExposure = F ? 1.05 : .95;
     bloom.enabled = F && !small(); // the glow pass only where it shows (Fantasy) and not on phones
-    bloom.strength = F ? .62 : .12; bloom.threshold = F ? .86 : .9; bloom.radius = F ? .5 : .3;
+    if (composer) { bloom.strength = F ? .62 : .12; bloom.threshold = F ? .86 : .9; bloom.radius = F ? .5 : .3; }
     scene.fog = new THREE.Fog(F ? 0x0d1430 : 0xf1f2ee, 18, 48);
   }
 
@@ -464,7 +467,7 @@ export function createViewer({ host, msg, reduced, onView }) {
       ro.disconnect(); document.removeEventListener('visibilitychange', vis); controls.dispose();
       if (model) { scene.remove(model); dispose(model); model = null; }
       if (stand) { scene.remove(stand); dispose(stand); stand = null; }
-      envTex.dispose(); composer.dispose && composer.dispose(); renderer.dispose(); renderer.forceContextLoss(); renderer.domElement.remove();
+      envTex.dispose(); composer && composer.dispose && composer.dispose(); renderer.dispose(); renderer.forceContextLoss(); renderer.domElement.remove();
     },
     get isOpen() { return open; },
     get debug() { return { source, scene, renderer, model, stand, THREE }; }, // for testing in the browser console
