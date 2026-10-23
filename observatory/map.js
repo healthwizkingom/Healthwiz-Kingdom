@@ -498,7 +498,7 @@ export function createMap(opts) {
     import('./stops3d.js').then(mod => {
       if (gone) return;
       stops = mod.createStopLayer({ ML, url: STOP_URL, colours: { 1: CATCOL.MILD, 2: CATCOL.MODERATE, 3: CATCOL.VIGOROUS }, heightAt: terrain.heightAt, terrainOn: () => terrOn,
-        shown: k => { const m = markers.get(k); return !!m && !m.el.hidden; }, motion, night: () => mode === 'fantasy',
+        shown: k => { const m = markers.get(k); return !!m && !m.el.hidden; }, motion, ambient: () => lay.effects, night: () => mode === 'fantasy',
         onReady: () => { stopsDone = true; if (gone) return; map.getContainer().classList.add('st3d'); stops.select(sel); },
         onError: e => { stopsDone = true; console.warn('[stops] the 3D stops could not load; the drawn hearts stay.', e && e.message); stops = null; } });
       stops.set([...markers.values()].map(m => ({ key: m.g.key, lng: m.g.lng, lat: m.g.lat, cat: catN(m.g.items[0].appCategory) || 2 })));
@@ -564,7 +564,7 @@ export function createMap(opts) {
     setMode(m) { mode = m; if (ready) applyMode(m); if (avatar && avatar.setMode) avatar.setMode(m); },
     setReduced() { if (ready) animate(); if (stops) stops.replace(); FX.set(mode === 'fantasy' && !opts.reduced() && lay.effects); skyEl.classList.toggle('still', !!opts.reduced()); },
     /** The Layers panel: {stairs, landmarks, labels, contours, paths, effects} (missing keys keep their value). */
-    layers(o) { Object.assign(lay, o || {}); applyLayers(); },
+    layers(o) { Object.assign(lay, o || {}); applyLayers(); if (stops && stops.replace) stops.replace(); }, // the effects switch also starts or stops the stops' own animation
     get layerState() { return { ...lay }; },
     get celebrated() { return lastCel; },
     /** The landmarks (./landmarks.js) and their state on the map. */
