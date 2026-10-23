@@ -59,6 +59,7 @@ PAL, DEF = looks['palette'], looks['default']
 # models are original): teal shingles and terracotta tiles for the campus's red roofs (one in three teal, by its OSM id),
 # teal for the blue roof, slate for the maroon and white ones. Decoration: Realistic keeps the colours filmed.
 FAN_TEAL, FAN_TERRA, FAN_SLATE = '#3f9c8b', '#b4643f', '#5f7189'
+FAN_BLUE = '#3f6fb4'   # the roof of every generated building beside the medieval houses (owner, 2026-10-23: "blue rooftop like before")
 def fan_roof(osm_id, key):
     if key == 'roof_blue': return FAN_TEAL
     if key in ('roof_maroon', 'roof_white'): return FAN_SLATE
@@ -539,6 +540,9 @@ if MEDIEVAL:
             KIT[o.name.split('.')[0]] = (me, max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs))
         bpy.data.objects.remove(o, do_unlink=True)
 HOUSES = sorted(k for k in KIT if k.startswith('house_'))
+GREY = {h for h in HOUSES if int(h[6:]) <= 6}   # house_01..06 come from the Medieval House Pack: weathered grey (owner, 2026-10-23: change
+# all the grey buildings to the earlier look with a blue roof, except the castle). A footprint that would get one of them
+# keeps the generated building instead (below); the half-timbered red-roofed houses of the other pack and the castle stay.
 
 def place_medieval(p, g, look_conf, btype):
     global count, tris
@@ -576,6 +580,9 @@ def place_medieval(p, g, look_conf, btype):
                     want = math.log(long_ / short_)
                     near = sorted(HOUSES, key=lambda h: abs(math.log(max(KIT[h][1], KIT[h][2]) / min(KIT[h][1], KIT[h][2])) - want))[:3]
                     pieces.append((at(a0 + seg * (i + .5), b), d, long_, short_, near[(seed + r * 7 + i * 3) % len(near)]))
+    if any(pc[4] in GREY for pc in pieces):
+        bpy.data.objects.remove(ob, do_unlink=True)
+        return False
     for n, (cc, d, long_, short_, name) in enumerate(pieces):
         me, kw, kd, kh = KIT[name]
         x_long = kw >= kd
@@ -595,6 +602,7 @@ def place_medieval(p, g, look_conf, btype):
     ob['medieval'] = ','.join(pc[4] for pc in pieces)
     count += 1
     conf[look_conf] = conf.get(look_conf, 0) + 1
+    return True
 
 for f in osm['features']:
     p, g = f['properties'], f['geometry']
@@ -602,16 +610,18 @@ for f in osm['features']:
         continue
     btype = 'tower' if p['kind'] == 'water_tower' else p.get('building', 'yes')
     look = dict(DEF); look.update(looks['buildings'].get(p['osm'], {}))
+    medieval_fallback = False
     if MEDIEVAL and btype not in ('tower', 'mosque'):
-        place_medieval(p, g, look['confidence'], btype)
-        continue
+        if place_medieval(p, g, look['confidence'], btype):
+            continue
+        medieval_fallback = True   # a grey house would stand here: the generated building with a blue roof
     storeys = look['storeys'] if isinstance(look['storeys'], int) else look['storeys'].get(btype, 2)
     H = TOWER_M if btype == 'tower' else storeys * STOREY_M + BASE_M
     rel, cxy = local_rings(g)
     A = abs(area(rel[0])) - sum(abs(area(h)) for h in rel[1:])
     roof_c, wall_c, trim_c = colour(look['roof']), colour(look['wall']), look.get('trim', DEF['trim'])
     if FAN and btype != 'tower':
-        roof_c = fan_roof(p['osm'], look['roof'])
+        roof_c = FAN_BLUE if medieval_fallback else fan_roof(p['osm'], look['roof'])
     if btype == 'tower':
         wall_c, roof_c = '#b8b4ae', '#8f8b86'
     step_in, step_up = PITCH.get(look.get('pitch', 'low'), PITCH['low'])
