@@ -53,7 +53,8 @@ test('the solid 3D stops: one per marker, in the difficulty colour, on the marke
   const glb = fs.readFileSync(path.join(root, 'assets/models/heart-stop.glb'));
   assert.equal(glb.toString('ascii', 0, 4), 'glTF');
   const j = JSON.parse(glb.toString('utf8', 20, 20 + glb.readUInt32LE(12)));
-  assert.deepEqual(j.nodes.map(n => n.name).sort(), ['disc', 'heart', 'post'], 'the drawn stop (owner, 2026-10-23): the disc, the heart in it and the dots');
+  assert.deepEqual(j.nodes.map(n => n.name).sort(), ['tint', 'white'], 'the owner\'s Pokestop heart (2026-10-23): the tinted disc and rim, the white heart and orbit');
+  assert.ok(j.accessors.filter(x => x.type === 'SCALAR' && x.componentType >= 5123).reduce((t, x) => t + x.count, 0) / 3 < 2000, 'light: under 2,000 triangles in all');
   assert.ok(glb.length < 120000, 'small: ' + glb.length);
   const ctx = await browser.newContext({ viewport: { width: 800, height: 800 }, serviceWorkers: 'block', reducedMotion: 'reduce' });
   const page = await ctx.newPage(), errors = [];
