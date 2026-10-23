@@ -10,12 +10,11 @@ Each argument is an unzipped .usdz folder (scene.usdc and its folder 0/ of textu
 
 A pack is one scene of several houses: its meshes are grouped into houses by overlapping outlines (seen from above).
 Loose pieces (a group of one mesh: a door, a wall panel, a spare roof) and houses more than 1.6 times as tall as they are wide (the watchtowers)
-are left out. Each house is joined into one mesh, reduced to about HOUSE_TRIS triangles, unwrapped again and its
-materials baked (Cycles, colour only, no lighting) into one 512 x 512 texture, so the map draws it in one call. Pack A's
-houses are thousands of loose shingles, beams and window panes that no reduction can simplify, so each gets a closed
-shell instead (a voxel remesh of the house, reduced to HOUSE_TRIS) and the full house is baked onto it. Pack B's window
-glass of pack B is baked into a second, emissive texture, so the windows glow at night as the old buildings' did.
-The castle keeps its own single texture (reduced to 1024 x 1024) and is reduced to about CASTLE_TRIS triangles.
+are left out. Every house and the castle become a closed low-poly shell (a voxel remesh of the whole piece, reduced to
+HOUSE_TRIS or CASTLE_TRIS triangles) with the full-detail piece baked onto it (Cycles, colour only, no lighting: one
+512 x 512 texture per house, 1024 x 1024 for the castle), so the map draws each in one call. Reducing the pieces
+themselves broke them: pack A's houses are thousands of loose shingles and beams, and the castle, cut from 1.26 million
+triangles, fell apart into shards (owner's report, 2026-10-23).
 Every piece is stored with its base at the origin and its footprint centred, z up, named house_NN or castle, with its
 size in metres as custom properties (the packs' units are not metres: the campus script scales each piece to its footprint).
 """
@@ -25,7 +24,7 @@ from mathutils import Vector
 argv = sys.argv[sys.argv.index('--') + 1:]
 HOUSES_A, HOUSES_B, CASTLE = argv[:3]
 OUT = argv[3] if len(argv) > 3 else 'tools/art/medieval-kit.glb'
-HOUSE_TRIS, CASTLE_TRIS, TEX = 3500, 24000, 512
+HOUSE_TRIS, CASTLE_TRIS, TEX = 1200, 10000, 512   # the map draws ~120 houses: about the old buildings' 123,000 triangles in all
 TMP = os.path.abspath(os.path.join(os.path.dirname(OUT) or '.', '.kit_tmp'))
 os.makedirs(TMP, exist_ok=True)
 
@@ -124,10 +123,10 @@ def unwrap(ob):
     bpy.ops.uv.smart_project(angle_limit=1.15, island_margin=.004)   # 66°: few, large islands, so few seams
     bpy.ops.object.mode_set(mode='OBJECT')
 
-def shell(high, tris):
+def shell(high, tris, fine=110, tex=TEX):
     """A closed low-poly shell around the house (voxel remesh, reduced), with the full house baked onto it."""
     low = high.copy(); low.data = high.data.copy(); sc.collection.objects.link(low)
-    vox = max(high.dimensions) / 110
+    vox = max(high.dimensions) / fine
     m = low.modifiers.new('shell', 'REMESH'); m.mode = 'VOXEL'; m.voxel_size = vox
     bpy.context.view_layer.objects.active = low; bpy.ops.object.modifier_apply(modifier=m.name)
     decimate(low, tris)
@@ -135,7 +134,7 @@ def shell(high, tris):
     for l in list(low.data.uv_layers):
         low.data.uv_layers.remove(l)
     low.data.uv_layers.new(name='bake'); unwrap(low)
-    col = bpy.data.images.new(high.name + '_col', TEX, TEX)
+    col = bpy.data.images.new(high.name + '_col', tex, tex)
     tm = bpy.data.materials.new('bake_target'); tm.use_nodes = True
     t = tm.node_tree.nodes.new('ShaderNodeTexImage'); t.image = col; tm.node_tree.nodes.active = t
     low.data.materials.clear(); low.data.materials.append(tm)
@@ -186,7 +185,7 @@ def bake(ob, emissive):
 
 kit = []
 n = 0
-for folder, emissive, shelled in ((HOUSES_A, False, True), (HOUSES_B, True, False)):
+for folder, emissive, shelled in ((HOUSES_A, False, True), (HOUSES_B, True, True)):
     meshes = load(folder)
     for g in houses(meshes):
         mn, mx = bounds(g); s = mx - mn
@@ -207,12 +206,8 @@ for folder, emissive, shelled in ((HOUSES_A, False, True), (HOUSES_B, True, Fals
 
 meshes = load(CASTLE)
 ob = join(meshes, 'castle')
-t = decimate(ob, CASTLE_TRIS)
-for m in ob.data.materials:   # its one texture, smaller
-    for nd in (m.node_tree.nodes if m and m.use_nodes else []):
-        if nd.type == 'TEX_IMAGE' and nd.image and max(nd.image.size) > 1024:
-            nd.image.scale(1024, 1024)
-            p = os.path.join(TMP, 'castle_col.jpg'); nd.image.filepath_raw = p; nd.image.file_format = 'JPEG'; nd.image.save()
+ob = shell(ob, CASTLE_TRIS, 220, 1024)   # finer than a house's, so the spires keep their points
+t = sum(len(p.vertices) - 2 for p in ob.data.polygons)
 to_origin(ob); kit.append(ob)
 print('KIT castle', t, 'tris', [ob['w'], ob['d'], ob['h']])
 
