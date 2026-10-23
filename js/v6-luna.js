@@ -1,7 +1,11 @@
 /* v6: Luna, the apprentice witch, HealthWiz's friendly companion. Not part of the original.
    Luna speaks the event bubbles that Medius used to (js/v6-medius.js keeps the rules, cooldowns and limits). Medius
    stays the Wizard King: the tutorial, the Traveller's Registry, the Wizard's Counsel and the Health Orb are his.
-   * Art: only from the owner's character design sheet (2026-10-15), turned into pixel art (drawn at whole-number scales):
+   * Art (owner's request, 2026-10-23: her look is now the owner's 3D model "Spirit Blossom Kindred" by Retronous, CC BY 4.0,
+     credited in Meet Luna; her name stays Luna): rendered in Blender in each of the gestures she had on the owner's earlier
+     design sheets (tools/art/blender_luna_kindred.py, packed by tools/art/make_luna_kindred.py into the same files, sizes
+     and orders as below; the raised-arm gestures keep the model's own pose with their expression), as pixel art drawn at
+     whole-number scales:
        assets/img/luna-faces.webp  the twelve expression portraits, 64 x 64 each (tools/art/make_luna_faces.py), the heads of
                                    the sheets' expression figures: cheerful, curious, focused, thoughtful, surprised,
                                    encouraging, apologetic, laughing, shocked, sad, annoyed, neutral
@@ -87,6 +91,7 @@ const meetCap=p=>'<b>'+POSENAME[p]+'</b> <span class="mut">'+(POSES.indexOf(p)+1
 function meet(){const p=POSES[MEET.i];
   return '<div class="v6lmeet" id="v6lmeet"><div class="v6lmst">'+full({pose:p,scale:2})+'</div><p class="v6lmcap" aria-live="polite">'+meetCap(p)+'</p>'
     +'<div class="row"><button type="button" class="sm" data-a="lunameet" data-d="-1" aria-label="Previous pose">PREV</button><button type="button" class="sm" data-a="lunameet" data-d="1" aria-label="Next pose">NEXT</button></div>'
+    +'<p class="mut v6lcred"><small>Luna\'s look: "Spirit Blossom Kindred" (sketchfab.com/3d-models/spirit-blossom-kindred-85187f9f246f4702b7c137dcc6c0fc12) by Retronous, CC BY 4.0, rendered as pixel art.</small></p>'
     +'<p class="mut v6lpt2">Her things</p><ul class="v6lprops">'+PROPS.map((q,i)=>'<li><span class="v6lprop" role="img" aria-label="'+q[1]+'" data-prop="'+q[0]+'" style="background-position:'+(-i*96)+'px 0"></span><small>'+q[1]+'</small></li>').join('')+'</ul></div>'}
 acts.lunameet=d=>{MEET.i=(MEET.i+(+d.d)+POSES.length)%POSES.length;const m=$('#v6lmeet');if(!m)return;const p=POSES[MEET.i];pose(m.querySelector('.v6lfull'),p);m.querySelector('.v6lmcap').innerHTML=meetCap(p)};
 

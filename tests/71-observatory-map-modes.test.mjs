@@ -78,10 +78,15 @@ test('modes share the positions; terrain and buildings switch; selection flies t
   await page.click('[data-a="cmpmode"][data-m="realistic"]');
   assert.deepEqual(await page.evaluate(() => [HWCampus.map.mode, document.querySelector('#cmpcard').dataset.mode]), ['realistic', 'realistic']);
   assert.equal(await pos(), p0, 'a mode switch changes no positions');
-  await menu(page, 'cmpterr');
-  assert.deepEqual(await page.evaluate(() => [HWCampus.map.map.getTerrain().exaggeration < .01, HWCampus.state.terr, [...document.querySelectorAll('.zlab')].every(z => z.closest('.maplibregl-marker').hidden)]), [true, false, true], 'off: flattened (kept, so switching back is quick)');
+  // the terrain starts off (owner's request, 2026-10-23): flat, its labels hidden; on raises it; off flattens it again
+  const off = () => page.evaluate(() => [HWCampus.map.map.getTerrain().exaggeration < .01, HWCampus.state.terr, [...document.querySelectorAll('.zlab')].every(z => z.closest('.maplibregl-marker').hidden)]);
+  assert.deepEqual(await off(), [true, false, true], 'off by default');
   await menu(page, 'cmpterr');
   assert.equal(await page.evaluate(() => HWCampus.map.map.getTerrain().exaggeration), 1);
+  assert.ok(await page.evaluate(() => [...document.querySelectorAll('.zlab')].every(z => !z.closest('.maplibregl-marker').hidden && getComputedStyle(z).display !== 'none')), 'on: the elevation labels show');
+  await menu(page, 'cmpterr');
+  assert.deepEqual(await off(), [true, false, true], 'off: flattened (kept, so switching back is quick)');
+  assert.ok(await page.evaluate(() => [...document.querySelectorAll('.zlab')].every(z => getComputedStyle(z).display === 'none')), 'off: the elevation labels are not drawn');
   await menu(page, 'cmpbld');
   assert.equal(await page.evaluate(() => HWCampus.map.map.getPaintProperty('bld', 'fill-extrusion-height')), 0);
   // the list flies to the marker and highlights it
@@ -96,7 +101,8 @@ test('modes share the positions; terrain and buildings switch; selection flies t
   assert.match(await page.textContent('#cmpdet'), /3 staircases at one stored point[\s\S]*ST06[\s\S]*ST31[\s\S]*ST32/);
   await page.click('#cmpdet .cmpitem[data-id="ST31"]');
   assert.equal(await page.evaluate(() => HWCampus.selected), 'ST31');
-  // kept for the tab: leave and come back to the same mode, switches, selection and camera
+  // kept for the tab: leave and come back to the same mode, switches (the terrain on: not the default), selection and camera
+  await menu(page, 'cmpterr');
   await idle(page);
   const c0 = await cam(page);
   await goView(page, 'home');

@@ -36,6 +36,9 @@ const TREE_IMG = {
 };
 // the staircase stops as solid models, hidden by the buildings in front of them (./stops3d.js, tools/art/make_heart_sprite.py --glb)
 const STOP_URL = new URL('../assets/models/heart-stop.glb', import.meta.url).href;
+// the trees as 3D oaks of one fixed height, both looks (./trees3d.js, tools/blender_campus_trees.py); the drawn trees stand in
+// while they load or if they cannot
+const TREES_URL = new URL('../assets/models/campus-trees.glb', import.meta.url).href;
 const CATCOL = { MILD: '#7ee07c', MODERATE: '#f6c94f', VIGOROUS: '#ff7b6e' };
 const ATTR = '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a> (ODbL)';
 const K = k => ['==', ['get', 'kind'], k];
@@ -225,7 +228,7 @@ export function createMap(opts) {
   map.addControl(new ML.ScaleControl({ unit: 'metric', maxWidth: 100 }), 'bottom-left');
   map.on('styleimagemissing', e => { if (!map.hasImage(e.id)) { const im = makeImage(e.id); if (im) map.addImage(e.id, im, { pixelRatio: 2 }); } });
 
-  let mode = opts.mode === 'realistic' ? 'realistic' : 'fantasy', bldOn = opts.bld !== false, terrOn = opts.terr !== false, sel = null, timer = null, step = 0, ready = false, gone = false;
+  let mode = opts.mode === 'realistic' ? 'realistic' : 'fantasy', bldOn = opts.bld !== false, terrOn = opts.terr === true, sel = null, timer = null, step = 0, ready = false, gone = false;
   const markers = new Map(), zoneMarks = [], labels = [];
   let clusters = [], meMk = null, sparked = null, only = null; // only: the marker keys the search on the map matches (null: all)
   // what the Layers panel shows (the page keeps the choice): staircase markers, landmarks, building labels, contours, paths, effects
@@ -245,6 +248,7 @@ export function createMap(opts) {
     if (map.getLayer('trees')) map.setLayoutProperty('trees', 'icon-image', TREE_IMG[m]);
     loadModels();
     if (stops && stops.night) stops.night(m === 'fantasy');
+    if (trees3d && trees3d.night) trees3d.night(m === 'fantasy');
     FX.set(m === 'fantasy' && !opts.reduced() && lay.effects);
     if (m !== 'fantasy') FX.follow(null);
     setHeights();
@@ -299,6 +303,7 @@ export function createMap(opts) {
       return out.length > 1 ? { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: out } } : null; };
     return [walk(1), walk(-1)].filter(Boolean);
   }
+  let selData = null, meData = null; // what the sel and me sources hold now
   let pulseRaf = 0, lastCel = null; // lastCel: the last saved session's feedback (for tests)
   function pulse(lng, lat) {
     const F = nearestPath(lng, lat), src = map.getSource('pulse');
@@ -368,6 +373,7 @@ export function createMap(opts) {
     zoneMarks.forEach(z => { z.getElement().hidden = !on; });
     if (models && models.replace) models.replace();
     if (stops && stops.replace) stops.replace();
+    if (trees3d && trees3d.replace) trees3d.replace();
     applyLayers();
   }
   // fantasy: the walkways and plateau rims keep a steady glow. They used to flow and breathe on a timer, but every tick
@@ -483,18 +489,30 @@ export function createMap(opts) {
       if (gone) return;
       stops = mod.createStopLayer({ ML, url: STOP_URL, colours: { 1: CATCOL.MILD, 2: CATCOL.MODERATE, 3: CATCOL.VIGOROUS }, heightAt: terrain.heightAt, terrainOn: () => terrOn,
         shown: k => { const m = markers.get(k); return !!m && !m.el.hidden; }, motion, night: () => mode === 'fantasy',
-        onReady: () => { if (gone) return; map.getContainer().classList.add('st3d'); stops.select(sel); },
-        onError: e => { console.warn('[stops] the 3D stops could not load; the drawn hearts stay.', e && e.message); stops = null; } });
+        onReady: () => { stopsDone = true; if (gone) return; map.getContainer().classList.add('st3d'); stops.select(sel); },
+        onError: e => { stopsDone = true; console.warn('[stops] the 3D stops could not load; the drawn hearts stay.', e && e.message); stops = null; } });
       stops.set([...markers.values()].map(m => ({ key: m.g.key, lng: m.g.lng, lat: m.g.lat, cat: catN(m.g.items[0].appCategory) || 2 })));
       map.addLayer(stops, map.getLayer('trees') ? 'trees' : undefined); // among the 3D layers: drawn on top, MapLibre's terrain pass hid it
-    }).catch(e => { console.warn('[stops]', e && e.message); stops = null; });
+    }).catch(e => { stopsDone = true; console.warn('[stops]', e && e.message); stops = null; });
+  }
+  /* ---------- the trees as 3D oaks (./trees3d.js): once they are on the map, the drawn trees are hidden ---------- */
+  let trees3d = null, treesDone = false, stopsDone = false; // done: on the map, or given up (the stand-ins stay)
+  function loadTrees() {
+    import('./trees3d.js').then(mod => {
+      if (gone) return;
+      trees3d = mod.createTreeLayer({ ML, url: TREES_URL, points: trees.features.map(f => f.geometry.coordinates), heightAt: terrain.heightAt, terrainOn: () => terrOn,
+        night: () => mode === 'fantasy',
+        onReady: () => { treesDone = true; if (gone) return; if (map.getLayer('trees')) map.setLayoutProperty('trees', 'visibility', 'none'); },
+        onError: e => { treesDone = true; console.warn('[trees] the 3D trees could not load; the drawn ones stay.', e && e.message); if (!gone && map.getLayer('trees3d')) map.removeLayer('trees3d'); trees3d = null; } });
+      map.addLayer(trees3d, 'trees');
+    }).catch(e => { treesDone = true; console.warn('[trees]', e && e.message); trees3d = null; });
   }
   const camNow = () => { const c = map.getCenter(); return { c: [+c.lng.toFixed(7), +c.lat.toFixed(7)], z: +map.getZoom().toFixed(3), b: +map.getBearing().toFixed(2), p: +map.getPitch().toFixed(2) }; };
 
   map.on('load', () => {
     if (gone) return;
     ready = true;
-    addLabels(); addMarkers(); loadStops();
+    addLabels(); addMarkers(); loadStops(); loadTrees();
     lm = createLandmarks({ ML, map, list: landmarksOf(osm), onOpen: id => opts.onLandmark && opts.onLandmark(id), reduced: opts.reduced });
     if (opts.found) lm.found(opts.found());
     applyMode(mode); setTerrain(terrOn);
@@ -527,6 +545,9 @@ export function createMap(opts) {
     get modelsLook() { return modelsReady ? modelsLook : null; },
     get fx() { return FX; },
     get stops() { return stops; },
+    get trees3d() { return trees3d; },
+    /** The 3D trees and stops are drawn, or have given up and left their drawn stand-ins (the campus page's loader). */
+    get decoSettled() { return treesDone && stopsDone; },
     get terrainOn() { return terrOn; },
     get buildingsOn() { return bldOn; },
     camera: camNow,
@@ -565,7 +586,9 @@ export function createMap(opts) {
       sel = key || null;
       const m = key && markers.get(key);
       const src = map.getSource('sel');
-      if (src) src.setData({ type: 'FeatureCollection', features: m ? [{ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [m.g.lng, m.g.lat] } }] : [] });
+      // only a new selection changes the source: each setData reloads its tiles, and with the terrain on every reloaded tile
+      // makes MapLibre draw the ground under it again, which made each page redraw (full screen, a switch) lag (owner's report, 2026-10-23)
+      if (src && selData !== (m ? m.g.key : '')) { selData = m ? m.g.key : ''; src.setData({ type: 'FeatureCollection', features: m ? [{ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [m.g.lng, m.g.lat] } }] : [] }); }
       if (m) { m.el.classList.add('sel'); m.el.style.zIndex = 5; m.el.setAttribute('aria-pressed', 'true'); }
       recluster();
       if (stops) stops.select(sel);
@@ -595,8 +618,8 @@ export function createMap(opts) {
         accuracy circle; a plain dot stands in until the avatar has loaded (or if it cannot). null hides both. Never stored. */
     me(f, jump, url) {
       mePos = f;
-      const src = map.getSource('me');
-      if (src) src.setData({ type: 'FeatureCollection', features: f && f.accuracy ? [circle(f.lng, f.lat, Math.min(f.accuracy, 250))] : [] });
+      const src = map.getSource('me'), mk = f && f.accuracy ? [f.lng, f.lat, Math.min(f.accuracy, 250)].join() : ''; // as select(): only a change reloads the tiles
+      if (src && mk !== meData) { meData = mk; src.setData({ type: 'FeatureCollection', features: f && f.accuracy ? [circle(f.lng, f.lat, Math.min(f.accuracy, 250))] : [] }); }
       if (!f) { if (meMk) { meMk.remove(); meMk = null; } if (avatar && avatar.show) avatar.show(false); return; }
       if (url) loadAvatar(url);
       const live = avatar && avatar.ready;

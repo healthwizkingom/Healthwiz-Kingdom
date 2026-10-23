@@ -5,10 +5,12 @@ coloured according to difficulty"), modelled and rendered in Blender, packed int
     python3 tools/art/make_heart_sprite.py --pack OUT_DIR assets/img/heart-spin.webp          # the sheet
     /opt/blender/blender -b --factory-startup -P tools/art/make_heart_sprite.py -- --glb assets/models/heart-stop.glb
 
---glb: the solid stop the 3D map draws (observatory/stops3d.js), after a Pokestop: a post on a round base, with the
-heart floating above it, one unit tall (the map scales it to a steady size on screen). Two meshes: "heart" (white, its
-origin on the post's axis, so it spins in place; tinted by difficulty in the browser) and "post" (silver post, stone base
-with a gold rim). Low-poly and without textures, so the file stays a few kilobytes.
+--glb: the solid stop the 3D map draws (observatory/stops3d.js), from the owner's drawing (2026-10-23): a thin round disc
+with the heart set in it, like a thought bubble, and three dots, smaller and smaller, leading down to the ground under
+it; one unit tall (the map draws it at one fixed size on screen). Three meshes: "heart" (white, tinted by difficulty in
+the browser; it stands out a little from both faces of the disc), "disc" (pearl white with a thin gold rim) and "post"
+(the three dots). The heart and the disc share their origin on the upright axis, so they turn together in place.
+Low-poly and without textures, so the file stays a few kilobytes.
 
 The heart is white and grey (light and shade only): the map tints it with the staircase's difficulty colour in CSS
 (multiply), so one small sheet serves Mild, Moderate and Vigorous. 16 frames of one full turn about the upright axis,
@@ -75,22 +77,34 @@ me.materials.append(material('heart', (1, 1, 1)))
 heart.rotation_euler = (math.radians(90), 0, 0)   # stand it up: the curve's plane becomes vertical
 
 if GLB:
-    # the stop: the heart (about .56 wide) floats on the post's axis; the post stands on a round base; 1 unit tall in all
-    heart.scale = (.37, .37, .37); heart.location = (0, 0, .8)
+    # the stop, as drawn: a disc (radius .3, .035 thick, its face to the viewer) centred .68 up, the heart in it (about .4
+    # wide, .1 thick: it stands out of both faces), and three dots under it, .055, .04 and .026 in radius; 1 unit tall in all
+    C = .68
+    heart.scale = (.26, .26, .26); heart.location = (0, 0, C - .02)
     bpy.ops.object.select_all(action='DESELECT')
-    parts = []
-    bpy.ops.mesh.primitive_cylinder_add(vertices=10, radius=.05, depth=.5, location=(0, 0, .34)); parts.append(bpy.context.object)
-    bpy.ops.mesh.primitive_cylinder_add(vertices=16, radius=.2, depth=.06, location=(0, 0, .03)); parts.append(bpy.context.object)
-    bpy.ops.mesh.primitive_cylinder_add(vertices=16, radius=.215, depth=.02, location=(0, 0, .065)); parts.append(bpy.context.object)
-    bpy.ops.mesh.primitive_cone_add(vertices=10, radius1=.08, radius2=.05, depth=.06, location=(0, 0, .1)); parts.append(bpy.context.object)
-    mats = (material('post_silver', (.9, .92, .96), .35, .5, .2), material('base_stone', (.36, .38, .46), .8, 0, 0),
-            material('rim_gold', (.95, .74, .3), .3, .9, .2), material('post_silver', (.9, .92, .96), .35, .5, .2))
-    for o, m in zip(parts, (mats[0], mats[1], mats[2], mats[0])):
-        o.data.materials.append(m)
+    pearl, gold, dot = material('disc_pearl', (.97, .96, .99), .3, 0, .6), material('rim_gold', (.95, .74, .3), .3, .9, .2), material('dot_pearl', (.97, .96, .99), .3, 0, .6)
+    rot = (math.radians(90), 0, 0)   # the cylinders' axis toward the viewer (y), so their round faces stand upright
+    bpy.ops.mesh.primitive_cylinder_add(vertices=40, radius=.3, depth=.035, location=(0, 0, C), rotation=rot); d = bpy.context.object
+    d.data.materials.append(pearl)
+    bpy.ops.mesh.primitive_torus_add(major_segments=40, minor_segments=6, major_radius=.3, minor_radius=.018, location=(0, 0, C), rotation=rot); rim = bpy.context.object
+    rim.data.materials.append(gold)
+    bpy.ops.object.select_all(action='DESELECT'); d.select_set(True); rim.select_set(True)
+    bpy.context.view_layer.objects.active = d; bpy.ops.object.join(); d.name = 'disc'
+    dots = []
+    for r, z in ((.055, .3), (.04, .17), (.026, .06)):
+        bpy.ops.mesh.primitive_uv_sphere_add(segments=12, ring_count=8, radius=r, location=(0, 0, z)); dots.append(bpy.context.object)
+        dots[-1].data.materials.append(dot)
+        for p in dots[-1].data.polygons: p.use_smooth = True
     bpy.ops.object.select_all(action='DESELECT')
-    for o in parts: o.select_set(True)
-    bpy.context.view_layer.objects.active = parts[0]; bpy.ops.object.join(); parts[0].name = 'post'
-    heart.select_set(True)
+    for o in dots: o.select_set(True)
+    bpy.context.view_layer.objects.active = dots[0]; bpy.ops.object.join(); dots[0].name = 'post'
+    # the heart and the disc turn about the upright axis through the disc's centre: their origins go there
+    for o in (heart, d):
+        bpy.context.scene.cursor.location = (0, 0, C)
+        bpy.ops.object.select_all(action='DESELECT'); o.select_set(True); bpy.context.view_layer.objects.active = o
+        bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
+    bpy.ops.object.select_all(action='DESELECT')
+    for o in (heart, d, dots[0]): o.select_set(True)
     os.makedirs(os.path.dirname(os.path.abspath(GLB)), exist_ok=True)
     bpy.ops.export_scene.gltf(filepath=GLB, export_format='GLB', use_selection=True, export_apply=True, export_yup=True,
                               export_texcoords=False, export_normals=True, export_materials='EXPORT', export_extras=False)

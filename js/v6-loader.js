@@ -4,7 +4,9 @@
    played backwards), with a small percentage under the heart. It stays until the welcome page's background and the
    other visuals that take time are ready: the scripts, the fonts and every image on the first page. Then it fades out.
    The percentage is how much of that has loaded (pieces counted, not bytes). With reduced motion the pixels simply
-   appear. Loaded right after the original modules, so it shows while the rest of the app starts. */
+   appear. Loaded right after the original modules, so it shows while the rest of the app starts.
+   The campus map shows the same animation over the map until it has fully drawn (owner's request, 2026-10-23):
+   HWLoader.show(parent, label) → {set(fraction), finish(), done}, the same icon and percentage in a box over parent. */
 const HWLoader=(()=>{
 const D0=document,NX=32,NY=36,C=5; // NX x NY art pixels, C screen pixels each
 const reduced=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){return false}};
@@ -21,6 +23,12 @@ function grid(){const G=[],ecg=[[3,23],[10,23],[12,19.5],[14.2,27.5],[16.6,16.5]
     G[y].push(v)}}
   return G}
 const COL={1:'#f0506e',2:'#b02a4f',3:'#ffb3c1',4:null};
+const CSS='#hwload,.hwload{position:fixed;inset:0;z-index:5000;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:opacity .45s ease}'
+  +'.hwload.inbox{position:absolute;z-index:40}'
+  +'#hwload canvas,.hwload canvas{width:min(46vw,190px);height:auto;image-rendering:pixelated}#hwload .hwlp,.hwload .hwlp{font:600 11px/1 system-ui,sans-serif;color:#9a9a9a;letter-spacing:.08em;font-variant-numeric:tabular-nums}'
+  +'#hwload.out,.hwload.out{opacity:0;pointer-events:none}';
+/** One loading screen: the app's (full page, id hwload) or one inside parent (the campus map). */
+function make(parent,label){
 let host=null,cv=null,pct=null,cells=[],out=[],shown=0,want=0,raf=0,t0=0,done=false,gone=false;
 function build(){const G=grid();
   for(let y=0;y<NY;y++)for(let x=0;x<NX;x++){const v=G[y][x];
@@ -28,12 +36,10 @@ function build(){const G=grid();
     // the empty icon: grey outline cells around the shape (the ECG line is part of the shape)
     if(!v&&[[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>G[y+dy]&&G[y+dy][x+dx]))out.push([x,y])}
   cells.sort((a,b)=>a.t-b.t);
-  host=D0.createElement('div');host.id='hwload';host.setAttribute('role','progressbar');host.setAttribute('aria-label','Loading HealthWiz Kingdom');host.setAttribute('aria-valuemin','0');host.setAttribute('aria-valuemax','100');
+  host=D0.createElement('div');if(parent)host.className='hwload inbox';else host.id='hwload';host.setAttribute('role','progressbar');host.setAttribute('aria-label',label||'Loading HealthWiz Kingdom');host.setAttribute('aria-valuemin','0');host.setAttribute('aria-valuemax','100');
   host.innerHTML='<canvas width="'+NX*C+'" height="'+NY*C+'" aria-hidden="true"></canvas><span class="hwlp">0%</span>';
-  const st=D0.createElement('style');st.textContent='#hwload{position:fixed;inset:0;z-index:5000;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:opacity .45s ease}'
-    +'#hwload canvas{width:min(46vw,190px);height:auto;image-rendering:pixelated}#hwload .hwlp{font:600 11px/1 system-ui,sans-serif;color:#9a9a9a;letter-spacing:.08em;font-variant-numeric:tabular-nums}'
-    +'#hwload.out{opacity:0;pointer-events:none}';
-  host.appendChild(st);(D0.body||D0.documentElement).appendChild(host);cv=host.querySelector('canvas');pct=host.querySelector('.hwlp')}
+  if(!D0.getElementById('hwload-css')){const st=D0.createElement('style');st.id='hwload-css';st.textContent=CSS;(D0.head||D0.documentElement).appendChild(st)}
+  (parent||D0.body||D0.documentElement).appendChild(host);cv=host.querySelector('canvas');pct=host.querySelector('.hwlp')}
 function draw(now){raf=0;if(gone)return;const g=cv.getContext('2d'),rm=reduced();
   shown+=(want-shown)*Math.min(1,(now-(t0||now))/1000*(done?16:5));t0=now;if(want-shown<.01||rm)shown=want; // once loaded it fills quickly
   g.clearRect(0,0,cv.width,cv.height);g.fillStyle='#c9c9c9';out.forEach(([x,y])=>g.fillRect(x*C,y*C,C,C));
@@ -46,9 +52,12 @@ function draw(now){raf=0;if(gone)return;const g=cv.getContext('2d'),rm=reduced()
   raf=requestAnimationFrame(draw)}
 const kick=()=>{if(!raf&&!gone)raf=requestAnimationFrame(draw)};
 function set(p){want=Math.max(want,Math.min(1,p));kick()}
-function finish(){if(gone)return;gone=true;host.classList.add('out');setTimeout(()=>{if(host)host.remove();host=null},500)}
+function finish(){if(gone)return;gone=true;if(raf)cancelAnimationFrame(raf);raf=0;if(!host)return;host.classList.add('out');setTimeout(()=>{if(host)host.remove();host=null},500)}
+build();kick();
+/** set(fraction) moves the percentage on; end() fills the icon quickly and then fades out; finish() removes it at once. */
+return{set,end(){set(1);done=true;kick()},finish,get done(){return gone}}}
 /* ---------- what is loading: the scripts (to the end of parsing), the fonts, then the first page's images ---------- */
-function track(){let parts={dom:0,fonts:0,img:0};const upd=()=>set(parts.dom*.45+parts.fonts*.15+parts.img*.4);
+function track(L){const set=L.set;let parts={dom:0,fonts:0,img:0};const upd=()=>set(parts.dom*.45+parts.fonts*.15+parts.img*.4);
   const imgs=()=>{const L=[...D0.querySelectorAll('#main img')].filter(i=>i.currentSrc||i.src);if(!L.length){parts.img=1;upd();return Promise.resolve()}
     let n=0;const one=()=>{n++;parts.img=n/L.length;upd()};
     return Promise.all(L.map(i=>i.complete?Promise.resolve(one()):new Promise(r=>{const f=()=>{one();r()};i.addEventListener('load',f,{once:true});i.addEventListener('error',f,{once:true})})))};
@@ -57,7 +66,10 @@ function track(){let parts={dom:0,fonts:0,img:0};const upd=()=>set(parts.dom*.45
   const fonts=(D0.fonts&&D0.fonts.ready?D0.fonts.ready:Promise.resolve()).then(()=>{parts.fonts=1;upd()});
   const page=new Promise(r=>D0.readyState==='complete'?r():addEventListener('load',r,{once:true})).then(imgs);
   const min=new Promise(r=>setTimeout(r,350)); // no flash on a fast load; otherwise it lasts as long as the loading
-  Promise.all([fonts,page,min]).then(()=>{set(1);done=true;kick()});
-  setTimeout(()=>{set(1);done=true;kick()},12000)} // never stuck: whatever has not loaded by then loads behind the app
-try{build();track();kick()}catch(e){console.error('[HWLoader]',e);if(host)host.remove()}
-return{get done(){return gone},finish}})();
+  Promise.all([fonts,page,min]).then(()=>L.end());
+  setTimeout(()=>L.end(),12000)} // never stuck: whatever has not loaded by then loads behind the app
+let app=null;
+try{app=make(null);track(app)}catch(e){console.error('[HWLoader]',e);const h=D0.getElementById('hwload');if(h)h.remove()}
+return{get done(){return !app||app.done},finish(){if(app)app.finish()},
+  /** The same loading screen inside an element (position: relative or absolute), e.g. over the campus map. */
+  show(parent,label){try{return make(parent,label)}catch(e){console.error('[HWLoader]',e);return{set(){},end(){},finish(){},done:true}}}}})();

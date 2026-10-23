@@ -76,7 +76,9 @@ test('lazy and complete: nothing of the map before the page opens; then OSM attr
   await goView(page, 'campus');
   assert.equal(await ready(page), 'ready');
   await idle(page);
-  // the generated terrain tiles arrive after the first frame
+  // the terrain starts off (owner's request, 2026-10-23): switched on here; its generated tiles arrive after the next frames
+  assert.equal(await page.evaluate(() => HWCampus.state.terr), false, 'terrain off by default');
+  await page.evaluate(() => acts.cmpterr());
   await page.waitForFunction(() => HWCampus.map.map.queryTerrainElevation([100.5388927, 5.3490042]) > 1, null, { timeout: 30000 });
   assert.ok(reqs.some(u => /vendor\/maplibre-gl\/maplibre-gl\.js$/.test(u)) && reqs.some(u => /observatory\/main\.js$/.test(u)));
   const r = await page.evaluate(() => {
