@@ -7,6 +7,8 @@ Run headless (Blender 4.2 LTS, no add-ons; sh tools/get-blender.sh installs it),
     blender -b --factory-startup -P tools/blender_campus.py -- --style fantasy     # assets/models/campus-fantasy.glb
 
 Options: --src data/campus-osm.geojson  --looks data/campus-looks.json  --out <file.glb>
+         --medieval <kit.glb>   Fantasy: the houses and castle to stand on the footprints (default tools/art/medieval-kit.glb,
+                   from tools/blender_medieval_kit.py); --medieval none keeps the generated stone-and-slate buildings
          --props   the ground-level details instead (roads, kerbs, drains, lights, goal posts, car parks):
                    assets/models/campus-props-<style>.glb, see tools/blender_campus_props.py
 
@@ -20,9 +22,11 @@ What comes from where:
 The 'roof' features of the OSM export become gazebos (small) or open shelters (long), red, on white posts.
 
 Realistic: daylight materials, corrugated metal roofs in the measured colours, white walls with grey window bands.
-Fantasy: the same buildings and colours as stone and slate with lit windows, gold eaves, and the fantasy additions of
-the prototype's tools/blender_buildings.py (plinth, storey bands, chimneys, spired turrets on the large halls), which
-this script is based on. The fantasy additions are decoration, not real structures.
+Fantasy (owner's request, 2026-10-23): medieval houses from the owner's model packs stand on the footprints, and a castle
+on the large academic block (Bangunan Akademik, way/454535317); see place_medieval() below. The Surau and the water
+towers keep the generated look: the same buildings and colours as stone and slate with lit windows, gold eaves, and the
+fantasy additions of the prototype's tools/blender_buildings.py (plinth, storey bands, chimneys, spired turrets), which
+this script is based on. All of it is decoration on the real outlines, not real structures.
 
 Coordinates: metres east (x) and north (y) of the export's origin (the centre of its bounds), z up. Each building is one
 object at its footprint centroid with custom properties lng, lat, osm, type, wall_m and look (the confidence), exported
@@ -515,12 +519,92 @@ if PROPS:   # roads, kerbs, drains, lights, goal posts, car parks: a separate GL
     exec(compile(open(_pp, encoding='utf-8').read(), _pp, 'exec'))
     sys.exit(0)
 
+# ---------------------------------------------------------------- Fantasy: medieval houses and the castle (owner's request, 2026-10-23)
+# Each footprint is cut, along its own long axis, into rows about 15 m deep and each row into the runs that lie inside the
+# outline (an L or U shape leaves its courtyard empty), each run into strips up to 26 m long. Every strip gets the kit house
+# whose proportions are closest (a fixed pick among the three closest, by the OSM id, for variety), stretched to the strip
+# (94 %) and as tall as its proportions make it, kept between 7 and 15 m. The castle fills the large academic block's
+# rectangle, its height at 65 % of its proportions so its spires do not tower over the campus. The pieces share their meshes.
+MEDIEVAL = arg('--medieval', 'tools/art/medieval-kit.glb')
+MEDIEVAL = None if (not FAN or MEDIEVAL == 'none' or not os.path.exists(MEDIEVAL)) else MEDIEVAL
+CASTLE_OSM = 'way/454535317'
+KIT = {}
+if MEDIEVAL:
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=os.path.abspath(MEDIEVAL))
+    for o in [o for o in bpy.data.objects if o not in before]:
+        if o.type == 'MESH':
+            me = o.data; me.use_fake_user = True
+            xs, ys, zs = ([v.co[i] for v in me.vertices] for i in range(3))
+            KIT[o.name.split('.')[0]] = (me, max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs))
+        bpy.data.objects.remove(o, do_unlink=True)
+HOUSES = sorted(k for k in KIT if k.startswith('house_'))
+
+def place_medieval(p, g, look_conf, btype):
+    global count, tris
+    rel, cxy = local_rings(g)
+    P = rel[0]
+    u, v, hl, hw, c = frame_of(P)
+    lng, lat = LNG0 + cxy[0] / KX, LAT0 + cxy[1] / (RAD * R)
+    ob = bpy.data.objects.new('b_' + p['osm'].replace('/', '_'), None); ob.location = (cxy[0], cxy[1], 0)
+    scene.collection.objects.link(ob)
+    at = lambda a, b: (c[0] + u[0] * a + v[0] * b, c[1] + u[1] * a + v[1] * b)
+    ins = lambda q: inside(q, P) and not any(inside(q, h) for h in rel[1:])
+    pieces = []   # (centre, long direction, long, short, kit name)
+    if p['osm'] == CASTLE_OSM and 'castle' in KIT:
+        pieces.append((c, u, 2 * hl, 2 * hw, 'castle'))
+    else:
+        nr = max(1, round(2 * hw / 15)); w = 2 * hw / nr
+        seed = sum(map(ord, p['osm']))
+        for r in range(nr):
+            b = -hw + w * (r + .5)
+            xs = [-hl + .5 + i for i in range(int(2 * hl))]
+            runs, start = [], None
+            for x in xs + [None]:
+                ok = x is not None and all(ins(at(x, b + d * w * .3)) for d in (-1, 0, 1))
+                if ok and start is None: start = x
+                if not ok and start is not None: runs.append((start - .5, prev + .5)); start = None
+                prev = x
+            for a0, a1 in runs:
+                L = a1 - a0
+                if L < 4:
+                    continue
+                k = math.ceil(L / 26); seg = L / k
+                for i in range(k):
+                    long_, short_ = max(seg, w), min(seg, w)
+                    d = u if seg >= w else v
+                    want = math.log(long_ / short_)
+                    near = sorted(HOUSES, key=lambda h: abs(math.log(max(KIT[h][1], KIT[h][2]) / min(KIT[h][1], KIT[h][2])) - want))[:3]
+                    pieces.append((at(a0 + seg * (i + .5), b), d, long_, short_, near[(seed + r * 7 + i * 3) % len(near)]))
+    for n, (cc, d, long_, short_, name) in enumerate(pieces):
+        me, kw, kd, kh = KIT[name]
+        x_long = kw >= kd
+        sl, ss = long_ * (.97 if name == 'castle' else .94) / max(kw, kd), short_ * (.97 if name == 'castle' else .94) / min(kw, kd)
+        sz = math.sqrt(sl * ss) * (.65 if name == 'castle' else 1)
+        if name != 'castle':
+            sz = min(15, max(7, kh * sz)) / kh
+        ch = bpy.data.objects.new(ob.name + '_%d' % n, me)
+        ch.scale = (sl, ss, sz) if x_long else (ss, sl, sz)
+        flip = math.pi if (sum(map(ord, p['osm'])) + n) % 2 else 0   # doors face either way along the street
+        ch.rotation_euler = (0, 0, math.atan2(d[1], d[0]) - (0 if x_long else math.pi / 2) + flip)
+        ch.location = (cc[0], cc[1], 0); ch.parent = ob
+        scene.collection.objects.link(ch)
+        tris += sum(len(pp.vertices) - 2 for pp in me.polygons)
+    ob['osm'] = p['osm']; ob['type'] = btype; ob['lng'] = round(lng, 8); ob['lat'] = round(lat, 8); ob['look'] = look_conf
+    ob['wall_m'] = round(max((ch.scale.z * KIT[pc[4]][3] for ch, pc in zip(ob.children, pieces)), default=0), 2)
+    ob['medieval'] = ','.join(pc[4] for pc in pieces)
+    count += 1
+    conf[look_conf] = conf.get(look_conf, 0) + 1
+
 for f in osm['features']:
     p, g = f['properties'], f['geometry']
     if g['type'] != 'Polygon' or p['kind'] not in ('building', 'water_tower'):
         continue
     btype = 'tower' if p['kind'] == 'water_tower' else p.get('building', 'yes')
     look = dict(DEF); look.update(looks['buildings'].get(p['osm'], {}))
+    if MEDIEVAL and btype not in ('tower', 'mosque'):
+        place_medieval(p, g, look['confidence'], btype)
+        continue
     storeys = look['storeys'] if isinstance(look['storeys'], int) else look['storeys'].get(btype, 2)
     H = TOWER_M if btype == 'tower' else storeys * STOREY_M + BASE_M
     rel, cxy = local_rings(g)

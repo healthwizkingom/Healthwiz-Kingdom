@@ -1,35 +1,36 @@
 // HealthWiz Kingdom: the staircase stops as solid 3D models on the map (owner's request, 2026-10-21: "not see through to
 // building, but solid model like pokestop"). Not part of the prototype.
 //
-// One Blender model (assets/models/heart-stop.glb, tools/art/make_heart_sprite.py --glb): a silver post on a stone base
-// with a gold rim, and a heart floating above it in the staircase's difficulty colour (Mild, Moderate, Vigorous: the app's
-// category). Drawn through a Three.js custom layer that shares the map's WebGL context and depth buffer, so a building
-// in front of a stop hides it, as the Blender buildings (./models3d.js) and the map's own blocks do. Each stop keeps a
-// steady size on screen (about 76 px tall at the map's centre, like the marker it replaces) and stands on the terrain.
+// One Blender model (assets/models/heart-stop.glb, tools/art/make_heart_sprite.py --glb), from the owner's drawing
+// (2026-10-23): a thin pearl disc with a gold rim and the heart set in it in the staircase's difficulty colour (Mild,
+// Moderate, Vigorous: the app's category), like a thought bubble, and three shrinking dots leading down to the ground. Drawn through a Three.js custom layer that shares the map's WebGL context and depth buffer, so a building
+// in front of a stop hides it, as the Blender buildings (./models3d.js) and the map's own blocks do. Every stop has one
+// fixed size on screen (76 px tall at the map's centre, the selected one too: owner's request, 2026-10-23) and stands on
+// the terrain.
 // The HTML markers stay as the tap targets, labels and selection rings (./map.js hides their drawn heart when this is
 // ready); a marker that is hidden (search, Layers panel, a cluster) hides its stop.
 // The glow (owner's request: "more prominent and noticeable with a slight glow"): the hearts light themselves a little in
 // their colour, and a soft halo around each heart (always turned to the viewer) and a pool of light on the ground under
 // it, both in the difficulty colour; they are depth-tested too, so a building in front hides them with the stop.
-// Motion: the hearts turn whenever the map draws; while a staircase is selected its heart spins, redrawing the map about
+// Motion: the hearts turn with their discs whenever the map draws; while a staircase is selected its heart spins, redrawing the map about
 // 12 times a second (and never with reduced motion, still mode or Performance mode, when the hearts stand still).
 import * as THREE from '../vendor/three/three.module.min.js';
 import { GLTFLoader } from '../vendor/three/addons/loaders/GLTFLoader.js';
 
-const PX = 76, SEL = 1.3; // the stop's height on screen (px); the selected one is larger
+const PX = 76; // the stop's height on screen (px), the same for every stop
 
 /** opts: {ML, url, colours: {1,2,3: css colour}, heightAt(lng, lat), terrainOn(), shown(key), motion(), night(), onReady(), onError(e)} */
 export function createStopLayer(opts) {
   let glowTex = null, glowM = {}, poolM = {};
-  let renderer, scene, camera, map = null, post = null, heart = null, mats = {}, list = [], sel = null, loaded = false, spin = null, hemi, key;
+  let renderer, scene, camera, map = null, post = null, heart = null, disc = null, mats = {}, list = [], sel = null, loaded = false, spin = null, hemi, key;
   const t0 = performance.now();
   function build() {
     for (const s of list) { if (s.g) scene.remove(s.g); }
     for (const s of list) {
       const g = new THREE.Group();
       const p = post.clone(); g.add(p);
-      const piv = new THREE.Object3D(), h = heart.clone(); h.material = mats[s.cat] || mats[2]; piv.add(h); g.add(piv);
-      const halo = new THREE.Mesh(QUAD, glowM[s.cat] || glowM[2]); halo.position.y = .8; halo.scale.setScalar(1.25); halo.renderOrder = 2; g.add(halo);
+      const piv = new THREE.Object3D(), h = heart.clone(); h.material = mats[s.cat] || mats[2]; piv.add(h, disc.clone()); g.add(piv);
+      const halo = new THREE.Mesh(QUAD, glowM[s.cat] || glowM[2]); halo.position.y = .68; halo.scale.setScalar(.95); // behind the disc, a little wider halo.renderOrder = 2; g.add(halo);
       const pool = new THREE.Mesh(QUAD, poolM[s.cat] || poolM[2]); pool.rotation.x = -Math.PI / 2; pool.position.y = .02; pool.scale.setScalar(1.1); pool.renderOrder = 1; g.add(pool);
       s.g = g; s.piv = piv; s.halo = halo; s.phase = (s.lng * 9173 + s.lat * 7919) % (2 * Math.PI);
       scene.add(g);
@@ -79,9 +80,9 @@ export function createStopLayer(opts) {
       key = new THREE.DirectionalLight(0xffffff, 2.6); key.position.set(-.4, .8, .45); scene.add(key); // from the south-west, above (glTF: y up, z south)
       new GLTFLoader().load(opts.url, gltf => {
         gltf.scene.updateMatrixWorld(true);
-        heart = gltf.scene.getObjectByName('heart'); post = gltf.scene.getObjectByName('post'); // post: one mesh per material
+        heart = gltf.scene.getObjectByName('heart'); post = gltf.scene.getObjectByName('post'); disc = gltf.scene.getObjectByName('disc'); // the dots; the disc and its rim
         gltf.scene.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
-        if (!heart || !heart.isMesh || !post) { opts.onError && opts.onError(new Error('heart-stop.glb has no heart or post')); return; }
+        if (!heart || !heart.isMesh || !post || !disc) { opts.onError && opts.onError(new Error('heart-stop.glb has no heart, disc or dots')); return; }
         glowTex = glowTexture();
         for (const c of [1, 2, 3]) { const mt = heart.material.clone(); mt.color.set(opts.colours[c]); mats[c] = mt; glowM[c] = glowMat(c, .7); poolM[c] = glowMat(c, .55); }
         tint(opts.night()); loaded = true; build(); loop();
@@ -99,7 +100,7 @@ export function createStopLayer(opts) {
       EYE.set(-Math.sin(b) * Math.sin(p), Math.cos(p), Math.cos(b) * Math.sin(p)); Q.setFromRotationMatrix(L.lookAt(EYE, O, UP));
       for (const s of list) {
         const vis = opts.shown(s.key); s.g.visible = vis; if (!vis) continue;
-        s.g.scale.setScalar(PX * mpp * (s.key === sel ? SEL : 1)); // metres: a steady size on screen
+        s.g.scale.setScalar(PX * mpp); // metres: one fixed size on screen
         s.g.position.y = ground(s); s.halo.quaternion.copy(Q);
         s.piv.rotation.y = mov ? s.phase + t * (s.key === sel ? 4.2 : .7) : face; // still: the heart faces the viewer
       }
@@ -109,6 +110,7 @@ export function createStopLayer(opts) {
     },
     onRemove() {
       clearInterval(spin); spin = null;
+      if (disc) disc.traverse(o => { if (o.isMesh) { o.geometry.dispose(); [].concat(o.material).forEach(mt => mt.dispose()); } });
       if (post) post.traverse(o => { if (o.isMesh) { o.geometry.dispose(); [].concat(o.material).forEach(mt => mt.dispose()); } });
       if (heart) { heart.geometry.dispose(); heart.material.dispose(); }
       [...Object.values(mats), ...Object.values(glowM), ...Object.values(poolM)].forEach(mt => mt.dispose());

@@ -53,7 +53,7 @@ test('the solid 3D stops: one per marker, in the difficulty colour, on the marke
   const glb = fs.readFileSync(path.join(root, 'assets/models/heart-stop.glb'));
   assert.equal(glb.toString('ascii', 0, 4), 'glTF');
   const j = JSON.parse(glb.toString('utf8', 20, 20 + glb.readUInt32LE(12)));
-  assert.deepEqual(j.nodes.map(n => n.name).sort(), ['heart', 'post']);
+  assert.deepEqual(j.nodes.map(n => n.name).sort(), ['disc', 'heart', 'post'], 'the drawn stop (owner, 2026-10-23): the disc, the heart in it and the dots');
   assert.ok(glb.length < 120000, 'small: ' + glb.length);
   const ctx = await browser.newContext({ viewport: { width: 800, height: 800 }, serviceWorkers: 'block', reducedMotion: 'reduce' });
   const page = await ctx.newPage(), errors = [];
@@ -81,9 +81,12 @@ test('the solid 3D stops: one per marker, in the difficulty colour, on the marke
   assert.ok(r.depth, 'solid and depth-tested: a building in front hides it'); assert.ok(r.cats);
   assert.deepEqual(r.glow, [true, true], 'a halo and a pool of light in the difficulty colour, hidden by buildings in front too'); assert.ok(r.emissive, 'the hearts light themselves a little');
   assert.ok(r.dx < .01, 'on the ground the marker stands on');
-  // selected: larger, and with reduced motion not spinning; with motion allowed it spins
+  // selected: the same fixed size on screen (owner's request, 2026-10-23); with reduced motion not spinning; with motion allowed it spins
   await page.evaluate(() => document.querySelector('.stm[data-id="ST20"]').click());
   await page.waitForSelector('#cmpstop');
+  await page.waitForTimeout(400);
+  assert.ok(await page.evaluate(() => { const L = HWCampus.map.stops.debug.list.filter(s => s.g.visible), k = HWCampus.map.stops.debug.list.find(s => s.key === HWCampus.map.map.getContainer().querySelector('.stm.sel').dataset.key);
+    return !!k && L.every(s => Math.abs(s.g.scale.x - k.g.scale.x) < 1e-9); }), 'the selected stop is not enlarged');
   assert.equal(await page.evaluate(() => HWCampus.map.stops.spinning), false, 'reduced motion: still');
   await page.emulateMedia({ reducedMotion: 'no-preference' }); await page.evaluate(() => HWCampus.map.setReduced());
   assert.equal(await page.evaluate(() => HWCampus.map.stops.spinning), true, 'the selected heart spins');

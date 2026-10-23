@@ -94,15 +94,17 @@ HWUI.css('campus',`
   linear-gradient(#f2c14e,#f2c14e) left bottom/12px 2px no-repeat,linear-gradient(#f2c14e,#f2c14e) left bottom/2px 12px no-repeat,linear-gradient(#f2c14e,#f2c14e) right bottom/12px 2px no-repeat,linear-gradient(#f2c14e,#f2c14e) right bottom/2px 12px no-repeat}
 .cmpcard[data-mode="fantasy"] .cmpgrp h3,.cmpcard[data-mode="fantasy"] .cmpeye{color:var(--gold,#f6c94f)}
 /* the sky on the map (observatory/sky.js): a tint, a fog or haze veil and the rain, over the map canvas and under the markers;
-   plain CSS, so the map never redraws for them (the rain moves on the compositor; still with reduced motion) */
+   plain CSS, so the map never redraws for them (the rain moves on the compositor; still with reduced motion). The rain is one
+   96 px tile of short drops repeated over the map and moved down by one tile (seamless): a layer the size of the map; the
+   old one, two full-screen line gradients on a layer 1.2 x 2 times the map, made the page lag (owner's report, 2026-10-23) */
 .cmpsky,.cmpsky i{position:absolute;inset:0;pointer-events:none}.cmpsky{overflow:hidden}
 .cmpsky-tint{background:var(--tintc,#000);opacity:var(--tint,0);transition:opacity .8s,background-color .8s}
 .cmpsky-veil{background:linear-gradient(to bottom,var(--veilc,#fff) 0%,var(--veilc,#fff) 22%,color-mix(in srgb,var(--veilc,#fff) 45%,transparent) 100%);opacity:calc(var(--veil,0) * .8);transition:opacity .8s}
 .cmpsky-rain{display:none;opacity:calc(.25 + var(--rain,0) * .6)}.cmpsky.wet .cmpsky-rain{display:block}
-.cmpsky-rain::before{content:"";position:absolute;left:-10%;right:-10%;top:-100%;height:200%;will-change:transform;animation:cmprain .55s linear infinite;
-  background:repeating-linear-gradient(104deg,rgba(214,226,255,.55) 0 1px,transparent 1px 11px),repeating-linear-gradient(98deg,rgba(214,226,255,.35) 0 1px,transparent 1px 17px)}
-.cmpsky.still .cmpsky-rain::before{animation:none;top:-50%}
-@keyframes cmprain{to{transform:translate3d(-24px,50%,0)}}
+.cmpsky-rain::before{content:"";position:absolute;left:0;right:0;top:-96px;bottom:0;will-change:transform;animation:cmprain .6s linear infinite;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' stroke='%23d6e2ff' stroke-opacity='.6' stroke-width='1.2' stroke-linecap='round'%3E%3Cpath d='M11 6l-3 14'/%3E%3Cpath d='M43 18l-3 14'/%3E%3Cpath d='M75 4l-3 14'/%3E%3Cpath d='M25 40l-3 14'/%3E%3Cpath d='M61 52l-3 14'/%3E%3Cpath d='M89 34l-3 14'/%3E%3Cpath d='M15 74l-3 14'/%3E%3Cpath d='M49 80l-3 14'/%3E%3Cpath d='M81 66l-3 14'/%3E%3Cpath d='M33 60l-3 14'/%3E%3C/svg%3E") 0 0/96px 96px repeat}
+.cmpsky.still .cmpsky-rain::before{animation:none}
+@keyframes cmprain{to{transform:translate3d(0,96px,0)}}
 .cmpskyp{position:absolute;right:58px;top:10px;z-index:7;display:flex;flex-wrap:wrap;gap:6px;align-items:center;max-width:min(330px,calc(100% - 80px));padding:8px 10px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);color:var(--ink)}
 .cmpskyp b{width:100%;font-size:13px}.cmpskyp .cmpsb{min-height:36px}.cmpskyp .cmpsb[aria-pressed="true"]{outline:2px solid var(--acc,#f2c14e)}.cmpskyp small{width:100%;color:var(--mut);font-size:12px}
 .cmpskycap{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);z-index:5;margin:0;padding:2px 8px;border-radius:8px;background:var(--panel);color:var(--ink);font-size:12px;white-space:nowrap;max-width:calc(100% - 200px);overflow:hidden;text-overflow:ellipsis;pointer-events:none}

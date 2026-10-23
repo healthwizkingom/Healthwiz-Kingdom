@@ -94,7 +94,7 @@ test('NEAREST STAIRS: a wave, then the nearest staircases with CHECK IN; a switc
   await page.evaluate(() => { window.__r = 0; HWCampus.map.map.on('resize', () => window.__r++); document.getElementById('cmpcard').dataset.mark = '1'; });
   await page.click('#hudmenu [data-a="cmpterr"]');
   await page.waitForTimeout(500);
-  assert.deepEqual(await page.evaluate(() => [HWCampus.state.terr, document.getElementById('cmpcard').dataset.mark, window.__r]), [false, '1', 0]);
+  assert.deepEqual(await page.evaluate(() => [HWCampus.state.terr, document.getElementById('cmpcard').dataset.mark, window.__r]), [true, '1', 0]); // off by default (owner, 2026-10-23): the switch turns it on
   // a redraw of the same page: no entrance fade, no resize
   await page.evaluate(() => render());
   assert.deepEqual(await page.evaluate(() => [document.querySelector('#main>.pg').classList.contains('pgstay'), getComputedStyle(document.querySelector('#main>.pg')).animationName, window.__r]), [true, 'none', 0]);

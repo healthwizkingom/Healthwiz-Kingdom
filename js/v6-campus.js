@@ -64,11 +64,11 @@ const unmapped=()=>R().filter(s=>!placed(s));
 
 /* ---------- state: kept for this tab (no position, no health data) ---------- */
 const VK='hw_obs_view',FILTERS=['all','map','nol','part','flag'];
-const V={sid:null,grp:null,mode:'fantasy',cam:null,terr:true,bld:true,full:false,vw:true,tab:'list',f:'all',q:'',me:null,gps:'',err:'',fly:false,sky:'live',skyo:false};
+const V={sid:null,grp:null,mode:'fantasy',cam:null,terr:false,bld:true,full:false,vw:true,tab:'list',f:'all',q:'',me:null,gps:'',err:'',fly:false,sky:'live',skyo:false};
 try{const o=JSON.parse(sessionStorage.getItem(VK)||'null');if(o&&typeof o==='object'){
   if(typeof o.sid==='string')V.sid=o.sid;if(typeof o.grp==='string')V.grp=o.grp;if(o.mode==='realistic')V.mode='realistic';
   if(o.cam&&Array.isArray(o.cam.c)&&o.cam.c.length===2&&o.cam.c.every(isFinite)&&isFinite(o.cam.z))V.cam={c:o.cam.c.map(Number),z:+o.cam.z,b:+o.cam.b||0,p:+o.cam.p||0};
-  if(o.terr===false)V.terr=false;if(o.bld===false)V.bld=false;if(o.full===true)V.full=true;if(o.vw===false)V.vw=false;if(o.tab==='det')V.tab='det';if(FILTERS.indexOf(o.f)>=0)V.f=o.f;if(typeof o.q==='string')V.q=o.q.slice(0,80);if(['day','dusk','night','rain','fog','haze'].includes(o.sky))V.sky=o.sky}}catch(e){}
+  if(o.terr===true)V.terr=true;if(o.bld===false)V.bld=false;if(o.full===true)V.full=true;if(o.vw===false)V.vw=false;if(o.tab==='det')V.tab='det';if(FILTERS.indexOf(o.f)>=0)V.f=o.f;if(typeof o.q==='string')V.q=o.q.slice(0,80);if(['day','dusk','night','rain','fog','haze'].includes(o.sky))V.sky=o.sky}}catch(e){}
 const persist=()=>{if(M.ctl&&M.ctl.ready&&!ME.used)V.cam=M.ctl.camera();try{sessionStorage.setItem(VK,JSON.stringify({sid:V.sid,grp:V.grp,mode:V.mode,cam:V.cam,terr:V.terr,bld:V.bld,full:V.full,vw:V.vw,tab:V.tab,f:V.f,q:V.q,sky:V.sky}))}catch(e){}};
 const selKey=()=>{if(V.grp)return V.grp;const s=V.sid&&rec(V.sid);return s&&placed(s)?keyOf(s):null};
 
@@ -101,7 +101,7 @@ const fsClass=()=>D0.documentElement.classList.toggle('cmp-fs',!!(V.full&&S.v===
 function mount(){fsClass();const slot=$id('cmpmapslot');if(!slot||why())return;
   if(!M.host){M.host=D0.createElement('div');M.host.className='cmpmap';M.host.setAttribute('aria-label','Campus map with illustrative terrain. Drag to move, pinch or scroll to zoom, two fingers to rotate and tilt. Tab to a staircase marker and press Enter.')}
   if(M.host.parentNode!==slot)slot.appendChild(M.host);
-  if(M.st==='off'){M.st='loading';M.msg='';const g=++M.gen;paintMsg();
+  if(M.st==='off'){M.st='loading';M.msg='';const g=++M.gen;paintMsg();loadShow(g);
     loadModule().then(X=>X.create({container:M.host,groups:points(),cam:V.cam,mode:V.mode,terr:V.terr,bld:V.bld,padding:pad,reduced:()=>HWUI.reduced(),
       onSelect:t=>{if(t&&t.group)pickGroup(t.group);else if(t&&t.id)pick(t.id,'map')},onCamera:c=>{if(!ME.used)V.cam=c;persist()},
       visited:id=>HWCampusData.activity(id).sessions>0,
@@ -116,8 +116,16 @@ function mount(){fsClass();const slot=$id('cmpmapslot');if(!slot||why())return;
 function autoMe(){if(ME.auto||meOn())return;ME.auto=true;if(!navigator.geolocation||!window.isSecureContext)return;
   const go=()=>{if(S.v==='campus'&&M.ctl&&M.ctl.ready&&!meOn())meStart(false,true)};
   try{navigator.permissions.query({name:'geolocation'}).then(p=>{if(p.state!=='denied')go()},go)}catch(e){go()}}
-function fail(m){M.st='error';M.skyk=null;M.msg=m;HWCampusHud.aware(false);if(M.ctl){M.ctl.destroy();M.ctl=null}if(M.host){M.host.remove();M.host=null}if(S.v==='campus')keep()}
-function unmount(){M.gen++;M.skyk=null;clearInterval(M.skyT);M.skyT=0;if(M.ctl){persist();M.ctl.destroy()}M.ctl=null;if(M.host)M.host.remove();M.host=null;M.st='off';M.msg=''}
+/* the app's loading animation (js/v6-loader.js) over the map until it has fully drawn (owner's request, 2026-10-23): the
+   library and data, the map's first frame, the 3D buildings, trees and stops (or their stand-ins if one cannot load),
+   then a moment with no redraw, which means the terrain and ground tiles are in. Never longer than 25 s. */
+function loadShow(g){if(M.load)M.load.finish();M.load=typeof HWLoader!=='undefined'&&HWLoader.show?HWLoader.show(M.host,'Loading the campus map'):null;if(!M.load)return;
+  const t0=Date.now(),L=M.load,tick=setInterval(()=>{const c=M.ctl;if(g!==M.gen||L.done){clearInterval(tick);return}
+    const parts=[!!M.mod,!!c,!!(c&&c.ready),!!(c&&c.ready&&(c.modelsReady||c.models==='failed'||!c.buildingsOn)),!!(c&&c.ready&&c.decoSettled)];
+    const all=parts.every(Boolean)&&c.quietMs>600;L.set(parts.filter(Boolean).length/parts.length*.92+(all?.08:0));
+    if(all||M.st==='error'||Date.now()-t0>25000){clearInterval(tick);L.end()}},150)}
+function fail(m){M.st='error';if(M.load){M.load.finish();M.load=null}M.skyk=null;M.msg=m;HWCampusHud.aware(false);if(M.ctl){M.ctl.destroy();M.ctl=null}if(M.host){M.host.remove();M.host=null}if(S.v==='campus')keep()}
+function unmount(){M.gen++;if(M.load){M.load.finish();M.load=null}M.skyk=null;clearInterval(M.skyT);M.skyT=0;if(M.ctl){persist();M.ctl.destroy()}M.ctl=null;if(M.host)M.host.remove();M.host=null;M.st='off';M.msg=''}
 /** The loading / failure note over the map, changed in place (no redraw). */
 function paintMsg(){const e=$id('cmpmsg');if(!e)return;e.hidden=M.st==='ready';e.textContent=M.st==='error'?M.msg:'Loading the campus map…'}
 /** Make the map match the state: the highlighted marker, and a pending fly to the selection. */
