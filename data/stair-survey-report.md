@@ -1,8 +1,8 @@
 # Stair survey import report
 
-Sheet: `881c5410-Campus_Stair_Survey_edited.docx` + `stair-experiment-2026-10-24.json` · imported 2026-10-24T04:24:16
+Sheet: `881c5410-Campus_Stair_Survey_edited.docx` + `stair-experiment-2026-10-24.json` · imported 2026-10-24T05:04:41
 
-37 stairs. **error** = left out, **check** = kept but doubtful, **note** = information.
+36 stairs. **error** = left out, **check** = kept but doubtful, **note** = information.
 
 | Stair | Level | Field | Message |
 |---|---|---|---|
@@ -42,15 +42,15 @@ Sheet: `881c5410-Campus_Stair_Survey_edited.docx` + `stair-experiment-2026-10-24
 | ST23 | note | Tool | "same" read as the row above: tape. |
 | ST23 | check | flight 1 tread depth | 20.9 cm is unusual (typical 22 to 40). Kept; please re-measure if it is a typo. |
 | ST26 | note | flight 1 risers | 50 risers is unusual (typical 2 to 22). Kept. |
-| ST29 | note | Position | 5.35077, 100.53819 read from the table. |
-| ST30 | note | Date | "same" read as the row above: 2026-10-23. |
-| ST30 | note | Tool | "same" read as the row above: tape. |
-| ST30 | note | flight 1 risers | 25 risers is unusual (typical 2 to 22). Kept. |
+| ST28 | note | Position | 5.35077, 100.53819 read from the table. |
+| ST29 | note | Date | "same" read as the row above: 2026-10-23. |
+| ST29 | note | Tool | "same" read as the row above: tape. |
+| ST29 | note | flight 1 risers | 25 risers is unusual (typical 2 to 22). Kept. |
+| ST33 | check | By / Date / Tool | Not given for the new measurements: shown as "survey record incomplete". |
+| ST33 | check | flight 1 riser height | 22.45 cm is unusual (typical 12 to 21). Kept; please re-measure if it is a typo. |
+| ST33 | note | flight 1 risers | 25 risers is unusual (typical 2 to 22). Kept. |
 | ST34 | check | By / Date / Tool | Not given for the new measurements: shown as "survey record incomplete". |
-| ST34 | check | flight 1 riser height | 22.45 cm is unusual (typical 12 to 21). Kept; please re-measure if it is a typo. |
-| ST34 | note | flight 1 risers | 25 risers is unusual (typical 2 to 22). Kept. |
 | ST35 | check | By / Date / Tool | Not given for the new measurements: shown as "survey record incomplete". |
 | ST36 | check | By / Date / Tool | Not given for the new measurements: shown as "survey record incomplete". |
+| ST36 | check | flight 1 riser height | 10.6667 cm is unusual (typical 12 to 21). Kept; please re-measure if it is a typo. |
 | ST37 | check | By / Date / Tool | Not given for the new measurements: shown as "survey record incomplete". |
-| ST37 | check | flight 1 riser height | 10.6667 cm is unusual (typical 12 to 21). Kept; please re-measure if it is a typo. |
-| ST38 | check | By / Date / Tool | Not given for the new measurements: shown as "survey record incomplete". |

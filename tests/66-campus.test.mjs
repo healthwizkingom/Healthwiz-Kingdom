@@ -31,12 +31,12 @@ test('the door is last in the Health Hall; from the file the page says the map n
   const facts = await page.evaluate(() => ({ withXY: STAIRS.filter(hasXY).length, groups: HWCampus.points().length, unmapped: HWCampus.unmapped().map(s => s.id),
     shared: HWCampus.points().filter(g => g.items.length > 1).map(g => g.items.map(s => s.id).sort().join('+')).sort(), items: document.querySelectorAll('#cmplist .cmpitem').length,
     filters: [...document.querySelectorAll('.cmpf')].map(b => b.textContent.replace(/\s+/g, ' ').trim()) }));
-  assert.equal(facts.withXY, 34);
-  assert.equal(facts.groups, 31, '34 placed staircases on 31 points');
-  assert.deepEqual(facts.unmapped.sort(), ['ST02', 'ST16', 'ST29']);
-  assert.deepEqual(facts.shared, ['ST06+ST31+ST32', 'ST09+ST15'], 'staircases sharing one coordinate are one point');
-  assert.equal(facts.items, 37);
-  assert.deepEqual(facts.filters, ['All 37', 'Mild 11', 'Moderate 12', 'Vigorous 14']);
+  assert.equal(facts.withXY, 33);
+  assert.equal(facts.groups, 30, '33 placed staircases on 30 points');
+  assert.deepEqual(facts.unmapped.sort(), ['ST02', 'ST16', 'ST28']);
+  assert.deepEqual(facts.shared, ['ST06+ST30+ST31', 'ST09+ST15'], 'staircases sharing one coordinate are one point');
+  assert.equal(facts.items, 36);
+  assert.deepEqual(facts.filters, ['All 36', 'Mild 11', 'Moderate 12', 'Vigorous 13']);
   const t = await page.textContent('#cmpcard');
   assert.match(t, /Locations are not verified\.[\s\S]*no recorded source/);
   assert.match(t, /Campus-wide activity[\s\S]*Not available\. HealthWiz does not collect anyone else's location/);
@@ -66,8 +66,8 @@ test('details in three groups with the player\'s own climbs and honest labels; p
   assert.match(d, /3D preview: it needs what the map needs \(the web address and WebGL\), so it is not shown here\./);
   assert.equal(await page.locator('#cmpvw').count(), 0);
   // a shared coordinate links to the other records
-  await page.click('[data-a="cmptab"][data-t="list"]'); await page.click('#cmplist .cmpitem[data-id="ST31"]');
-  assert.match(await page.textContent('#cmpdet'), /Same point asST06, ST32[\s\S]*Needs checking/);
+  await page.click('[data-a="cmptab"][data-t="list"]'); await page.click('#cmplist .cmpitem[data-id="ST30"]');
+  assert.match(await page.textContent('#cmpdet'), /Same point asST06, ST31[\s\S]*Needs checking/);
   await page.click('#cmpdet .cmplnk[data-id="ST06"]');
   assert.equal(await page.evaluate(() => HWCampus.selected), 'ST06');
   // picking it opens LOG A CLIMB HERE for it (logging lives in the Observatory since 2026-10-20)
@@ -86,17 +86,17 @@ test('search filters in place (focus kept), filters narrow the list, an unmapped
   await page.focus('#cmpq'); await page.keyboard.type('kenanga');
   assert.equal(await page.evaluate(() => document.activeElement.id), 'cmpq', 'typing keeps the focus');
   assert.deepEqual(await page.$$eval('#cmplist .cmpitem', a => a.map(b => b.dataset.id)), ['ST14', 'ST19', 'ST20']);
-  assert.match(await page.textContent('#cmpcount'), /Showing 3 of 37/);
+  assert.match(await page.textContent('#cmpcount'), /Showing 3 of 36/);
   await page.keyboard.type(' zzz');
   assert.match(await page.textContent('#cmplist'), /No staircase matches/);
   await page.fill('#cmpq', '');
-  await page.fill('#cmpq', 'ST29');                         // no coordinate anywhere (the survey is not loaded from file://)
-  assert.deepEqual(await page.$$eval('#cmplist .cmpitem', a => a.map(b => b.dataset.id)), ['ST29']);
-  await page.click('#cmplist .cmpitem[data-id="ST29"]');
+  await page.fill('#cmpq', 'ST28');                         // no coordinate anywhere (the survey is not loaded from file://)
+  assert.deepEqual(await page.$$eval('#cmplist .cmpitem', a => a.map(b => b.dataset.id)), ['ST28']);
+  await page.click('#cmplist .cmpitem[data-id="ST28"]');
   const d = await page.textContent('#cmpdet');
   assert.match(d, /No location recorded, so it is not placed on the map\.[\s\S]*No location recorded/);
   await page.click('[data-a="cmptab"][data-t="list"]'); await page.fill('#cmpq', '');
-  assert.equal(await page.locator('#cmplist .cmpitem').count(), 37);
+  assert.equal(await page.locator('#cmplist .cmpitem').count(), 36);
   // the filters: All and the three difficulties only
   assert.deepEqual(await page.$$eval('.cmpf', b => b.map(x => x.dataset.f)), ['all', 'MILD', 'MODERATE', 'VIGOROUS']);
   await page.click('[data-a="cmpfilt"][data-f="MILD"]'); assert.equal(await page.locator('#cmplist .cmpitem').count(), 11);

@@ -4,7 +4,7 @@
   "file": "881c5410-Campus_Stair_Survey_edited.docx",
   "sha256": "a30beddf58682e80bdf50c8429e39a6557912fcf243c2aa0d6d0bf66b015688b",
   "experiment": "stair-experiment-2026-10-24.json",
-  "importedAt": "2026-10-24T04:24:16"
+  "importedAt": "2026-10-24T05:04:41"
  },
  "units": {
   "riser_cm": "cm per step",
@@ -1061,41 +1061,6 @@
    "indoorOutdoor": null,
    "lowerLevel": null,
    "upperLevel": null,
-   "shape": "straight",
-   "flightCount": 1,
-   "bottom": null,
-   "top": null,
-   "survey": {
-    "by": "izz,amir,naufal",
-    "date": "2026-10-23",
-    "tool": "tape"
-   },
-   "flights": [
-    {
-     "flight": 1,
-     "risers": 10,
-     "riser_cm": 21.0,
-     "tread_cm": 34.67,
-     "width_cm": null,
-     "totalRise_cm": null,
-     "heading_deg": null,
-     "landing": null,
-     "turn": null,
-     "notes": null
-    }
-   ],
-   "complete": {
-    "position": false,
-    "flights": false,
-    "record": true
-   }
-  },
-  "ST28": {
-   "id": "ST28",
-   "building": null,
-   "indoorOutdoor": null,
-   "lowerLevel": null,
-   "upperLevel": null,
    "shape": "U",
    "flightCount": 2,
    "bottom": null,
@@ -1137,8 +1102,8 @@
     "record": true
    }
   },
-  "ST29": {
-   "id": "ST29",
+  "ST28": {
+   "id": "ST28",
    "building": null,
    "indoorOutdoor": null,
    "lowerLevel": null,
@@ -1188,8 +1153,8 @@
     "record": true
    }
   },
-  "ST30": {
-   "id": "ST30",
+  "ST29": {
+   "id": "ST29",
    "building": null,
    "indoorOutdoor": null,
    "lowerLevel": null,
@@ -1223,8 +1188,8 @@
     "record": true
    }
   },
-  "ST31": {
-   "id": "ST31",
+  "ST30": {
+   "id": "ST30",
    "building": null,
    "indoorOutdoor": null,
    "lowerLevel": null,
@@ -1258,8 +1223,8 @@
     "record": true
    }
   },
-  "ST32": {
-   "id": "ST32",
+  "ST31": {
+   "id": "ST31",
    "building": null,
    "indoorOutdoor": null,
    "lowerLevel": null,
@@ -1293,8 +1258,8 @@
     "record": true
    }
   },
-  "ST33": {
-   "id": "ST33",
+  "ST32": {
+   "id": "ST32",
    "building": null,
    "indoorOutdoor": null,
    "lowerLevel": null,
@@ -1340,8 +1305,8 @@
     "record": true
    }
   },
-  "ST34": {
-   "id": "ST34",
+  "ST33": {
+   "id": "ST33",
    "building": null,
    "indoorOutdoor": null,
    "lowerLevel": null,
@@ -1379,8 +1344,8 @@
     "record": false
    }
   },
-  "ST35": {
-   "id": "ST35",
+  "ST34": {
+   "id": "ST34",
    "building": null,
    "indoorOutdoor": null,
    "lowerLevel": null,
@@ -1430,8 +1395,8 @@
     "record": false
    }
   },
-  "ST36": {
-   "id": "ST36",
+  "ST35": {
+   "id": "ST35",
    "building": null,
    "indoorOutdoor": null,
    "lowerLevel": null,
@@ -1469,8 +1434,8 @@
     "record": false
    }
   },
-  "ST37": {
-   "id": "ST37",
+  "ST36": {
+   "id": "ST36",
    "building": null,
    "indoorOutdoor": null,
    "lowerLevel": null,
@@ -1508,8 +1473,8 @@
     "record": false
    }
   },
-  "ST38": {
-   "id": "ST38",
+  "ST37": {
+   "id": "ST37",
    "building": null,
    "indoorOutdoor": null,
    "lowerLevel": null,
@@ -1762,25 +1727,25 @@
    "message": "50 risers is unusual (typical 2 to 22). Kept."
   },
   {
-   "stair": "ST29",
+   "stair": "ST28",
    "field": "Position",
    "level": "note",
    "message": "5.35077, 100.53819 read from the table."
   },
   {
-   "stair": "ST30",
+   "stair": "ST29",
    "field": "Date",
    "level": "note",
    "message": "\"same\" read as the row above: 2026-10-23."
   },
   {
-   "stair": "ST30",
+   "stair": "ST29",
    "field": "Tool",
    "level": "note",
    "message": "\"same\" read as the row above: tape."
   },
   {
-   "stair": "ST30",
+   "stair": "ST29",
    "field": "flight 1 risers",
    "level": "note",
    "message": "25 risers is unusual (typical 2 to 22). Kept."
@@ -1804,16 +1769,22 @@
    "message": "Not given for the new measurements: shown as \"survey record incomplete\"."
   },
   {
-   "stair": "ST34",
+   "stair": "ST33",
    "field": "flight 1 riser height",
    "level": "check",
    "message": "22.45 cm is unusual (typical 12 to 21). Kept; please re-measure if it is a typo."
   },
   {
-   "stair": "ST34",
+   "stair": "ST33",
    "field": "flight 1 risers",
    "level": "note",
    "message": "25 risers is unusual (typical 2 to 22). Kept."
+  },
+  {
+   "stair": "ST33",
+   "field": "By / Date / Tool",
+   "level": "check",
+   "message": "Not given for the new measurements: shown as \"survey record incomplete\"."
   },
   {
    "stair": "ST34",
@@ -1829,24 +1800,18 @@
   },
   {
    "stair": "ST36",
-   "field": "By / Date / Tool",
-   "level": "check",
-   "message": "Not given for the new measurements: shown as \"survey record incomplete\"."
-  },
-  {
-   "stair": "ST37",
    "field": "flight 1 riser height",
    "level": "check",
    "message": "10.6667 cm is unusual (typical 12 to 21). Kept; please re-measure if it is a typo."
   },
   {
-   "stair": "ST37",
+   "stair": "ST36",
    "field": "By / Date / Tool",
    "level": "check",
    "message": "Not given for the new measurements: shown as \"survey record incomplete\"."
   },
   {
-   "stair": "ST38",
+   "stair": "ST37",
    "field": "By / Date / Tool",
    "level": "check",
    "message": "Not given for the new measurements: shown as \"survey record incomplete\"."

@@ -98,9 +98,9 @@ test('modes share the positions; terrain and buildings switch; selection flies t
   assert.match(r.pill, /ST24Tangga dalam Blok A/);
   // a marker tap on a shared point opens the chooser
   await page.evaluate(() => { const e = document.querySelector('.stm[data-key="5.3515635,100.5383731"]'); e.hidden = false; e.click(); });
-  assert.match(await page.textContent('#cmpdet'), /3 staircases at one stored point[\s\S]*ST06[\s\S]*ST31[\s\S]*ST32/);
-  await page.click('#cmpdet .cmpitem[data-id="ST31"]');
-  assert.equal(await page.evaluate(() => HWCampus.selected), 'ST31');
+  assert.match(await page.textContent('#cmpdet'), /3 staircases at one stored point[\s\S]*ST06[\s\S]*ST30[\s\S]*ST31/);
+  await page.click('#cmpdet .cmpitem[data-id="ST30"]');
+  assert.equal(await page.evaluate(() => HWCampus.selected), 'ST30');
   // kept for the tab: leave and come back to the same mode, switches (the terrain on: not the default), selection and camera
   await menu(page, 'cmpterr');
   await idle(page);
@@ -110,7 +110,7 @@ test('modes share the positions; terrain and buildings switch; selection flies t
   await goView(page, 'campus'); assert.equal(await ready(page), 'ready'); await idle(page);
   const c1 = await cam(page);
   assert.deepEqual(await page.evaluate(() => { const s = HWCampus.state; return [s.mode, s.terr, s.bld, s.sid, HWCampus.map.mode, document.querySelector('.stm.sel') && document.querySelector('.stm.sel').dataset.key]; }),
-    ['realistic', true, false, 'ST31', 'realistic', '5.3515635,100.5383731']);
+    ['realistic', true, false, 'ST30', 'realistic', '5.3515635,100.5383731']);
   assert.ok(Math.abs(c1.lng - c0.lng) < 1e-5 && Math.abs(c1.lat - c0.lat) < 1e-5 && Math.abs(c1.z - c0.z) < .01, 'the camera is restored');
   assert.deepEqual(errors, []);
   await ctx.close();

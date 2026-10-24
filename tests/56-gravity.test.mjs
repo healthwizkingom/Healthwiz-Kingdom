@@ -146,7 +146,7 @@ test('sensor granted: steps and cadence appear, PAUSE and FINISH stop the sensor
   assert.equal(+await page.inputValue('#gv-r'), 10.9);   // 30.53 cm x tan 19.6 degrees
   assert.match(await page.textContent('#gv-rn'), /Estimated from the stairway.s angle[\s\S]*tan 19\.6/);
   // a very steep stairway would give an absurd height (> 30 cm): nothing is guessed, work and power are unavailable
-  await pickStair(page, 'ST33');
+  await pickStair(page, 'ST32');
   assert.equal(await page.inputValue('#gv-r'), '');
   assert.match(await page.textContent('#gv-res'), /unavailable[\s\S]*unavailable[\s\S]*unavailable[\s\S]*unavailable/);
   assert.match(await page.textContent('#gv-res'), /Unavailable until you enter: height of one step/);

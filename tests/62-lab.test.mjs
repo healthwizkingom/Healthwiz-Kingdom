@@ -7,8 +7,8 @@ import { openApp, closeBrowser, go, state, RETURNING, entry } from './helpers.mj
 
 after(closeBrowser);
 const wk = (sid, b, a, n) => entry('stair', 90, n, { kind: 'workout', sid, hrB: b, hrA: a, pace: 'Moderate', dur: 5, src: 'manual', hrS: 'manual' });
-// mild ST05 (21.8°): rises 20, 24, 22 → mean 22 BPM; vigorous ST28 (34.02°): 40, 44, 42 → mean 42; moderate ST14: one workout, 30
-const SIX = [wk('ST05', 70, 90, 1), wk('ST05', 70, 94, 2), wk('ST05', 70, 92, 3), wk('ST28', 70, 110, 4), wk('ST28', 70, 114, 5), wk('ST28', 70, 112, 6), wk('ST14', 70, 100, 7)];
+// mild ST05 (21.8°): rises 20, 24, 22 → mean 22 BPM; vigorous ST27 (34.02°): 40, 44, 42 → mean 42; moderate ST14: one workout, 30
+const SIX = [wk('ST05', 70, 90, 1), wk('ST05', 70, 94, 2), wk('ST05', 70, 92, 3), wk('ST27', 70, 110, 4), wk('ST27', 70, 114, 5), wk('ST27', 70, 112, 6), wk('ST14', 70, 100, 7)];
 const SEED = { ...RETURNING, p: { ...RETURNING.p, cfm: 1 }, e: SIX };
 const txt = async (page, sel) => (await page.innerText(sel)).replace(/\s+/g, ' ');
 

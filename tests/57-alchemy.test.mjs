@@ -72,7 +72,7 @@ test('work against gravity uses the Stair Sense physics; an unmeasured staircase
   assert.equal(await page.inputValue('#al-r'), '');
   assert.match(await txt(page, '#al-cres'), /10\.9 cm, estimated from the stairway.s angle/);
   assert.match(await txt(page, '#al-cres'), /4\.35 m/);              // 40 x 0.10878
-  await page.selectOption('#al-sid', 'ST33');                       // 65.5 degrees would give 67 cm: not guessed
+  await page.selectOption('#al-sid', 'ST32');                       // 65.5 degrees would give 67 cm: not guessed
   assert.match(await txt(page, '#al-cres'), /work against gravity is unavailable.*height of one step.*very steep/);
   assert.match(await txt(page, '#al-cr'), /unavailable/);
   await page.fill('#al-r', '17');

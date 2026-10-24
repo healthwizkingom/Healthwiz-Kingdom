@@ -17,7 +17,13 @@ OUT_JSON = os.path.join(ROOT, 'data', 'stair-survey.json')
 OUT_REPORT = os.path.join(ROOT, 'data', 'stair-survey-report.md')
 SHAPES = {'straight': ('straight', None), 'u': ('U', None), 'u turn': ('U', None), 'landing': ('other', 'recorded as "landing" (a landing part way)')}
 warn = []
-DROP = {'ST08'}  # the same stair as ST21 (same name, same measurements): kept once, as ST21
+DROP = {'ST08', 'ST27'}  # ST08: the same stair as ST21 (kept once, as ST21); ST27: a second "Tangga Anjung Santap", removed (2026-10-24)
+
+
+def renumber(sid):
+    """The table keeps the old numbers; the app renumbered ST28 and up by -1 when ST27 was removed."""
+    n = int(sid[2:])
+    return 'ST%02d' % (n - 1) if n > 27 else sid
 
 
 def w(sid, field, msg, level='check'):
@@ -85,6 +91,7 @@ def main(docx, extra):
         sid = row[0].strip().upper()
         if not re.fullmatch(r'ST\d+', sid) or sid in DROP:
             continue
+        sid = renumber(sid)
         by, date, tool = [c.strip() for c in row[9:12]]
         vals = []
         for i, v in enumerate((by, date, tool)):
