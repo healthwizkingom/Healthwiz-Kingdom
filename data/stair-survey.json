@@ -4,7 +4,7 @@
   "file": "881c5410-Campus_Stair_Survey_edited.docx",
   "sha256": "a30beddf58682e80bdf50c8429e39a6557912fcf243c2aa0d6d0bf66b015688b",
   "experiment": "stair-experiment-2026-10-24.json",
-  "importedAt": "2026-10-24T01:55:19"
+  "importedAt": "2026-10-24T03:51:58"
  },
  "units": {
   "riser_cm": "cm per step",
@@ -898,20 +898,20 @@
     {
      "flight": 1,
      "risers": 10,
-     "riser_cm": 16.93,
-     "tread_cm": 30.0,
+     "riser_cm": 17.95,
+     "tread_cm": 31.8,
      "width_cm": null,
      "totalRise_cm": null,
      "heading_deg": null,
      "landing": null,
      "turn": "reverse",
-     "notes": "Run 30 cm from the experiment; riser calculated as run x tan(list angle), not measured."
+     "notes": null
     },
     {
      "flight": 2,
      "risers": 10,
-     "riser_cm": 16.93,
-     "tread_cm": 30.0,
+     "riser_cm": 17.95,
+     "tread_cm": 31.8,
      "width_cm": null,
      "totalRise_cm": null,
      "heading_deg": null,
@@ -1347,20 +1347,20 @@
     {
      "flight": 1,
      "risers": 10,
-     "riser_cm": 65.89,
-     "tread_cm": 30.0,
+     "riser_cm": 18.1,
+     "tread_cm": 30.73,
      "width_cm": null,
      "totalRise_cm": null,
      "heading_deg": null,
      "landing": null,
      "turn": "reverse",
-     "notes": "Run 30 cm from the experiment; riser calculated as run x tan(list angle), not measured. 66 cm is not a possible riser: re-measure."
+     "notes": null
     },
     {
      "flight": 2,
      "risers": 10,
-     "riser_cm": 65.89,
-     "tread_cm": 30.0,
+     "riser_cm": 18.1,
+     "tread_cm": 30.73,
      "width_cm": null,
      "totalRise_cm": null,
      "heading_deg": null,
@@ -1837,30 +1837,6 @@
    "field": "By / Date / Tool",
    "level": "check",
    "message": "Not given for the new measurements: shown as \"survey record incomplete\"."
-  },
-  {
-   "stair": "ST22",
-   "field": "Riser",
-   "level": "check",
-   "message": "16.93 cm calculated as run 30 cm x tan(29.44°); not measured."
-  },
-  {
-   "stair": "ST33",
-   "field": "Riser",
-   "level": "check",
-   "message": "65.89 cm calculated as run 30 cm x tan(65.52°); not measured."
-  },
-  {
-   "stair": "ST33",
-   "field": "flight 1 riser height",
-   "level": "check",
-   "message": "65.89 cm is unusual (typical 12 to 21). Kept; please re-measure if it is a typo."
-  },
-  {
-   "stair": "ST33",
-   "field": "flight 2 riser height",
-   "level": "check",
-   "message": "65.89 cm is unusual (typical 12 to 21). Kept; please re-measure if it is a typo."
   },
   {
    "stair": "ST34",

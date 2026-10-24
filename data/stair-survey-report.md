@@ -1,6 +1,6 @@
 # Stair survey import report
 
-Sheet: `881c5410-Campus_Stair_Survey_edited.docx` + `stair-experiment-2026-10-24.json` · imported 2026-10-24T01:55:19
+Sheet: `881c5410-Campus_Stair_Survey_edited.docx` + `stair-experiment-2026-10-24.json` · imported 2026-10-24T03:51:58
 
 38 stairs. **error** = left out, **check** = kept but doubtful, **note** = information.
 
@@ -37,7 +37,6 @@ Sheet: `881c5410-Campus_Stair_Survey_edited.docx` + `stair-experiment-2026-10-24
 | ST16 | note | Measured by | "same" read as the row above: izz, amir, naufal. |
 | ST16 | note | Position | 5.35145, 100.53777 read from the table. |
 | ST20 | note | flight 1 risers | 28 risers is unusual (typical 2 to 22). Kept. |
-| ST22 | check | Riser | 16.93 cm calculated as run 30 cm x tan(29.44°); not measured. |
 | ST23 | note | Date | "same" read as the row above: 2026-10-23. |
 | ST23 | note | Measured by | "same" read as the row above: amiz iz and naufal. |
 | ST23 | note | Tool | "same" read as the row above: tape. |
@@ -47,9 +46,6 @@ Sheet: `881c5410-Campus_Stair_Survey_edited.docx` + `stair-experiment-2026-10-24
 | ST30 | note | Date | "same" read as the row above: 2026-10-23. |
 | ST30 | note | Tool | "same" read as the row above: tape. |
 | ST30 | note | flight 1 risers | 25 risers is unusual (typical 2 to 22). Kept. |
-| ST33 | check | Riser | 65.89 cm calculated as run 30 cm x tan(65.52°); not measured. |
-| ST33 | check | flight 1 riser height | 65.89 cm is unusual (typical 12 to 21). Kept; please re-measure if it is a typo. |
-| ST33 | check | flight 2 riser height | 65.89 cm is unusual (typical 12 to 21). Kept; please re-measure if it is a typo. |
 | ST34 | check | By / Date / Tool | Not given for the new measurements: shown as "survey record incomplete". |
 | ST34 | check | flight 1 riser height | 22.45 cm is unusual (typical 12 to 21). Kept; please re-measure if it is a typo. |
 | ST34 | note | flight 1 risers | 25 risers is unusual (typical 2 to 22). Kept. |

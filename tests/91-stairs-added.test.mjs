@@ -67,19 +67,16 @@ test('every stair has a photo that exists, small enough for a phone; shared phot
   assert.deepEqual(shared, { ST16: 'ST02', ST20: 'ST18', ST21: 'ST08', ST25: 'ST24', ST27: 'ST10', ST32: 'ST31', ST33: 'ST22', ST38: 'ST01' });
 });
 
-test('survey: per-step riser and run of the new experiment, Melati and Kemboja calculated from the run and the list angle', () => {
+test('survey: per-step riser and run of the new experiment, Melati and Kemboja included', () => {
   const f = id => survey.stairs[id].flights[0];
   assert.deepEqual([f('ST34').riser_cm, f('ST34').tread_cm], [22.45, 30]);
   assert.deepEqual([f('ST35').riser_cm, f('ST35').tread_cm], [15.15, 30.3]);
   assert.ok(Math.abs(f('ST36').riser_cm - 50 / 3) < 1e-3 && Math.abs(f('ST36').tread_cm - 70 / 3) < 1e-3);
   assert.ok(Math.abs(f('ST37').riser_cm - 64 / 6) < 1e-3 && Math.abs(f('ST37').tread_cm - 147 / 6) < 1e-3);
   assert.deepEqual([f('ST38').riser_cm, f('ST38').tread_cm], [17.4, 22.4]);
-  for (const [id, a] of [['ST22', 29.44], ['ST33', 65.52]]) {
-    assert.equal(f(id).tread_cm, 30);
-    assert.ok(Math.abs(f(id).riser_cm - 30 * Math.tan(a * Math.PI / 180)) < 0.01, id);
-    assert.match(f(id).notes, /calculated as run x tan/);
-  }
-  assert.ok(survey.warnings.some(w => w.stair === 'ST33' && w.field === 'Riser' && w.level === 'check'), 'the 66 cm riser is flagged');
+  // Melati and Kemboja (owner, 2026-10-24): measured riser and run
+  assert.deepEqual([f('ST22').riser_cm, f('ST22').tread_cm], [17.95, 31.8]);
+  assert.deepEqual([f('ST33').riser_cm, f('ST33').tread_cm], [18.1, 30.73]);
   assert.equal(survey.stairs.ST01.flights.length, 2); assert.equal(survey.stairs.ST01.flights[0].turn, 'reverse');
   // ST02, ST16 and ST29 had no coordinate in the app: the table gives one
   for (const id of ['ST02', 'ST16', 'ST29']) assert.ok(survey.stairs[id].bottom, id);
