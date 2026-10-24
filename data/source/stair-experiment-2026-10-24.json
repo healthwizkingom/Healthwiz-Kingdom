@@ -1,5 +1,5 @@
 {
- "about": "New stair measurements typed by the owner on 2026-10-24 (chat message), the seven stairs of the latest experiment. Riser and run are per step, in cm. Names and list angles follow the group stair list (GROUP_HEALTH_DASHBOARD.pdf). Who measured them, when and with what was not given, so those stay blank.",
+ "about": "New stair measurements typed by the owner on 2026-10-24 (chat message), the seven stairs of the latest experiment. Riser and run are per step, in cm. Names and list angles follow the group stair list (GROUP_HEALTH_DASHBOARD.pdf). Who measured them, when and with what was not given, so those stay blank. Stair numbers are the app's current ones (ST27 removed, ST28 and up renumbered).",
  "stairs": {
   "ST01": {
    "steps": [
@@ -23,7 +23,7 @@
    "tread_cm": 31.8,
    "shape": "U"
   },
-  "ST33": {
+  "ST32": {
    "steps": [
     10,
     10
@@ -32,7 +32,7 @@
    "tread_cm": 30.73,
    "shape": "U"
   },
-  "ST34": {
+  "ST33": {
    "steps": [
     25
    ],
@@ -44,7 +44,7 @@
     100.538445
    ]
   },
-  "ST35": {
+  "ST34": {
    "steps": [
     11,
     11
@@ -58,7 +58,7 @@
    ],
    "note": "Steps per flight: the message said '11 step 2 flight'; the first caption said 10."
   },
-  "ST36": {
+  "ST35": {
    "steps": [
     3
    ],
@@ -70,7 +70,7 @@
     100.5380278
    ]
   },
-  "ST37": {
+  "ST36": {
    "steps": [
     6
    ],
@@ -82,7 +82,7 @@
     100.5395
    ]
   },
-  "ST38": {
+  "ST37": {
    "steps": [
     10,
     10

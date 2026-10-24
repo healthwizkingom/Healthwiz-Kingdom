@@ -67,8 +67,10 @@ const shown = (page, id) => page.waitForFunction(id => HWCampus.state.shown.star
 // the staircase models only (the fantasy map also loads its buildings, assets/models/campus-fantasy.glb)
 const glbs = reqs => reqs.filter(u => /\/stairs\/[^/]+\.glb$/.test(u)).map(u => u.split('/').pop());
 
+const SURVEY = body => ({ route: p => p.route('**/data/stair-survey.json', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) })) });
+
 test('a staircase without coordinates has a preview; the shapes; closing keeps the selection and SHOW 3D PREVIEW reopens it; the mode follows the map', async () => {
-  const { ctx, page, errors } = await openHttp();
+  const { ctx, page, errors } = await openHttp(SURVEY({ stairs: {} })); // no survey: ST02 has no coordinates and no known shape
   await goView(page, 'campus'); assert.equal(await ready(page), 'ready');
   // a staircase with no coordinates has a preview too
   await page.click('#cmplist .cmpitem[data-id="ST02"]'); await shown(page, 'ST02');
@@ -84,4 +86,14 @@ test('a staircase without coordinates has a preview; the shapes; closing keeps t
   await page.waitForFunction(() => performance.getEntriesByType('resource').some(e => /demo-realistic\.glb$/.test(e.name)), null, { timeout: 30000 });
   assert.deepEqual(errors, []);
   await ctx.close();
+});
+
+test('a staircase whose survey gives the shape: no shape buttons, and the model takes that shape', async () => {
+  const { ctx, page, errors } = await openHttp(SURVEY({ stairs: { ST06: { id: 'ST06', shape: 'U', flights: [{ flight: 1, risers: 11, riser_cm: 14, tread_cm: 31.5, turn: 'reverse' }, { flight: 2, risers: 11, riser_cm: 14, tread_cm: 31.5 }], bottom: null, survey: { by: 'x', date: '2026-10-23', tool: 'tape' }, complete: { position: false, flights: false, record: true } } } }));
+  await goView(page, 'campus'); assert.equal(await ready(page), 'ready');
+  await page.click('#cmplist .cmpitem[data-id="ST06"]'); await shown(page, 'ST06');
+  assert.equal(await page.locator('#cmpvwshapes').count(), 0, 'the shape is known: no shape buttons');
+  assert.equal(await page.evaluate(() => HWCampus.viewer.shape), 'U', 'the model takes the surveyed shape');
+  assert.match(await page.textContent('#cmpvw'), /Shape: from the survey sheet/);
+  assert.deepEqual(errors, []); await ctx.close();
 });

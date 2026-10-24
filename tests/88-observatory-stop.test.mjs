@@ -92,7 +92,7 @@ test('with the map, on a phone: spinning hearts; a tap zooms the stop\'s disc ou
   // (the 3D stops cannot load in this test: the drawn hearts stay)
   const h = await page.evaluate(() => { const e = document.querySelector('.stm.c3[data-id] .hrt'), cs = getComputedStyle(e);
     return { n: document.querySelectorAll('.stm .hrt').length, anim: cs.animationName, img: /heart-spin\.webp/.test(cs.backgroundImage), mc: getComputedStyle(e.closest('.stm')).getPropertyValue('--mc').trim(), num: e.closest('.stm').querySelector('.hcat').textContent, vis: getComputedStyle(e.closest('.hstop')).visibility, st3d: HWCampus.map.map.getContainer().classList.contains('st3d') }; });
-  assert.deepEqual([h.n, h.anim, h.img, h.num, h.vis, h.st3d], [33, 'hspin', true, '3', 'visible', false]);
+  assert.deepEqual([h.n, h.anim, h.img, h.num, h.vis, h.st3d], [32, 'hspin', true, '3', 'visible', false]);
   assert.ok(h.mc, 'tinted by the Vigorous colour');
   const grey = await page.evaluate(() => new Promise(res => { const im = new Image(); im.onload = () => { const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; const g = c.getContext('2d'); g.drawImage(im, 0, 0);
     const d = g.getImageData(0, 0, c.width, c.height).data; let ok = true, n = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 3]) { n++; if (d[i] !== d[i + 1] || d[i + 1] !== d[i + 2]) ok = false; } res([ok, n > 2000]); }; im.src = 'assets/img/heart-spin.webp'; }));

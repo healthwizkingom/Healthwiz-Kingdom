@@ -63,7 +63,7 @@ function points(){const G=new Map();R().filter(placed).forEach(s=>{const k=keyOf
 const unmapped=()=>R().filter(s=>!placed(s));
 
 /* ---------- state: kept for this tab (no position, no health data) ---------- */
-const VK='hw_obs_view',FILTERS=['all','map','nol','part','flag'];
+const VK='hw_obs_view',FILTERS=['all','MILD','MODERATE','VIGOROUS'];
 const V={sid:null,grp:null,mode:'fantasy',cam:null,terr:false,bld:true,full:false,vw:true,tab:'list',f:'all',q:'',me:null,gps:'',err:'',fly:false,sky:'live',skyo:false};
 try{const o=JSON.parse(sessionStorage.getItem(VK)||'null');if(o&&typeof o==='object'){
   if(typeof o.sid==='string')V.sid=o.sid;if(typeof o.grp==='string')V.grp=o.grp;if(o.mode==='realistic')V.mode='realistic';
@@ -202,11 +202,13 @@ function mount3d(){const slot=$id('cmpvwslot'),s=V.sid&&rec(V.sid);
   const k=s.id+'|'+V.mode,was=P3.shown;
   if(was===k)return;
   if(was&&was.split('|')[0]===s.id){P3.ctl.setMode(V.mode);P3.shown=k;return}
-  P3.shown=k;P3.ctl.show(vrec(s),P3.demo,V.mode).then(()=>{if(S.v==='campus')paintShapes()})}
+  P3.shown=k;P3.ctl.show(vrec(s),P3.demo,V.mode).then(()=>{const ks=!vrec(s)._plan&&knownShape(s);if(ks&&P3.ctl&&P3.ctl.shape!==ks)P3.ctl.setShape(ks);if(S.v==='campus')paintShapes()})}
 function unmount3d(){P3.gen++;if(P3.ctl)P3.ctl.destroy();P3.ctl=null;if(P3.host)P3.host.remove();P3.host=null;P3.st='off';P3.shown='';P3.err=''}
 /** The shape buttons follow the viewer (changed in place). */
 function paintShapes(){const w=$id('cmpvwshapes');if(!w||!P3.ctl)return;w.querySelectorAll('[data-shape]').forEach(b=>b.setAttribute('aria-pressed',String(P3.ctl.shape===b.dataset.shape)));
   const sp=$id('cmpvwspin');if(sp)sp.setAttribute('aria-pressed',String(!!P3.ctl.spinning))}
+/** The shape the survey already gives (owner's request, 2026-10-24: no shape buttons when it is known): U = U-turn, straight = straight, a landing = straight with landing. */
+const knownShape=s=>{const v=s&&s.survey&&s.survey.shape;return v==='U'?'U':v==='straight'?'straight':v==='other'?'straight-landing':null};
 const SHAPES=[['straight','Straight'],['straight-landing','Straight with landing'],['L','L-turn'],['U','U-turn (switchback)']];
 /** The preview section at the top of a staircase's details. */
 function preview(s){const plan=HWCampusData.surveyPlan(s),m=s.measuredStep;
@@ -218,7 +220,7 @@ function preview(s){const plan=HWCampusData.surveyPlan(s),m=s.measuredStep;
       '<b>Landings:</b> '+(plan.slice(0,-1).every(f=>f.landingLength)?'measured length'+(plan.slice(0,-1).every(f=>f.landingWidth)?' and width.':'; width taken as the flight width where not measured.'):'where a landing size is not in the sheet, it is drawn as wide and deep as the flight (illustrative).'),
       s.orientationDeg!=null?'<b>Orientation:</b> '+(s.orientationStatus==='measured'?'measured':'estimated')+', '+s.orientationDeg+'° from north.':'<b>Orientation:</b> not surveyed.',
       '<b>Not measured:</b> the materials, railings, posts and the dais. Walls and surroundings are not drawn.']
-    :['<b>Shape, steps, width, landings:</b> demonstration values ('+d.stepsPerFlight+' steps a flight, '+d.width_m+' m wide). Pick a shape to compare; none is this staircase\'s surveyed form.',
+    :['<b>'+(knownShape(s)?'Shape: from the survey sheet. Steps, width, landings:':'Shape, steps, width, landings:')+'</b> demonstration values ('+d.stepsPerFlight+' steps a flight, '+d.width_m+' m wide).'+(knownShape(s)?' The shape follows the survey; the rest is not this staircase\'s surveyed form.':' Pick a shape to compare; none is this staircase\'s surveyed form.'),
       m?'<b>Step size:</b> measured for this staircase (rise '+m.rise_m+' m, run '+m.run_m+' m, F21 report), so the slope of the steps matches its measured angle. Only the step size is real.'
         :'<b>Step size:</b> demonstration value (rise '+d.riser_m+' m, run '+d.tread_m+' m), not this staircase. The stored angle is an estimate and does not size the model.',
       s.orientationDeg!=null?'<b>Orientation:</b> estimated, '+s.orientationDeg+'° from north.':'<b>Orientation:</b> not surveyed. The model faces an arbitrary direction.',
@@ -229,11 +231,11 @@ function preview(s){const plan=HWCampusData.surveyPlan(s),m=s.measuredStep;
     +'<div class="cmpvws"><div class="cmpvwslot" id="cmpvwslot"></div><p class="cmpillus" role="note">'+(plan?'Built from survey measurements · finishes illustrative':'Illustrative model — actual dimensions not surveyed.')+'</p></div>'
     +'<div class="cmpvwc" role="toolbar" aria-label="3D view controls">'+vb('left','Turn left','⟲')+vb('right','Turn right','⟳')+vb('in','Zoom in','+')+vb('out','Zoom out','−')+vb('reset','Reset the view','Reset')
     +vb('spin','Spin','Spin',' id="cmpvwspin" aria-pressed="'+!!(P3.ctl&&P3.ctl.spinning)+'"')+'</div>'
-    +(plan?'':'<div class="cmpvwshapes" id="cmpvwshapes" role="group" aria-label="Demonstration shape">'+SHAPES.map(([k,l])=>'<button type="button" class="g cmpvb" data-a="cmpvwshape" data-shape="'+k+'" aria-pressed="'+((P3.ctl&&P3.ctl.shape||'straight-landing')===k)+'">'+l+'</button>').join('')+'</div>')
+    +(plan||knownShape(s)?'':'<div class="cmpvwshapes" id="cmpvwshapes" role="group" aria-label="Demonstration shape">'+SHAPES.map(([k,l])=>'<button type="button" class="g cmpvb" data-a="cmpvwshape" data-shape="'+k+'" aria-pressed="'+((P3.ctl&&P3.ctl.shape||'straight-landing')===k)+'">'+l+'</button>').join('')+'</div>')
     +'<details class="cmpvwmore"><summary>What is real in this model?</summary><ul>'+facts.map(t=>'<li>'+t+'</li>').join('')+'</ul></details></section>'}
 
 /* ---------- list ---------- */
-const FL={all:['All',()=>true],map:['On the map',placed],nol:['No location',s=>!placed(s)],part:['Step size measured',s=>!!s.measuredStep],flag:['Needs checking',s=>!!s.needsChecking]};
+const FL={all:['All',()=>true],MILD:['Mild',s=>s.appCategory==='MILD'],MODERATE:['Moderate',s=>s.appCategory==='MODERATE'],VIGOROUS:['Vigorous',s=>s.appCategory==='VIGOROUS']};
 let FAC=null; // computed facts (nearest named OSM place, illustrative zone) once the map data is loaded
 const facts=s=>{if(!placed(s)||!window.HWObsMap||!window.HWObsMap.loaded)return null;FAC=FAC||{};const k=s.id+'@'+keyOf(s);return FAC[k]||(FAC[k]=window.HWObsMap.facts(s.longitude,s.latitude))};
 const hay=s=>{const f=facts(s);return(s.id+' '+s.name+' '+s.appFloorLabel+' '+(f&&f.near?f.near.name:'')+' '+(f&&f.zone?f.zone.name+' '+f.zone.region:'')).toLowerCase()};
