@@ -137,11 +137,14 @@ test('saved data carries over: old stair sessions and pulse entries are read and
 
 test('the list, its filters and details work beside the forms; a staircase without coordinates can be logged too', async () => {
   const { page, ctx, errors } = await openApp({ seed: RETURNING });
-  await page.waitForSelector('.wl'); await go(page, 'health'); await page.click('[data-a="cmpgo"]');
-  assert.equal(await page.locator('#cmplist .cmpitem').count(), 32);
+  await page.waitForSelector('.wl');
+  // every campus stair now has a coordinate, so the unmapped case adds one made-up stair (never part of the app's data)
+  await page.evaluate(() => STAIRS.push({ id: 'ST99', cat: 'MILD', name: 'Test stair with no coordinates (fixture)', floor: 'G level', angle: 20, lat: null, lng: null }));
+  await go(page, 'health'); await page.click('[data-a="cmpgo"]');
+  assert.equal(await page.locator('#cmplist .cmpitem').count(), 39);
   await page.click('[data-a="cmpfilt"][data-f="nol"]');
   const nol = await page.$$eval('#cmplist .cmpitem', b => b.map(x => x.dataset.id));
-  assert.equal(nol.length, 4, 'the 4 staircases with no coordinates');
+  assert.deepEqual(nol, ['ST99'], 'the one staircase with no coordinates');
   await page.click('#cmplist .cmpitem[data-id="' + nol[0] + '"]');
   assert.match(await page.textContent('#cmplog .stloc'), /no map coordinates/);
   await fillSteps(page, '#ss', '10'); await page.fill('#sc', '1'); await page.click('[data-a="savestair"]');
@@ -157,7 +160,7 @@ test('the footer notice of the page includes the Stairs safety text; Evidence Va
   await page.waitForSelector('.wl'); await go(page, 'stair');
   await page.locator('#main p.dis .hwh').click();
   const t = await page.textContent('#hwh-pop');
-  assert.match(t, /Locations are unverified[\s\S]*General exercise pacing aid, not medical treatment[\s\S]*dizziness, chest pain/);
+  assert.match(t, /Locations were recorded on site[\s\S]*General exercise pacing aid, not medical treatment[\s\S]*dizziness, chest pain/);
   await page.keyboard.press('Escape');
   await page.click('#stt-workout'); await page.fill('#wk-a', '130'); await page.fill('#wk-r', '98');
   await page.click('#st-rec .hwh'); await page.click('#hwh-pop .hwev a');

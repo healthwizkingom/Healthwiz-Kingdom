@@ -41,9 +41,9 @@ test('the door is last in the Health Hall; from the file the page says the map n
   assert.equal(facts.items, 38);
   assert.deepEqual(facts.filters, ['All 38', 'On the map 38', 'No location 0', 'Step size measured 3', 'Needs checking 7']);
   const t = await page.textContent('#cmpcard');
-  assert.match(t, /Locations are not verified\.[\s\S]*no recorded source/);
+  assert.match(t, /Locations are real\.[\s\S]*recorded on site by the survey team/);
   assert.match(t, /Campus-wide activity[\s\S]*Not available\. HealthWiz does not collect anyone else's location/);
-  assert.match(t, /4 staircases have no coordinates in the app data, so they are not on the map\. You can still pick them here\./);
+  assert.doesNotMatch(t, /staircases have no coordinates in the app data/, 'every stair is now on the map');
   assert.match(t, /Survey data: not loaded/);
   // the door sits after the Science Laboratory's
   await go(page, 'health');
@@ -89,7 +89,7 @@ test('search filters in place (focus kept), filters narrow the list, an unmapped
   await page.focus('#cmpq'); await page.keyboard.type('kenanga');
   assert.equal(await page.evaluate(() => document.activeElement.id), 'cmpq', 'typing keeps the focus');
   assert.deepEqual(await page.$$eval('#cmplist .cmpitem', a => a.map(b => b.dataset.id)), ['ST14', 'ST19', 'ST20']);
-  assert.match(await page.textContent('#cmpcount'), /Showing 3 of 38/);
+  assert.match(await page.textContent('#cmpcount'), /Showing 3 of 39/);
   await page.keyboard.type(' zzz');
   assert.match(await page.textContent('#cmplist'), /No staircase matches/);
   await page.fill('#cmpq', '');
@@ -98,7 +98,7 @@ test('search filters in place (focus kept), filters narrow the list, an unmapped
   await page.click('#cmplist .cmpitem[data-id="ST99"]');
   assert.match(await page.textContent('#cmpdet'), /No location recorded, so it is not placed on the map\.[\s\S]*No location recorded/);
   // a placed staircase with the same name as another is flagged
-  await page.click('[data-a="cmpfilt"][data-f="all"]');
+  await page.click('[data-a="cmptab"][data-t="list"]'); await page.click('[data-a="cmpfilt"][data-f="all"]');
   await page.click('#cmplist .cmpitem[data-id="ST08"]');
   const d = await page.textContent('#cmpdet');
   assert.match(d, /Needs checking/);

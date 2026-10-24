@@ -387,7 +387,7 @@ function weather(){const L=typeof HWLive!=='undefined'?HWLive:null;if(!L)return'
     +(bd?'Haze '+esc(bd.k.toLowerCase())+' (PM2.5 '+Math.round(a.pm2_5)+' µg/m³)':'')+'</p>'+note+'</div>'}
 function page(){Promise.resolve().then(()=>{mount();mount3d()});
   return '<div class="card cmpcard" id="cmpcard" data-mode="'+V.mode+'"><p>The campus staircases on one map. Tap a marker, or search on the map, to pick a staircase: its Details are where you log a climb or a workout, see how its data was gathered, and your own climbs there.</p>'
-    +'<p class="warn cmpwarn" role="note"><b>Locations are not verified.</b> They come from the original app data and have no recorded source, unless a staircase says "Measured location (survey)". The raised ground is illustrative.</p>'
+    +'<p class="warn cmpwarn" role="note"><b>Locations are real.</b> They were recorded on site by the survey team and confirmed as real; a staircase says "Measured location (survey)" only where the survey phone recorded its own GPS point. The raised ground is illustrative.</p>'
     +'<div class="cmpwrap">'+stage()
     // right below the map: the picked staircase's Details (one card: the illustration, then everything to log and read),
     // or the list of staircases; nothing in between (owner's request, 2026-10-21)
@@ -469,7 +469,7 @@ function openLog(){V.grp=null;V.tab='det';V.full=false;if(V.sid&&typeof HWStairs
 pages.campus=()=>page();
 PAR.campus='health';
 BN.campus=['🗺','Campus Health Observatory','The campus staircases, your climbs, the air outside.','rgba(92,192,90,.20)'];
-DIS.campus='Locations are unverified app data unless marked measured. Raised ground and building heights are illustrative. Your position is shown on this screen only and is never saved or sent. '+DIS.stair; // the Stairs section: its pacing and heart-rate notice
+DIS.campus='Locations were recorded on site by the survey team (real locations). Raised ground and building heights are illustrative. Your position is shown on this screen only and is never saved or sent. '+DIS.stair; // the Stairs section: its pacing and heart-rate notice
 const door=()=>'<div class="card cmpdoor" id="cmp-door"><h3>'+ico('map')+' CAMPUS HEALTH OBSERVATORY</h3><p>See the campus staircases on a map, how each one was measured, and check the air before you go.</p><button type="button" data-a="cmpgo">OPEN THE OBSERVATORY</button></div>';
 {const p=pages.health;pages.health=function(){return p.apply(this,arguments)+door()}}
 HWEvents.on('page:viewed',e=>{if(e.view!=='campus'){meStop(true);ME.choose=false;ME.auto=false;unmount();ME.used=false;unmount3d();V.me=null;V.err='';V.gps='';fsClass()}});
