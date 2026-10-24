@@ -88,8 +88,8 @@ test('a staircase without coordinates has a preview; the shapes; closing keeps t
   await ctx.close();
 });
 
-test('a staircase whose survey gives the shape: no shape buttons, and the model takes that shape', async () => {
-  const { ctx, page, errors } = await openHttp(SURVEY({ stairs: { ST06: { id: 'ST06', shape: 'U', flights: [{ flight: 1, risers: 11, riser_cm: 14, tread_cm: 31.5, turn: 'reverse' }, { flight: 2, risers: 11, riser_cm: 14, tread_cm: 31.5 }], bottom: null, survey: { by: 'x', date: '2026-10-23', tool: 'tape' }, complete: { position: false, flights: false, record: true } } } }));
+test('a staircase whose survey gives only the shape: no shape buttons, and the model takes that shape', async () => {
+  const { ctx, page, errors } = await openHttp(SURVEY({ stairs: { ST06: { id: 'ST06', shape: 'U', flights: [], bottom: null, survey: { by: 'x', date: '2026-10-23', tool: 'tape' }, complete: { position: false, flights: false, record: true } } } }));
   await goView(page, 'campus'); assert.equal(await ready(page), 'ready');
   await page.click('#cmplist .cmpitem[data-id="ST06"]'); await shown(page, 'ST06');
   assert.equal(await page.locator('#cmpvwshapes').count(), 0, 'the shape is known: no shape buttons');
@@ -97,3 +97,20 @@ test('a staircase whose survey gives the shape: no shape buttons, and the model 
   assert.match(await page.textContent('#cmpvw'), /Shape: from the survey sheet/);
   assert.deepEqual(errors, []); await ctx.close();
 });
+test('a staircase whose survey gives its steps is built from them: its flights, risers and treads; width and landings labelled illustrative', async () => {
+  const flights = [{ flight: 1, risers: 11, riser_cm: 14, tread_cm: 31.5, turn: 'reverse' }, { flight: 2, risers: 11, riser_cm: 14, tread_cm: 31.5 }];
+  const { ctx, page, errors } = await openHttp(SURVEY({ stairs: { ST06: { id: 'ST06', shape: 'U', flights, bottom: null, top: null, survey: { by: 'x', date: '2026-10-23', tool: 'tape' }, complete: { position: false, flights: false, record: true } } } }));
+  await goView(page, 'campus'); assert.equal(await ready(page), 'ready');
+  await page.click('#cmplist .cmpitem[data-id="ST06"]'); await shown(page, 'ST06');
+  assert.equal(await page.evaluate(() => HWCampus.viewer.debug.source), 'survey', 'built from its own flights, not the demonstration model');
+  assert.equal(await page.locator('#cmpvwshapes').count(), 0, 'the flights are known: no shape buttons');
+  const t = await page.textContent('#cmpvw');
+  assert.match(t, /Steps measured \(survey\)[\s\S]*Width and landings illustrative/);
+  assert.match(t, /2 flights, 11 \+ 11 steps, riser 14\.0 cm, tread 31\.5 cm, turning back on itself between flights\./);
+  assert.match(t, /Width and landings:<\/b> not measured|Width and landings: not measured/);
+  // 11 + 11 steps of 14 cm: the model is 22 x 0.14 m tall, whatever the width
+  const h = await page.evaluate(() => { const d = HWCampus.viewer.debug, b = new d.THREE.Box3().setFromObject(d.model.userData.struct); return +(b.max.y - b.min.y).toFixed(2); });
+  assert.ok(h > 11 * .14 && h < 22 * .14 + 1.2, 'its height follows the steps (a U-turn climbs 11 steps, then 11 more): ' + h);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+

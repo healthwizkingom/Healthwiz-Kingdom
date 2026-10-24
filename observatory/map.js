@@ -498,10 +498,12 @@ export function createMap(opts) {
     import('./stops3d.js').then(mod => {
       if (gone) return;
       stops = mod.createStopLayer({ ML, url: STOP_URL, colours: { 1: CATCOL.MILD, 2: CATCOL.MODERATE, 3: CATCOL.VIGOROUS }, heightAt: terrain.heightAt, terrainOn: () => terrOn,
-        shown: k => { const m = markers.get(k); return !!m && !m.el.hidden; }, motion, night: () => mode === 'fantasy',
+        shown: k => { const m = markers.get(k); return !!m && !m.el.hidden; }, motion, ambient: () => lay.effects, night: () => mode === 'fantasy',
         onReady: () => { stopsDone = true; if (gone) return; map.getContainer().classList.add('st3d'); stops.select(sel); },
         onError: e => { stopsDone = true; console.warn('[stops] the 3D stops could not load; the drawn hearts stay.', e && e.message); stops = null; } });
-      stops.set([...markers.values()].map(m => ({ key: m.g.key, lng: m.g.lng, lat: m.g.lat, cat: catN(m.g.items[0].appCategory) || 2 })));
+      // one stop per staircase (36 in all): stairs that share a stored point share its marker, so their stops are fanned out a few
+      // metres apart in the 3D layer only (dx); the markers, the coordinates and the records are not changed
+      stops.set([...markers.values()].flatMap(m => m.g.items.map((it, i, A) => ({ key: m.g.key, id: it.id, lng: m.g.lng, lat: m.g.lat, cat: catN(it.appCategory) || 2, dx: (i - (A.length - 1) / 2) * 4.5 }))));
       map.addLayer(stops, map.getLayer('trees') ? 'trees' : undefined); // among the 3D layers: drawn on top, MapLibre's terrain pass hid it
     }).catch(e => { stopsDone = true; console.warn('[stops]', e && e.message); stops = null; });
   }
@@ -564,7 +566,7 @@ export function createMap(opts) {
     setMode(m) { mode = m; if (ready) applyMode(m); if (avatar && avatar.setMode) avatar.setMode(m); },
     setReduced() { if (ready) animate(); if (stops) stops.replace(); FX.set(mode === 'fantasy' && !opts.reduced() && lay.effects); skyEl.classList.toggle('still', !!opts.reduced()); },
     /** The Layers panel: {stairs, landmarks, labels, contours, paths, effects} (missing keys keep their value). */
-    layers(o) { Object.assign(lay, o || {}); applyLayers(); },
+    layers(o) { Object.assign(lay, o || {}); applyLayers(); if (stops && stops.replace) stops.replace(); }, // the effects switch also starts or stops the stops' own animation
     get layerState() { return { ...lay }; },
     get celebrated() { return lastCel; },
     /** The landmarks (./landmarks.js) and their state on the map. */

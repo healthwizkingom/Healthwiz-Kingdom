@@ -8,7 +8,9 @@
 // The models are made in Blender (tools/blender_stairs.py → assets/models/stairs/<set>-<style>.glb and pedestals.glb):
 // <set> is 'demo' or the ID of a staircase whose step rise and run were measured. If a model cannot load, the same
 // staircase is built here in code instead. Rendering: soft shadows, filmic tone mapping, environment reflections, bloom.
-// Its shape, number of steps, width and landings come from data/demo-geometry.json (demonstration values). The only real
+// A surveyed staircase is drawn from its own flights (js/v6-campus-data.js surveyPlan, or stepPlan when the sheet has its steps,
+// risers, treads and turns but not its widths and landings: those are demonstration values, labelled so; owner, 2026-10-24).
+// Otherwise its shape, number of steps, width and landings come from data/demo-geometry.json (demonstration values). The only real
 // numbers it may use are a measured step rise and run (the three F21 staircases) and, when a record has one, an
 // orientation. It never sizes a staircase from its stored angle.
 import * as THREE from '../vendor/three/three.module.min.js';
@@ -181,6 +183,7 @@ export function createViewer({ host, msg, reduced, onView }) {
   /** A staircase built in code from a plan: one entry per flight {n, riser, tread, width (m), turn after it, landing size}.
    *  Used for a surveyed staircase (its plan comes from the survey sheet), and as the fallback for the illustrative ones. */
   function buildProcedural(plan) {
+    plan = plan.map(f => f.width ? f : { ...f, width: demo.width_m }); // a flight without a surveyed width is drawn at the demonstration width (labelled illustrative)
     if (model) { scene.remove(model); dispose(model); }
     model = new THREE.Group(); motes = null;
     const F = mode === 'fantasy', RH = demo.railHeight_m, gap = demo.gapBetweenFlights_m;
@@ -360,9 +363,20 @@ export function createViewer({ host, msg, reduced, onView }) {
     const box3 = new THREE.Box3().setFromObject(model.userData.struct).union(new THREE.Box3().setFromObject(stand.children[0]));
     const sphere = box3.getBoundingSphere(new THREE.Sphere());
     const v = camera.fov * Math.PI / 180, h = 2 * Math.atan(Math.tan(v / 2) * camera.aspect), f = Math.min(v, h);
-    const dist = sphere.radius / Math.sin(f / 2) * .84; // a box fills less of the view than its bounding sphere
+    let dist = sphere.radius / Math.sin(f / 2) * .84; // a box fills less of the view than its bounding sphere
     const dir = new THREE.Vector3(1, .78, 1.05).normalize();
     const target = sphere.center.clone(); target.y = Math.max(.3, sphere.center.y * .9);
+    // the sphere is a guess: a tall or long surveyed staircase (a 35-step flight, five flights of 11 steps) overflowed it, so
+    // every corner of its box is projected from the chosen spot and the camera backs off until all of them are in view
+    const corners = []; for (const x of [box3.min.x, box3.max.x]) for (const y of [box3.min.y, box3.max.y]) for (const z of [box3.min.z, box3.max.z]) corners.push(new THREE.Vector3(x, y, z));
+    const tmp = camera.clone();
+    for (let k = 0; k < 8; k++) {
+      tmp.position.copy(target).addScaledVector(dir, dist); tmp.lookAt(target); tmp.updateMatrixWorld(true); tmp.updateProjectionMatrix();
+      const m = Math.max(...corners.map(c => { const p = c.clone().project(tmp); return Math.max(Math.abs(p.x), Math.abs(p.y)); }));
+      if (m <= .92) break;
+      dist *= Math.max(1.04, m / .92);
+    }
+    controls.maxDistance = Math.max(30, dist * 1.6);
     home = { p: target.clone().addScaledVector(dir, dist), t: target };
     if (sun) { // the shadow camera just covers the staircase and its dais, for the sharpest shadow map
       const r = sphere.radius * 1.15;
@@ -470,6 +484,6 @@ export function createViewer({ host, msg, reduced, onView }) {
       envTex.dispose(); composer && composer.dispose && composer.dispose(); renderer.dispose(); renderer.forceContextLoss(); renderer.domElement.remove();
     },
     get isOpen() { return open; },
-    get debug() { return { source, scene, renderer, model, stand, THREE }; }, // for testing in the browser console
+    get debug() { return { source, scene, renderer, model, stand, camera, controls, THREE }; }, // for testing in the browser console
   };
 }

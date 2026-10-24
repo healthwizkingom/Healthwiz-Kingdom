@@ -1,41 +1,134 @@
 // HealthWiz Kingdom: the staircase stops as solid 3D models on the map (owner's request, 2026-10-21: "not see through to
 // building, but solid model like pokestop"). Not part of the prototype.
 //
-// One Blender model (assets/models/heart-stop.glb, tools/art/make_heart_sprite.py --glb), from the owner's drawing
-// (2026-10-23): a thin pearl disc with a gold rim and the heart set in it in the staircase's difficulty colour (Mild,
-// Moderate, Vigorous: the app's category), like a thought bubble, and three shrinking dots leading down to the ground. Drawn through a Three.js custom layer that shares the map's WebGL context and depth buffer, so a building
-// in front of a stop hides it, as the Blender buildings (./models3d.js) and the map's own blocks do. Every stop has one
-// fixed size on screen (76 px tall at the map's centre, the selected one too: owner's request, 2026-10-23) and stands on
-// the terrain.
+// The model (assets/models/heart-stop.glb, tools/art/make_pokestop_glb.py) is the owner's Pokestop heart (prototypes/pokestop-heart,
+// 2026-10-23), with its animation: a pentagonal prism tumbles in 3D, flattens into a disc, the inner circle, the rims and a white
+// heart grow in, the heart pulses and a dashed orbit turns, then it all reverses to the prism and the 10 s loop starts again.
+// Three meshes: "body" (the prism, with a "Disc" shape key), "tint" (inner circle and rim) and "white" (heart, thin rim, orbit).
+// body and tint are multiplied by the staircase's difficulty colour (Mild, Moderate, Vigorous: the app's category); the white
+// stays white. Drawn through a Three.js custom layer that shares the map's WebGL context and depth buffer, so a building in
+// front of a stop hides it, as the Blender buildings (./models3d.js) and the map's own blocks do. Every stop has one fixed size
+// on screen (76 px tall at the map's centre, the selected one too) and stands on the terrain.
+// Light by construction (owner: "keep it but make it not laggy"):
+//   * the animation is played by the GPU: the vertex shader (HEAD below) morphs, scales and turns each part from one clock
+//     and the stop's own start offset, so a frame costs no JavaScript per stop beyond its place on the map;
+//   * about 1,400 triangles a stop, every stop an instance of the same three meshes (three per difficulty for the tinted
+//     ones, one white): about 13 draw calls for all of them, however many stops there are;
+//   * the map must redraw for anything to move, and a redraw is the whole 3D scene, so the animation redraws it 15 times a
+//     second at most, only while the map is on screen and the page is visible, never with reduced motion, still mode or
+//     Performance mode (the stops then stand as discs with their hearts), and it gives up on its own if the map cannot keep
+//     up (the selected stop alone keeps playing; the Layers panel's effects switch turns the others off by hand).
 // The HTML markers stay as the tap targets, labels and selection rings (./map.js hides their drawn heart when this is
 // ready); a marker that is hidden (search, Layers panel, a cluster) hides its stop.
-// The glow (owner's request: "more prominent and noticeable with a slight glow"): the hearts light themselves a little in
-// their colour, and a soft halo around each heart (always turned to the viewer) and a pool of light on the ground under
-// it, both in the difficulty colour; they are depth-tested too, so a building in front hides them with the stop.
-// Motion: the hearts turn with their discs whenever the map draws; while a staircase is selected its heart spins, redrawing the map about
-// 12 times a second (and never with reduced motion, still mode or Performance mode, when the hearts stand still).
+// The glow: a soft halo around the disc (always turned to the viewer) and a pool of light on the ground under it, both in the
+// difficulty colour; they are depth-tested too, so a building in front hides them with the stop.
 import * as THREE from '../vendor/three/three.module.min.js';
 import { GLTFLoader } from '../vendor/three/addons/loaders/GLTFLoader.js';
 
 const PX = 76; // the stop's height on screen (px), the same for every stop
+const DISC_Y = .66; // the disc's centre, as a fraction of the model's height (tools/art/make_pokestop_glb.py)
+const TICK = 66; // ms between redraws while a stop animates (15 a second)
+const SLOW = 150; // ms between frames above which the map cannot keep up with the animation
 
-/** opts: {ML, url, colours: {1,2,3: css colour}, heightAt(lng, lat), terrainOn(), shown(key), motion(), night(), onReady(), onError(e)} */
+// The prototype's timeline in frames (240 at 24 fps, frames 1-241), played per vertex. Parts: 0 body, 1 inner circle, 2 cyan
+// rim, 3 heart, 4 white rim, 5 orbit and bead. aAnim 0 is the finished disc with its heart (frame 130), standing still.
+const HEAD = `
+uniform float uTime;
+attribute float aPart; attribute float aPhase; attribute float aAnim; attribute vec3 aDisc; attribute vec3 aDiscN;
+float hwS(float a, float b, float x) { float t = clamp((x - a) / (b - a), 0., 1.); return t * t * (3. - 2. * t); }
+mat3 hwRx(float a) { float c = cos(a), s = sin(a); return mat3(1., 0., 0., 0., c, s, 0., -s, c); }
+mat3 hwRy(float a) { float c = cos(a), s = sin(a); return mat3(c, 0., -s, 0., 1., 0., s, 0., c); }
+mat3 hwRz(float a) { float c = cos(a), s = sin(a); return mat3(c, s, 0., -s, c, 0., 0., 0., 1.); }
+mat3 hwAxis(vec3 k, float a) { float c = cos(a), s = sin(a), t = 1. - c;
+  return mat3(t*k.x*k.x + c, t*k.x*k.y + s*k.z, t*k.x*k.z - s*k.y, t*k.x*k.y - s*k.z, t*k.y*k.y + c, t*k.y*k.z + s*k.x, t*k.x*k.z + s*k.y, t*k.y*k.z - s*k.x, t*k.z*k.z + c); }
+void hwAnim(inout vec3 p, inout vec3 n) {
+  const vec3 C = vec3(0., ${DISC_Y}, 0.);
+  bool on = aAnim > .5;
+  float f = on ? mod(uTime * 24. + aPhase * 240., 240.) + 1. : 130.;
+  float fadeOut = 1. - hwS(217., 241., f);                 // 217-241: everything reverses to the prism
+  if (aPart < .5) {                                         // the body: tumbles, flattens (50-90) into the disc
+    float w = hwS(50., 90., f) * fadeOut;
+    vec3 q = mix(p, aDisc, w); n = normalize(mix(n, aDiscN, w));
+    float g = f < 150. ? hwS(1., 88., f) : fadeOut;         // whole turns on three axes: the shape is the same at both ends of the loop
+    mat3 R = hwRz(g * 6.2832) * hwRy(g * 12.5664) * hwRx(g * 6.2832);
+    p = C + R * (q - C); n = R * n;
+  } else if (aPart < 4.5) {                                 // the inner circle, rims and heart grow in (85-105), the heart pulses (105-217)
+    float s = hwS(85., 105., f) * fadeOut;
+    if (on && aPart > 2.5 && aPart < 3.5 && f > 105. && f < 217.) s *= 1. + .07 * sin((f - 105.) * .35);
+    p = C + (p - C) * s;
+  } else {                                                  // the dashed orbit turns about its own axis
+    mat3 R = hwAxis(vec3(-.294, .309, .905), on ? uTime * .9 + aPhase * 6.2832 : 0.);
+    p = C + R * (p - C); n = R * n;
+  }
+}`;
+
+/** opts: {ML, url, colours: {1,2,3: css colour}, heightAt(lng, lat), terrainOn(), shown(key), motion(), ambient(), night(), onReady(), onError(e)} */
 export function createStopLayer(opts) {
   let glowTex = null, glowM = {}, poolM = {};
-  let renderer, scene, camera, map = null, post = null, heart = null, disc = null, mats = {}, list = [], sel = null, loaded = false, spin = null, hemi, key;
-  const t0 = performance.now();
-  function build() {
-    for (const s of list) { if (s.g) scene.remove(s.g); }
-    for (const s of list) {
-      const g = new THREE.Group();
-      const p = post.clone(); g.add(p);
-      const piv = new THREE.Object3D(), h = heart.clone(); h.material = mats[s.cat] || mats[2]; piv.add(h, disc.clone()); g.add(piv);
-      const halo = new THREE.Mesh(QUAD, glowM[s.cat] || glowM[2]); halo.position.y = .68; halo.scale.setScalar(.95); // behind the disc, a little wider halo.renderOrder = 2; g.add(halo);
-      const pool = new THREE.Mesh(QUAD, poolM[s.cat] || poolM[2]); pool.rotation.x = -Math.PI / 2; pool.position.y = .02; pool.scale.setScalar(1.1); pool.renderOrder = 1; g.add(pool);
-      s.g = g; s.piv = piv; s.halo = halo; s.phase = (s.lng * 9173 + s.lat * 7919) % (2 * Math.PI);
-      scene.add(g);
+  let renderer, scene, camera, map = null, geos = null, mats = {}, whiteM = null, list = [], sel = null, loaded = false, timer = null, hemi, key;
+  let built = null; // the instanced meshes: {body: {1,2,3}, tint: {1,2,3}, white, halo: {1,2,3}, pool: {1,2,3}}
+  let onScreen = true, gaveUp = false, lastRender = 0, slow = 0, fast = 0;
+  const t0 = performance.now(), U = { uTime: { value: 0 }, hold: null }; // hold: a time in seconds that stops the clock (tests and screenshots)
+  const patch = mt => {
+    mt.onBeforeCompile = sh => {
+      sh.uniforms.uTime = U.uTime;
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\n' + HEAD)
+        .replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\n{ vec3 hwp = position; hwAnim(hwp, objectNormal); }')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\n{ vec3 hwn = normal; hwAnim(transformed, hwn); }');
+    };
+    mt.customProgramCacheKey = () => 'hw-stop';
+    return mt;
+  };
+  /** One mesh's geometry made ready for the shader: the disc's positions and normals (from the shape key) as attributes. */
+  function prep(mesh) {
+    const g = mesh.geometry, pos = g.attributes.position, nor = g.attributes.normal, mp = g.morphAttributes.position && g.morphAttributes.position[0], mn = g.morphAttributes.normal && g.morphAttributes.normal[0];
+    const dp = new Float32Array(pos.count * 3), dn = new Float32Array(pos.count * 3), v = new THREE.Vector3();
+    for (let i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i); if (mp) v.add(new THREE.Vector3().fromBufferAttribute(mp, i)); v.toArray(dp, i * 3);
+      v.fromBufferAttribute(nor, i); if (mn) v.add(new THREE.Vector3().fromBufferAttribute(mn, i)); v.normalize().toArray(dn, i * 3);
     }
-    place();
+    g.setAttribute('aDisc', new THREE.BufferAttribute(dp, 3)); g.setAttribute('aDiscN', new THREE.BufferAttribute(dn, 3));
+    g.setAttribute('aPart', g.getAttribute('_part')); g.deleteAttribute('_part');
+    g.morphAttributes = {}; g.morphTargetsRelative = false; // the shader does the morph, not three.js
+    return g;
+  }
+  /** A copy of a prepared geometry for one instanced mesh, with its per-instance start offset and "animates" flag. */
+  function withInstances(geo, count) {
+    const g = geo.clone();
+    g.setAttribute('aPhase', new THREE.InstancedBufferAttribute(new Float32Array(Math.max(1, count)), 1));
+    g.setAttribute('aAnim', new THREE.InstancedBufferAttribute(new Float32Array(Math.max(1, count)), 1));
+    return g;
+  }
+  function build() {
+    if (built) { for (const g of [built.body, built.tint, built.halo, built.pool]) Object.values(g).forEach(m => { scene.remove(m); m.geometry !== QUAD && m.geometry.dispose(); }); scene.remove(built.white); built.white.geometry.dispose(); }
+    const n = { 1: 0, 2: 0, 3: 0 };
+    list.forEach((s, gi) => { s.cat = n[s.cat] != null ? s.cat : 2; s.i = n[s.cat]++; s.gi = gi; s.g = new THREE.Object3D(); s.phase = (s.lng * 9173 + s.lat * 7919) % (2 * Math.PI); });
+    const inst = (geo, mat, count, order) => { const m = new THREE.InstancedMesh(geo, mat, Math.max(1, count)); m.count = count; m.frustumCulled = false; m.renderOrder = order || 0; scene.add(m); return m; };
+    built = { body: {}, tint: {}, halo: {}, pool: {}, white: inst(withInstances(geos.white, list.length), whiteM, list.length) };
+    for (const c of [1, 2, 3]) {
+      built.body[c] = inst(withInstances(geos.body, n[c]), mats[c], n[c]);
+      built.tint[c] = inst(withInstances(geos.tint, n[c]), mats[c], n[c]);
+      built.halo[c] = inst(QUAD, glowM[c], n[c], 2);
+      built.pool[c] = inst(QUAD, poolM[c], n[c], 1);
+    }
+    for (const s of list) { // each stop starts its loop at a different moment
+      const ph = s.phase / (2 * Math.PI);
+      built.body[s.cat].geometry.attributes.aPhase.array[s.i] = ph; built.tint[s.cat].geometry.attributes.aPhase.array[s.i] = ph; built.white.geometry.attributes.aPhase.array[s.gi] = ph;
+    }
+    for (const g of [built.body, built.tint]) Object.values(g).forEach(m => { m.geometry.attributes.aPhase.needsUpdate = true; });
+    built.white.geometry.attributes.aPhase.needsUpdate = true;
+    place(); animate();
+  }
+  /** Which stops play the loop now: the selected one, and the rest while the ambient animation is allowed and has not given up. */
+  function animate() {
+    if (!built) return;
+    const ambient = loaded && opts.motion() && opts.ambient() && !gaveUp;
+    for (const s of list) {
+      const on = loaded && opts.motion() && (ambient || s.key === sel) ? 1 : 0;
+      built.body[s.cat].geometry.attributes.aAnim.array[s.i] = on; built.tint[s.cat].geometry.attributes.aAnim.array[s.i] = on; built.white.geometry.attributes.aAnim.array[s.gi] = on;
+    }
+    for (const g of [built.body, built.tint]) Object.values(g).forEach(m => { m.geometry.attributes.aAnim.needsUpdate = true; });
+    built.white.geometry.attributes.aAnim.needsUpdate = true;
   }
   // the stops are placed in metres east, up and south of their middle (glTF axes), and one matrix takes that to the map's
   // mercator units: placing them in mercator units directly lost metres to 32-bit rounding on the GPU
@@ -44,7 +137,7 @@ export function createStopLayer(opts) {
     const lng0 = list.reduce((t, s) => t + s.lng, 0) / n, lat0 = list.reduce((t, s) => t + s.lat, 0) / n, kx = k * R0 * Math.cos(lat0 * k), ky = k * R0;
     const mc = opts.ML.MercatorCoordinate.fromLngLat([lng0, lat0], 0), u = mc.meterInMercatorCoordinateUnits();
     model.makeTranslation(mc.x, mc.y, mc.z).multiply(new THREE.Matrix4().makeScale(u, -u, u)).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2));
-    for (const s of list) s.g.position.set((s.lng - lng0) * kx, on ? opts.heightAt(s.lng, s.lat) : 0, -(s.lat - lat0) * ky);
+    for (const s of list) s.g.position.set((s.lng - lng0) * kx + (s.dx || 0), on ? opts.heightAt(s.lng, s.lat) : 0, -(s.lat - lat0) * ky);
   }
   // the ground the map draws, where the markers (the tap targets) stand: its terrain tiles can sit a few metres off the
   // terrain function (8 m in places), so each drawn frame asks the map, and the function only stands in until tiles load
@@ -58,17 +151,24 @@ export function createStopLayer(opts) {
   const glowMat = (c, o) => new THREE.MeshBasicMaterial({ map: glowTex, color: opts.colours[c], transparent: true, opacity: o, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
   function tint(night) {
     for (const [c, m] of Object.entries(mats)) m.emissive.set(opts.colours[c]).multiplyScalar(night ? .6 : .38);
+    if (whiteM) whiteM.emissive.set(0xffffff).multiplyScalar(night ? .3 : .12);
     for (const m of Object.values(glowM)) m.opacity = night ? .6 : .7;
     for (const m of Object.values(poolM)) m.opacity = night ? .6 : .55;
     if (hemi) hemi.intensity = night ? 1.6 : 2.2;
     if (key) key.intensity = night ? 1.6 : 2.6;
   }
-  function loop() { // the selected heart spins: a redraw about 12 times a second, only while one is selected and motion is allowed
-    const want = !!sel && opts.motion() && loaded;
-    if (want && !spin) spin = setInterval(() => map && map.triggerRepaint(), 83);
-    else if (!want && spin) { clearInterval(spin); spin = null; }
+  // The map redraws only when asked: while a stop animates, a timer asks 15 times a second, but only with the map on screen and
+  // the page visible. If the frames come slower than SLOW for a couple of seconds the ambient animation stops (the selected one
+  // keeps playing) rather than make the page lag.
+  function loop() {
+    const want = loaded && opts.motion() && onScreen && !document.hidden && (!!sel || (opts.ambient() && !gaveUp));
+    if (want && !timer) { slow = fast = 0; lastRender = 0; timer = setInterval(() => map && map.triggerRepaint(), TICK); }
+    else if (!want && timer) { clearInterval(timer); timer = null; }
+    animate();
   }
   const model = new THREE.Matrix4(), QUAD = new THREE.PlaneGeometry(1, 1), EYE = new THREE.Vector3(), O = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0), L = new THREE.Matrix4(), Q = new THREE.Quaternion();
+  const M = new THREE.Matrix4(), P = new THREE.Vector3(), S = new THREE.Vector3(), QY = new THREE.Quaternion(), QF = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+  let io = null; const vis = () => loop();
   return {
     id: 'stops3d', type: 'custom', renderingMode: '3d',
     onAdd(m, gl) {
@@ -78,54 +178,73 @@ export function createStopLayer(opts) {
       renderer.autoClear = false; renderer.setPixelRatio(1);
       hemi = new THREE.HemisphereLight(0xffffff, 0x50586e, 2.2); scene.add(hemi);
       key = new THREE.DirectionalLight(0xffffff, 2.6); key.position.set(-.4, .8, .45); scene.add(key); // from the south-west, above (glTF: y up, z south)
+      document.addEventListener('visibilitychange', vis);
+      if (window.IntersectionObserver) { io = new IntersectionObserver(es => { onScreen = es[es.length - 1].isIntersecting; loop(); }); io.observe(m.getContainer()); }
       new GLTFLoader().load(opts.url, gltf => {
-        gltf.scene.updateMatrixWorld(true);
-        heart = gltf.scene.getObjectByName('heart'); post = gltf.scene.getObjectByName('post'); disc = gltf.scene.getObjectByName('disc'); // the dots; the disc and its rim
-        gltf.scene.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
-        if (!heart || !heart.isMesh || !post || !disc) { opts.onError && opts.onError(new Error('heart-stop.glb has no heart, disc or dots')); return; }
+        const get = n => gltf.scene.getObjectByName(n);
+        const b = get('body'), t = get('tint'), w = get('white');
+        if (![b, t, w].every(o => o && o.isMesh && o.geometry.getAttribute('_part'))) { opts.onError && opts.onError(new Error('heart-stop.glb has no body, tint and white meshes with parts')); return; }
+        geos = { body: prep(b), tint: prep(t), white: prep(w) };
         glowTex = glowTexture();
-        for (const c of [1, 2, 3]) { const mt = heart.material.clone(); mt.color.set(opts.colours[c]); mats[c] = mt; glowM[c] = glowMat(c, .7); poolM[c] = glowMat(c, .55); }
-        tint(opts.night()); loaded = true; build(); loop();
+        const std = col => patch(new THREE.MeshStandardMaterial({ color: col, vertexColors: true, roughness: .45, metalness: 0 }));
+        whiteM = std(0xffffff);
+        for (const c of [1, 2, 3]) { mats[c] = std(opts.colours[c]); glowM[c] = glowMat(c, .7); poolM[c] = glowMat(c, .55); }
+        tint(opts.night()); loaded = true; if (list.length) build(); loop();
         m.triggerRepaint();
         opts.onReady && opts.onReady();
       }, undefined, e => opts.onError && opts.onError(e));
     },
     render(gl, matrix) {
-      if (!loaded || !list.length) return;
+      if (!loaded || !list.length || !built) return;
+      const now = performance.now();
+      if (timer && lastRender && U.hold == null) { // the animation's own cadence: frames slower than SLOW, over about two seconds, and it stops
+        const dt = now - lastRender;
+        if (dt < 1000) { if (dt > SLOW) { slow++; fast = 0; } else if (++fast > 4) slow = Math.max(0, slow - 1); if (slow > 12 && !sel) { gaveUp = true; loop(); } }
+      }
+      lastRender = now;
+      U.uTime.value = U.hold != null ? U.hold : (now - t0) / 1000;
       camera.projectionMatrix.fromArray(matrix).multiply(model);
       const z = map.getZoom(), lat = map.getCenter().lat, mpp = 40075016.686 * Math.cos(lat * Math.PI / 180) / (512 * Math.pow(2, z));
-      const t = (performance.now() - t0) / 1000, mov = opts.motion(), face = -map.getBearing() * Math.PI / 180;
+      const t = U.uTime.value, mov = opts.motion(), face = -map.getBearing() * Math.PI / 180;
       // the halos face the camera: from the target, the camera is up by the pitch and back against the bearing
       const b = map.getBearing() * Math.PI / 180, p = map.getPitch() * Math.PI / 180;
       EYE.set(-Math.sin(b) * Math.sin(p), Math.cos(p), Math.cos(b) * Math.sin(p)); Q.setFromRotationMatrix(L.lookAt(EYE, O, UP));
+      const sc = PX * mpp; // metres: one fixed size on screen
       for (const s of list) {
-        const vis = opts.shown(s.key); s.g.visible = vis; if (!vis) continue;
-        s.g.scale.setScalar(PX * mpp); // metres: one fixed size on screen
-        s.g.position.y = ground(s); s.halo.quaternion.copy(Q);
-        s.piv.rotation.y = mov ? s.phase + t * (s.key === sel ? 4.2 : .7) : face; // still: the heart faces the viewer
+        const shown = opts.shown(s.key); s.g.visible = shown;
+        if (shown) { s.g.scale.setScalar(sc); s.g.position.y = ground(s); }
+        const ang = mov ? s.phase + t * (s.key === sel ? 4.2 : .7) : face; // still: the stop faces the viewer
+        QY.setFromAxisAngle(UP, ang);
+        const k = shown ? sc : 0, gp = s.g.position;
+        S.setScalar(k); M.compose(gp, QY, S);
+        built.body[s.cat].setMatrixAt(s.i, M); built.tint[s.cat].setMatrixAt(s.i, M); built.white.setMatrixAt(s.gi, M);
+        P.set(gp.x, gp.y + DISC_Y * k, gp.z); S.setScalar(k * 1.25); M.compose(P, Q, S); built.halo[s.cat].setMatrixAt(s.i, M);
+        P.set(gp.x, gp.y + .02 * k, gp.z); S.setScalar(k * 1.1); M.compose(P, QF, S); built.pool[s.cat].setMatrixAt(s.i, M);
       }
+      for (const g of [built.body, built.tint, built.halo, built.pool]) Object.values(g).forEach(m => { m.instanceMatrix.needsUpdate = true; });
+      built.white.instanceMatrix.needsUpdate = true;
       renderer.resetState();
       renderer.setViewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
       renderer.render(scene, camera);
     },
     onRemove() {
-      clearInterval(spin); spin = null;
-      if (disc) disc.traverse(o => { if (o.isMesh) { o.geometry.dispose(); [].concat(o.material).forEach(mt => mt.dispose()); } });
-      if (post) post.traverse(o => { if (o.isMesh) { o.geometry.dispose(); [].concat(o.material).forEach(mt => mt.dispose()); } });
-      if (heart) { heart.geometry.dispose(); heart.material.dispose(); }
-      [...Object.values(mats), ...Object.values(glowM), ...Object.values(poolM)].forEach(mt => mt.dispose());
+      clearInterval(timer); timer = null; document.removeEventListener('visibilitychange', vis); if (io) { io.disconnect(); io = null; }
+      if (built) { for (const g of [built.body, built.tint]) Object.values(g).forEach(m => m.geometry.dispose()); built.white.geometry.dispose(); for (const g of [built.body, built.tint, built.halo, built.pool]) Object.values(g).forEach(m => m.dispose()); built.white.dispose(); }
+      if (geos) Object.values(geos).forEach(g => g.dispose());
+      [whiteM, ...Object.values(mats), ...Object.values(glowM), ...Object.values(poolM)].forEach(mt => mt && mt.dispose());
       QUAD.dispose(); if (glowTex) glowTex.dispose();
-      renderer && renderer.dispose(); loaded = false; map = null;
+      renderer && renderer.dispose(); loaded = false; map = null; built = null;
     },
     /** The stops: [{key, lng, lat, cat: 1|2|3}]. */
     set(stops) { list = stops.map(s => ({ ...s })); if (loaded) build(); map && map.triggerRepaint(); },
     select(k) { sel = k || null; loop(); map && map.triggerRepaint(); },
-    /** The terrain was switched, the motion setting or the look changed. */
-    replace() { if (loaded) place(); loop(); map && map.triggerRepaint(); },
+    /** The terrain was switched, the motion setting, the Layers panel's effects or the look changed. */
+    replace() { if (loaded && built) place(); if (opts.ambient() && opts.motion()) gaveUp = false; loop(); map && map.triggerRepaint(); },
     night(on) { if (loaded) tint(on); map && map.triggerRepaint(); },
     repaint() { map && map.triggerRepaint(); },
     get ready() { return loaded; },
-    get spinning() { return !!spin; },
-    get debug() { return { scene, list, mats, glow: glowM, pool: poolM, renderer, model, THREE }; },
+    get spinning() { return !!timer; },
+    get ambientOff() { return gaveUp; },
+    get debug() { return { scene, list, mats, glow: glowM, pool: poolM, built, renderer, model, uniforms: U, THREE }; },
   };
 }

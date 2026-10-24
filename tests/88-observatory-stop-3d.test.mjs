@@ -53,7 +53,8 @@ test('the solid 3D stops: one per marker, in the difficulty colour, on the marke
   const glb = fs.readFileSync(path.join(root, 'assets/models/heart-stop.glb'));
   assert.equal(glb.toString('ascii', 0, 4), 'glTF');
   const j = JSON.parse(glb.toString('utf8', 20, 20 + glb.readUInt32LE(12)));
-  assert.deepEqual(j.nodes.map(n => n.name).sort(), ['disc', 'heart', 'post'], 'the drawn stop (owner, 2026-10-23): the disc, the heart in it and the dots');
+  assert.deepEqual(j.nodes.map(n => n.name).sort(), ['body', 'tint', 'white'], 'the owner\'s Pokestop heart (2026-10-23): the prism that morphs into the disc, the tinted inner circle and rim, the white heart and orbit');
+  assert.ok(j.accessors.filter(x => x.type === 'SCALAR' && x.componentType >= 5123).reduce((t, x) => t + x.count, 0) / 3 < 2000, 'light: under 2,000 triangles in all');
   assert.ok(glb.length < 120000, 'small: ' + glb.length);
   const ctx = await browser.newContext({ viewport: { width: 800, height: 800 }, serviceWorkers: 'block', reducedMotion: 'reduce' });
   const page = await ctx.newPage(), errors = [];
@@ -75,7 +76,7 @@ test('the solid 3D stops: one per marker, in the difficulty colour, on the marke
       emissive: [1, 2, 3].every(k => d.mats[k].emissive.getHex() !== 0),
       cats: d.list.map(s => s.cat).every(k => [1, 2, 3].includes(k)), dx: Math.abs(one.g.position.y - (map.queryTerrainElevation([one.lng, one.lat]) || 0)) };
   });
-  assert.equal(r.n, 32); assert.ok(r.keys, 'one per marker'); assert.ok(r.st3d); assert.equal(r.hidden, 'hidden', 'the drawn hearts are hidden');
+  assert.equal(r.n, 36, 'one stop per staircase: 36, sharing 32 markers where stairs share a stored point'); assert.ok(r.keys, 'each stop has a marker'); assert.ok(r.st3d); assert.equal(r.hidden, 'hidden', 'the drawn hearts are hidden');
   assert.equal(r.layer, 'custom'); assert.equal(r.mode, '3d', 'shares the depth buffer with the buildings');
   assert.deepEqual(r.colours, ['#7ee07c', '#f6c94f', '#ff7b6e'], 'Mild, Moderate, Vigorous');
   assert.ok(r.depth, 'solid and depth-tested: a building in front hides it'); assert.ok(r.cats);
@@ -90,6 +91,9 @@ test('the solid 3D stops: one per marker, in the difficulty colour, on the marke
   assert.equal(await page.evaluate(() => HWCampus.map.stops.spinning), false, 'reduced motion: still');
   await page.emulateMedia({ reducedMotion: 'no-preference' }); await page.evaluate(() => HWCampus.map.setReduced());
   assert.equal(await page.evaluate(() => HWCampus.map.stops.spinning), true, 'the selected heart spins');
+  // the animation is played by the vertex shader, one instance per stop: a start offset and a switch for each, the selected one always playing
+  assert.deepEqual(await page.evaluate(() => { const d = HWCampus.map.stops.debug, g = d.built.white.geometry.attributes, k = d.list.findIndex(s => s.key === document.querySelector('.stm.sel').dataset.key);
+    return [Object.keys(g).includes('aPart') && Object.keys(g).includes('aPhase') && Object.keys(g).includes('aAnim'), g.aAnim.array[k], new Set(Array.from(g.aPhase.array).map(v => v.toFixed(3))).size > 5]; }), [true, 1, true], 'per-stop start offsets; the selected stop plays');
   await page.evaluate(() => acts.cmpstopx()); await until(page, () => !document.getElementById('cmpstop'), 5000);
   assert.deepEqual(errors, []);
   await ctx.close();

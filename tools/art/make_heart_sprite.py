@@ -5,6 +5,10 @@ coloured according to difficulty"), modelled and rendered in Blender, packed int
     python3 tools/art/make_heart_sprite.py --pack OUT_DIR assets/img/heart-spin.webp          # the sheet
     /opt/blender/blender -b --factory-startup -P tools/art/make_heart_sprite.py -- --glb assets/models/heart-stop.glb
 
+NOTE (2026-10-23): --glb is superseded. The map's stop is now the owner's Pokestop heart (prototypes/pokestop-heart), built by
+tools/art/make_pokestop_glb.py; this script keeps the 16-frame sprite sheet (the drawn heart the markers fall back to) and the
+earlier disc-and-dots model below, no longer used.
+
 --glb: the solid stop the 3D map draws (observatory/stops3d.js), from the owner's drawing (2026-10-23): a thin round disc
 with the heart set in it, like a thought bubble, and three dots, smaller and smaller, leading down to the ground under
 it; one unit tall (the map draws it at one fixed size on screen). Three meshes: "heart" (white, tinted by difficulty in
