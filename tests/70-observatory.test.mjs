@@ -63,7 +63,7 @@ test('records: one set built from STAIRS + the F21 study, with computed statuses
   assert.deepEqual(r.miss, []);
   for (const x of r.step) assert.deepEqual(x, [true, true, 'calculated from measured step rise and run', 'partially measured', true]);
   assert.equal(r.others, 3, 'only the three F21 stairs have a measured step size');
-  assert.deepEqual(r.flagged, ['ST08', 'ST21', 'ST23', 'ST27', 'ST31', 'ST32', 'ST33']);
+  assert.deepEqual(r.flagged, ['ST08', 'ST10', 'ST21', 'ST23', 'ST31', 'ST32', 'ST33']);
   assert.deepEqual(r.shared, ['ST06', 'ST32']);
   assert.deepEqual(r.labels, ['Real location', 'Estimated angle', 'Orientation not surveyed', 'Not yet surveyed']);
   assert.deepEqual(r.labels20, ['Real location', 'Angle from measured steps', 'Orientation not surveyed', 'Partially measured: step size only']);

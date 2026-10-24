@@ -23,7 +23,7 @@ export const STAIRS: StairItem[] = [
   { id: "ST20", cat: "MODERATE", name: "Tangga sebelah rumah penjana elektrik ke Dewan Kenanga", floor: "G level", angle: 28.52, lat: 5.3519878, lng: 100.5383771 },
   { id: "ST21", cat: "MODERATE", name: "Tangga Makmal Inovasi ke bilik 406, 407", floor: "G level", angle: 28.86, lat: 5.3521864, lng: 100.5381059 },
   { id: "ST22", cat: "MODERATE", name: "Tangga cafe ke Dewan Melati (dewan exam) (tangga tengah)", floor: "G level", angle: 29.44, lat: 5.350466, lng: 100.5387657 },
-  { id: "ST23", cat: "MODERATE", name: "Tangga Anjung Santap", floor: "G level", angle: 31.2, lat: 5.3517635, lng: 100.5391633 },
+  { id: "ST23", cat: "MODERATE", name: "Tangga dari parking Anjung Santap ke koperasi (melalui tempat pungutan parcel)", floor: "G level", angle: 31.2, lat: 5.3517635, lng: 100.5391633 },
   { id: "ST24", cat: "VIGOROUS", name: "Tangga dalam Blok A", floor: "G level", angle: 31.21, lat: 5.3490042, lng: 100.5388927 },
   { id: "ST25", cat: "VIGOROUS", name: "Tangga dalam Blok B", floor: "G level", angle: 31.3, lat: 5.3490162, lng: 100.5391398 },
   { id: "ST26", cat: "VIGOROUS", name: "Tangga dari rumah pengarah naik ke Blok E", floor: "G level", angle: 31.52, lat: 5.3520232, lng: 100.5388347 },

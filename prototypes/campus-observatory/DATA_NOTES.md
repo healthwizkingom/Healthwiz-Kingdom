@@ -49,7 +49,7 @@ turns it into `data/stair-survey.json` for the app). The table and counts below 
   ST34 to ST38 were added from the survey document. ST39 and ST40 are not in yet (their data was incomplete).
 - **All 38 have a coordinate.** They are labelled **Real location**: recorded on site by the survey team and confirmed as
   real, not estimates. ST02, ST08, ST16 and ST29 gained one, ST33's moved. ST02 and ST16 share one point.
-- **ST27** is now called "Tangga Anjung Santap" (the same name as ST23, so both are flagged "Needs checking").
+- **ST27** is now called "Tangga Anjung Santap", and ST23 carries the long route name with "parcel" (as in your stair list). ST10 and ST23 now share that long name, so both are flagged "Needs checking".
 - **Step counts, flights, rise and run per step** come from the survey for every stair; the angle is arctan(rise ÷ run).
   Where the surveyed angle differs from the stair list's (for example ST23: 41.21° against 31.2°), the app's own angle is
   kept for its bands and saved sessions, and the surveyed angle is shown beside it.
