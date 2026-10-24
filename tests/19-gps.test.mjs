@@ -18,7 +18,7 @@ const find = page => page.click('#v6gps [data-a="gpsfind"]');
 
 test('GPS check-in: explanation first, one reading, nearby list, confirm logs a stair session, discovery once, position never saved', async () => {
   const { page, ctx, errors } = await boot({ pos: AT_ST20 });
-  assert.match(await page.textContent('#v6gps'), /GPS CHECK-IN[\s\S]*at Kolej MARA Kulim\?[\s\S]*34 of 38 stairways are on the map; the other 4 can be logged by hand[\s\S]*discovered by GPS check-in: 0 of 34 on the map \(38 stairways in total\)/);
+  assert.match(await page.textContent('#v6gps'), /GPS CHECK-IN[\s\S]*at Kolej MARA Kulim\?[\s\S]*34 of 37 stairways are on the map; the other 3 can be logged by hand[\s\S]*discovered by GPS check-in: 0 of 34 on the map \(37 stairways in total\)/);
   const order = await page.evaluate(() => { const h = document.querySelector('#main').innerHTML; return h.indexOf('v6gps') < h.indexOf('id="stman"'); });
   assert.ok(order, 'the GPS check-in comes first; the hand-log card follows it');
   await find(page);
@@ -111,7 +111,7 @@ test('stairways without coordinates are never GPS targets; distance and radius m
       d: Math.round(HWGps.dist(5.3519878, 100.5383771, 5.3525206, 100.5386027)), r: [HWGps.radius(0), HWGps.radius(30), HWGps.radius(500)] };
   });
   assert.equal(r.n, 34);
-  for (const id of ['ST02', 'ST08', 'ST16', 'ST29']) assert.ok(!r.ids.includes(id), id + ' has no coordinates');
+  for (const id of ['ST02', 'ST16', 'ST29']) assert.ok(!r.ids.includes(id), id + ' has no coordinates');
   assert.ok(r.sorted);
   assert.ok(r.d > 55 && r.d < 75, 'ST20 → ST19 is about 64 m: ' + r.d);
   assert.deepEqual(r.r, [35, 65, 100]);

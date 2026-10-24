@@ -18,9 +18,9 @@ const by = id => STAIRS.find(s => s.id === id);
 const survey = JSON.parse(read('data/stair-survey.json'));
 const deg = (r, u) => Math.round(Math.atan(r / u) * 180 / Math.PI * 100) / 100;
 
-test('38 stairs: the new ones carry the list names and the angle calculated from riser and run', () => {
-  assert.equal(STAIRS.length, 38);
-  assert.equal(new Set(STAIRS.map(s => s.id)).size, 38, 'IDs are unique');
+test('37 stairs: the new ones carry the list names and the angle calculated from riser and run', () => {
+  assert.equal(STAIRS.length, 37);
+  assert.equal(new Set(STAIRS.map(s => s.id)).size, 37, 'IDs are unique');
   const want = {
     ST01: ['Tangga dalam Blok E', deg(12.9, 16.9), 'VIGOROUS'],
     ST34: ['Tangga dusun durian ke kolam ikan (Laman Ibrahim)', 36.81, 'VIGOROUS'],
@@ -40,6 +40,8 @@ test('38 stairs: the new ones carry the list names and the angle calculated from
   assert.deepEqual([by('ST37').lat, by('ST37').lng], [5.3513889, 100.5395]);
   assert.deepEqual([by('ST38').lat, by('ST38').lng], [5.3513333, 100.5396111]);
   assert.equal(by('ST27').name, 'Tangga Anjung Santap', 'ST27 is Anjung Santap only');
+  assert.equal(by('ST08'), undefined, 'ST08 was the same stair as ST21 (Makmal Inovasi 406, 407)');
+  assert.equal(STAIRS.filter(s => /Makmal Inovasi ke bilik 406/.test(s.name)).length, 1, 'Makmal Inovasi 406, 407 is listed once');
   for (const s of STAIRS) {
     const band = s.angle < 26 ? 'MILD' : s.angle <= 31.2 ? 'MODERATE' : 'VIGOROUS';
     assert.equal(s.cat, band, s.id + ' category matches its angle band');
@@ -64,7 +66,7 @@ test('every stair has a photo that exists, small enough for a phone; shared phot
     assert.ok(fs.statSync(f).size < 100 * 1024, s.id + ' photo under 100 KB');
   }
   const shared = Object.fromEntries(STAIRS.filter(s => s.photo !== `assets/stairs/${s.id}.webp`).map(s => [s.id, s.photo.match(/ST\d+/)[0]]));
-  assert.deepEqual(shared, { ST16: 'ST02', ST20: 'ST18', ST21: 'ST08', ST25: 'ST24', ST27: 'ST10', ST32: 'ST31', ST33: 'ST22', ST38: 'ST01' });
+  assert.deepEqual(shared, { ST16: 'ST02', ST20: 'ST18', ST25: 'ST24', ST27: 'ST10', ST32: 'ST31', ST33: 'ST22', ST38: 'ST01' });
 });
 
 test('survey: per-step riser and run of the new experiment, Melati and Kemboja included', () => {

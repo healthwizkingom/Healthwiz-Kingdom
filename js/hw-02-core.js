@@ -226,14 +226,13 @@ const CATS=[['🌿','MILD'],['⚔️','MODERATE'],['🔥','VIGOROUS']];
 const STAIRS=[
 // v6 (stairs refactor): ST01 "Tangga Selangkah Menara Gading" 7.26° removed: a placeholder shipped in the code (same name as ST02, no
 // coordinates) that showed as the pre-selected stairway. Sessions already logged there keep their own name and data.
-// 2026-10-24: ST01 is back as "Tangga dalam Blok E", with ST34-ST38, steps and photos, from js/v6-stairs-data.js (this file stays under 64 KB).
+// 2026-10-24: ST08 removed (same stair as ST21, "Tangga Makmal Inovasi ke bilik 406, 407": identical name and measurements). ST01 is back as "Tangga dalam Blok E", with ST34-ST38, steps and photos, from js/v6-stairs-data.js (this file stays under 64 KB).
 {"id": "ST02", "cat": "MILD", "name": "Tangga Selangkah Menara Gading", "floor": "G level", "angle": 14.25, "lat": null, "lng": null},
 {"id": "ST03", "cat": "MILD", "name": "Tangga ke Dewan Mawar / Makmal Fizik (depan office)", "floor": "G level", "angle": 19.6, "lat": 5.3515422, "lng": 100.5380308},
 {"id": "ST04", "cat": "MILD", "name": "Tangga dari cafe ke court tennis", "floor": "G level", "angle": 20.94, "lat": 5.3504943, "lng": 100.5389913},
 {"id": "ST05", "cat": "MILD", "name": "Tangga parking KJ ke laluan study putra (belakang Jab. Matematik)", "floor": "G level", "angle": 21.8, "lat": 5.3512084, "lng": 100.5377726},
 {"id": "ST06", "cat": "MILD", "name": "Tangga depan Pejabat HEP ke Makmal Kimia (tingkat 1)", "floor": "Tingkat 1", "angle": 23.96, "lat": 5.3515635, "lng": 100.5383731},
 {"id": "ST07", "cat": "MILD", "name": "Tangga sebelah depan Bilik Raflesia (sebelah Seroja) ke Lab Biology", "floor": "G level", "angle": 24.45, "lat": 5.3512758, "lng": 100.5383744},
-{"id": "ST08", "cat": "MILD", "name": "Tangga Makmal Inovasi ke bilik 406, 407", "floor": "G level", "angle": 24.51, "lat": null, "lng": null},
 {"id": "ST09", "cat": "MILD", "name": "Tangga dari Dataran Ilmu ke Jab. Sains / Makmal Biology", "floor": "G level", "angle": 24.72, "lat": 5.3512708, "lng": 100.538078},
 {"id": "ST10", "cat": "MILD", "name": "Tangga dari parking Anjung Santap ke koperasi (melalui tempat pungutan parcel)", "floor": "G level", "angle": 24.86, "lat": 5.3511202, "lng": 100.539051},
 {"id": "ST11", "cat": "MILD", "name": "Tangga dari court tennis ke Blok C", "floor": "G level", "angle": 25.71, "lat": 5.3496995, "lng": 100.5390775},

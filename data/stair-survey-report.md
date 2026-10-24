@@ -1,8 +1,8 @@
 # Stair survey import report
 
-Sheet: `881c5410-Campus_Stair_Survey_edited.docx` + `stair-experiment-2026-10-24.json` · imported 2026-10-24T03:51:58
+Sheet: `881c5410-Campus_Stair_Survey_edited.docx` + `stair-experiment-2026-10-24.json` · imported 2026-10-24T04:24:16
 
-38 stairs. **error** = left out, **check** = kept but doubtful, **note** = information.
+37 stairs. **error** = left out, **check** = kept but doubtful, **note** = information.
 
 | Stair | Level | Field | Message |
 |---|---|---|---|

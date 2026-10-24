@@ -4,7 +4,7 @@
   "file": "881c5410-Campus_Stair_Survey_edited.docx",
   "sha256": "a30beddf58682e80bdf50c8429e39a6557912fcf243c2aa0d6d0bf66b015688b",
   "experiment": "stair-experiment-2026-10-24.json",
-  "importedAt": "2026-10-24T03:51:58"
+  "importedAt": "2026-10-24T04:24:16"
  },
  "units": {
   "riser_cm": "cm per step",
@@ -335,41 +335,6 @@
      "risers": 11,
      "riser_cm": 14.4,
      "tread_cm": 31.67,
-     "width_cm": null,
-     "totalRise_cm": null,
-     "heading_deg": null,
-     "landing": null,
-     "turn": null,
-     "notes": null
-    }
-   ],
-   "complete": {
-    "position": false,
-    "flights": false,
-    "record": true
-   }
-  },
-  "ST08": {
-   "id": "ST08",
-   "building": null,
-   "indoorOutdoor": null,
-   "lowerLevel": null,
-   "upperLevel": null,
-   "shape": "straight",
-   "flightCount": 1,
-   "bottom": null,
-   "top": null,
-   "survey": {
-    "by": "Amir and Iz",
-    "date": "2026-10-23",
-    "tool": "tape"
-   },
-   "flights": [
-    {
-     "flight": 1,
-     "risers": 8,
-     "riser_cm": 14.0,
-     "tread_cm": 30.7,
      "width_cm": null,
      "totalRise_cm": null,
      "heading_deg": null,

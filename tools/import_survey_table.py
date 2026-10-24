@@ -17,6 +17,7 @@ OUT_JSON = os.path.join(ROOT, 'data', 'stair-survey.json')
 OUT_REPORT = os.path.join(ROOT, 'data', 'stair-survey-report.md')
 SHAPES = {'straight': ('straight', None), 'u': ('U', None), 'u turn': ('U', None), 'landing': ('other', 'recorded as "landing" (a landing part way)')}
 warn = []
+DROP = {'ST08'}  # the same stair as ST21 (same name, same measurements): kept once, as ST21
 
 
 def w(sid, field, msg, level='check'):
@@ -82,7 +83,7 @@ def main(docx, extra):
     for row in t[1:]:
         row = row + [''] * (12 - len(row))
         sid = row[0].strip().upper()
-        if not re.fullmatch(r'ST\d+', sid):
+        if not re.fullmatch(r'ST\d+', sid) or sid in DROP:
             continue
         by, date, tool = [c.strip() for c in row[9:12]]
         vals = []

@@ -33,14 +33,14 @@ test('the door is last in the Health Hall; from the file the page says the map n
     filters: [...document.querySelectorAll('.cmpf')].map(b => b.textContent.replace(/\s+/g, ' ').trim()) }));
   assert.equal(facts.withXY, 34);
   assert.equal(facts.groups, 31, '34 placed staircases on 31 points');
-  assert.deepEqual(facts.unmapped.sort(), ['ST02', 'ST08', 'ST16', 'ST29']);
+  assert.deepEqual(facts.unmapped.sort(), ['ST02', 'ST16', 'ST29']);
   assert.deepEqual(facts.shared, ['ST06+ST31+ST32', 'ST09+ST15'], 'staircases sharing one coordinate are one point');
-  assert.equal(facts.items, 38);
-  assert.deepEqual(facts.filters, ['All 38', 'On the map 34', 'No location 4', 'Step size measured 3', 'Needs checking 7']);
+  assert.equal(facts.items, 37);
+  assert.deepEqual(facts.filters, ['All 37', 'Mild 11', 'Moderate 12', 'Vigorous 14']);
   const t = await page.textContent('#cmpcard');
   assert.match(t, /Locations are not verified\.[\s\S]*no recorded source/);
   assert.match(t, /Campus-wide activity[\s\S]*Not available\. HealthWiz does not collect anyone else's location/);
-  assert.match(t, /4 staircases have no coordinates in the app data, so they are not on the map\. You can still pick them here\./);
+  assert.match(t, /3 staircases have no coordinates in the app data, so they are not on the map\. You can still pick them here\./);
   assert.match(t, /Survey data: not loaded/);
   // the door sits after the Science Laboratory's
   await go(page, 'health');
@@ -86,18 +86,21 @@ test('search filters in place (focus kept), filters narrow the list, an unmapped
   await page.focus('#cmpq'); await page.keyboard.type('kenanga');
   assert.equal(await page.evaluate(() => document.activeElement.id), 'cmpq', 'typing keeps the focus');
   assert.deepEqual(await page.$$eval('#cmplist .cmpitem', a => a.map(b => b.dataset.id)), ['ST14', 'ST19', 'ST20']);
-  assert.match(await page.textContent('#cmpcount'), /Showing 3 of 38/);
+  assert.match(await page.textContent('#cmpcount'), /Showing 3 of 37/);
   await page.keyboard.type(' zzz');
   assert.match(await page.textContent('#cmplist'), /No staircase matches/);
   await page.fill('#cmpq', '');
-  await page.click('[data-a="cmpfilt"][data-f="nol"]');
-  assert.deepEqual(await page.$$eval('#cmplist .cmpitem', a => a.map(b => b.dataset.id)), ['ST02', 'ST08', 'ST16', 'ST29']);
-  await page.click('#cmplist .cmpitem[data-id="ST08"]');
+  await page.fill('#cmpq', 'ST29');                         // no coordinate anywhere (the survey is not loaded from file://)
+  assert.deepEqual(await page.$$eval('#cmplist .cmpitem', a => a.map(b => b.dataset.id)), ['ST29']);
+  await page.click('#cmplist .cmpitem[data-id="ST29"]');
   const d = await page.textContent('#cmpdet');
-  assert.match(d, /No location recorded, so it is not placed on the map\.[\s\S]*No location recorded[\s\S]*Needs checking/);
-  assert.match(d, /Same name as ST21 in the app data: may be the same staircase\./);
-  await page.click('[data-a="cmptab"][data-t="list"]'); await page.click('[data-a="cmpfilt"][data-f="all"]');
-  assert.equal(await page.locator('#cmplist .cmpitem').count(), 38);
+  assert.match(d, /No location recorded, so it is not placed on the map\.[\s\S]*No location recorded/);
+  await page.click('[data-a="cmptab"][data-t="list"]'); await page.fill('#cmpq', '');
+  assert.equal(await page.locator('#cmplist .cmpitem').count(), 37);
+  // the filters: All and the three difficulties only
+  assert.deepEqual(await page.$$eval('.cmpf', b => b.map(x => x.dataset.f)), ['all', 'MILD', 'MODERATE', 'VIGOROUS']);
+  await page.click('[data-a="cmpfilt"][data-f="MILD"]'); assert.equal(await page.locator('#cmplist .cmpitem').count(), 11);
+  await page.click('[data-a="cmpfilt"][data-f="all"]');
   assert.deepEqual(errors, []);
 });
 
@@ -147,17 +150,17 @@ test('weather: off says so; a live reading states it is for a separate, unverifi
 
 test('the selection, tab, filter and search are kept for the tab: leaving and a refresh restore them', async () => {
   const { page, errors } = await open();
-  await page.click('[data-a="cmpfilt"][data-f="part"]');
+  await page.click('[data-a="cmpfilt"][data-f="MODERATE"]');
   await page.click('#cmplist .cmpitem[data-id="ST19"]');
   await go(page, 'home'); await go(page, 'campus');
-  assert.deepEqual(await page.evaluate(() => { const s = HWCampus.state; return [s.sid, s.tab, s.f]; }), ['ST19', 'det', 'part']);
+  assert.deepEqual(await page.evaluate(() => { const s = HWCampus.state; return [s.sid, s.tab, s.f]; }), ['ST19', 'det', 'MODERATE']);
   assert.match(await page.textContent('#cmpdet'), /Blok Aisyah/);
   // a person refreshes seconds later; Chromium writes sessionStorage to the tab's store shortly after a change
   await page.waitForTimeout(3000);
   await page.reload(); await page.waitForSelector('.wl');
   assert.notEqual(await page.evaluate(() => S.v), 'campus', 'a refresh opens the title screen, as before');
   await go(page, 'campus');
-  assert.deepEqual(await page.evaluate(() => { const s = HWCampus.state; return [s.sid, s.tab, s.f]; }), ['ST19', 'det', 'part']);
+  assert.deepEqual(await page.evaluate(() => { const s = HWCampus.state; return [s.sid, s.tab, s.f]; }), ['ST19', 'det', 'MODERATE']);
   assert.doesNotMatch(await page.evaluate(() => sessionStorage.getItem('hw_obs_view')), /"me"|lat"|healthwiz/, 'no position or health data');
   assert.deepEqual(errors, []);
 });

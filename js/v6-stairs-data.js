@@ -12,7 +12,7 @@ const NEW=[{"id": "ST34", "cat": "VIGOROUS", "name": "Tangga dusun durian ke kol
 {"id": "ST38", "cat": "VIGOROUS", "name": "Tangga dalam Blok FAZ", "floor": "G level", "angle": 37.84, "lat": 5.3513333, "lng": 100.5396111},
 {"id": "ST01", "cat": "VIGOROUS", "name": "Tangga dalam Blok E", "floor": "G level", "angle": 37.35, "lat": 5.352509, "lng": 100.538922}];
 NEW.forEach(q=>{if(!STAIRS.some(s=>s.id===q.id))STAIRS.push(q)});
-const STEPS={"ST02":[5],"ST03":[11,11,11,11,11],"ST04":[35],"ST05":[6],"ST06":[11,11],"ST07":[11,11],"ST08":[8],"ST09":[11,11],"ST10":[24],"ST11":[27],"ST12":[37],"ST13":[32],"ST14":[13],"ST15":[11,11],"ST16":[5],"ST17":[10,10],"ST18":[20],"ST19":[9],"ST20":[28],"ST21":[8],"ST22":[10,10],"ST23":[10],"ST24":[10,10],"ST25":[10,10],"ST26":[50],"ST27":[10],"ST28":[10,10],"ST29":[10,10],"ST30":[25],"ST31":[11],"ST32":[11],"ST33":[10,10],"ST34":[25],"ST35":[11,11],"ST36":[3],"ST37":[6],"ST38":[10,10],"ST01":[10,10]};
-const SHARED={"ST16":"ST02","ST20":"ST18","ST21":"ST08","ST25":"ST24","ST27":"ST10","ST32":"ST31","ST33":"ST22","ST38":"ST01"};
+const STEPS={"ST02":[5],"ST03":[11,11,11,11,11],"ST04":[35],"ST05":[6],"ST06":[11,11],"ST07":[11,11],"ST09":[11,11],"ST10":[24],"ST11":[27],"ST12":[37],"ST13":[32],"ST14":[13],"ST15":[11,11],"ST16":[5],"ST17":[10,10],"ST18":[20],"ST19":[9],"ST20":[28],"ST21":[8],"ST22":[10,10],"ST23":[10],"ST24":[10,10],"ST25":[10,10],"ST26":[50],"ST27":[10],"ST28":[10,10],"ST29":[10,10],"ST30":[25],"ST31":[11],"ST32":[11],"ST33":[10,10],"ST34":[25],"ST35":[11,11],"ST36":[3],"ST37":[6],"ST38":[10,10],"ST01":[10,10]};
+const SHARED={"ST16":"ST02","ST20":"ST18","ST25":"ST24","ST27":"ST10","ST32":"ST31","ST33":"ST22","ST38":"ST01"};
 STAIRS.forEach(q=>{if(STEPS[q.id])q.steps=STEPS[q.id].slice();q.photo='assets/stairs/'+(SHARED[q.id]||q.id)+'.webp'});
 })();

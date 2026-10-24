@@ -138,15 +138,15 @@ test('saved data carries over: old stair sessions and pulse entries are read and
 test('the list, its filters and details work beside the forms; a staircase without coordinates can be logged too', async () => {
   const { page, ctx, errors } = await openApp({ seed: RETURNING });
   await page.waitForSelector('.wl'); await go(page, 'health'); await page.click('[data-a="cmpgo"]');
-  assert.equal(await page.locator('#cmplist .cmpitem').count(), 38);
-  await page.click('[data-a="cmpfilt"][data-f="nol"]');
+  assert.equal(await page.locator('#cmplist .cmpitem').count(), 37);
+  await page.fill('#cmpq', 'ST02');
   const nol = await page.$$eval('#cmplist .cmpitem', b => b.map(x => x.dataset.id));
-  assert.equal(nol.length, 4, 'the 4 staircases with no coordinates');
+  assert.deepEqual(nol, ['ST02'], 'a staircase with no coordinates (file://: no survey positions)');
   await page.click('#cmplist .cmpitem[data-id="' + nol[0] + '"]');
   assert.match(await page.textContent('#cmplog .stloc'), /no map coordinates/);
   await fillSteps(page, '#ss', '10'); await page.fill('#sc', '1'); await page.click('[data-a="savestair"]');
   assert.equal(stairs(await state(page)).pop().m.sid, nol[0]);
-  await page.click('[data-a="cmptab"][data-t="list"]'); await page.click('[data-a="cmpfilt"][data-f="all"]'); await listPick(page, 'ST20');
+  await page.click('[data-a="cmptab"][data-t="list"]'); await page.fill('#cmpq', ''); await page.click('[data-a="cmpfilt"][data-f="all"]'); await listPick(page, 'ST20');
   assert.match(await page.textContent('#cmpdet'), /rise 0\.169 m/, 'the staircase facts stay in Details, below the forms');
   assert.ok(await page.$eval('#cmplog', e => e.compareDocumentPosition(document.querySelector('#cmpdet .cmpgrp')) & Node.DOCUMENT_POSITION_FOLLOWING), 'forms first');
   assert.deepEqual(errors, []); await ctx.close();

@@ -56,12 +56,12 @@ test('records: one set built from STAIRS + the F21 study, with computed statuses
       survey: HWCampusData.survey, note: HWCampusData.surveyNote() };
   });
   assert.equal(r.ids, r.stairs, 'the same IDs, in STAIRS order');
-  assert.equal(r.n, 38);
+  assert.equal(r.n, 37);
   assert.equal(r.est, 34);
-  assert.deepEqual(r.miss, ['ST02', 'ST08', 'ST16', 'ST29']);
+  assert.deepEqual(r.miss, ['ST02', 'ST16', 'ST29']);
   for (const x of r.step) assert.deepEqual(x, [true, true, 'calculated from measured step rise and run', 'partially measured', true]);
   assert.equal(r.others, 3, 'only the three F21 stairs have a measured step size');
-  assert.deepEqual(r.flagged, ['ST08', 'ST21', 'ST23', 'ST27', 'ST31', 'ST32', 'ST33']);
+  assert.deepEqual(r.flagged, ['ST23', 'ST27', 'ST31', 'ST32', 'ST33']);
   assert.deepEqual(r.shared, ['ST06', 'ST32']);
   assert.deepEqual(r.labels, ['No location recorded', 'Real angle', 'Orientation not surveyed', 'Not yet surveyed']);
   assert.deepEqual(r.labels20, ['Real location', 'Angle from measured steps', 'Orientation not surveyed', 'Partially measured: step size only']);
@@ -76,11 +76,11 @@ test('records: one set built from STAIRS + the F21 study, with computed statuses
 test('log in place: a staircase picked in the Observatory is logged in its Details; the view stays; refresh and a second tap add nothing; no trip links', async () => {
   const { page, errors } = await openObs();
   // filter, search and select ST20 from the list
-  await page.click('[data-a="cmpfilt"][data-f="part"]');
+  await page.click('[data-a="cmpfilt"][data-f="MODERATE"]');
   await page.fill('#cmpq', 'kenanga');
   await page.click('#cmplist .cmpitem[data-id="ST20"]');
   const v0 = await view(page);
-  assert.deepEqual(v0, { sid: 'ST20', grp: null, tab: 'det', f: 'part', q: 'kenanga', mode: 'fantasy' });
+  assert.deepEqual(v0, { sid: 'ST20', grp: null, tab: 'det', f: 'MODERATE', q: 'kenanga', mode: 'fantasy' });
   // its Details start with the logging forms, for this staircase; picking saves nothing
   assert.match(await page.textContent('#cmplog-t'), /LOG A CLIMB HERE/);
   assert.match(await page.textContent('#cmplog .stloc'), /penjana elektrik/);
@@ -158,12 +158,12 @@ const FIXTURE = { about: 'TEST FIXTURE: made-up values', source: null, buildings
     complete: { position: false, flights: false, record: false } } } };
 
 test('over http: the committed (empty) survey changes nothing; a survey is laid over the records with measured / calculated labels; STAIRS unchanged', async () => {
-  // the committed file: fetched; the survey table and the 2026-10-24 experiment are imported (38 stairs)
+  // the committed file: fetched; the survey table and the 2026-10-24 experiment are imported (37 stairs)
   const a = await openApp({ seed: SEED, url: base });
   await a.page.waitForSelector('.wl');
   await go(a.page, 'campus'); await a.page.waitForFunction(() => HWCampusData.survey.status === 'ok');
-  assert.equal(await a.page.evaluate(() => HWCampusData.survey.stairs), 38);
-  assert.match(await a.page.textContent('.cmpsv'), /Survey data: 38 staircases from the survey sheet/);
+  assert.equal(await a.page.evaluate(() => HWCampusData.survey.stairs), 37);
+  assert.match(await a.page.textContent('.cmpsv'), /Survey data: 37 staircases from the survey sheet/);
   assert.equal(await a.page.evaluate(() => HWCampusData.record('ST20').locationStatus), 'estimated');
   assert.deepEqual(a.errors, []);
   // a survey (test fixture)
