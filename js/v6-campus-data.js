@@ -13,7 +13,8 @@
      staircase and opens its Details. A leftover 'hw_obs_ctx' from an older version is removed. No health data is put
      in a URL. */
 const HWCampusData=(()=>{
-const APP='HealthWiz stair list (STAIRS, js/hw-02-core.js); the owner confirmed on 2026-10-24 that these coordinates are real';
+const APP='HealthWiz stair list (STAIRS, js/hw-02-core.js); the owner confirmed on 2026-10-24 that its coordinates are real';
+const APPA='HealthWiz stair list (STAIRS, js/hw-02-core.js)';
 const F21='Group 14 F21 Full Written Report (v4), Table 2';
 const STEEP=45; // degrees: a stored angle above this is unusually steep for a staircase, so it is flagged for re-measurement
 const CK='hw_obs_ctx',SURVEY='data/stair-survey.json';
@@ -33,7 +34,7 @@ function base(){const S2=typeof HWStairs!=='undefined'?HWStairs.STUDY:[],G={},N=
       if(Math.abs(m.th-q.angle)>.005)notes.push('The F21 angle ('+m.th.toFixed(2)+'°) differs from the app angle ('+q.angle.toFixed(2)+'°): check against the report.')}
     return{id:q.id,name:q.name,photo:q.photo||null,photoShared:sp,appFloorLabel:q.floor,appCategory:q.cat,
       latitude:xy?q.lat:null,longitude:xy?q.lng:null,locationSource:xy?APP:null,locationStatus:xy?'estimated':'missing',
-      estimatedAngle:q.angle,angleSource:m?F21+': θ = arctan(rise ÷ run) from measured steps':APP,angleStatus:m?'calculated from measured step rise and run':'estimated',
+      estimatedAngle:q.angle,angleSource:m?F21+': θ = arctan(rise ÷ run) from measured steps':APPA,angleStatus:m?'calculated from measured step rise and run':'estimated',
       orientationDeg:null,orientationSource:null,stepCount:null,floorCount:null,verticalRise_m:null,
       measuredStep:m?{rise_m:m.rise,run_m:m.run,hypotenuse_m:m.hyp,source:F21,reportStaircase:m.k,reportName:m.n,reportRank:m.rank}:null,
       measurementStatus:m?'partially measured':'not surveyed',geometryStatus:'not surveyed',sharedLocationWith:sh,

@@ -31,12 +31,12 @@ test('the door is last in the Health Hall; from the file the page says the map n
   const facts = await page.evaluate(() => ({ withXY: STAIRS.filter(hasXY).length, groups: HWCampus.points().length, unmapped: HWCampus.unmapped().map(s => s.id),
     shared: HWCampus.points().filter(g => g.items.length > 1).map(g => g.items.map(s => s.id).sort().join('+')).sort(), items: document.querySelectorAll('#cmplist .cmpitem').length,
     filters: [...document.querySelectorAll('.cmpf')].map(b => b.textContent.replace(/\s+/g, ' ').trim()) }));
-  assert.equal(facts.withXY, 28);
-  assert.equal(facts.groups, 25, '28 placed staircases on 25 points');
+  assert.equal(facts.withXY, 34);
+  assert.equal(facts.groups, 31, '34 placed staircases on 31 points');
   assert.deepEqual(facts.unmapped.sort(), ['ST02', 'ST08', 'ST16', 'ST29']);
   assert.deepEqual(facts.shared, ['ST06+ST31+ST32', 'ST09+ST15'], 'staircases sharing one coordinate are one point');
-  assert.equal(facts.items, 32);
-  assert.deepEqual(facts.filters, ['All 32', 'On the map 28', 'No location 4', 'Step size measured 3', 'Needs checking 7']);
+  assert.equal(facts.items, 38);
+  assert.deepEqual(facts.filters, ['All 38', 'On the map 34', 'No location 4', 'Step size measured 3', 'Needs checking 7']);
   const t = await page.textContent('#cmpcard');
   assert.match(t, /Locations are not verified\.[\s\S]*no recorded source/);
   assert.match(t, /Campus-wide activity[\s\S]*Not available\. HealthWiz does not collect anyone else's location/);
@@ -57,9 +57,9 @@ test('details in three groups with the player\'s own climbs and honest labels; p
   assert.deepEqual(await page.$$eval('#cmpdet .cmpgrp h3', a => a.map(x => x.textContent.trim())), ['Location', 'Staircase profile', 'Data quality']);
   const d = await page.textContent('#cmpdet');
   assert.match(d, /You saved 1 stair session here \(last \d{4}-\d\d-\d\d\) · first GPS check-in 2026-10-01/);
-  assert.match(d, /5\.3519878, 100\.5383771Estimated location · HealthWiz app data/);
+  assert.match(d, /5\.3519878, 100\.5383771Real location · HealthWiz stair list/);
   assert.match(d, /rise 0\.169 m · run 0\.311 m · hypotenuse 0\.354 m[\s\S]*Measured · Group 14 F21 Full Written Report \(v4\), Table 2, Staircase A/);
-  assert.match(d, /Estimated location[\s\S]*Angle from measured steps[\s\S]*Orientation not surveyed[\s\S]*Partially measured: step size only/);
+  assert.match(d, /Real location[\s\S]*Angle from measured steps[\s\S]*Orientation not surveyed[\s\S]*Partially measured: step size only/);
   assert.match(d, /Floor label"G level"App data; its meaning on site is not documented\./);
   assert.doesNotMatch(d, /Nearest OSM place|Map terrain/, 'computed map facts appear only with the map data');
   assert.equal(await page.locator('#cmpdet [data-a="cmpshow"]').count(), 0, 'no SHOW ON MAP without a map');
@@ -86,7 +86,7 @@ test('search filters in place (focus kept), filters narrow the list, an unmapped
   await page.focus('#cmpq'); await page.keyboard.type('kenanga');
   assert.equal(await page.evaluate(() => document.activeElement.id), 'cmpq', 'typing keeps the focus');
   assert.deepEqual(await page.$$eval('#cmplist .cmpitem', a => a.map(b => b.dataset.id)), ['ST14', 'ST19', 'ST20']);
-  assert.match(await page.textContent('#cmpcount'), /Showing 3 of 32/);
+  assert.match(await page.textContent('#cmpcount'), /Showing 3 of 38/);
   await page.keyboard.type(' zzz');
   assert.match(await page.textContent('#cmplist'), /No staircase matches/);
   await page.fill('#cmpq', '');
@@ -97,7 +97,7 @@ test('search filters in place (focus kept), filters narrow the list, an unmapped
   assert.match(d, /No location recorded, so it is not placed on the map\.[\s\S]*No location recorded[\s\S]*Needs checking/);
   assert.match(d, /Same name as ST21 in the app data: may be the same staircase\./);
   await page.click('[data-a="cmptab"][data-t="list"]'); await page.click('[data-a="cmpfilt"][data-f="all"]');
-  assert.equal(await page.locator('#cmplist .cmpitem').count(), 32);
+  assert.equal(await page.locator('#cmplist .cmpitem').count(), 38);
   assert.deepEqual(errors, []);
 });
 
