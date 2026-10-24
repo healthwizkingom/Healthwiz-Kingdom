@@ -142,9 +142,9 @@ function recAvg(L){const D=L.filter(s=>s.kind==='workout'&&s.hrA&&s.hrR1).map(s=
 
 /** The staircase these forms log for: the one picked on the Observatory map (no list to scroll). */
 function picker(){const q=stair();
-  return '<p class="stloc">'+ico('map')+' '+(q?'<b>'+esc(q.name)+'</b> · '+CATN[bandOf(q.angle)]+' · θ '+deg(q.angle)+' (estimated) · '+(hasXY(q)?q.lat.toFixed(5)+', '+q.lng.toFixed(5):'no map coordinates')
+  return '<p class="stloc">'+ico('map')+' '+(q?'<b>'+esc(q.name)+'</b> · '+CATN[bandOf(q.angle)]+' · θ '+deg(q.angle)+' (real) · '+(hasXY(q)?q.lat.toFixed(5)+', '+q.lng.toFixed(5):'no map coordinates')
     :'<span class="mut">No staircase picked yet. Tap one on the map, or search for it on the map, or check in by GPS.</span>')+'</p>'
-    +'<p class="stnote mut">'+STAIRS.length+' stairways at Kolej MARA Kulim: '+CATS.map(c=>CATN[c[1]]+' '+stairsOf(c[1]).length).join(' + ')+'. Bands by angle: '+CATS.map(c=>CATN[c[1]]+' '+BAND_RANGE[c[1]]).join(', ')+'. θ = tan⁻¹(rise ÷ run), estimated from the stairway\'s stored data. It is an estimate, not a measurement.</p>'}
+    +'<p class="stnote mut">'+STAIRS.length+' stairways at Kolej MARA Kulim: '+CATS.map(c=>CATN[c[1]]+' '+stairsOf(c[1]).length).join(' + ')+'. Bands by angle: '+CATS.map(c=>CATN[c[1]]+' '+BAND_RANGE[c[1]]).join(', ')+'. θ = tan⁻¹(rise ÷ run), from the stairway\'s stored data.</p>'}
 function study(){
   const row=r=>{const q=STAIRS.find(x=>x.id===r.id);return '<tr><td>'+r.k+' · '+esc(r.n)+' <small class="mut">('+r.id+')</small></td><td>'+r.rise.toFixed(3)+'</td><td>'+r.run.toFixed(3)+'</td><td>'+r.hyp.toFixed(3)+'</td><td>'+r.th.toFixed(2)+'</td><td>'+r.rank+'</td><td>'+CATN[bandOf(q?q.angle:r.th)]+'</td></tr>'};
   return '<div class="card stcard" id="ststudy"><details><summary><b>'+ico('chart')+' OUR MEASURED STAIRWAYS (GROUP 14 STUDY)</b></summary>'
@@ -160,7 +160,28 @@ const CK={c:{s:'ss',c:'sc',i:'stc',t:'tot'},w:{s:'wk-s',c:'wk-c',i:'stw',t:'wk-t
 const cobj=k=>k==='w'?W:C;
 const showBox=(o)=>o.r==='c'||(o.r==null&&o.steps!=='')||(typeof o.r==='number');
 const totTxt=(s,c)=>s>0&&c>0?s+' steps × '+c+' climbs = <b>'+s*c+' steps</b>':'<span class="mut">Pick steps per climb and number of climbs to see the total.</span>';
-function counter(k){const m=CK[k],o=cobj(k),sv=+o.steps||0,cv=+o.climbs||0,v=o.steps!==''?+o.steps:null,ri=o.r==='c'?-1:v!=null?inRng(v):-1;
+/* Fixed steps (owner's request, 2026-10-24): each STAIRS record lists its steps per flight (survey, data/stair-survey.json), so a climb
+   needs no step range. One climb is the whole staircase; on a staircase of more than 2 flights the user also picks how many levels
+   (flights) the climb covered. The record saved is unchanged: steps (the fixed count) × climbs. Without a stair picked there is no count yet. */
+const fixOf=()=>{const q=stair();return q&&Array.isArray(q.steps)&&q.steps.length?q:null};
+const sumTo=(q,n)=>q.steps.slice(0,n).reduce((a,b)=>a+b,0);
+function applyFix(k,q){const o=cobj(k);if(o.lvFor!==q.id||!(o.lv>=1&&o.lv<=q.steps.length)){o.lv=q.steps.length;o.lvFor=q.id}o.steps=String(sumTo(q,o.lv));return o}
+const fixTxt=(q,lv)=>{const n=q.steps.length,t=sumTo(q,lv);return '<b>'+t+' steps</b> per climb'+(n>1?(lv===n?' ('+n+' flights':' ('+lv+' of '+n+' flights')+(q.steps.every(x=>x===q.steps[0])?' of '+q.steps[0]:'')+')':'')};
+function counterFixed(k,q){const m=CK[k],o=q?applyFix(k,q):cobj(k),cv=+o.climbs||0,sv=q?+o.steps:0;if(!q){o.steps='';o.lvFor=null}
+  const chip=(a,t,on,x)=>'<button type="button" class="chip stchip'+(on?' on':'')+'" data-a="'+a+'" data-k="'+k+'"'+x+' aria-pressed="'+(on?'true':'false')+'">'+t+'</button>';
+  return '<div class="stcnt" id="stcnt-'+k+'"><p class="stfix" id="stfix-'+k+'">'+(q?'Steps per climb: '+fixTxt(q,o.lv)+' <small class="mut">(fixed for this staircase)</small>':'<span class="mut">Pick a staircase: its number of steps is filled in for you.</span>')+'</p>'
+    +(q&&q.steps.length>2?'<b class="stlab" id="stl-'+k+'v">Levels (flights) climbed in one climb</b><div class="stchips" role="group" aria-labelledby="stl-'+k+'v">'+q.steps.map((_,i)=>chip('stlv',String(i+1),o.lv===i+1,' data-n="'+(i+1)+'"')).join('')+'</div>':'')
+    +'<input type="hidden" id="'+m.s+'" data-in="'+m.i+'" value="'+esc(o.steps)+'">'
+    +'<b class="stlab" id="stl-'+k+'c">Number of climbs</b>'
+    +'<div class="stchips" role="group" aria-labelledby="stl-'+k+'c">'+CLIMBS.map(n=>chip('stcl',String(n),cv===n,' data-n="'+n+'"')).join('')+'</div>'
+    +'<label>Or type the number of climbs<input id="'+m.c+'" data-in="'+m.i+'" type="number" min="1" max="500" inputmode="numeric" value="'+esc(o.climbs)+'"></label>'
+    +'<p class="stot" id="'+m.t+'" role="status">'+totTxt(sv,cv)+'</p></div>'}
+acts.stlv=d=>{const k=d.k==='w'?'w':'c',q=fixOf();if(!q)return;const o=cobj(k),n=+d.n;if(!(n>=1&&n<=q.steps.length))return;o.lv=n;o.lvFor=q.id;o.steps=String(sumTo(q,n));
+  const h=$id(CK[k].s);if(h)h.value=o.steps;const f=$id('stfix-'+k);if(f)f.innerHTML='Steps per climb: '+fixTxt(q,n)+' <small class="mut">(fixed for this staircase)</small>';
+  document.querySelectorAll('#stcnt-'+k+' [data-a="stlv"]').forEach(b=>{const on=+b.dataset.n===n;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')});
+  k==='w'?INP.stw(h):INP.stc();syncCnt(k)};
+function counter(k){const q=fixOf();if(q||!stair())return counterFixed(k,q);
+  const m=CK[k],o=cobj(k),sv=+o.steps||0,cv=+o.climbs||0,v=o.steps!==''?+o.steps:null,ri=o.r==='c'?-1:v!=null?inRng(v):-1;
   const chip=(a,t,on,x)=>'<button type="button" class="chip stchip'+(on?' on':'')+'" data-a="'+a+'" data-k="'+k+'"'+x+' aria-pressed="'+(on?'true':'false')+'">'+t+'</button>';
   return '<div class="stcnt" id="stcnt-'+k+'"><div class="stlabr"><b class="stlab" id="stl-'+k+'s">Steps per climb</b>'+ssBtn(k)+'</div><small class="mut">Count the steps from the bottom to the top of one climb. Pick the range that fits.</small>'
     +'<div class="stchips" role="group" aria-labelledby="stl-'+k+'s">'+RNG.map((r,i)=>chip('strng',r[0]+'–'+r[1],i===ri,' data-r="'+i+'"')).join('')+chip('strng','Custom',o.r==='c'||(v!=null&&ri<0),' data-r="c"')+'</div>'

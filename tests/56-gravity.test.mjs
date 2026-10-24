@@ -146,7 +146,7 @@ test('sensor granted: steps and cadence appear, PAUSE and FINISH stop the sensor
   assert.equal(+await page.inputValue('#gv-r'), 10.9);   // 30.53 cm x tan 19.6 degrees
   assert.match(await page.textContent('#gv-rn'), /Estimated from the stairway.s angle[\s\S]*tan 19\.6/);
   // a very steep stairway would give an absurd height (> 30 cm): nothing is guessed, work and power are unavailable
-  await pickStair(page, 'ST33');
+  await pickStair(page, 'ST32');
   assert.equal(await page.inputValue('#gv-r'), '');
   assert.match(await page.textContent('#gv-res'), /unavailable[\s\S]*unavailable[\s\S]*unavailable[\s\S]*unavailable/);
   assert.match(await page.textContent('#gv-res'), /Unavailable until you enter: height of one step/);
@@ -264,71 +264,42 @@ const finishWith = async (page, steps, min, sid = 'ST20', climbs) => {
   if (climbs) await page.fill('#gv-k', String(climbs));
 };
 
-test('LOG A CLIMB BY HAND: the STAIR SENSE button sits beside "Steps per climb", jumps to the trial, and fills steps, climbs and stairway', async () => {
+// Since 2026-10-24 the steps of a climb are fixed by the stair (js/v6-stairs-data.js), so no form has a "Steps per climb" field for
+// Stair Sense to fill: the Gravity Trial stands alone and saves by itself.
+test('LOG A CLIMB BY HAND and SEAL THE WORKOUT: the steps are fixed, so there is no STAIR SENSE button beside them; the Trial saves by itself', async () => {
   const { page, ctx, errors } = await boot(RETURNING, { sensor: NONE });
-  assert.equal(await page.locator('#stcnt-c .stlabr .gvbtn').count(), 1, 'in the label row of the field');
-  assert.match(await page.textContent('#stcnt-c .stlabr'), /Steps per climb[\s\S]*STAIR SENSE/);
-  const before = await stairs(page);
-  await page.click('#stcnt-c .gvbtn');
-  assert.match(await page.textContent('.gvfrom'), /Started from LOG A CLIMB BY HAND/);
-  await page.waitForTimeout(700); assert.ok(await inView(page, '#gvtrial'), 'the screen moves to the Gravity Trial');
-  await finishWith(page, 24, 2, 'ST20', 2);
-  assert.match(await page.textContent('#gv-kn'), /24 ÷ 2 = 12/);
-  assert.equal(await page.locator('[data-a="gvsave"]').count(), 0, 'no second way to log the same climb');
-  await page.click('[data-a="gvsend"]');
-  assert.equal(await page.inputValue('#ss'), '12'); assert.equal(await page.inputValue('#sc'), '2');
-  assert.equal(await page.evaluate(() => HWStairs.pick), 'ST20');
-  assert.match(await page.textContent('#stcnt-c .stot'), /12 steps × 2 climbs = 24 steps/);
-  assert.deepEqual(await stairs(page), before, 'sending only fills the form');
-  assert.equal(await page.evaluate(() => HWGravity.state), 'idle');
-  await page.waitForTimeout(500); assert.ok(await inView(page, '#stcnt-c'), 'and back to the field');
-  await page.click('[data-a="savestair"]');
-  const e = (await stairs(page)).at(-1);
-  assert.equal(e.v, 24); assert.equal(e.m.steps, 12); assert.equal(e.m.climbs, 2); assert.equal(e.m.sid, 'ST20');
-  assert.equal((await stairs(page)).length, before.length + 1, 'logged once');
-  assert.deepEqual(errors, []); await ctx.close();
-});
-
-test('SEAL THE WORKOUT: steps, climbs, the time and the stairway are filled in', async () => {
-  const { page, ctx, errors } = await boot(RETURNING, { sensor: NONE });
+  assert.equal(await page.locator('#stcnt-c .gvbtn, #stcnt-w .gvbtn').count(), 0);
+  assert.equal(await page.locator('#stcnt-c .stfix').count(), 1, 'the fixed step count is shown instead');
   await go(page, 'pulse');
-  assert.equal(await page.locator('#stcnt-w .stlabr .gvbtn').count(), 1);
-  await page.click('#stcnt-w .gvbtn');
-  assert.match(await page.textContent('.gvfrom'), /Started from SEAL THE WORKOUT.*steps and the time/);
-  await finishWith(page, 30, 3.5, 'ST19');
-  await page.click('[data-a="gvsend"]');
-  assert.equal(await page.inputValue('#wk-s'), '30'); assert.equal(await page.inputValue('#wk-c'), '1');
-  assert.equal(await page.inputValue('#wk-d'), '3.5'); assert.equal(await page.evaluate(() => HWStairs.pick), 'ST19');
-  assert.equal((await stairs(page)).length, 0);
-  await page.click('[data-a="stwsave"]');
-  const e = (await stairs(page)).at(-1);
-  assert.equal(e.v, 30); assert.equal(e.m.dur, 3.5); assert.equal(e.m.kind, 'workout');
+  assert.equal(await page.locator('#stcnt-w .gvbtn').count(), 0);
+  const before = await stairs(page);
+  await finishWith(page, 24, 2, 'ST20');
+  assert.equal(await page.locator('[data-a="gvsend"]').count(), 0); assert.equal(await page.locator('[data-a="gvsave"]').count(), 1);
+  await page.click('[data-a="gvsave"]');
+  assert.equal((await stairs(page)).length, before.length + 1, 'logged once, by the Trial');
   assert.deepEqual(errors, []); await ctx.close();
 });
 
-test('GPS CHECK-IN: the button is beside Steps per climb on the confirm step and fills it', async () => {
+test('GPS CHECK-IN: the steps of the stair are fixed (28 for ST20), so no STAIR SENSE button and no step field', async () => {
   const r = await openApp({ seed: RETURNING, before: p => p.addInitScript(NONE) });
   await r.ctx.grantPermissions(['geolocation']); await r.ctx.setGeolocation({ latitude: 5.35202, longitude: 100.53838, accuracy: 12 });
   const { page, ctx, errors } = r;
   await page.waitForSelector('.wl'); await go(page, 'stair');
   await page.click('#v6gps [data-a="gpsfind"]'); await page.click('[data-a="gpsok"]'); await page.waitForSelector('#v6gps .v6gpl');
   await page.click('[aria-label="Check in at Tangga sebelah rumah penjana elektrik ke Dewan Kenanga"]');
-  assert.equal(await page.locator('#v6gps .gpsss .gvbtn').count(), 1);
-  await page.click('#v6gps .gvbtn');
-  assert.match(await page.textContent('.gvfrom'), /Started from GPS CHECK-IN/);
-  await finishWith(page, 30, 2, 'ST20');
-  await page.click('[data-a="gvsend"]');
-  assert.equal(await page.inputValue('#gps-s'), '30'); assert.equal(await page.inputValue('#gps-c'), '1');
+  assert.equal(await page.locator('#v6gps .gvbtn').count(), 0);
+  assert.equal(await page.getAttribute('#gps-s', 'type'), 'hidden');
+  assert.match(await page.textContent('#v6gps .stfix'), /28 steps/);
   assert.equal((await stairs(page)).length, 0);
   await page.click('[data-a="gpsconfirm"]');
-  assert.equal((await stairs(page)).at(-1).v, 30);
+  assert.equal((await stairs(page)).at(-1).v, 28);
   assert.equal((await stairs(page)).length, 1);
   assert.deepEqual(errors, []); await ctx.close();
 });
 
 test('NOT FOR THAT FORM clears the target, and the trial then saves by itself as before', async () => {
   const { page, ctx, errors } = await boot(RETURNING, { sensor: NONE });
-  await page.click('#stcnt-c .gvbtn'); await page.click('[data-a="gvuntarget"]');
+  await page.evaluate(() => acts.gvgo({ k: 'c' })); await page.click('[data-a="gvuntarget"]');
   assert.equal(await page.locator('.gvfrom').count(), 0);
   await finishWith(page, 20, 1);
   assert.equal(await page.locator('[data-a="gvsave"]').count(), 1); assert.equal(await page.locator('[data-a="gvsend"]').count(), 0);

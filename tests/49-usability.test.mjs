@@ -39,25 +39,39 @@ test('an example line sits under an empty input, links to it and hides once ther
   assert.deepEqual(errors, []); await ctx.close();
 });
 
-test('stairs: two taps fill a climb with a range midpoint and a count; 44px chips; total reads steps × climbs; saved shape unchanged', async () => {
+test('stairs: the steps of a climb are fixed by the stair; one tap picks the climbs; levels only for stairs of more than 2 flights; saved shape unchanged', async () => {
   const { page, ctx, errors } = await openApp(M);
   await go(page, 'stair');
-  await pickStair(page);
-  assert.equal(await page.isHidden('#ss'), true, 'number box waits behind the chips');
-  await page.tap('#stman [data-a="strng"][data-r="1"]');      // 6–10 → 8
+  await pickStair(page);                                       // ST02: 1 flight of 5 steps
+  assert.equal(await page.locator('#stman [data-a="strng"]').count(), 0, 'no step range to choose');
+  assert.equal(await page.getAttribute('#ss', 'type'), 'hidden');
+  assert.equal(await page.inputValue('#ss'), '5');
+  assert.match(await page.textContent('#stfix-c'), /5 steps per climb \(fixed for this staircase\)/);
+  assert.equal(await page.locator('#stman [data-a="stlv"]').count(), 0, 'one flight: no levels to choose');
   await page.tap('#stman [data-a="stcl"][data-n="3"]');
-  assert.equal(await page.inputValue('#ss'), '8');
   assert.equal(await page.inputValue('#sc'), '3');
-  assert.match(await page.textContent('#tot'), /8 steps × 3 climbs = 24 steps/);
+  assert.match(await page.textContent('#tot'), /5 steps × 3 climbs = 15 steps/);
   const small = await page.$$eval('#stcnt-c .chip', b => b.filter(x => x.offsetHeight < 44 || x.offsetWidth < 44).length);
   assert.equal(small, 0, 'every chip is at least 44 px');
-  await page.fill('#ss', '9'); assert.match(await page.textContent('#tot'), /9 steps × 3 climbs = 27 steps/, 'the default can be changed');
   await page.tap('#stman [data-a="savestair"]'); await page.waitForTimeout(300);
   const e = (await state(page)).e.filter(x => x.c === 'stair')[0];
-  assert.equal(e.v, 27); assert.equal(e.m.steps, 9); assert.equal(e.m.climbs, 3);
-  await page.tap('#stman [data-a="strng"][data-r="c"]'); await page.fill('#ss', '1001'); await page.tap('#stman [data-a="stcl"][data-n="2"]');
-  await page.tap('#stman [data-a="savestair"]'); await page.waitForTimeout(200);
-  assert.equal((await state(page)).e.filter(x => x.c === 'stair').length, 1, 'steps above 1000 are still refused');
+  assert.equal(e.v, 15); assert.equal(e.m.steps, 5); assert.equal(e.m.climbs, 3);
+  // two flights (ST06, 11 + 11): one climb is the whole stair, still no levels to choose
+  await page.evaluate(() => acts.cmppick({ id: 'ST06' })); await page.waitForSelector('#stcnt-c');
+  assert.equal(await page.inputValue('#ss'), '22');
+  assert.equal(await page.locator('#stman [data-a="stlv"]').count(), 0);
+  // five flights (ST03, 5 x 11): the levels climbed in one climb are asked for
+  await page.evaluate(() => acts.cmppick({ id: 'ST03' })); await page.waitForSelector('#stcnt-c');
+  assert.equal(await page.locator('#stman [data-a="stlv"]').count(), 5);
+  assert.equal(await page.inputValue('#ss'), '55', 'all five flights until told otherwise');
+  await page.tap('#stman [data-a="stlv"][data-n="2"]');
+  assert.equal(await page.inputValue('#ss'), '22');
+  assert.match(await page.textContent('#stfix-c'), /22 steps per climb \(2 of 5 flights of 11\)/);
+  await page.tap('#stman [data-a="stcl"][data-n="2"]');
+  assert.match(await page.textContent('#tot'), /22 steps × 2 climbs = 44 steps/);
+  await page.tap('#stman [data-a="savestair"]'); await page.waitForTimeout(300);
+  const e2 = (await state(page)).e.filter(x => x.c === 'stair').at(-1);
+  assert.deepEqual([e2.v, e2.m.sid, e2.m.steps, e2.m.climbs], [44, 'ST03', 22, 2]);
   assert.ok(await noScroll(page));
   assert.deepEqual(errors, []); await ctx.close();
 });

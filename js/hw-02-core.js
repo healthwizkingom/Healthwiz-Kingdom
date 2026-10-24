@@ -226,13 +226,13 @@ const CATS=[['🌿','MILD'],['⚔️','MODERATE'],['🔥','VIGOROUS']];
 const STAIRS=[
 // v6 (stairs refactor): ST01 "Tangga Selangkah Menara Gading" 7.26° removed: a placeholder shipped in the code (same name as ST02, no
 // coordinates) that showed as the pre-selected stairway. Sessions already logged there keep their own name and data.
+// 2026-10-24: ST27 (a second "Tangga Anjung Santap") removed and ST28-ST33 renumbered ST27-ST32. ST08 removed (same stair as ST21, "Tangga Makmal Inovasi ke bilik 406, 407": identical name and measurements). ST01 is back as "Tangga dalam Blok E", with ST34-ST38, steps and photos, from js/v6-stairs-data.js (this file stays under 64 KB).
 {"id": "ST02", "cat": "MILD", "name": "Tangga Selangkah Menara Gading", "floor": "G level", "angle": 14.25, "lat": null, "lng": null},
 {"id": "ST03", "cat": "MILD", "name": "Tangga ke Dewan Mawar / Makmal Fizik (depan office)", "floor": "G level", "angle": 19.6, "lat": 5.3515422, "lng": 100.5380308},
 {"id": "ST04", "cat": "MILD", "name": "Tangga dari cafe ke court tennis", "floor": "G level", "angle": 20.94, "lat": 5.3504943, "lng": 100.5389913},
 {"id": "ST05", "cat": "MILD", "name": "Tangga parking KJ ke laluan study putra (belakang Jab. Matematik)", "floor": "G level", "angle": 21.8, "lat": 5.3512084, "lng": 100.5377726},
 {"id": "ST06", "cat": "MILD", "name": "Tangga depan Pejabat HEP ke Makmal Kimia (tingkat 1)", "floor": "Tingkat 1", "angle": 23.96, "lat": 5.3515635, "lng": 100.5383731},
 {"id": "ST07", "cat": "MILD", "name": "Tangga sebelah depan Bilik Raflesia (sebelah Seroja) ke Lab Biology", "floor": "G level", "angle": 24.45, "lat": 5.3512758, "lng": 100.5383744},
-{"id": "ST08", "cat": "MILD", "name": "Tangga Makmal Inovasi ke bilik 406, 407", "floor": "G level", "angle": 24.51, "lat": null, "lng": null},
 {"id": "ST09", "cat": "MILD", "name": "Tangga dari Dataran Ilmu ke Jab. Sains / Makmal Biology", "floor": "G level", "angle": 24.72, "lat": 5.3512708, "lng": 100.538078},
 {"id": "ST10", "cat": "MILD", "name": "Tangga dari parking Anjung Santap ke koperasi (melalui tempat pungutan parcel)", "floor": "G level", "angle": 24.86, "lat": 5.3511202, "lng": 100.539051},
 {"id": "ST11", "cat": "MILD", "name": "Tangga dari court tennis ke Blok C", "floor": "G level", "angle": 25.71, "lat": 5.3496995, "lng": 100.5390775},
@@ -251,13 +251,12 @@ const STAIRS=[
 {"id": "ST24", "cat": "VIGOROUS", "name": "Tangga dalam Blok A", "floor": "G level", "angle": 31.21, "lat": 5.3490042, "lng": 100.5388927},
 {"id": "ST25", "cat": "VIGOROUS", "name": "Tangga dalam Blok B", "floor": "G level", "angle": 31.3, "lat": 5.3490162, "lng": 100.5391398},
 {"id": "ST26", "cat": "VIGOROUS", "name": "Tangga dari rumah pengarah naik ke Blok E", "floor": "G level", "angle": 31.52, "lat": 5.3520232, "lng": 100.5388347},
-{"id": "ST27", "cat": "VIGOROUS", "name": "Tangga dari parking Anjung Santap ke koperasi (melalui tempat pungutan parcel)", "floor": "G level", "angle": 31.55, "lat": 5.3509924, "lng": 100.5388522},
-{"id": "ST28", "cat": "VIGOROUS", "name": "Tangga naik ke Smart Classroom", "floor": "G level", "angle": 34.02, "lat": 5.3507487, "lng": 100.5379365},
-{"id": "ST29", "cat": "VIGOROUS", "name": "Tangga naik ke Dewan Semarak", "floor": "G level", "angle": 37.2, "lat": null, "lng": null},
-{"id": "ST30", "cat": "VIGOROUS", "name": "Tangga dari parking Anjung Santap ke Blok FAZ (sebelah belakang)", "floor": "G level", "angle": 37.84, "lat": 5.3511299, "lng": 100.5395432},
-{"id": "ST31", "cat": "VIGOROUS", "name": "Tangga aras 1 naik ke bilik tutorial (sebelah Lab Fizik) — lower half", "floor": "Tingkat 2", "angle": 59.76, "lat": 5.3515635, "lng": 100.5383731},
-{"id": "ST32", "cat": "VIGOROUS", "name": "Tangga aras 1 naik ke bilik tutorial (sebelah Lab Fizik) — upper half", "floor": "Tingkat 2", "angle": 60.13, "lat": 5.3515635, "lng": 100.5383731},
-{"id": "ST33", "cat": "VIGOROUS", "name": "Tangga cafe ke Dewan Kemboja (dewan exam) (tangga hujung)", "floor": "G level", "angle": 65.52, "lat": 5.3504813, "lng": 100.5389749}
+{"id": "ST27", "cat": "VIGOROUS", "name": "Tangga naik ke Smart Classroom", "floor": "G level", "angle": 34.02, "lat": 5.3507487, "lng": 100.5379365},
+{"id": "ST28", "cat": "VIGOROUS", "name": "Tangga naik ke Dewan Semarak", "floor": "G level", "angle": 37.2, "lat": null, "lng": null},
+{"id": "ST29", "cat": "VIGOROUS", "name": "Tangga dari parking Anjung Santap ke Blok FAZ (sebelah belakang)", "floor": "G level", "angle": 37.84, "lat": 5.3511299, "lng": 100.5395432},
+{"id": "ST30", "cat": "VIGOROUS", "name": "Tangga aras 1 naik ke bilik tutorial (sebelah Lab Fizik) — lower half", "floor": "Tingkat 2", "angle": 59.76, "lat": 5.3515635, "lng": 100.5383731},
+{"id": "ST31", "cat": "VIGOROUS", "name": "Tangga aras 1 naik ke bilik tutorial (sebelah Lab Fizik) — upper half", "floor": "Tingkat 2", "angle": 60.13, "lat": 5.3515635, "lng": 100.5383731},
+{"id": "ST32", "cat": "VIGOROUS", "name": "Tangga cafe ke Dewan Kemboja (dewan exam) (tangga hujung)", "floor": "G level", "angle": 65.52, "lat": 5.3504813, "lng": 100.5389749}
 ];
 const stairsOf=c=>STAIRS.filter(s=>s.cat===c),hasXY=s=>s.lat!=null&&s.lng!=null,catI=()=>CATS.findIndex(c=>c[1]===STAIRS[S.loc].cat);
 const PACES=[['🐢','Easy',1100,3,35],['⚔️','Moderate',850,2,65],['🔥','Vigorous',700,2,90]];

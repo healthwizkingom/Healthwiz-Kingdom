@@ -74,12 +74,12 @@ test('NEAREST STAIRS: a wave, then the nearest staircases with CHECK IN; a switc
   // CHECK IN: the check-in form, then a saved casual GPS session
   const n0 = await page.evaluate(() => st.e.filter(e => e.c === 'stair').length);
   await page.click('#v6gps [data-a="gpspick"]');
-  await page.fill('#gps-s', '12'); await page.fill('#gps-c', '2');
+  await page.selectOption('#gps-lv', '1'); await page.fill('#gps-c', '2'); // the nearest stair (ST03) has 5 flights of 11: one level, 2 climbs
   await page.click('[data-a="gpsconfirm"]');
   await until(page, () => /Checked in at/.test((document.getElementById('v6gps') || {}).textContent || ''), 5000);
   const last = await page.evaluate(() => st.e.filter(e => e.c === 'stair').at(-1));
   assert.equal(await page.evaluate(() => st.e.filter(e => e.c === 'stair').length), n0 + 1);
-  assert.deepEqual([last.v, last.m.src, last.m.kind], [24, 'gps', 'casual']);
+  assert.deepEqual([last.v, last.m.src, last.m.kind], [22, 'gps', 'casual']);
   // a demo walk: simulated, so no check-in
   await page.evaluate(() => acts.cmpmedemo());
   await until(page, () => HWCampus.me.st === 'demo' && !!HWCampus.me.last, 10000);

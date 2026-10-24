@@ -31,16 +31,16 @@ test('the door is last in the Health Hall; from the file the page says the map n
   const facts = await page.evaluate(() => ({ withXY: STAIRS.filter(hasXY).length, groups: HWCampus.points().length, unmapped: HWCampus.unmapped().map(s => s.id),
     shared: HWCampus.points().filter(g => g.items.length > 1).map(g => g.items.map(s => s.id).sort().join('+')).sort(), items: document.querySelectorAll('#cmplist .cmpitem').length,
     filters: [...document.querySelectorAll('.cmpf')].map(b => b.textContent.replace(/\s+/g, ' ').trim()) }));
-  assert.equal(facts.withXY, 28);
-  assert.equal(facts.groups, 25, '28 placed staircases on 25 points');
-  assert.deepEqual(facts.unmapped.sort(), ['ST02', 'ST08', 'ST16', 'ST29']);
-  assert.deepEqual(facts.shared, ['ST06+ST31+ST32', 'ST09+ST15'], 'staircases sharing one coordinate are one point');
-  assert.equal(facts.items, 32);
-  assert.deepEqual(facts.filters, ['All 32', 'On the map 28', 'No location 4', 'Step size measured 3', 'Needs checking 7']);
+  assert.equal(facts.withXY, 33);
+  assert.equal(facts.groups, 30, '33 placed staircases on 30 points');
+  assert.deepEqual(facts.unmapped.sort(), ['ST02', 'ST16', 'ST28']);
+  assert.deepEqual(facts.shared, ['ST06+ST30+ST31', 'ST09+ST15'], 'staircases sharing one coordinate are one point');
+  assert.equal(facts.items, 36);
+  assert.deepEqual(facts.filters, ['All 36', 'Mild 11', 'Moderate 12', 'Vigorous 13']);
   const t = await page.textContent('#cmpcard');
   assert.match(t, /Locations are not verified\.[\s\S]*no recorded source/);
   assert.match(t, /Campus-wide activity[\s\S]*Not available\. HealthWiz does not collect anyone else's location/);
-  assert.match(t, /4 staircases have no coordinates in the app data, so they are not on the map\. You can still pick them here\./);
+  assert.match(t, /3 staircases have no coordinates in the app data, so they are not on the map\. You can still pick them here\./);
   assert.match(t, /Survey data: not loaded/);
   // the door sits after the Science Laboratory's
   await go(page, 'health');
@@ -57,17 +57,17 @@ test('details in three groups with the player\'s own climbs and honest labels; p
   assert.deepEqual(await page.$$eval('#cmpdet .cmpgrp h3', a => a.map(x => x.textContent.trim())), ['Location', 'Staircase profile', 'Data quality']);
   const d = await page.textContent('#cmpdet');
   assert.match(d, /You saved 1 stair session here \(last \d{4}-\d\d-\d\d\) · first GPS check-in 2026-10-01/);
-  assert.match(d, /5\.3519878, 100\.5383771Estimated location · HealthWiz app data/);
+  assert.match(d, /5\.3519878, 100\.5383771Real location · HealthWiz stair list/);
   assert.match(d, /rise 0\.169 m · run 0\.311 m · hypotenuse 0\.354 m[\s\S]*Measured · Group 14 F21 Full Written Report \(v4\), Table 2, Staircase A/);
-  assert.match(d, /Estimated location[\s\S]*Angle from measured steps[\s\S]*Orientation not surveyed[\s\S]*Partially measured: step size only/);
+  assert.match(d, /Real location[\s\S]*Angle from measured steps[\s\S]*Orientation not surveyed[\s\S]*Partially measured: step size only/);
   assert.match(d, /Floor label"G level"App data; its meaning on site is not documented\./);
   assert.doesNotMatch(d, /Nearest OSM place|Map terrain/, 'computed map facts appear only with the map data');
   assert.equal(await page.locator('#cmpdet [data-a="cmpshow"]').count(), 0, 'no SHOW ON MAP without a map');
   assert.match(d, /3D preview: it needs what the map needs \(the web address and WebGL\), so it is not shown here\./);
   assert.equal(await page.locator('#cmpvw').count(), 0);
   // a shared coordinate links to the other records
-  await page.click('[data-a="cmptab"][data-t="list"]'); await page.click('#cmplist .cmpitem[data-id="ST31"]');
-  assert.match(await page.textContent('#cmpdet'), /Same point asST06, ST32[\s\S]*Needs checking/);
+  await page.click('[data-a="cmptab"][data-t="list"]'); await page.click('#cmplist .cmpitem[data-id="ST30"]');
+  assert.match(await page.textContent('#cmpdet'), /Same point asST06, ST31[\s\S]*Needs checking/);
   await page.click('#cmpdet .cmplnk[data-id="ST06"]');
   assert.equal(await page.evaluate(() => HWCampus.selected), 'ST06');
   // picking it opens LOG A CLIMB HERE for it (logging lives in the Observatory since 2026-10-20)
@@ -86,18 +86,21 @@ test('search filters in place (focus kept), filters narrow the list, an unmapped
   await page.focus('#cmpq'); await page.keyboard.type('kenanga');
   assert.equal(await page.evaluate(() => document.activeElement.id), 'cmpq', 'typing keeps the focus');
   assert.deepEqual(await page.$$eval('#cmplist .cmpitem', a => a.map(b => b.dataset.id)), ['ST14', 'ST19', 'ST20']);
-  assert.match(await page.textContent('#cmpcount'), /Showing 3 of 32/);
+  assert.match(await page.textContent('#cmpcount'), /Showing 3 of 36/);
   await page.keyboard.type(' zzz');
   assert.match(await page.textContent('#cmplist'), /No staircase matches/);
   await page.fill('#cmpq', '');
-  await page.click('[data-a="cmpfilt"][data-f="nol"]');
-  assert.deepEqual(await page.$$eval('#cmplist .cmpitem', a => a.map(b => b.dataset.id)), ['ST02', 'ST08', 'ST16', 'ST29']);
-  await page.click('#cmplist .cmpitem[data-id="ST08"]');
+  await page.fill('#cmpq', 'ST28');                         // no coordinate anywhere (the survey is not loaded from file://)
+  assert.deepEqual(await page.$$eval('#cmplist .cmpitem', a => a.map(b => b.dataset.id)), ['ST28']);
+  await page.click('#cmplist .cmpitem[data-id="ST28"]');
   const d = await page.textContent('#cmpdet');
-  assert.match(d, /No location recorded, so it is not placed on the map\.[\s\S]*No location recorded[\s\S]*Needs checking/);
-  assert.match(d, /Same name as ST21 in the app data: may be the same staircase\./);
-  await page.click('[data-a="cmptab"][data-t="list"]'); await page.click('[data-a="cmpfilt"][data-f="all"]');
-  assert.equal(await page.locator('#cmplist .cmpitem').count(), 32);
+  assert.match(d, /No location recorded, so it is not placed on the map\.[\s\S]*No location recorded/);
+  await page.click('[data-a="cmptab"][data-t="list"]'); await page.fill('#cmpq', '');
+  assert.equal(await page.locator('#cmplist .cmpitem').count(), 36);
+  // the filters: All and the three difficulties only
+  assert.deepEqual(await page.$$eval('.cmpf', b => b.map(x => x.dataset.f)), ['all', 'MILD', 'MODERATE', 'VIGOROUS']);
+  await page.click('[data-a="cmpfilt"][data-f="MILD"]'); assert.equal(await page.locator('#cmplist .cmpitem').count(), 11);
+  await page.click('[data-a="cmpfilt"][data-f="all"]');
   assert.deepEqual(errors, []);
 });
 
@@ -147,17 +150,17 @@ test('weather: off says so; a live reading states it is for a separate, unverifi
 
 test('the selection, tab, filter and search are kept for the tab: leaving and a refresh restore them', async () => {
   const { page, errors } = await open();
-  await page.click('[data-a="cmpfilt"][data-f="part"]');
+  await page.click('[data-a="cmpfilt"][data-f="MODERATE"]');
   await page.click('#cmplist .cmpitem[data-id="ST19"]');
   await go(page, 'home'); await go(page, 'campus');
-  assert.deepEqual(await page.evaluate(() => { const s = HWCampus.state; return [s.sid, s.tab, s.f]; }), ['ST19', 'det', 'part']);
+  assert.deepEqual(await page.evaluate(() => { const s = HWCampus.state; return [s.sid, s.tab, s.f]; }), ['ST19', 'det', 'MODERATE']);
   assert.match(await page.textContent('#cmpdet'), /Blok Aisyah/);
   // a person refreshes seconds later; Chromium writes sessionStorage to the tab's store shortly after a change
   await page.waitForTimeout(3000);
   await page.reload(); await page.waitForSelector('.wl');
   assert.notEqual(await page.evaluate(() => S.v), 'campus', 'a refresh opens the title screen, as before');
   await go(page, 'campus');
-  assert.deepEqual(await page.evaluate(() => { const s = HWCampus.state; return [s.sid, s.tab, s.f]; }), ['ST19', 'det', 'part']);
+  assert.deepEqual(await page.evaluate(() => { const s = HWCampus.state; return [s.sid, s.tab, s.f]; }), ['ST19', 'det', 'MODERATE']);
   assert.doesNotMatch(await page.evaluate(() => sessionStorage.getItem('hw_obs_view')), /"me"|lat"|healthwiz/, 'no position or health data');
   assert.deepEqual(errors, []);
 });

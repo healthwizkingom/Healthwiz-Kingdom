@@ -63,7 +63,7 @@ function points(){const G=new Map();R().filter(placed).forEach(s=>{const k=keyOf
 const unmapped=()=>R().filter(s=>!placed(s));
 
 /* ---------- state: kept for this tab (no position, no health data) ---------- */
-const VK='hw_obs_view',FILTERS=['all','map','nol','part','flag'];
+const VK='hw_obs_view',FILTERS=['all','MILD','MODERATE','VIGOROUS'];
 const V={sid:null,grp:null,mode:'fantasy',cam:null,terr:false,bld:true,full:false,vw:true,tab:'list',f:'all',q:'',me:null,gps:'',err:'',fly:false,sky:'live',skyo:false};
 try{const o=JSON.parse(sessionStorage.getItem(VK)||'null');if(o&&typeof o==='object'){
   if(typeof o.sid==='string')V.sid=o.sid;if(typeof o.grp==='string')V.grp=o.grp;if(o.mode==='realistic')V.mode='realistic';
@@ -202,11 +202,13 @@ function mount3d(){const slot=$id('cmpvwslot'),s=V.sid&&rec(V.sid);
   const k=s.id+'|'+V.mode,was=P3.shown;
   if(was===k)return;
   if(was&&was.split('|')[0]===s.id){P3.ctl.setMode(V.mode);P3.shown=k;return}
-  P3.shown=k;P3.ctl.show(vrec(s),P3.demo,V.mode).then(()=>{if(S.v==='campus')paintShapes()})}
+  P3.shown=k;P3.ctl.show(vrec(s),P3.demo,V.mode).then(()=>{const ks=!vrec(s)._plan&&knownShape(s);if(ks&&P3.ctl&&P3.ctl.shape!==ks)P3.ctl.setShape(ks);if(S.v==='campus')paintShapes()})}
 function unmount3d(){P3.gen++;if(P3.ctl)P3.ctl.destroy();P3.ctl=null;if(P3.host)P3.host.remove();P3.host=null;P3.st='off';P3.shown='';P3.err=''}
 /** The shape buttons follow the viewer (changed in place). */
 function paintShapes(){const w=$id('cmpvwshapes');if(!w||!P3.ctl)return;w.querySelectorAll('[data-shape]').forEach(b=>b.setAttribute('aria-pressed',String(P3.ctl.shape===b.dataset.shape)));
   const sp=$id('cmpvwspin');if(sp)sp.setAttribute('aria-pressed',String(!!P3.ctl.spinning))}
+/** The shape the survey already gives (owner's request, 2026-10-24: no shape buttons when it is known): U = U-turn, straight = straight, a landing = straight with landing. */
+const knownShape=s=>{const v=s&&s.survey&&s.survey.shape;return v==='U'?'U':v==='straight'?'straight':v==='other'?'straight-landing':null};
 const SHAPES=[['straight','Straight'],['straight-landing','Straight with landing'],['L','L-turn'],['U','U-turn (switchback)']];
 /** The preview section at the top of a staircase's details. */
 function preview(s){const plan=HWCampusData.surveyPlan(s),m=s.measuredStep;
@@ -218,7 +220,7 @@ function preview(s){const plan=HWCampusData.surveyPlan(s),m=s.measuredStep;
       '<b>Landings:</b> '+(plan.slice(0,-1).every(f=>f.landingLength)?'measured length'+(plan.slice(0,-1).every(f=>f.landingWidth)?' and width.':'; width taken as the flight width where not measured.'):'where a landing size is not in the sheet, it is drawn as wide and deep as the flight (illustrative).'),
       s.orientationDeg!=null?'<b>Orientation:</b> '+(s.orientationStatus==='measured'?'measured':'estimated')+', '+s.orientationDeg+'° from north.':'<b>Orientation:</b> not surveyed.',
       '<b>Not measured:</b> the materials, railings, posts and the dais. Walls and surroundings are not drawn.']
-    :['<b>Shape, steps, width, landings:</b> demonstration values ('+d.stepsPerFlight+' steps a flight, '+d.width_m+' m wide). Pick a shape to compare; none is this staircase\'s surveyed form.',
+    :['<b>'+(knownShape(s)?'Shape: from the survey sheet. Steps, width, landings:':'Shape, steps, width, landings:')+'</b> demonstration values ('+d.stepsPerFlight+' steps a flight, '+d.width_m+' m wide).'+(knownShape(s)?' The shape follows the survey; the rest is not this staircase\'s surveyed form.':' Pick a shape to compare; none is this staircase\'s surveyed form.'),
       m?'<b>Step size:</b> measured for this staircase (rise '+m.rise_m+' m, run '+m.run_m+' m, F21 report), so the slope of the steps matches its measured angle. Only the step size is real.'
         :'<b>Step size:</b> demonstration value (rise '+d.riser_m+' m, run '+d.tread_m+' m), not this staircase. The stored angle is an estimate and does not size the model.',
       s.orientationDeg!=null?'<b>Orientation:</b> estimated, '+s.orientationDeg+'° from north.':'<b>Orientation:</b> not surveyed. The model faces an arbitrary direction.',
@@ -229,19 +231,19 @@ function preview(s){const plan=HWCampusData.surveyPlan(s),m=s.measuredStep;
     +'<div class="cmpvws"><div class="cmpvwslot" id="cmpvwslot"></div><p class="cmpillus" role="note">'+(plan?'Built from survey measurements · finishes illustrative':'Illustrative model — actual dimensions not surveyed.')+'</p></div>'
     +'<div class="cmpvwc" role="toolbar" aria-label="3D view controls">'+vb('left','Turn left','⟲')+vb('right','Turn right','⟳')+vb('in','Zoom in','+')+vb('out','Zoom out','−')+vb('reset','Reset the view','Reset')
     +vb('spin','Spin','Spin',' id="cmpvwspin" aria-pressed="'+!!(P3.ctl&&P3.ctl.spinning)+'"')+'</div>'
-    +(plan?'':'<div class="cmpvwshapes" id="cmpvwshapes" role="group" aria-label="Demonstration shape">'+SHAPES.map(([k,l])=>'<button type="button" class="g cmpvb" data-a="cmpvwshape" data-shape="'+k+'" aria-pressed="'+((P3.ctl&&P3.ctl.shape||'straight-landing')===k)+'">'+l+'</button>').join('')+'</div>')
+    +(plan||knownShape(s)?'':'<div class="cmpvwshapes" id="cmpvwshapes" role="group" aria-label="Demonstration shape">'+SHAPES.map(([k,l])=>'<button type="button" class="g cmpvb" data-a="cmpvwshape" data-shape="'+k+'" aria-pressed="'+((P3.ctl&&P3.ctl.shape||'straight-landing')===k)+'">'+l+'</button>').join('')+'</div>')
     +'<details class="cmpvwmore"><summary>What is real in this model?</summary><ul>'+facts.map(t=>'<li>'+t+'</li>').join('')+'</ul></details></section>'}
 
 /* ---------- list ---------- */
-const FL={all:['All',()=>true],map:['On the map',placed],nol:['No location',s=>!placed(s)],part:['Step size measured',s=>!!s.measuredStep],flag:['Needs checking',s=>!!s.needsChecking]};
+const FL={all:['All',()=>true],MILD:['Mild',s=>s.appCategory==='MILD'],MODERATE:['Moderate',s=>s.appCategory==='MODERATE'],VIGOROUS:['Vigorous',s=>s.appCategory==='VIGOROUS']};
 let FAC=null; // computed facts (nearest named OSM place, illustrative zone) once the map data is loaded
 const facts=s=>{if(!placed(s)||!window.HWObsMap||!window.HWObsMap.loaded)return null;FAC=FAC||{};const k=s.id+'@'+keyOf(s);return FAC[k]||(FAC[k]=window.HWObsMap.facts(s.longitude,s.latitude))};
 const hay=s=>{const f=facts(s);return(s.id+' '+s.name+' '+s.appFloorLabel+' '+(f&&f.near?f.near.name:'')+' '+(f&&f.zone?f.zone.name+' '+f.zone.region:'')).toLowerCase()};
 function shown(){const fn=FL[V.f][1],q=V.q.trim().toLowerCase();return R().filter(fn).filter(s=>!q||q.split(/\s+/).every(w=>hay(s).indexOf(w)>=0))}
 const dot=s=>placed(s)?'<span class="cmpdot c'+CK[s.appCategory]+'" aria-hidden="true">'+CK[s.appCategory]+'</span>':'<span class="cmpdot nol" aria-hidden="true">?</span>';
 function items(L){return L.length?L.map(s=>'<li><button type="button" class="g cmpitem" data-a="cmppick" data-id="'+s.id+'"'+(V.sid===s.id?' aria-current="true"':'')+'>'+dot(s)
-    +'<span class="cmpnm">'+esc(s.name)+'</span><span class="cmpmeta"><b>'+s.id+'</b><span>θ '+s.estimatedAngle.toFixed(2)+'° '+(s.measuredStep?'(from measured steps)':'(estimated)')+'</span>'
-    +'<span>'+(!placed(s)?'No location recorded':s.locationStatus==='measured'?'Measured location':'Estimated location')+'</span>'+(s.measurementStatus==='surveyed'?'<span>Surveyed</span>':'')+'</span></button></li>').join('')
+    +'<span class="cmpnm">'+esc(s.name)+'</span><span class="cmpmeta"><b>'+s.id+'</b><span>θ '+s.estimatedAngle.toFixed(2)+'° '+(s.measuredStep?'(from measured steps)':'(real)')+'</span>'
+    +'<span>'+(!placed(s)?'No location recorded':s.locationStatus==='measured'?'Measured location':'Real location')+'</span>'+(s.measurementStatus==='surveyed'?'<span>Surveyed</span>':'')+'</span></button></li>').join('')
   :'<li class="mut">No staircase matches. Try another word or filter.</li>'}
 const countTxt=L=>L.length===R().length?R().length+' staircases':'Showing '+L.length+' of '+R().length;
 function listPane(){const L=shown(),u=unmapped().length;
@@ -263,16 +265,16 @@ const n2=v=>v==null?'':esc(v);
 const distM=(a,b)=>dist(a.latitude,a.longitude,b.latitude,b.longitude);
 function details(s,tab){if(tab==='workout')return '<p class="cmpeye">'+s.id+' · '+CN[s.appCategory]+'</p><h3 class="cmph" tabindex="-1">'+esc(s.name)+'</h3>'+logBox(s,tab);
   const m=s.measuredStep,f=facts(s),v=s.survey,a=HWCampusData.activity(s.id),FS=s.flightsSurveyed||[];
-  let loc='<dl class="cmpfacts"><dt>Coordinates</dt>'+(placed(s)?'<dd class="cmpnum">'+s.latitude+', '+s.longitude+'<span class="cmpsrc">'+(s.locationStatus==='measured'?'Measured location · ':'Estimated location · ')+esc(s.locationSource)+'</span></dd>':na('No location recorded, so it is not placed on the map.'));
-  if(s.app&&s.locationStatus==='measured'&&s.app.latitude!=null)loc+='<dt>App estimate</dt><dd class="cmpnum">'+s.app.latitude+', '+s.app.longitude+'<span class="cmpsrc">The original app coordinate (unverified), about '+Math.round(distM(s.app,s))+' m from the measured point. No longer used on the map.</span></dd>';
+  let loc='<dl class="cmpfacts"><dt>Coordinates</dt>'+(placed(s)?'<dd class="cmpnum">'+s.latitude+', '+s.longitude+'<span class="cmpsrc">'+(s.locationStatus==='measured'?'Measured location · ':'Real location · ')+esc(s.locationSource)+'</span></dd>':na('No location recorded, so it is not placed on the map.'));
+  if(s.app&&s.locationStatus==='measured'&&s.app.latitude!=null)loc+='<dt>App coordinate</dt><dd class="cmpnum">'+s.app.latitude+', '+s.app.longitude+'<span class="cmpsrc">The original app coordinate (unverified), about '+Math.round(distM(s.app,s))+' m from the measured point. No longer used on the map.</span></dd>';
   if(v&&(v.building||v.indoorOutdoor||v.lowerLevel||v.upperLevel))loc+='<dt>Building, levels</dt><dd>'+esc([v.building,v.indoorOutdoor].filter(Boolean).join(' · ')||'–')+(v.lowerLevel||v.upperLevel?' · from '+esc(v.lowerLevel||'?')+' to '+esc(v.upperLevel||'?'):'')+'<span class="cmpsrc">'+esc(v.label)+'</span></dd>';
   if(s.sharedLocationWith.length)loc+='<dt>Same point as</dt><dd>'+s.sharedLocationWith.map(id=>'<button type="button" class="cmplnk" data-a="cmppick" data-id="'+id+'">'+id+'</button>').join(', ')+'<span class="cmpsrc">These records store the identical coordinate.</span></dd>';
-  if(f&&f.near)loc+='<dt>Nearest OSM place</dt><dd>'+(f.near.inside?'Inside the outline of ':'About '+Math.round(f.near.d)+' m from ')+'<b>'+esc(f.near.name)+'</b><span class="cmpsrc">Computed from the '+(s.locationStatus==='measured'?'measured':'estimated')+' location and OpenStreetMap outlines. Not a survey.</span></dd>';
+  if(f&&f.near)loc+='<dt>Nearest OSM place</dt><dd>'+(f.near.inside?'Inside the outline of ':'About '+Math.round(f.near.d)+' m from ')+'<b>'+esc(f.near.name)+'</b><span class="cmpsrc">Computed from the '+(s.locationStatus==='measured'?'measured':'real')+' location and OpenStreetMap outlines. Not a survey.</span></dd>';
   if(f)loc+='<dt>Map terrain</dt><dd>'+(f.zone?esc(f.zone.name)+' ('+esc(f.zone.region)+')':'Base level')+'<span class="cmpsrc">Illustrative zone from the owner\'s annotated screenshot. Not a measured elevation.</span></dd>';
   loc+='<dt>Floor label</dt><dd>"'+esc(s.appFloorLabel||'–')+'"<span class="cmpsrc">App data; its meaning on site is not documented.</span></dd></dl>';
   let pro='<dl class="cmpfacts">';
   if(s.surveyAngle!=null)pro+='<dt>Angle θ (survey)</dt><dd class="cmpnum">'+s.surveyAngle.toFixed(2)+'°<span class="cmpsrc">Calculated: θ = arctan(riser ÷ tread) per flight from the survey sheet, mean over its steps (the F21 method).</span></dd>';
-  pro+='<dt>'+(s.surveyAngle!=null?'Angle θ (app)':'Angle θ')+'</dt><dd class="cmpnum">'+s.estimatedAngle.toFixed(2)+'°<span class="cmpsrc">'+(m?'Calculated from measured step rise and run':'Estimated')+' · '+esc(s.angleSource)+'</span></dd>';
+  pro+='<dt>'+(s.surveyAngle!=null?'Angle θ (app)':'Angle θ')+'</dt><dd class="cmpnum">'+s.estimatedAngle.toFixed(2)+'°<span class="cmpsrc">'+(m?'Calculated from measured step rise and run':'Real')+' · '+esc(s.angleSource)+'</span></dd>';
   pro+='<dt>Step size</dt>'+(m?'<dd class="cmpnum">rise '+m.rise_m.toFixed(3)+' m · run '+m.run_m.toFixed(3)+' m · hypotenuse '+m.hypotenuse_m.toFixed(3)+' m<span class="cmpsrc">Measured · '+esc(m.source)+', Staircase '+esc(m.reportStaircase)+' ('+esc(m.reportName)+')</span></dd>':na('Measurements unavailable'));
   pro+='<dt>Orientation</dt>'+(s.orientationDeg!=null?'<dd>'+s.orientationDeg+'° from north<span class="cmpsrc">'+(s.orientationStatus==='measured'?'Measured orientation':'Estimated orientation')+' · '+esc(s.orientationSource||'source not recorded')+'</span></dd>':na('Not yet surveyed'));
   pro+='<dt>Step count</dt>'+(s.stepCount!=null?'<dd>'+s.stepCount+'<span class="cmpsrc">'+esc(s.stepCountSource||'')+'</span></dd>':na('Measurements unavailable'));
@@ -289,7 +291,7 @@ function details(s,tab){if(tab==='workout')return '<p class="cmpeye">'+s.id+' ·
     +grp('map','Location',loc)+grp('stairs','Staircase profile',pro)+grp('scroll','Data quality',q)
     +'<div class="row cmpact"><button type="button" class="g cmpback" data-a="cmptab" data-t="list">ALL STAIRCASES</button></div>'}
 function chooser(g){return '<button type="button" class="cmpback" data-a="cmptab" data-t="list">‹ All staircases</button><p class="cmpeye">Shared point</p><h3 class="cmph" tabindex="-1">'+g.items.length+' staircases at one stored point</h3>'
-  +'<p class="mut cmpsmall">'+g.lat+', '+g.lng+' · '+esc(g.items[0].locationStatus==='measured'?'Measured location (survey)':'Estimated location (app data)')+'. These records store the identical coordinate; on site they are probably separate stairs. Pick one.</p>'
+  +'<p class="mut cmpsmall">'+g.lat+', '+g.lng+' · '+esc(g.items[0].locationStatus==='measured'?'Measured location (survey)':'Real location (app data)')+'. These records store the identical coordinate; on site they are probably separate stairs. Pick one.</p>'
   +'<ul class="cmplist">'+g.items.map(s=>'<li><button type="button" class="g cmpitem" data-a="cmppick" data-id="'+s.id+'">'+dot(s)+'<span class="cmpnm">'+esc(s.name)+'</span><span class="cmpmeta"><b>'+s.id+'</b><span>'+esc(s.appFloorLabel)+'</span></span></button></li>').join('')+'</ul>'}
 /** LOG A CLIMB HERE: the Stairs forms (js/v6-stairs.js) for this staircase. */
 function logBox(s,tab){if(typeof HWStairs==='undefined')return '';const o=tab&&(tab==='workout'?'workout':'casual');
@@ -331,7 +333,7 @@ function ctls(){const on=v=>' aria-pressed="'+!!v+'"';
     ['cmplay','Layers','Map layers: show or hide markers, labels, contours, paths and effects','<svg viewBox="0 0 24 24" aria-hidden="true" class="cmpsv2"><path d="m12 4 9 5-9 5-9-5Z"/><path d="m3 14 9 5 9-5"/></svg>',' id="cmplayb"'],
     ['cmpfit','Campus','Whole campus view',ico('map'),''],['hudlegopen','Legend','Legend: what the map shows',ico('help'),'']]}
 function legend(){return '<p><span class="cmplg m1"></span>Mild <span class="cmplg m2"></span>Moderate <span class="cmplg m3"></span>Vigorous <small>(app category)</small></p>'
-    +'<p><span class="cmplg est"></span>Estimated location <span class="cmplg part"></span>Step size measured (F21) or surveyed</p><p><span class="cmplg ter"></span>Raised ground and contour lines (every 2 m): which area is higher is from the owner\'s annotated screenshot; where the slopes start and end is estimated from the drone video and the staircase list. Heights are illustrative, not measured</p><p><span class="cmplg osm"></span>Roads with kerbs and drains, street lights, goal posts, the tennis net and car parks: modelled in Blender in the look of the drone video, on the OpenStreetMap roads and fields. Car park places are estimated; parked cars are decoration</p><p><span class="cmplg sky"></span>Sky: the live Kulim weather and modelled haze (Settings, Live data) and the time from your clock; a picture, not a forecast</p>'
+    +'<p><span class="cmplg est"></span>Real location <span class="cmplg part"></span>Step size measured (F21) or surveyed</p><p><span class="cmplg ter"></span>Raised ground and contour lines (every 2 m): which area is higher is from the owner\'s annotated screenshot; where the slopes start and end is estimated from the drone video and the staircase list. Heights are illustrative, not measured</p><p><span class="cmplg osm"></span>Roads with kerbs and drains, street lights, goal posts, the tennis net and car parks: modelled in Blender in the look of the drone video, on the OpenStreetMap roads and fields. Car park places are estimated; parked cars are decoration</p><p><span class="cmplg sky"></span>Sky: the live Kulim weather and modelled haze (Settings, Live data) and the time from your clock; a picture, not a forecast</p>'
     +'<p><span class="cmplg osm"></span>Buildings, paths, fields: OpenStreetMap. Building heights are illustrative.</p>'+'<p><span class="cmplg lmkl"></span>Landmark: a place mapped in OpenStreetMap (gold once you have opened it). Exploring is not climbing</p>'+(V.mode==='fantasy'?'<p><span class="cmplg deco"></span>Roofs, turrets, banners, timber framing, trees, lanterns, signposts, notice boards, rune waystones and glows are decoration on the real OSM outlines; the gatehouse stands at the mapped gate</p>':'')
     +'<p><span class="cmplg vis"></span>A ring: you have saved a stair session there</p><p><span class="cmplg osm"></span>The KM KULIM sign: its place is estimated from the owner\'s screenshot; drawn larger than life</p>'
     +(meOn()?'<p>Your avatar: '+AV[avNow()].n+(avSex()?' (from your profile)':'')+'. '+esc(AV[avNow()].c)+' It is drawn larger than life so it can be seen; its size and pace mark nothing.</p>':'')}
