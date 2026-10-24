@@ -76,7 +76,7 @@ test('the solid 3D stops: one per marker, in the difficulty colour, on the marke
       emissive: [1, 2, 3].every(k => d.mats[k].emissive.getHex() !== 0),
       cats: d.list.map(s => s.cat).every(k => [1, 2, 3].includes(k)), dx: Math.abs(one.g.position.y - (map.queryTerrainElevation([one.lng, one.lat]) || 0)) };
   });
-  assert.equal(r.n, 32); assert.ok(r.keys, 'one per marker'); assert.ok(r.st3d); assert.equal(r.hidden, 'hidden', 'the drawn hearts are hidden');
+  assert.equal(r.n, 36, 'one stop per staircase: 36, sharing 32 markers where stairs share a stored point'); assert.ok(r.keys, 'each stop has a marker'); assert.ok(r.st3d); assert.equal(r.hidden, 'hidden', 'the drawn hearts are hidden');
   assert.equal(r.layer, 'custom'); assert.equal(r.mode, '3d', 'shares the depth buffer with the buildings');
   assert.deepEqual(r.colours, ['#7ee07c', '#f6c94f', '#ff7b6e'], 'Mild, Moderate, Vigorous');
   assert.ok(r.depth, 'solid and depth-tested: a building in front hides it'); assert.ok(r.cats);

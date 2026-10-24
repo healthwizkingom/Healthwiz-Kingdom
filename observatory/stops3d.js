@@ -137,7 +137,7 @@ export function createStopLayer(opts) {
     const lng0 = list.reduce((t, s) => t + s.lng, 0) / n, lat0 = list.reduce((t, s) => t + s.lat, 0) / n, kx = k * R0 * Math.cos(lat0 * k), ky = k * R0;
     const mc = opts.ML.MercatorCoordinate.fromLngLat([lng0, lat0], 0), u = mc.meterInMercatorCoordinateUnits();
     model.makeTranslation(mc.x, mc.y, mc.z).multiply(new THREE.Matrix4().makeScale(u, -u, u)).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2));
-    for (const s of list) s.g.position.set((s.lng - lng0) * kx, on ? opts.heightAt(s.lng, s.lat) : 0, -(s.lat - lat0) * ky);
+    for (const s of list) s.g.position.set((s.lng - lng0) * kx + (s.dx || 0), on ? opts.heightAt(s.lng, s.lat) : 0, -(s.lat - lat0) * ky);
   }
   // the ground the map draws, where the markers (the tap targets) stand: its terrain tiles can sit a few metres off the
   // terrain function (8 m in places), so each drawn frame asks the map, and the function only stands in until tiles load
