@@ -66,6 +66,15 @@ function surveyPlan(s){const v=s&&s.survey;if(!v||!v.complete||!v.complete.fligh
   return v.flights.map((f,i,A)=>({n:f.risers,riser:f.riser_cm/100,tread:f.tread_cm/100,width:f.width_cm/100,turn:i<A.length-1?f.turn:null,
     landingLength:f.landing&&f.landing.length_cm?f.landing.length_cm/100:null,landingWidth:f.landing&&f.landing.width_cm?f.landing.width_cm/100:null}))}
 
+/** The 3D plan of a staircase whose steps are surveyed but not all of its widths and landings (owner, 2026-10-24: the model follows
+    the stairs added, removed and adjusted): each flight's steps, riser, tread and turn from the sheet; the width is null where the
+    sheet has none (the viewer draws a demonstration width) and landings are null (drawn as wide and deep as the flight). Null when
+    a flight lacks its steps, riser or tread, or when the staircase is one of the F21 report's, whose measured step size stays the
+    source of truth (the sheet's own numbers for those are shown in its notes). */
+function stepPlan(s){const v=s&&s.survey;if(!v||!Array.isArray(v.flights)||!v.flights.length||s.measuredStep)return null;
+  if(!v.flights.every(f=>f.risers>0&&f.riser_cm>0&&f.tread_cm>0))return null;
+  return v.flights.map((f,i,A)=>({n:f.risers,riser:f.riser_cm/100,tread:f.tread_cm/100,width:f.width_cm>0?f.width_cm/100:null,turn:i<A.length-1?(f.turn||'straight'):null,landingLength:null,landingWidth:null}))}
+
 /* ---------- the survey file: http(s) only ---------- */
 let SV=null,SVst='idle',SVn=0,R=null; // SVst: idle | loading | ok | error | local (opened from the device: not fetched)
 function load(){if(SVst!=='idle')return;const web=/^https?:$/.test(location.protocol);if(!web||typeof fetch!=='function'){SVst='local';return}
@@ -100,5 +109,5 @@ try{sessionStorage.removeItem(CK)}catch(e){} // the old trip's context (versions
 /** Select the staircase in the Observatory and open its Details, where the logging forms are. Nothing is started or saved. */
 function start(id){if(typeof HWStairs==='undefined'||!HWStairs.choose(id))return false;if(typeof HWCampus!=='undefined')HWCampus.focus(id);go('stair');return true}
 
-return{records,record,placed,labels,activity,surveyNote,applySurvey,surveyPlan,start,load,STEEP,
+return{records,record,placed,labels,activity,surveyNote,applySurvey,surveyPlan,stepPlan,start,load,STEEP,
   get survey(){return{status:SVst,stairs:SVn}}}})();

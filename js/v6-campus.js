@@ -187,7 +187,7 @@ acts.cmpavpick=d=>{if(!AV[d.v]||avSex())return;avSet(d.v);ME.choose=false;if(meO
 
 /* ---------- the 3D preview: one element across redraws, like the map ---------- */
 const P3={st:'off',err:'',host:null,ctl:null,demo:null,shown:'',gen:0}; // st: off | loading | ready | error
-const vrec=s=>Object.assign({},s,{_plan:HWCampusData.surveyPlan(s)}); // a copy: the shared records are never changed
+const vrec=s=>Object.assign({},s,{_plan:HWCampusData.surveyPlan(s)||HWCampusData.stepPlan(s)}); // a copy: the shared records are never changed
 function mount3d(){const slot=$id('cmpvwslot'),s=V.sid&&rec(V.sid);
   if(!slot||!s){if(P3.ctl&&P3.shown){P3.ctl.hide();P3.shown=''}return}
   if(!P3.host){P3.host=D0.createElement('div');P3.host.className='cmpvwhost';P3.host.innerHTML='<div class="cmpvwcv"></div><div class="cmpvwmsg" data-loading="1">Loading the 3D model…</div>'}
@@ -211,12 +211,17 @@ function paintShapes(){const w=$id('cmpvwshapes');if(!w||!P3.ctl)return;w.queryS
 const knownShape=s=>{const v=s&&s.survey&&s.survey.shape;return v==='U'?'U':v==='straight'?'straight':v==='other'?'straight-landing':null};
 const SHAPES=[['straight','Straight'],['straight-landing','Straight with landing'],['L','L-turn'],['U','U-turn (switchback)']];
 /** The preview section at the top of a staircase's details. */
-function preview(s){const plan=HWCampusData.surveyPlan(s),m=s.measuredStep;
+function preview(s){const full=HWCampusData.surveyPlan(s),steps=!full&&HWCampusData.stepPlan(s),plan=full||steps,m=s.measuredStep;
   if(why())return '<p class="mut cmpsmall cmpvwna">3D preview: it needs what the map needs (the web address and WebGL), so it is not shown here.</p>';
   if(!V.vw)return '<div class="row cmpact"><button type="button" class="g" data-a="cmpvwopen">SHOW 3D PREVIEW</button></div>';
-  const ch=plan?chip('part','Built from survey measurements')+chip('ill','Finishes illustrative'):chip('ill','Illustrative 3D model')+(m?chip('part','Step size measured (F21)'):chip('miss','Not yet surveyed'));
+  const ch=steps?chip('part','Steps measured (survey)')+chip('ill','Width and landings illustrative'):full?chip('part','Built from survey measurements')+chip('ill','Finishes illustrative'):chip('ill','Illustrative 3D model')+(m?chip('part','Step size measured (F21)'):chip('miss','Not yet surveyed'));
   const d=P3.demo||{stepsPerFlight:9,width_m:1.4,riser_m:.16,tread_m:.3};
-  const facts=plan?['<b>Flights, steps, width, turns and landings:</b> from the survey sheet ('+esc(s.survey.label)+'): '+plan.length+' flight'+(plan.length>1?'s':'')+', '+plan.map(f=>f.n).join(' + ')+' steps.',
+  const uniq=(A,f)=>A.map(f).filter((x,i,B)=>B.indexOf(x)===i).join(' / ');
+  const facts=steps?['<b>Flights, steps, riser, tread and turns:</b> from the survey sheet ('+esc(s.survey.label)+'): '+steps.length+' flight'+(steps.length>1?'s':'')+', '+steps.map(f=>f.n).join(' + ')+' steps, riser '+uniq(steps,f=>(f.riser*100).toFixed(1))+' cm, tread '+uniq(steps,f=>(f.tread*100).toFixed(1))+' cm'+(steps.some(f=>f.turn==='reverse')?', turning back on itself between flights.':'.'),
+      '<b>Width and landings:</b> not measured: drawn at a demonstration width ('+d.width_m+' m) with landings as wide and deep as the flight (illustrative).',
+      s.orientationDeg!=null?'<b>Orientation:</b> '+(s.orientationStatus==='measured'?'measured':'estimated')+', '+s.orientationDeg+'° from north.':'<b>Orientation:</b> not surveyed. The model faces an arbitrary direction.',
+      '<b>Not measured:</b> the materials, railings, posts and the dais. Walls and surroundings are not drawn.']
+    :full?['<b>Flights, steps, width, turns and landings:</b> from the survey sheet ('+esc(s.survey.label)+'): '+plan.length+' flight'+(plan.length>1?'s':'')+', '+plan.map(f=>f.n).join(' + ')+' steps.',
       '<b>Landings:</b> '+(plan.slice(0,-1).every(f=>f.landingLength)?'measured length'+(plan.slice(0,-1).every(f=>f.landingWidth)?' and width.':'; width taken as the flight width where not measured.'):'where a landing size is not in the sheet, it is drawn as wide and deep as the flight (illustrative).'),
       s.orientationDeg!=null?'<b>Orientation:</b> '+(s.orientationStatus==='measured'?'measured':'estimated')+', '+s.orientationDeg+'° from north.':'<b>Orientation:</b> not surveyed.',
       '<b>Not measured:</b> the materials, railings, posts and the dais. Walls and surroundings are not drawn.']
@@ -228,7 +233,7 @@ function preview(s){const plan=HWCampusData.surveyPlan(s),m=s.measuredStep;
   const vb=(v,lab,t,x)=>'<button type="button" class="g cmpvb" data-a="cmpvwc" data-v="'+v+'" aria-label="'+lab+'"'+(x||'')+'>'+t+'</button>';
   return '<section class="cmpvw" id="cmpvw" aria-labelledby="cmpvw-t"><div class="cmpvwh"><div><p class="cmpeye">3D staircase preview</p><b id="cmpvw-t">'+esc(s.name)+'</b></div>'
     +'<button type="button" class="g cmpvwx" data-a="cmpvwclose" aria-label="Close the 3D preview (the staircase stays selected)">×</button></div><ul class="cmpchips">'+ch+'</ul>'
-    +'<div class="cmpvws"><div class="cmpvwslot" id="cmpvwslot"></div><p class="cmpillus" role="note">'+(plan?'Built from survey measurements · finishes illustrative':'Illustrative model — actual dimensions not surveyed.')+'</p></div>'
+    +'<div class="cmpvws"><div class="cmpvwslot" id="cmpvwslot"></div><p class="cmpillus" role="note">'+(steps?'Steps from the survey · width and landings illustrative':full?'Built from survey measurements · finishes illustrative':'Illustrative model — actual dimensions not surveyed.')+'</p></div>'
     +'<div class="cmpvwc" role="toolbar" aria-label="3D view controls">'+vb('left','Turn left','⟲')+vb('right','Turn right','⟳')+vb('in','Zoom in','+')+vb('out','Zoom out','−')+vb('reset','Reset the view','Reset')
     +vb('spin','Spin','Spin',' id="cmpvwspin" aria-pressed="'+!!(P3.ctl&&P3.ctl.spinning)+'"')+'</div>'
     +(plan||knownShape(s)?'':'<div class="cmpvwshapes" id="cmpvwshapes" role="group" aria-label="Demonstration shape">'+SHAPES.map(([k,l])=>'<button type="button" class="g cmpvb" data-a="cmpvwshape" data-shape="'+k+'" aria-pressed="'+((P3.ctl&&P3.ctl.shape||'straight-landing')===k)+'">'+l+'</button>').join('')+'</div>')

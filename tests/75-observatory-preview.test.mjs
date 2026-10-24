@@ -68,7 +68,8 @@ const shown = (page, id) => page.waitForFunction(id => HWCampus.state.shown.star
 const glbs = reqs => reqs.filter(u => /\/stairs\/[^/]+\.glb$/.test(u)).map(u => u.split('/').pop());
 
 test('selection opens and updates the preview; the F21 set or the demonstration set, with their labels; leaving frees it', async () => {
-  const { ctx, page, errors, reqs } = await openHttp({ init: () => { window.__raf = 0; const r = requestAnimationFrame; window.requestAnimationFrame = function (f) { return r.call(this, t => { window.__raf++; f(t); }); }; } });
+  const { ctx, page, errors, reqs } = await openHttp({ route: p => p.route('**/data/stair-survey.json', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ stairs: {} }) })), // the survey names every stair now: this test is about one that is not in it
+    init: () => { window.__raf = 0; const r = requestAnimationFrame; window.requestAnimationFrame = function (f) { return r.call(this, t => { window.__raf++; f(t); }); }; } });
   await goView(page, 'campus'); assert.equal(await ready(page), 'ready');
   assert.deepEqual(glbs(reqs), [], 'no staircase model before a staircase is picked');
   // ST20: the measured F21 step size, as the Blender set made for it
