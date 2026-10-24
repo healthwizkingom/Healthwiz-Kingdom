@@ -41,6 +41,22 @@ Licence: © OpenStreetMap contributors, ODbL 1.0. The map shows the attribution.
 From the HealthWiz app's stair list (`STAIRS` in `js/hw-02-core.js`, the original v5.4.3 data, read once and never
 changed), and the Group 14 F21 report (v4), Table 2, for ST14, ST19 and ST20.
 
+**Update, 2026-10-24 (campus stair survey).** The staircase records were changed after the survey team's second visit
+(shared survey database, export of 24 Oct 2026; `data/staircases.json` is the source, `tools/stair_survey_from_records.py`
+turns it into `data/stair-survey.json` for the app). The table and counts below describe the original list; what changed:
+
+- **38 records** (was 32): ST01 (Tangga dalam Blok E, a different stair from the retired placeholder of the same ID) and
+  ST34 to ST38 were added from the survey document. ST39 and ST40 are not in yet (their data was incomplete).
+- **All 38 have a coordinate.** They are labelled **Real location**: recorded on site by the survey team and confirmed as
+  real, not estimates. ST02, ST08, ST16 and ST29 gained one, ST33's moved. ST02 and ST16 share one point.
+- **ST27** is now called "Tangga Anjung Santap" (the same name as ST23, so both are flagged "Needs checking").
+- **Step counts, flights, rise and run per step** come from the survey for every stair; the angle is arctan(rise ÷ run).
+  Where the surveyed angle differs from the stair list's (for example ST23: 41.21° against 31.2°), the app's own angle is
+  kept for its bands and saved sessions, and the surveyed angle is shown beside it.
+- **Photos:** one per stair (`assets/photos/`, in the app `data/stair-photos/`). Seven pictures are shared between stairs
+  and say so in their caption.
+- **Not measured, so not shown:** width, turns, landings, heading and GPS at the bottom step. The 3D preview stays illustrative.
+
 - **32 records**, all with a name, an angle, an app category and a floor label.
 - **28 with a stored coordinate**, shown as **Estimated location**: the app never recorded where they came from.
   ST06, ST31 and ST32 share one coordinate; ST09 and ST15 share another (one marker each, marked ×3 and ×2).

@@ -150,9 +150,13 @@ function style(osm, zonesFC, trees, parts, demUrl) {
   };
 }
 
-const PIN = n => '<svg class="pinsvg" viewBox="0 0 32 42" aria-hidden="true" focusable="false"><path class="pbody" d="M16 41C16 41 3 26.5 3 15.5a13 13 0 1 1 26 0C29 26.5 16 41 16 41Z"/>'
-  + '<polygon class="pgem" points="16,7.5 23,11.5 23,19.5 16,23.5 9,19.5 9,11.5"/><path class="pshine" d="M10 12.2 16 8.8 18.6 10.3 11.2 14.6Z"/>'
-  + '<text x="16" y="19.6" text-anchor="middle" class="pnum">' + n + '</text></svg>';
+const PIN = (n, photo, uid) => '<svg class="pinsvg' + (photo ? ' withpic' : '') + '" viewBox="0 0 32 42" aria-hidden="true" focusable="false"><path class="pbody" d="M16 41C16 41 3 26.5 3 15.5a13 13 0 1 1 26 0C29 26.5 16 41 16 41Z"/>'
+  + (photo
+    ? '<defs><clipPath id="pc-' + uid + '"><circle cx="16" cy="15.5" r="10.5"/></clipPath></defs><circle cx="16" cy="15.5" r="11.5" class="pring"/>'
+      + '<image href="' + photo + '" x="3.5" y="3" width="25" height="25" preserveAspectRatio="xMidYMid slice" clip-path="url(#pc-' + uid + ')"/>'
+    : '<polygon class="pgem" points="16,7.5 23,11.5 23,19.5 16,23.5 9,19.5 9,11.5"/><path class="pshine" d="M10 12.2 16 8.8 18.6 10.3 11.2 14.6Z"/>'
+      + '<text x="16" y="19.6" text-anchor="middle" class="pnum">' + n + '</text>')
+  + '</svg>';
 
 /** Build the map. opts: {container, osm, zones, terrain, groups, onSelect, padding(), reduced(), onBearing, onPitch} → controller. */
 export function createMap(opts) {
@@ -263,15 +267,16 @@ export function createMap(opts) {
 
   /* ---------- staircase markers: one per stored coordinate (records sharing a coordinate share a marker) ---------- */
   function addMarkers() {
+    const picOf = g => { const x = g.items.find(i => i.photos && i.photos[0]); return x ? x.photos[0].src : null; };
     for (const g of opts.groups) {
       const s = g.items[0], el = document.createElement('button');
       el.type = 'button';
-      el.className = 'stm c' + catN(s.appCategory) + ' est' + (g.items.some(x => x.measuredStep) ? ' part' : '');
+      el.className = 'stm c' + catN(s.appCategory) + ' real' + (g.items.some(x => x.measuredStep) ? ' part' : '');
       el.dataset.key = g.key;
       const name = g.items.length > 1 ? g.items.length + ' staircases at one stored point' : s.id + ' · ' + s.name;
-      el.setAttribute('aria-label', (g.items.length > 1 ? g.items.map(x => x.id + ' ' + x.name).join('; ') : s.id + ' ' + s.name) + '. Estimated location.');
+      el.setAttribute('aria-label', (g.items.length > 1 ? g.items.map(x => x.id + ' ' + x.name).join('; ') : s.id + ' ' + s.name) + '. Real location.');
       el.innerHTML = '<span class="ring" aria-hidden="true"></span><span class="glow" aria-hidden="true"></span><span class="beam" aria-hidden="true"></span>'
-        + PIN(g.items.length > 1 ? '' : catN(s.appCategory)) + (g.items.length > 1 ? '<span class="cnt" aria-hidden="true">×' + g.items.length + '</span>' : '')
+        + PIN(g.items.length > 1 ? '' : catN(s.appCategory), picOf(g), g.key.replace(/[^0-9]/g, '')) + (g.items.length > 1 ? '<span class="cnt" aria-hidden="true">×' + g.items.length + '</span>' : '')
         + '<span class="tip" aria-hidden="true">' + esc(name.length > 46 ? name.slice(0, 44) + '…' : name) + '</span>';
       el.addEventListener('click', ev => { ev.stopPropagation(); opts.onSelect(g.items.length > 1 ? { group: g } : { id: s.id }, 'map'); });
       const mk = new ML.Marker({ element: el, anchor: 'bottom', offset: [0, 6] }).setLngLat([g.lng, g.lat]).addTo(map);

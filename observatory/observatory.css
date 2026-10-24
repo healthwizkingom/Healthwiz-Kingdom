@@ -33,6 +33,7 @@
 .cmpcard[data-mode="fantasy"] .pgem{fill:color-mix(in srgb,var(--mc) 40%,#fff8e0)}
 .cmpcard[data-mode="fantasy"] .stm .pinsvg{filter:drop-shadow(0 0 5px color-mix(in srgb,var(--mc) 70%,transparent)) drop-shadow(0 3px 2px rgba(0,0,0,.5));animation:bob 3s ease-in-out infinite}
 .cmpcard[data-mode="fantasy"] .stm .glow{border:0;top:36px;width:30px;height:12px;margin-left:-15px;background:radial-gradient(closest-side,color-mix(in srgb,var(--mc) 85%,transparent),transparent);animation:pulse 3s ease-in-out infinite}
+.cmpcard[data-mode="fantasy"] .stm.real .glow{outline:1.5px solid color-mix(in srgb,var(--mc) 80%,white);outline-offset:1px}
 .cmpcard[data-mode="fantasy"] .stm.est .glow{outline:1.5px dashed color-mix(in srgb,var(--mc) 80%,white);outline-offset:1px}
 .cmpcard[data-mode="fantasy"] .stm:hover .pinsvg,.cmpcard[data-mode="fantasy"] .stm:focus-visible .pinsvg{filter:drop-shadow(0 0 10px var(--mc)) drop-shadow(0 3px 2px rgba(0,0,0,.5))}
 .cmpcard[data-mode="fantasy"] .stm .tip{font-family:var(--head);background:linear-gradient(180deg,#1b2a62,#111b46);border-color:rgba(242,193,78,.45);color:#fff6dc}

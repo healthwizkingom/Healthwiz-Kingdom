@@ -33,7 +33,7 @@ function close(then){const el=document.getElementById('cmpstop');if(!el||!cur){c
 function html(){const s=cur&&rec(cur);if(!s)return '';const c=CAT[s.appCategory]||['–',2];
   return '<div class="cmpstop c'+c[1]+(enter?' enter':'')+'" id="cmpstop" role="dialog" aria-modal="false" aria-labelledby="cmpstop-t" style="--dx:'+dx+'px;--dy:'+dy+'px;--ds:'+ds+'px">'
     +'<div class="cmpstopbg" aria-hidden="true"></div>'
-    +'<div class="cmpstoph"><b id="cmpstop-t">'+esc(s.name)+'</b><small>'+s.id+' · '+c[0]+' (app category) · '+(s.locationStatus==='measured'?'measured location':'estimated location')+'</small></div>'
+    +'<div class="cmpstoph"><b id="cmpstop-t">'+esc(s.name)+'</b><small>'+s.id+' · '+c[0]+' (app category) · '+(s.locationStatus==='measured'?'measured location':'real location')+'</small></div>'
     +'<div class="cmpdisc"><div class="cmpdiscr" aria-hidden="true"></div><div class="cmpphoto" role="img" aria-label="No photo of this staircase yet">'+HWPixel.icon('camera',2)+'<span>No photo yet</span><small>A photo of this staircase will go here once it is taken.</small></div></div>'
     +'<div class="cmpstopa"><button type="button" data-a="cmpstoplog">LOG A CLIMB HERE</button></div>'
     +'<button type="button" class="cmpstopx" data-a="cmpstopx" aria-label="Close and go back to the map">×</button></div>'}

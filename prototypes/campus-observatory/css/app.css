@@ -332,3 +332,15 @@ dialog::backdrop{background:rgba(6,10,28,.55)}
 /* reduced motion: system setting or the in-app switch */
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 html.still *{animation:none!important;transition:none!important}
+
+/* real locations, and the staircase photos inside the Pokéstop heart and pin */
+.lg.real{border:2px solid var(--ok,#2f9a5f);background:color-mix(in srgb,var(--ok,#2f9a5f) 35%,transparent)}
+.chip.real{color:var(--m1);border-style:solid}
+.stm .pinsvg .pring{fill:#fff;stroke:none}
+.stm.sel .pinsvg.withpic{filter:drop-shadow(0 0 6px var(--mc)) drop-shadow(0 3px 3px rgba(0,0,0,.4))}
+html[data-mode="fantasy"] .stm.real .glow{outline:1.5px solid color-mix(in srgb,var(--mc) 80%,white);outline-offset:1px}
+.det .hero{margin:6px 0 12px;display:grid;justify-items:center;gap:4px}
+.det .hero .heart{display:block;width:min(100%,300px);aspect-ratio:1/.95;clip-path:url(#heartclip);background:var(--mc,var(--m2));padding:7px;box-sizing:border-box}
+.det .hero.c1{--mc:var(--m1)}.det .hero.c2{--mc:var(--m2)}.det .hero.c3{--mc:var(--m3)}
+.det .hero img{display:block;width:100%;height:100%;object-fit:cover;clip-path:url(#heartclip);transform:scale(1)}
+.det .hero figcaption{font-size:12px;color:var(--mut);text-align:center}

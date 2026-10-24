@@ -9,7 +9,7 @@ Paste one phase at a time into Claude Code. Each phase begins only after the own
 
 Findings from reading the code (read-only; file:line references are to the code at that date):
 
-- **Staircase records:** `STAIRS` (js/hw-02-core.js:226) has 32 records, ST02 to ST33, with fields
+- **Staircase records:** `STAIRS` (js/hw-02-core.js:226) had 32 records, ST02 to ST33, when this was written (ST01 and ST34 to ST38 were added on 2026-10-24), with fields
   `{id, cat, name, floor, angle, lat, lng}`. ST02, ST08, ST16 and ST29 have no coordinates. A script comparison found
   them identical to `prototypes/campus-observatory/data/staircases.json` (same IDs, names, floor labels, categories,
   coordinates and angles). The F21 step sizes already live in `HWStairs.STUDY` (js/v6-stairs.js:92) with the same values.

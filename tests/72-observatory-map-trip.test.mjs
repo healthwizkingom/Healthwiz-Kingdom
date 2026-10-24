@@ -66,6 +66,8 @@ const cam = page => page.evaluate(() => { const m = HWCampus.map.map, c = m.getC
 
 test('with the map: the search on the map keeps only matching markers; a pick logs in Details and the camera stays; a staircase with no coordinates leaves the camera alone', async () => {
   const { ctx, page, errors } = await openHttp();
+  // every campus stair now has a coordinate, so the unmapped case uses one made-up stair (never part of the app's data)
+  await page.evaluate(() => STAIRS.push({ id: 'ST99', cat: 'MILD', name: 'Test stair with no coordinates (fixture)', floor: 'G level', angle: 20, lat: null, lng: null }));
   await goView(page, 'campus'); assert.equal(await ready(page), 'ready'); await idle(page);
   const shownMk = () => page.evaluate(() => [...document.querySelectorAll('.stm')].filter(e => !e.hidden).length);
   const all = await shownMk();
@@ -89,10 +91,10 @@ test('with the map: the search on the map keeps only matching markers; a pick lo
   assert.ok(Math.abs(c1.lng - c0.lng) < 1e-5 && Math.abs(c1.lat - c0.lat) < 1e-5 && Math.abs(c1.z - c0.z) < .01, 'saving keeps the map view');
   assert.equal(await page.evaluate(() => document.querySelector('.stm.sel').dataset.key), '5.3519878,100.5383771');
   assert.match(await page.textContent('#cmpdet'), /You saved 1 stair session here/);
-  // ST02 (no coordinates) from the search: its details, the camera unchanged, nothing highlighted
+  // ST99 (no coordinates) from the search: its details, the camera unchanged, nothing highlighted
   await page.click('.hudbtn');
-  await page.fill('#cmpfind', 'ST02');
-  await page.click('#cmpfindres [data-a="cmppick"][data-id="ST02"]'); await idle(page);
+  await page.fill('#cmpfind', 'ST99');
+  await page.click('#cmpfindres [data-a="cmppick"][data-id="ST99"]'); await idle(page);
   const c2 = await cam(page);
   assert.ok(Math.abs(c2.lng - c1.lng) < 1e-5 && Math.abs(c2.z - c1.z) < .01, 'the map does not move');
   assert.equal(await page.locator('.stm.sel').count(), 0);

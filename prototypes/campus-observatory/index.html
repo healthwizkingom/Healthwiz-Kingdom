@@ -16,6 +16,8 @@
 <body>
 <a class="skip" href="#sheet">Skip to the staircase list</a>
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><clipPath id="heartclip" clipPathUnits="objectBoundingBox"><path d="M0.5,0.9 C0.2,0.68 0.03,0.5 0.03,0.31 C0.03,0.13 0.17,0.03 0.3,0.03 C0.4,0.03 0.48,0.09 0.5,0.19 C0.52,0.09 0.6,0.03 0.7,0.03 C0.83,0.03 0.97,0.13 0.97,0.31 C0.97,0.5 0.8,0.68 0.5,0.9Z"/></clipPath></defs></svg>
+
 <header class="top">
   <div class="brand">
     <span class="logo" data-px="hat" aria-hidden="true"></span>
@@ -65,7 +67,7 @@
     <button type="button" class="legend-tog" aria-expanded="false" aria-controls="legend-body"><span data-px="scroll" aria-hidden="true"></span>Legend</button>
     <div id="legend-body" hidden>
       <p><span class="lg m1"></span>Mild <span class="lg m2"></span>Moderate <span class="lg m3"></span>Vigorous <small>(app category)</small></p>
-      <p><span class="lg est"></span>Estimated location <span class="lg part"></span>Step size measured (F21)</p>
+      <p><span class="lg real"></span>Real location <span class="lg part"></span>Step size measured</p>
       <p><span class="lg ter"></span>Raised ground: illustrative heights from your annotated screenshot, not measured</p>
       <p><span class="lg osm"></span>Buildings, paths, fields: OpenStreetMap. Building heights are illustrative.</p>
       <p class="fan-only"><span class="lg deco"></span>Roofs, turrets, chimneys, trees, lanterns, glows and particles are decoration on the real OSM outlines</p>
@@ -131,8 +133,9 @@
     <ul>
       <li><b>Buildings, paths, fields, river:</b> the OpenStreetMap export you supplied. <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>, ODbL. It has no building heights, no terrain and no staircases.</li>
       <li><b>Raised ground (Middle Elevation, Highest Elevation):</b> outlines traced from your annotated screenshot. The heights are illustrative and only show the order: base, then middle, then highest. They are not measurements.</li>
-      <li><b>Staircase names, locations, angles, categories:</b> the HealthWiz app's stair list. Their source was never recorded, so every location is an <b>estimated location</b>.</li>
-      <li><b>Step rise and run of ST14, ST19 and ST20:</b> the Group 14 F21 report, Table 2 (tape, mean of 5 steps).</li>
+      <li><b>Staircase names and categories:</b> the HealthWiz app stair list. <b>Locations</b> are real coordinates recorded on site by the survey team (confirmed as real, not estimates). Stairs ST01 and ST34 to ST38 were added from the survey document.</li>
+      <li><b>Step rise, run, number of steps, flights and shape:</b> the campus stair survey (shared survey database, export of 24 Oct 2026). The angle is calculated from the measured rise and run.</li>
+      <li><b>Stair photos:</b> pictures from the survey document. A caption says when a picture is shared with another stair and still to be checked.</li>
       <li><b>3D staircase models and building heights:</b> illustrative only, modelled in Blender. Their numbers are demonstration values, not measurements.</li>
       <li><b>Lighting and shadows:</b> a rendering effect. The light direction is chosen for a clear picture, not the real sun, so the shadows are not real shade on campus.</li>
       <li><b>Fantasy buildings:</b> the walls follow each real OpenStreetMap outline; the roofs, eaves, chimneys, corner turrets with spires and the Surau's dome are a fantasy treatment modelled in Blender on that outline. They are not the buildings' real shapes or heights.</li>

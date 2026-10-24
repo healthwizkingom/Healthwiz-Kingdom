@@ -27,7 +27,7 @@ HWUI.css('campus',`
 .cmpleg{position:absolute;left:10px;bottom:30px;z-index:6;max-width:min(340px,calc(100% - 80px));background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);color:var(--ink);font-size:12.5px;padding:0 10px}
 .cmpleg summary{cursor:pointer;min-height:40px;display:flex;align-items:center;font:600 13px var(--head)}.cmpleg p{margin:6px 0}
 .cmplg{display:inline-block;width:12px;height:12px;border-radius:50%;margin:0 4px 0 6px;vertical-align:-1px}.cmplg:first-child{margin-left:0}
-.cmplg.m1{background:var(--m1)}.cmplg.m2{background:var(--m2)}.cmplg.m3{background:var(--m3)}.cmplg.est{border:2px dashed var(--est)}.cmplg.part{background:var(--part)}
+.cmplg.m1{background:var(--m1)}.cmplg.m2{background:var(--m2)}.cmplg.m3{background:var(--m3)}.cmplg.est{border:2px dashed var(--est)}.cmplg.real{border:2px solid var(--m1);background:color-mix(in srgb,var(--m1) 35%,transparent)}.cmplg.part{background:var(--part)}
 .cmplg.osm{border-radius:3px;background:var(--osm)}.cmplg.ter{border-radius:2px;background:linear-gradient(135deg,var(--cyan) 50%,var(--gold) 50%)}.cmplg.deco{background:radial-gradient(circle,#fff0a8,#f2c14e 45%,transparent 70%)}
 .cmppanel{border:1px solid var(--edge,var(--ln));border-radius:14px;background:var(--p2);overflow:hidden;min-width:0}
 @media(min-width:900px){.cmpstage:not(.cmpfull):not(.cmpoff){height:clamp(440px,68vh,720px)}}
@@ -60,6 +60,7 @@ HWUI.css('campus',`
 .cmpdot{grid-row:span 2;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:700 12px var(--fn,sans-serif);color:#14102e}
 .cmpdot.c1{background:#7ee07c}.cmpdot.c2{background:#f6c94f}.cmpdot.c3{background:#ff8a7e}.cmpdot.nol{border:2px dashed var(--mut);color:var(--mut)}
 .cmpback,.cmplnk{margin:0;min-height:40px;padding:0 4px;border:0;background:transparent;box-shadow:none;color:var(--gold,#f6c94f)}.cmplnk{text-decoration:underline;min-height:32px}
+.cmphero{margin:6px 0 10px;display:grid;gap:4px}.cmphero img{display:block;width:100%;max-height:260px;object-fit:cover;border-radius:12px;border:3px solid var(--m2)}.cmphero.c1 img{border-color:var(--m1)}.cmphero.c3 img{border-color:var(--m3)}.cmphero figcaption{font-size:12px;color:var(--mut)}
 .cmpeye{margin:6px 0 0;font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}.cmph{margin:2px 0 6px;overflow-wrap:anywhere}.cmpmine{margin:4px 0;font-size:13px}
 .cmpact{margin:6px 0 4px}.cmpact button{min-height:44px}
 .cmpgrp{border:1px solid var(--edge,var(--ln));border-radius:12px;padding:10px 12px;margin-top:10px}.cmpgrp h3{margin:0 0 8px;font-size:14px}.cmpgrp h3 svg{vertical-align:-3px}
@@ -67,7 +68,7 @@ HWUI.css('campus',`
 .cmpsrc{display:block;font-size:12px;color:var(--mut)}.cmpna{color:var(--mut);font-style:italic}.cmpnum{font-variant-numeric:tabular-nums}
 .cmpchips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px;padding:0;list-style:none}
 .cmpchip{font-size:12px;font-weight:700;border-radius:999px;padding:3px 9px;border:1.5px solid currentColor;line-height:1.3}
-.cmpchip.est{color:#e7a93a;border-style:dashed}.cmpchip.miss{color:var(--mut);border-style:dashed}.cmpchip.part{color:#43c6bf}.cmpchip.calc{color:#43c6bf;border-style:dotted}.cmpchip.flag{color:var(--red,#ff6b5e)}
+.cmpchip.est{color:#e7a93a;border-style:dashed}.cmpchip.real{color:#7ee07c;border-style:solid}.cmpchip.miss{color:var(--mut);border-style:dashed}.cmpchip.part{color:#43c6bf}.cmpchip.calc{color:#43c6bf;border-style:dotted}.cmpchip.flag{color:var(--red,#ff6b5e)}
 .cmpnotes{margin:10px 0 0;padding:10px;border-radius:10px;border:1px dashed var(--edge,var(--ln));font-size:13px}
 .cmpwx{border-top:1px solid var(--edge,var(--ln));padding-top:8px;margin-top:10px}.cmpwx svg{vertical-align:-3px}.cmpe{color:var(--red);font-weight:bold}
 .cmpsv{font-size:12.5px;margin:4px 0}

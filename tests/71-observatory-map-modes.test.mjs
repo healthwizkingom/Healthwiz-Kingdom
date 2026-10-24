@@ -3,7 +3,7 @@
 // flags of prototypes/campus-observatory/qa/smoke.mjs; slow, so the checks are few and the motion is reduced).
 //   * lazy: nothing of the map (module, MapLibre, data) is requested before the campus page opens;
 //   * the map: OSM attribution and a scale, the illustrative terrain in the right order (highest > middle > base),
-//     25 markers on their coordinates, clusters, the zone labels saying "illustrative";
+//     34 markers on their coordinates, clusters, the zone labels saying "illustrative";
 //   * both modes use the same positions; the terrain and the buildings switch off and on; selecting from the list
 //     flies to the marker; a shared point opens the chooser; mode, switches, selection and camera are kept for the tab;
 //   * no WebGL, or map data that fails to load: a clear message, and the list and details still work.

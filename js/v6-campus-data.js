@@ -14,6 +14,7 @@
      in a URL. */
 const HWCampusData=(()=>{
 const APP='HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded';
+const REAL='Real location, recorded on site by the survey team (coordinate kept in the stair list, js/hw-02-core.js)';
 const F21='Group 14 F21 Full Written Report (v4), Table 2';
 const STEEP=45; // degrees: a stored angle above this is unusually steep for a staircase, so it is flagged for re-measurement
 const CK='hw_obs_ctx',SURVEY='data/stair-survey.json';
@@ -31,12 +32,12 @@ function base(){const S2=typeof HWStairs!=='undefined'?HWStairs.STUDY:[],G={},N=
     if(m){notes.push('Staircase '+m.k+' ('+m.n+') in the Group 14 F21 report: step rise and run measured. The report ranks it '+m.rank+' among its three stairs.');
       if(Math.abs(m.th-q.angle)>.005)notes.push('The F21 angle ('+m.th.toFixed(2)+'°) differs from the app angle ('+q.angle.toFixed(2)+'°): check against the report.')}
     return{id:q.id,name:q.name,appFloorLabel:q.floor,appCategory:q.cat,
-      latitude:xy?q.lat:null,longitude:xy?q.lng:null,locationSource:xy?APP:null,locationStatus:xy?'estimated':'missing',
+      latitude:xy?q.lat:null,longitude:xy?q.lng:null,locationSource:xy?REAL:null,locationStatus:xy?'real':'missing',
       estimatedAngle:q.angle,angleSource:m?F21+': θ = arctan(rise ÷ run) from measured steps':APP,angleStatus:m?'calculated from measured step rise and run':'estimated',
       orientationDeg:null,orientationSource:null,stepCount:null,floorCount:null,verticalRise_m:null,
       measuredStep:m?{rise_m:m.rise,run_m:m.run,hypotenuse_m:m.hyp,source:F21,reportStaircase:m.k,reportName:m.n,reportRank:m.rank}:null,
       measurementStatus:m?'partially measured':'not surveyed',geometryStatus:'not surveyed',sharedLocationWith:sh,
-      survey:null,verification:{status:'unverified',by:null,date:null},needsChecking:!!(same.length||q.angle>STEEP),notes:notes.join(' ')}})}
+      survey:null,photos:[],verification:{status:'unverified',by:null,date:null},needsChecking:!!(same.length||q.angle>STEEP),notes:notes.join(' ')}})}
 
 /** The survey laid over the records, by the prototype's rules (js/survey.js): the measured bottom position replaces the
     estimate, θ = arctan(riser ÷ tread) per flight (calculated), step count and rise only from complete flights. */
@@ -44,7 +45,7 @@ function applySurvey(R,sv){if(!sv||!sv.stairs||typeof sv.stairs!=='object')retur
   R.forEach(s=>{const v=sv.stairs[s.id];if(!v||typeof v!=='object')return;n++;
     s.app={latitude:s.latitude,longitude:s.longitude,locationStatus:s.locationStatus,estimatedAngle:s.estimatedAngle,angleStatus:s.angleStatus,orientationDeg:s.orientationDeg};
     const rec=v.survey||{},by=[rec.by,rec.date,rec.tool].filter(Boolean).join(', '),cp=v.complete||{};
-    s.survey=Object.assign({},v,{label:'Survey sheet'+(by?' ('+by+')':''),recordComplete:!!cp.record});
+    s.survey=Object.assign({},v,{label:(typeof v.source==='string'&&v.source?v.source:'Survey sheet')+(by?' ('+by+')':''),recordComplete:!!cp.record});
     if(v.bottom&&isFinite(v.bottom.lat)&&isFinite(v.bottom.lng)){s.latitude=+v.bottom.lat;s.longitude=+v.bottom.lng;s.locationStatus='measured';
       s.locationSource=s.survey.label+', phone GPS at the bottom step'+(v.bottom.accuracy_m!=null?', ±'+v.bottom.accuracy_m+' m':', accuracy not recorded');s.locationAccuracy_m=v.bottom.accuracy_m}
     const F=Array.isArray(v.flights)?v.flights.map(f=>Object.assign({},f)):[];
@@ -57,6 +58,11 @@ function applySurvey(R,sv){if(!sv||!sv.stairs||typeof sv.stairs!=='object')retur
     if(fa.length){fa.forEach(f=>{f.angle_deg=+deg(Math.atan(f.riser_cm/f.tread_cm)).toFixed(2)});const w=fa.reduce((t,f)=>t+(f.risers||1),0);
       s.surveyAngle=+(fa.reduce((t,f)=>t+f.angle_deg*(f.risers||1),0)/w).toFixed(2)}
     s.flightsSurveyed=F;
+    // values from the shared survey database (data/stair-survey.json, tools/stair_survey_from_records.py): totals and photos
+    if(Array.isArray(v.photos))s.photos=v.photos.filter(p=>p&&typeof p.src==='string').map(p=>({src:p.src,caption:p.caption||'Photo'}));
+    if(s.stepCount==null&&v.stepCount!=null){s.stepCount=v.stepCount;s.stepCountSource=(v.source||s.survey.label)+' (counted)'}
+    if(s.verticalRise_m==null&&v.verticalRise_m!=null){s.verticalRise_m=v.verticalRise_m;s.verticalRiseStatus='measured total · '+(v.source||s.survey.label)}
+    if(v.notes)s.notes=(s.notes?s.notes+' ':'')+v.notes;
     if(cp.flights)s.geometryStatus='surveyed';
     s.measurementStatus=cp.flights&&cp.position?'surveyed':'partially measured'});
   return n}
@@ -82,7 +88,7 @@ function surveyNote(){const n=(records(),SVn);
     :SVst==='error'?'Survey data: the survey file could not be loaded. The app\'s own values are shown.':'Survey data: loading.'}
 /** The prototype's labels for a record: [kind, text]; kind is est | calc | part | miss | flag. */
 function labels(s){const L=[],m=s.measuredStep;
-  L.push(!placed(s)?['miss','No location recorded']:s.locationStatus==='measured'?['part','Measured location (survey)']:['est','Estimated location']);
+  L.push(!placed(s)?['miss','No location recorded']:s.locationStatus==='measured'?['part','Measured location (survey)']:['real','Real location']);
   L.push(s.surveyAngle!=null?['calc','Angle from surveyed steps']:s.estimatedAngle==null?['miss','Angle unavailable']:m?['calc','Angle from measured steps']:['est','Estimated angle']);
   L.push(s.orientationStatus==='measured'?['part','Measured orientation']:s.orientationDeg!=null?['est','Estimated orientation']:['miss','Orientation not surveyed']);
   L.push(s.measurementStatus==='surveyed'?['part','Surveyed']:s.survey?['part','Partially surveyed']:s.measurementStatus==='partially measured'?['part','Partially measured: step size only']:['miss','Not yet surveyed']);

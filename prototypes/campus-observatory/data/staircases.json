@@ -1,1154 +1,2250 @@
 {
-  "schemaVersion": 1,
-  "about": {
-    "title": "Campus Health Observatory prototype: staircase records (Kolej MARA Kulim)",
-    "editing": "Edit this file by hand. Use null for anything unknown. Never fill a field with a guess: the map shows null as \"not surveyed\" or \"unavailable\".",
-    "sources": {
-      "app": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "f21": "HealthWiz Kingdom: Group 14 F21 Full Written Report (v4), Table 2",
-      "osm": "Not used for staircases: the OpenStreetMap export has no staircases (no highway=steps)."
-    },
-    "fields": {
-      "latitude": "WGS84 decimal degrees, or null",
-      "locationStatus": "estimated | missing | verified",
-      "estimatedAngle": "degrees, or null",
-      "angleStatus": "estimated | calculated from measured step rise and run | measured",
-      "orientationDeg": "compass bearing of the climb (0 = north), or null",
-      "measurementStatus": "not surveyed | partially measured | surveyed",
-      "geometryStatus": "not surveyed | surveyed",
-      "appCategory": "the HealthWiz app category (MILD | MODERATE | VIGOROUS), app data",
-      "appFloorLabel": "floor label from the app data; its meaning is not documented",
-      "endpoints/flights/landings/dimensions/photos/survey": "reserved for future survey data; null or empty now"
-    }
-  },
-  "staircases": [
-    {
-      "id": "ST02",
-      "name": "Tangga Selangkah Menara Gading",
-      "appFloorLabel": "G level",
-      "appCategory": "MILD",
-      "latitude": null,
-      "longitude": null,
-      "locationSource": null,
-      "locationStatus": "missing",
-      "estimatedAngle": 14.25,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": "No coordinates recorded: listed, not placed on the map."
-    },
-    {
-      "id": "ST03",
-      "name": "Tangga ke Dewan Mawar / Makmal Fizik (depan office)",
-      "appFloorLabel": "G level",
-      "appCategory": "MILD",
-      "latitude": 5.3515422,
-      "longitude": 100.5380308,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 19.6,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": null
-    },
-    {
-      "id": "ST04",
-      "name": "Tangga dari cafe ke court tennis",
-      "appFloorLabel": "G level",
-      "appCategory": "MILD",
-      "latitude": 5.3504943,
-      "longitude": 100.5389913,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 20.94,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": null
-    },
-    {
-      "id": "ST05",
-      "name": "Tangga parking KJ ke laluan study putra (belakang Jab. Matematik)",
-      "appFloorLabel": "G level",
-      "appCategory": "MILD",
-      "latitude": 5.3512084,
-      "longitude": 100.5377726,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 21.8,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": null
-    },
-    {
-      "id": "ST06",
-      "name": "Tangga depan Pejabat HEP ke Makmal Kimia (tingkat 1)",
-      "appFloorLabel": "Tingkat 1",
-      "appCategory": "MILD",
-      "latitude": 5.3515635,
-      "longitude": 100.5383731,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 23.96,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [
-        "ST31",
-        "ST32"
-      ],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": "Shares one stored coordinate with ST31, ST32."
-    },
-    {
-      "id": "ST07",
-      "name": "Tangga sebelah depan Bilik Raflesia (sebelah Seroja) ke Lab Biology",
-      "appFloorLabel": "G level",
-      "appCategory": "MILD",
-      "latitude": 5.3512758,
-      "longitude": 100.5383744,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 24.45,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": null
-    },
-    {
-      "id": "ST08",
-      "name": "Tangga Makmal Inovasi ke bilik 406, 407",
-      "appFloorLabel": "G level",
-      "appCategory": "MILD",
-      "latitude": null,
-      "longitude": null,
-      "locationSource": null,
-      "locationStatus": "missing",
-      "estimatedAngle": 24.51,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": "No coordinates recorded: listed, not placed on the map. Same name as ST21 in the app data: may be the same staircase."
-    },
-    {
-      "id": "ST09",
-      "name": "Tangga dari Dataran Ilmu ke Jab. Sains / Makmal Biology",
-      "appFloorLabel": "G level",
-      "appCategory": "MILD",
-      "latitude": 5.3512708,
-      "longitude": 100.538078,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 24.72,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [
-        "ST15"
-      ],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": "Shares one stored coordinate with ST15."
-    },
-    {
-      "id": "ST10",
-      "name": "Tangga dari parking Anjung Santap ke koperasi (melalui tempat pungutan parcel)",
-      "appFloorLabel": "G level",
-      "appCategory": "MILD",
-      "latitude": 5.3511202,
-      "longitude": 100.539051,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 24.86,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": "Same route name as ST27 in the app data, with a different angle."
-    },
-    {
-      "id": "ST11",
-      "name": "Tangga dari court tennis ke Blok C",
-      "appFloorLabel": "G level",
-      "appCategory": "MILD",
-      "latitude": 5.3496995,
-      "longitude": 100.5390775,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 25.71,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": null
-    },
-    {
-      "id": "ST12",
-      "name": "Tangga dari Blok C ke Blok A/B",
-      "appFloorLabel": "G level",
-      "appCategory": "MILD",
-      "latitude": 5.349364,
-      "longitude": 100.5390849,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 25.85,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": null
-    },
-    {
-      "id": "ST13",
-      "name": "Tangga belakang Dewan Ixora ke Dewan Kesidang",
-      "appFloorLabel": "G level",
-      "appCategory": "MODERATE",
-      "latitude": 5.3502767,
-      "longitude": 100.5379339,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 26,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": null
-    },
-    {
-      "id": "ST14",
-      "name": "Tangga belakang Bilik 409 naik ke Dewan Kenanga",
-      "appFloorLabel": "G level",
-      "appCategory": "MODERATE",
-      "latitude": 5.3524047,
-      "longitude": 100.5383392,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 26.43,
-      "angleSource": "Group 14 F21 report, Table 2: theta = arctan(rise / run), mean of 5 consecutive steps (same value as the app data)",
-      "angleStatus": "calculated from measured step rise and run",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": {
-        "rise_m": 0.149,
-        "run_m": 0.3,
-        "hypotenuse_m": 0.335,
-        "method": "tape, mean of 5 consecutive steps",
-        "source": "Group 14 F21 report, Table 2",
-        "reportStaircase": "B",
-        "reportName": "Block Kenanga Stairs",
-        "reportRank": "Mild"
-      },
-      "measurementStatus": "partially measured",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": "Staircase B (Block Kenanga Stairs) in the Group 14 F21 report: step rise and run measured with a tape (mean of 5 consecutive steps). The report ranks it Mild among its three stairs."
-    },
-    {
-      "id": "ST15",
-      "name": "Tangga aras 1 naik ke bilik tutorial (sebelah Lab Biology)",
-      "appFloorLabel": "Tingkat 2",
-      "appCategory": "MODERATE",
-      "latitude": 5.3512708,
-      "longitude": 100.538078,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 26.57,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [
-        "ST09"
-      ],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": "Shares one stored coordinate with ST09."
-    },
-    {
-      "id": "ST16",
-      "name": "Tangga merah ke wakaf / gazebo sebelah Selangkah ke Menara Gading",
-      "appFloorLabel": "G level",
-      "appCategory": "MODERATE",
-      "latitude": null,
-      "longitude": null,
-      "locationSource": null,
-      "locationStatus": "missing",
-      "estimatedAngle": 26.6,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": "No coordinates recorded: listed, not placed on the map."
-    },
-    {
-      "id": "ST17",
-      "name": "Tangga dari DS naik ke koperasi",
-      "appFloorLabel": "G level",
-      "appCategory": "MODERATE",
-      "latitude": 5.3510194,
-      "longitude": 100.5386617,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 26.6,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": null
-    },
-    {
-      "id": "ST18",
-      "name": "Tangga ke Makmal Inovasi dari tapak parking depan pejabat",
-      "appFloorLabel": "G level",
-      "appCategory": "MODERATE",
-      "latitude": 5.3520312,
-      "longitude": 100.5380334,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 27,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": null
-    },
-    {
-      "id": "ST19",
-      "name": "Tangga dari Blok Aisyah / parking Blok E ke Dewan Kenanga",
-      "appFloorLabel": "G level",
-      "appCategory": "MODERATE",
-      "latitude": 5.3525206,
-      "longitude": 100.5386027,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 27.23,
-      "angleSource": "Group 14 F21 report, Table 2: theta = arctan(rise / run), mean of 5 consecutive steps (same value as the app data)",
-      "angleStatus": "calculated from measured step rise and run",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": {
-        "rise_m": 0.157,
-        "run_m": 0.305,
-        "hypotenuse_m": 0.343,
-        "method": "tape, mean of 5 consecutive steps",
-        "source": "Group 14 F21 report, Table 2",
-        "reportStaircase": "C",
-        "reportName": "Block Aisyah Stairs",
-        "reportRank": "Moderate"
-      },
-      "measurementStatus": "partially measured",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": "Staircase C (Block Aisyah Stairs) in the Group 14 F21 report: step rise and run measured with a tape (mean of 5 consecutive steps). The report ranks it Moderate among its three stairs."
-    },
-    {
-      "id": "ST20",
-      "name": "Tangga sebelah rumah penjana elektrik ke Dewan Kenanga",
-      "appFloorLabel": "G level",
-      "appCategory": "MODERATE",
-      "latitude": 5.3519878,
-      "longitude": 100.5383771,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 28.52,
-      "angleSource": "Group 14 F21 report, Table 2: theta = arctan(rise / run), mean of 5 consecutive steps (same value as the app data)",
-      "angleStatus": "calculated from measured step rise and run",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": {
-        "rise_m": 0.169,
-        "run_m": 0.311,
-        "hypotenuse_m": 0.354,
-        "method": "tape, mean of 5 consecutive steps",
-        "source": "Group 14 F21 report, Table 2",
-        "reportStaircase": "A",
-        "reportName": "Generator Stairs",
-        "reportRank": "Vigorous"
-      },
-      "measurementStatus": "partially measured",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": "Staircase A (Generator Stairs) in the Group 14 F21 report: step rise and run measured with a tape (mean of 5 consecutive steps). The report ranks it Vigorous among its three stairs."
-    },
-    {
-      "id": "ST21",
-      "name": "Tangga Makmal Inovasi ke bilik 406, 407",
-      "appFloorLabel": "G level",
-      "appCategory": "MODERATE",
-      "latitude": 5.3521864,
-      "longitude": 100.5381059,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 28.86,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": "Same name as ST08 in the app data: may be the same staircase."
-    },
-    {
-      "id": "ST22",
-      "name": "Tangga cafe ke Dewan Melati (dewan exam) (tangga tengah)",
-      "appFloorLabel": "G level",
-      "appCategory": "MODERATE",
-      "latitude": 5.350466,
-      "longitude": 100.5387657,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 29.44,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": null
-    },
-    {
-      "id": "ST23",
-      "name": "Tangga Anjung Santap",
-      "appFloorLabel": "G level",
-      "appCategory": "MODERATE",
-      "latitude": 5.3517635,
-      "longitude": 100.5391633,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 31.2,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": null
-    },
-    {
-      "id": "ST24",
-      "name": "Tangga dalam Blok A",
-      "appFloorLabel": "G level",
-      "appCategory": "VIGOROUS",
-      "latitude": 5.3490042,
-      "longitude": 100.5388927,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 31.21,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": null
-    },
-    {
-      "id": "ST25",
-      "name": "Tangga dalam Blok B",
-      "appFloorLabel": "G level",
-      "appCategory": "VIGOROUS",
-      "latitude": 5.3490162,
-      "longitude": 100.5391398,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 31.3,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": null
-    },
-    {
-      "id": "ST26",
-      "name": "Tangga dari rumah pengarah naik ke Blok E",
-      "appFloorLabel": "G level",
-      "appCategory": "VIGOROUS",
-      "latitude": 5.3520232,
-      "longitude": 100.5388347,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 31.52,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": null
-    },
-    {
-      "id": "ST27",
-      "name": "Tangga dari parking Anjung Santap ke koperasi (melalui tempat pungutan parcel)",
-      "appFloorLabel": "G level",
-      "appCategory": "VIGOROUS",
-      "latitude": 5.3509924,
-      "longitude": 100.5388522,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 31.55,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": "Same route name as ST10 in the app data, with a different angle."
-    },
-    {
-      "id": "ST28",
-      "name": "Tangga naik ke Smart Classroom",
-      "appFloorLabel": "G level",
-      "appCategory": "VIGOROUS",
-      "latitude": 5.3507487,
-      "longitude": 100.5379365,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 34.02,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": null
-    },
-    {
-      "id": "ST29",
-      "name": "Tangga naik ke Dewan Semarak",
-      "appFloorLabel": "G level",
-      "appCategory": "VIGOROUS",
-      "latitude": null,
-      "longitude": null,
-      "locationSource": null,
-      "locationStatus": "missing",
-      "estimatedAngle": 37.2,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": "No coordinates recorded: listed, not placed on the map."
-    },
-    {
-      "id": "ST30",
-      "name": "Tangga dari parking Anjung Santap ke Blok FAZ (sebelah belakang)",
-      "appFloorLabel": "G level",
-      "appCategory": "VIGOROUS",
-      "latitude": 5.3511299,
-      "longitude": 100.5395432,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 37.84,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": null
-    },
-    {
-      "id": "ST31",
-      "name": "Tangga aras 1 naik ke bilik tutorial (sebelah Lab Fizik) — lower half",
-      "appFloorLabel": "Tingkat 2",
-      "appCategory": "VIGOROUS",
-      "latitude": 5.3515635,
-      "longitude": 100.5383731,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 59.76,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [
-        "ST06",
-        "ST32"
-      ],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": "Shares one stored coordinate with ST06, ST32. Stored angle is unusually steep for a staircase: flagged for re-measurement."
-    },
-    {
-      "id": "ST32",
-      "name": "Tangga aras 1 naik ke bilik tutorial (sebelah Lab Fizik) — upper half",
-      "appFloorLabel": "Tingkat 2",
-      "appCategory": "VIGOROUS",
-      "latitude": 5.3515635,
-      "longitude": 100.5383731,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 60.13,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [
-        "ST06",
-        "ST31"
-      ],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": "Shares one stored coordinate with ST06, ST31. Stored angle is unusually steep for a staircase: flagged for re-measurement."
-    },
-    {
-      "id": "ST33",
-      "name": "Tangga cafe ke Dewan Kemboja (dewan exam) (tangga hujung)",
-      "appFloorLabel": "G level",
-      "appCategory": "VIGOROUS",
-      "latitude": 5.3504813,
-      "longitude": 100.5389749,
-      "locationSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "locationStatus": "estimated",
-      "estimatedAngle": 65.52,
-      "angleSource": "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
-      "angleStatus": "estimated",
-      "orientationDeg": null,
-      "orientationSource": null,
-      "stepCount": null,
-      "floorCount": null,
-      "verticalRise_m": null,
-      "measuredStep": null,
-      "measurementStatus": "not surveyed",
-      "geometryStatus": "not surveyed",
-      "sharedLocationWith": [],
-      "endpoints": null,
-      "flights": null,
-      "landings": null,
-      "dimensions": null,
-      "photos": [],
-      "survey": null,
-      "verification": {
-        "status": "unverified",
-        "by": null,
-        "date": null
-      },
-      "notes": "Stored angle is unusually steep for a staircase: flagged for re-measurement."
-    }
-  ]
+    "schemaVersion":  1,
+    "about":  {
+                  "title":  "Campus Health Observatory prototype: staircase records (Kolej MARA Kulim)",
+                  "editing":  "Edit this file by hand. Use null for anything unknown. Never fill a field with a guess: the map shows null as \"not surveyed\" or \"unavailable\".",
+                  "sources":  {
+                                  "app":  "HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded",
+                                  "f21":  "HealthWiz Kingdom: Group 14 F21 Full Written Report (v4), Table 2",
+                                  "osm":  "Not used for staircases: the OpenStreetMap export has no staircases (no highway=steps).",
+                                  "survey":  "Campus stair survey (shared survey database), export of 24 Oct 2026, with the new stairs ST01 and ST34 to ST38 added from the survey document"
+                              },
+                  "fields":  {
+                                 "latitude":  "WGS84 decimal degrees, or null",
+                                 "locationStatus":  "real | missing",
+                                 "estimatedAngle":  "degrees, or null",
+                                 "angleStatus":  "calculated from measured step rise and run | from the HealthWiz stair list",
+                                 "orientationDeg":  "compass bearing of the climb (0 = north), or null",
+                                 "measurementStatus":  "not surveyed | surveyed",
+                                 "geometryStatus":  "not surveyed | surveyed",
+                                 "appCategory":  "the HealthWiz app category (MILD | MODERATE | VIGOROUS), app data",
+                                 "appFloorLabel":  "floor label from the app data; its meaning is not documented",
+                                 "endpoints/flights/landings/dimensions/photos/survey":  "reserved for future survey data; null or empty now"
+                             }
+              },
+    "staircases":  [
+                       {
+                           "id":  "ST01",
+                           "name":  "Tangga dalam Blok E",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "VIGOROUS",
+                           "latitude":  5.352509,
+                           "longitude":  100.538922,
+                           "locationSource":  "Recorded on site (decimal degrees)",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  37.35,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  20,
+                           "floorCount":  null,
+                           "verticalRise_m":  2.58,
+                           "measuredStep":  {
+                                                "rise_m":  0.129,
+                                                "run_m":  0.169,
+                                                "hypotenuse_m":  0.213,
+                                                "method":  null,
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  10
+                                           },
+                                           {
+                                               "steps":  10
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image2.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "U",
+                                          "by":  null,
+                                          "date":  null,
+                                          "tool":  null
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  "New stair, added from the survey document."
+                       },
+                       {
+                           "id":  "ST02",
+                           "name":  "Tangga Selangkah Menara Gading",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "MILD",
+                           "latitude":  5.35145,
+                           "longitude":  100.53777,
+                           "locationSource":  "Recorded on site, from the survey document",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  24.61,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  5,
+                           "floorCount":  null,
+                           "verticalRise_m":  0.76,
+                           "measuredStep":  {
+                                                "rise_m":  0.153,
+                                                "run_m":  0.334,
+                                                "hypotenuse_m":  0.367,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  5
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image1.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "straight",
+                                          "by":  "Amir and Iz",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  "Coordinate taken from the survey document; the stair now appears on the map."
+                       },
+                       {
+                           "id":  "ST03",
+                           "name":  "Tangga ke Dewan Mawar / Makmal Fizik (depan office)",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "MILD",
+                           "latitude":  5.3515422,
+                           "longitude":  100.5380308,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  19.58,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  55,
+                           "floorCount":  null,
+                           "verticalRise_m":  5.87,
+                           "measuredStep":  {
+                                                "rise_m":  0.1067,
+                                                "run_m":  0.3,
+                                                "hypotenuse_m":  0.318,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  11
+                                           },
+                                           {
+                                               "steps":  11
+                                           },
+                                           {
+                                               "steps":  11
+                                           },
+                                           {
+                                               "steps":  11
+                                           },
+                                           {
+                                               "steps":  11
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image3.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "U",
+                                          "by":  "Amir and Iz",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  "Riser and run were entered as 32 and 90 cm; they are divided by 3 here, as confirmed by the surveyor."
+                       },
+                       {
+                           "id":  "ST04",
+                           "name":  "Tangga dari cafe ke court tennis",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "MILD",
+                           "latitude":  5.3504943,
+                           "longitude":  100.5389913,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  20.94,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  35,
+                           "floorCount":  null,
+                           "verticalRise_m":  5.42,
+                           "measuredStep":  {
+                                                "rise_m":  0.155,
+                                                "run_m":  0.4051,
+                                                "hypotenuse_m":  0.434,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  35
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image4.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "straight",
+                                          "by":  "Amir, Iz and Naufal",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  null
+                       },
+                       {
+                           "id":  "ST05",
+                           "name":  "Tangga parking KJ ke laluan study putra (belakang Jab. Matematik)",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "MILD",
+                           "latitude":  5.3512084,
+                           "longitude":  100.5377726,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  21.8,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  6,
+                           "floorCount":  null,
+                           "verticalRise_m":  0.72,
+                           "measuredStep":  {
+                                                "rise_m":  0.12,
+                                                "run_m":  0.3,
+                                                "hypotenuse_m":  0.323,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  6
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image5.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "straight",
+                                          "by":  "Amir and Iz",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  null
+                       },
+                       {
+                           "id":  "ST06",
+                           "name":  "Tangga depan Pejabat HEP ke Makmal Kimia (tingkat 1)",
+                           "appFloorLabel":  "Tingkat 1",
+                           "appCategory":  "MILD",
+                           "latitude":  5.3515635,
+                           "longitude":  100.5383731,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  23.96,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  22,
+                           "floorCount":  null,
+                           "verticalRise_m":  3.08,
+                           "measuredStep":  {
+                                                "rise_m":  0.14,
+                                                "run_m":  0.315,
+                                                "hypotenuse_m":  0.345,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+                                                      "ST31",
+                                                      "ST32"
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  11
+                                           },
+                                           {
+                                               "steps":  11
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image6.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "U",
+                                          "by":  "Amir and Iz",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  null
+                       },
+                       {
+                           "id":  "ST07",
+                           "name":  "Tangga sebelah depan Bilik Raflesia (sebelah Seroja) ke Lab Biology",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "MILD",
+                           "latitude":  5.3512758,
+                           "longitude":  100.5383744,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  24.45,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  22,
+                           "floorCount":  null,
+                           "verticalRise_m":  3.17,
+                           "measuredStep":  {
+                                                "rise_m":  0.144,
+                                                "run_m":  0.3167,
+                                                "hypotenuse_m":  0.348,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  11
+                                           },
+                                           {
+                                               "steps":  11
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image7.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "U",
+                                          "by":  "Amir, Iz and Naufal",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  null
+                       },
+                       {
+                           "id":  "ST08",
+                           "name":  "Tangga Makmal Inovasi ke bilik 406, 407",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "MILD",
+                           "latitude":  5.352306,
+                           "longitude":  100.538528,
+                           "locationSource":  "Recorded on site (degrees, minutes, seconds converted to decimal)",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  24.51,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  8,
+                           "floorCount":  null,
+                           "verticalRise_m":  1.12,
+                           "measuredStep":  {
+                                                "rise_m":  0.14,
+                                                "run_m":  0.307,
+                                                "hypotenuse_m":  0.337,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  8
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image8.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "straight",
+                                          "by":  "Amir and Iz",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  "Coordinate taken from the survey document; the stair now appears on the map."
+                       },
+                       {
+                           "id":  "ST09",
+                           "name":  "Tangga dari Dataran Ilmu ke Jab. Sains / Makmal Biology",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "MILD",
+                           "latitude":  5.3512708,
+                           "longitude":  100.538078,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  24.72,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  22,
+                           "floorCount":  null,
+                           "verticalRise_m":  3.19,
+                           "measuredStep":  {
+                                                "rise_m":  0.145,
+                                                "run_m":  0.315,
+                                                "hypotenuse_m":  0.347,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+                                                      "ST15"
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  11
+                                           },
+                                           {
+                                               "steps":  11
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image9.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "U",
+                                          "by":  "Amir and Iz",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  null
+                       },
+                       {
+                           "id":  "ST10",
+                           "name":  "Tangga dari parking Anjung Santap ke koperasi (melalui tempat pungutan parcel)",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "MILD",
+                           "latitude":  5.3511202,
+                           "longitude":  100.539051,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  24.86,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  24,
+                           "floorCount":  null,
+                           "verticalRise_m":  4,
+                           "measuredStep":  {
+                                                "rise_m":  0.1668,
+                                                "run_m":  0.36,
+                                                "hypotenuse_m":  0.397,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  24
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image10.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "straight",
+                                          "by":  "Amir, Iz and Naufal",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  null
+                       },
+                       {
+                           "id":  "ST11",
+                           "name":  "Tangga dari court tennis ke Blok C",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "MILD",
+                           "latitude":  5.3496995,
+                           "longitude":  100.5390775,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  26.91,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  27,
+                           "floorCount":  null,
+                           "verticalRise_m":  4.28,
+                           "measuredStep":  {
+                                                "rise_m":  0.1586,
+                                                "run_m":  0.3125,
+                                                "hypotenuse_m":  0.35,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  27
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image11.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "landing",
+                                          "by":  "Amir, Iz and Naufal",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  null
+                       },
+                       {
+                           "id":  "ST12",
+                           "name":  "Tangga dari Blok C ke Blok A/B",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "MILD",
+                           "latitude":  5.349364,
+                           "longitude":  100.5390849,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  25.84,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  37,
+                           "floorCount":  null,
+                           "verticalRise_m":  5.74,
+                           "measuredStep":  {
+                                                "rise_m":  0.155,
+                                                "run_m":  0.32,
+                                                "hypotenuse_m":  0.356,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  37
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image12.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "straight",
+                                          "by":  "Izz, Amir and Naufal",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  null
+                       },
+                       {
+                           "id":  "ST13",
+                           "name":  "Tangga belakang Dewan Ixora ke Dewan Kesidang",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "MODERATE",
+                           "latitude":  5.3502767,
+                           "longitude":  100.5379339,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  25.99,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  32,
+                           "floorCount":  null,
+                           "verticalRise_m":  5,
+                           "measuredStep":  {
+                                                "rise_m":  0.1561,
+                                                "run_m":  0.3202,
+                                                "hypotenuse_m":  0.356,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  32
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image13.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "landing",
+                                          "by":  "Amir, Iz and Naufal",
+                                          "date":  null,
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  null
+                       },
+                       {
+                           "id":  "ST14",
+                           "name":  "Tangga belakang Bilik 409 naik ke Dewan Kenanga",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "MODERATE",
+                           "latitude":  5.3524047,
+                           "longitude":  100.5383392,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  26.41,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  13,
+                           "floorCount":  null,
+                           "verticalRise_m":  1.94,
+                           "measuredStep":  {
+                                                "rise_m":  0.149,
+                                                "run_m":  0.3,
+                                                "hypotenuse_m":  0.335,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  13
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image14.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "straight",
+                                          "by":  "Amir and Iz",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  "Rise and run taken from the Group 14 F21 report (mean of 5 steps); the survey row repeated the ST20 numbers."
+                       },
+                       {
+                           "id":  "ST15",
+                           "name":  "Tangga aras 1 naik ke bilik tutorial (sebelah Lab Biology)",
+                           "appFloorLabel":  "Tingkat 2",
+                           "appCategory":  "MODERATE",
+                           "latitude":  5.3512708,
+                           "longitude":  100.538078,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  27.02,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  22,
+                           "floorCount":  null,
+                           "verticalRise_m":  3.39,
+                           "measuredStep":  {
+                                                "rise_m":  0.154,
+                                                "run_m":  0.302,
+                                                "hypotenuse_m":  0.339,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+                                                      "ST09"
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  11
+                                           },
+                                           {
+                                               "steps":  11
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image15.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "U",
+                                          "by":  "Izz, Amir and Naufal",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  null
+                       },
+                       {
+                           "id":  "ST16",
+                           "name":  "Tangga merah ke wakaf / gazebo sebelah Selangkah ke Menara Gading",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "MODERATE",
+                           "latitude":  5.35145,
+                           "longitude":  100.53777,
+                           "locationSource":  "Recorded on site, from the survey document (same stair area as ST02)",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  24.61,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  5,
+                           "floorCount":  null,
+                           "verticalRise_m":  0.76,
+                           "measuredStep":  {
+                                                "rise_m":  0.153,
+                                                "run_m":  0.334,
+                                                "hypotenuse_m":  0.367,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  5
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image1.jpg",
+                                              "caption":  "Same picture as ST02, still to be checked",
+                                              "sameAs":  "ST02"
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "straight",
+                                          "by":  null,
+                                          "date":  null,
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  "Coordinate taken from the survey document; the stair now appears on the map."
+                       },
+                       {
+                           "id":  "ST17",
+                           "name":  "Tangga dari DS naik ke koperasi",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "MODERATE",
+                           "latitude":  5.3510194,
+                           "longitude":  100.5386617,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  32.97,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  20,
+                           "floorCount":  null,
+                           "verticalRise_m":  3.62,
+                           "measuredStep":  {
+                                                "rise_m":  0.181,
+                                                "run_m":  0.279,
+                                                "hypotenuse_m":  0.333,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  10
+                                           },
+                                           {
+                                               "steps":  10
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image16.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "U",
+                                          "by":  "Amir, Naufal and Iz",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  null
+                       },
+                       {
+                           "id":  "ST18",
+                           "name":  "Tangga ke Makmal Inovasi dari tapak parking depan pejabat",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "MODERATE",
+                           "latitude":  5.3520312,
+                           "longitude":  100.5380334,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  26.57,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  20,
+                           "floorCount":  null,
+                           "verticalRise_m":  3.6,
+                           "measuredStep":  {
+                                                "rise_m":  0.18,
+                                                "run_m":  0.36,
+                                                "hypotenuse_m":  0.402,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  20
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image17.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "straight",
+                                          "by":  "Amir and Iz",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  null
+                       },
+                       {
+                           "id":  "ST19",
+                           "name":  "Tangga dari Blok Aisyah / parking Blok E ke Dewan Kenanga",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "MODERATE",
+                           "latitude":  5.3525206,
+                           "longitude":  100.5386027,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  27.24,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  9,
+                           "floorCount":  null,
+                           "verticalRise_m":  1.41,
+                           "measuredStep":  {
+                                                "rise_m":  0.157,
+                                                "run_m":  0.305,
+                                                "hypotenuse_m":  0.343,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  9
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image18.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "straight",
+                                          "by":  "Amir and Iz",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  null
+                       },
+                       {
+                           "id":  "ST20",
+                           "name":  "Tangga sebelah rumah penjana elektrik ke Dewan Kenanga",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "MODERATE",
+                           "latitude":  5.3519878,
+                           "longitude":  100.5383771,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  28.52,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  28,
+                           "floorCount":  null,
+                           "verticalRise_m":  4.73,
+                           "measuredStep":  {
+                                                "rise_m":  0.169,
+                                                "run_m":  0.311,
+                                                "hypotenuse_m":  0.354,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  28
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image17.jpg",
+                                              "caption":  "Same picture as ST18, still to be checked",
+                                              "sameAs":  "ST18"
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "straight",
+                                          "by":  "Amir and Iz",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  null
+                       },
+                       {
+                           "id":  "ST21",
+                           "name":  "Tangga Makmal Inovasi ke bilik 406, 407",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "MODERATE",
+                           "latitude":  5.3521864,
+                           "longitude":  100.5381059,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  24.51,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  8,
+                           "floorCount":  null,
+                           "verticalRise_m":  1.12,
+                           "measuredStep":  {
+                                                "rise_m":  0.14,
+                                                "run_m":  0.307,
+                                                "hypotenuse_m":  0.337,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  8
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image8.jpg",
+                                              "caption":  "Same picture as ST08: same structure and a similar place",
+                                              "sameAs":  "ST08"
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "straight",
+                                          "by":  "Amir and Iz",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  null
+                       },
+                       {
+                           "id":  "ST22",
+                           "name":  "Tangga cafe ke Dewan Melati (dewan exam) (tangga tengah)",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "MODERATE",
+                           "latitude":  5.350466,
+                           "longitude":  100.5387657,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  29.44,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  20,
+                           "floorCount":  null,
+                           "verticalRise_m":  3.59,
+                           "measuredStep":  {
+                                                "rise_m":  0.1795,
+                                                "run_m":  0.318,
+                                                "hypotenuse_m":  0.365,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  10
+                                           },
+                                           {
+                                               "steps":  10
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image19.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "U",
+                                          "by":  "Amir, Iz and Naufal",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  null
+                       },
+                       {
+                           "id":  "ST23",
+                           "name":  "Tangga Anjung Santap",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "MODERATE",
+                           "latitude":  5.3517635,
+                           "longitude":  100.5391633,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  41.21,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  10,
+                           "floorCount":  null,
+                           "verticalRise_m":  1.83,
+                           "measuredStep":  {
+                                                "rise_m":  0.183,
+                                                "run_m":  0.209,
+                                                "hypotenuse_m":  0.278,
+                                                "method":  null,
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  10
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image21.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "straight",
+                                          "by":  null,
+                                          "date":  null,
+                                          "tool":  null
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  null
+                       },
+                       {
+                           "id":  "ST24",
+                           "name":  "Tangga dalam Blok A",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "VIGOROUS",
+                           "latitude":  5.3490042,
+                           "longitude":  100.5388927,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  31.21,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  20,
+                           "floorCount":  null,
+                           "verticalRise_m":  2.92,
+                           "measuredStep":  {
+                                                "rise_m":  0.146,
+                                                "run_m":  0.241,
+                                                "hypotenuse_m":  0.282,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  10
+                                           },
+                                           {
+                                               "steps":  10
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image20.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "U",
+                                          "by":  "Fatihah",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  null
+                       },
+                       {
+                           "id":  "ST25",
+                           "name":  "Tangga dalam Blok B",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "VIGOROUS",
+                           "latitude":  5.3490162,
+                           "longitude":  100.5391398,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  32.01,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  20,
+                           "floorCount":  null,
+                           "verticalRise_m":  3,
+                           "measuredStep":  {
+                                                "rise_m":  0.15,
+                                                "run_m":  0.24,
+                                                "hypotenuse_m":  0.283,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  10
+                                           },
+                                           {
+                                               "steps":  10
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image20.jpg",
+                                              "caption":  "Same picture as ST24, still to be checked",
+                                              "sameAs":  "ST24"
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "U",
+                                          "by":  "Fatihah",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  null
+                       },
+                       {
+                           "id":  "ST26",
+                           "name":  "Tangga dari rumah pengarah naik ke Blok E",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "VIGOROUS",
+                           "latitude":  5.3520232,
+                           "longitude":  100.5388347,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  31.52,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  50,
+                           "floorCount":  null,
+                           "verticalRise_m":  7.45,
+                           "measuredStep":  {
+                                                "rise_m":  0.149,
+                                                "run_m":  0.243,
+                                                "hypotenuse_m":  0.285,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  50
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image22.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "landing",
+                                          "by":  "Izz, Amir and Naufal",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  null
+                       },
+                       {
+                           "id":  "ST27",
+                           "name":  "Tangga Anjung Santap",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "VIGOROUS",
+                           "latitude":  5.3509924,
+                           "longitude":  100.5388522,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  31.2,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  10,
+                           "floorCount":  null,
+                           "verticalRise_m":  2.1,
+                           "measuredStep":  {
+                                                "rise_m":  0.21,
+                                                "run_m":  0.3467,
+                                                "hypotenuse_m":  0.405,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  10
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image10.jpg",
+                                              "caption":  "Same picture as ST10, still to be checked",
+                                              "sameAs":  "ST10"
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "straight",
+                                          "by":  "Izz, Amir and Naufal",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  "Renamed to Tangga Anjung Santap."
+                       },
+                       {
+                           "id":  "ST28",
+                           "name":  "Tangga naik ke Smart Classroom",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "VIGOROUS",
+                           "latitude":  5.3507487,
+                           "longitude":  100.5379365,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  37.03,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  20,
+                           "floorCount":  null,
+                           "verticalRise_m":  3.44,
+                           "measuredStep":  {
+                                                "rise_m":  0.172,
+                                                "run_m":  0.228,
+                                                "hypotenuse_m":  0.286,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  10
+                                           },
+                                           {
+                                               "steps":  10
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image23.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "U",
+                                          "by":  "Izz, Amir and Naufal",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  null
+                       },
+                       {
+                           "id":  "ST29",
+                           "name":  "Tangga naik ke Dewan Semarak",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "VIGOROUS",
+                           "latitude":  5.35077,
+                           "longitude":  100.53819,
+                           "locationSource":  "Recorded on site, from the survey document",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  34.99,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  20,
+                           "floorCount":  null,
+                           "verticalRise_m":  4.2,
+                           "measuredStep":  {
+                                                "rise_m":  0.21,
+                                                "run_m":  0.3,
+                                                "hypotenuse_m":  0.366,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  10
+                                           },
+                                           {
+                                               "steps":  10
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image24.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "U",
+                                          "by":  "Izz, Amir and Naufal",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  "Coordinate taken from the survey document; the stair now appears on the map."
+                       },
+                       {
+                           "id":  "ST30",
+                           "name":  "Tangga dari parking Anjung Santap ke Blok FAZ (sebelah belakang)",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "VIGOROUS",
+                           "latitude":  5.3511299,
+                           "longitude":  100.5395432,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  24.86,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  25,
+                           "floorCount":  null,
+                           "verticalRise_m":  4.17,
+                           "measuredStep":  {
+                                                "rise_m":  0.1668,
+                                                "run_m":  0.36,
+                                                "hypotenuse_m":  0.397,
+                                                "method":  null,
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  25
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image25.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "landing",
+                                          "by":  "Amir, Iz and Naufal",
+                                          "date":  null,
+                                          "tool":  null
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  null
+                       },
+                       {
+                           "id":  "ST31",
+                           "name":  "Tangga aras 1 naik ke bilik tutorial (sebelah Lab Fizik) — lower half",
+                           "appFloorLabel":  "Tingkat 2",
+                           "appCategory":  "VIGOROUS",
+                           "latitude":  5.3515635,
+                           "longitude":  100.5383731,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  23.96,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  11,
+                           "floorCount":  null,
+                           "verticalRise_m":  1.54,
+                           "measuredStep":  {
+                                                "rise_m":  0.14,
+                                                "run_m":  0.315,
+                                                "hypotenuse_m":  0.345,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+                                                      "ST06",
+                                                      "ST32"
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  11
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image26.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "U",
+                                          "by":  "Amir, Iz and Naufal",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  null
+                       },
+                       {
+                           "id":  "ST32",
+                           "name":  "Tangga aras 1 naik ke bilik tutorial (sebelah Lab Fizik) — upper half",
+                           "appFloorLabel":  "Tingkat 2",
+                           "appCategory":  "VIGOROUS",
+                           "latitude":  5.3515635,
+                           "longitude":  100.5383731,
+                           "locationSource":  "Coordinates recorded on site by the survey team; confirmed as real",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  24.25,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  11,
+                           "floorCount":  null,
+                           "verticalRise_m":  1.57,
+                           "measuredStep":  {
+                                                "rise_m":  0.143,
+                                                "run_m":  0.3174,
+                                                "hypotenuse_m":  0.348,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+                                                      "ST06",
+                                                      "ST31"
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  11
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image26.jpg",
+                                              "caption":  "Same picture as ST31, still to be checked",
+                                              "sameAs":  "ST31"
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "U",
+                                          "by":  "Amir, Iz and Naufal",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  null
+                       },
+                       {
+                           "id":  "ST33",
+                           "name":  "Tangga cafe ke Dewan Kemboja (dewan exam) (tangga hujung)",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "VIGOROUS",
+                           "latitude":  5.350972,
+                           "longitude":  100.538639,
+                           "locationSource":  "Recorded on site (degrees, minutes, seconds converted to decimal)",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  30.5,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  20,
+                           "floorCount":  null,
+                           "verticalRise_m":  3.62,
+                           "measuredStep":  {
+                                                "rise_m":  0.181,
+                                                "run_m":  0.3073,
+                                                "hypotenuse_m":  0.357,
+                                                "method":  "tape",
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  10
+                                           },
+                                           {
+                                               "steps":  10
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image19.jpg",
+                                              "caption":  "Same picture as ST22, still to be checked",
+                                              "sameAs":  "ST22"
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "U",
+                                          "by":  "Amir, Iz and Naufal",
+                                          "date":  "2026-10-23",
+                                          "tool":  "tape"
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  "Coordinate updated from the survey document."
+                       },
+                       {
+                           "id":  "ST34",
+                           "name":  "Tangga dusun durian ke kolam ikan (Laman Ibrahim)",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "VIGOROUS",
+                           "latitude":  5.352826,
+                           "longitude":  100.538445,
+                           "locationSource":  "Recorded on site (decimal degrees)",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  36.81,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  25,
+                           "floorCount":  null,
+                           "verticalRise_m":  5.61,
+                           "measuredStep":  {
+                                                "rise_m":  0.2245,
+                                                "run_m":  0.3,
+                                                "hypotenuse_m":  0.375,
+                                                "method":  null,
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  25
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image27.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "straight",
+                                          "by":  null,
+                                          "date":  null,
+                                          "tool":  null
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  "New stair, added from the survey document."
+                       },
+                       {
+                           "id":  "ST35",
+                           "name":  "Tangga depan Jab. Math / sebelah Jab. Bahasa ke pintu belakang Jab Sains",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "MODERATE",
+                           "latitude":  5.35111,
+                           "longitude":  100.537968,
+                           "locationSource":  "Recorded on site (decimal degrees)",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  26.57,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  20,
+                           "floorCount":  null,
+                           "verticalRise_m":  3.03,
+                           "measuredStep":  {
+                                                "rise_m":  0.1515,
+                                                "run_m":  0.303,
+                                                "hypotenuse_m":  0.339,
+                                                "method":  null,
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  10
+                                           },
+                                           {
+                                               "steps":  10
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image28.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "U",
+                                          "by":  null,
+                                          "date":  null,
+                                          "tool":  null
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  "New stair, added from the survey document."
+                       },
+                       {
+                           "id":  "ST36",
+                           "name":  "Tangga ke tapak parking depan pejabat",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "VIGOROUS",
+                           "latitude":  5.351861,
+                           "longitude":  100.538028,
+                           "locationSource":  "Recorded on site (degrees, minutes, seconds converted to decimal)",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  35.55,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  3,
+                           "floorCount":  null,
+                           "verticalRise_m":  0.5,
+                           "measuredStep":  {
+                                                "rise_m":  0.1667,
+                                                "run_m":  0.2333,
+                                                "hypotenuse_m":  0.287,
+                                                "method":  null,
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  3
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image29.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "straight",
+                                          "by":  null,
+                                          "date":  null,
+                                          "tool":  null
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  "Rise and run are the totals (50 and 70) divided by the 3 steps. New stair, added from the survey document."
+                       },
+                       {
+                           "id":  "ST37",
+                           "name":  "Tangga laluan bumbung pejalan kaki (belakang FAZ) ke asrama kayu (Tun Teja)",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "MODERATE",
+                           "latitude":  5.351389,
+                           "longitude":  100.5395,
+                           "locationSource":  "Recorded on site (degrees, minutes, seconds converted to decimal)",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  29.74,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  6,
+                           "floorCount":  null,
+                           "verticalRise_m":  1.02,
+                           "measuredStep":  {
+                                                "rise_m":  0.1693,
+                                                "run_m":  0.2963,
+                                                "hypotenuse_m":  0.341,
+                                                "method":  null,
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  6
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image30.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "straight",
+                                          "by":  null,
+                                          "date":  null,
+                                          "tool":  null
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  "Run was worked out from the recorded angle (29.74 deg) and riser (16.93 cm); the run itself was not entered. New stair, added from the survey document."
+                       },
+                       {
+                           "id":  "ST38",
+                           "name":  "Tangga dalam Blok FAZ",
+                           "appFloorLabel":  "G level",
+                           "appCategory":  "VIGOROUS",
+                           "latitude":  5.351111,
+                           "longitude":  100.539611,
+                           "locationSource":  "Recorded on site (degrees, minutes, seconds converted to decimal)",
+                           "locationStatus":  "real",
+                           "estimatedAngle":  37.84,
+                           "angleSource":  "theta = arctan(rise / run) from the measured step rise and run (Campus stair survey, shared survey database (export of 24 Oct 2026))",
+                           "angleStatus":  "calculated from measured step rise and run",
+                           "orientationDeg":  null,
+                           "orientationSource":  null,
+                           "stepCount":  20,
+                           "floorCount":  null,
+                           "verticalRise_m":  3.48,
+                           "measuredStep":  {
+                                                "rise_m":  0.174,
+                                                "run_m":  0.224,
+                                                "hypotenuse_m":  0.284,
+                                                "method":  null,
+                                                "source":  "Campus stair survey, shared survey database (export of 24 Oct 2026)"
+                                            },
+                           "measurementStatus":  "surveyed",
+                           "geometryStatus":  "surveyed",
+                           "sharedLocationWith":  [
+
+                                                  ],
+                           "endpoints":  null,
+                           "flights":  [
+                                           {
+                                               "steps":  10
+                                           },
+                                           {
+                                               "steps":  10
+                                           }
+                                       ],
+                           "landings":  null,
+                           "dimensions":  null,
+                           "photos":  [
+                                          {
+                                              "src":  "assets/photos/image31.jpg",
+                                              "caption":  "Survey photo",
+                                              "sameAs":  null
+                                          }
+                                      ],
+                           "survey":  {
+                                          "shape":  "U",
+                                          "by":  null,
+                                          "date":  null,
+                                          "tool":  null
+                                      },
+                           "verification":  {
+                                                "status":  "unverified",
+                                                "by":  null,
+                                                "date":  null
+                                            },
+                           "notes":  "Latitude seconds taken as 04.0 from the survey document (an earlier message said 04.8). New stair, added from the survey document."
+                       }
+                   ]
 }

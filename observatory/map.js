@@ -193,7 +193,7 @@ function style(osm, zonesFC, trees, parts, walks, demUrl) {
 // difficulty colour (the white Blender heart of tools/art/make_heart_sprite.py, multiplied by --mc in observatory.css); the
 // difficulty number stays on the post for anyone who cannot tell the colours apart
 const PIN = n => '<span class="pinsvg hstop" aria-hidden="true"><i class="hpost"></i><i class="hrt"></i>' + (n ? '<b class="hcat">' + n + '</b>' : '') + '</span>';
-const locWord = s => s.locationStatus === 'measured' ? 'Measured location (survey)' : 'Estimated location';
+const locWord = s => s.locationStatus === 'measured' ? 'Measured location (survey)' : 'Real location';
 
 /** Build the map. opts: {container, osm, terrain, groups: [{key, lat, lng, items: [record]}], cam, mode, terr, bld,
     padding(), reduced(), onSelect(t), onCamera(cam), onReady(), onError(msg)} → controller. */
@@ -400,7 +400,7 @@ export function createMap(opts) {
       const s = g.items[0], el = document.createElement('button'), many = g.items.length > 1;
       el.type = 'button';
       const vis = !!opts.visited && g.items.some(x => opts.visited(x.id)); // the player has saved a stair session there
-      el.className = 'stm c' + catN(s.appCategory) + (s.locationStatus === 'measured' ? ' meas' : ' est') + (g.items.some(x => x.measuredStep || x.survey) ? ' part' : '') + (vis ? ' vis' : '');
+      el.className = 'stm c' + catN(s.appCategory) + (s.locationStatus === 'measured' ? ' meas' : ' real') + (g.items.some(x => x.measuredStep || x.survey) ? ' part' : '') + (vis ? ' vis' : '');
       el.dataset.key = g.key;
       if (!many) el.dataset.id = s.id;
       const name = many ? g.items.length + ' staircases at one stored point' : s.id + ' · ' + s.name;

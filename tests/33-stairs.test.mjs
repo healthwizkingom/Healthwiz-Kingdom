@@ -37,7 +37,7 @@ test('one page, two halves side by side; GPS first; Pulse opens the heart rate; 
   assert.match(await page.textContent('#st-casual'), /Check in by GPS[\s\S]*log a climb by hand/);
   assert.equal(await page.locator('#st-run, #v6run, #v6rb').count(), 0, 'no Running on the Stairs page');
   // no demo / placeholder stairway, no default selection
-  assert.equal(await page.evaluate(() => STAIRS.some(s => s.id === 'ST01' || s.angle === 7.26)), false);
+  assert.equal(await page.evaluate(() => STAIRS.some(s => s.angle === 7.26 || (s.id === 'ST01' && /Selangkah/.test(s.name)))), false); // the retired placeholder; ST01 is now the surveyed Tangga dalam Blok E
   assert.doesNotMatch(await page.textContent('#main'), /7\.26/);
   assert.equal(await page.locator('.sqlist .chip, .stcats').count(), 0, 'no stairway list to scroll: staircases are picked on the map');
   assert.match(await page.textContent('.stloc'), /No staircase picked yet/);
@@ -275,24 +275,24 @@ test('360 px: no sideways scroll, the two halves stay side by side, heart-rate c
   await ctx.close();
 });
 
-test('stairway counts agree (32 total, 28 mapped), every stairway shows θ and its band, goal is labelled as a personal goal', async () => {
+test('stairway counts agree (38 total, 38 mapped), every stairway shows θ and its band, goal is labelled as a personal goal', async () => {
   const { page, ctx, errors } = await bootC();
   const d = await page.evaluate(() => ({ n: STAIRS.length, k: HWGps.counts(),
     by: CATS.map(c => stairsOf(c[1]).length), bad: STAIRS.filter(s => stairsOf(s.cat).includes(s) && ({ MILD: s.angle < 26, MODERATE: s.angle >= 26 && s.angle <= 31.2, VIGOROUS: s.angle > 31.2 })[s.cat] !== true).map(s => s.id) }));
-  assert.deepEqual([d.n, d.k.total, d.k.mapped, d.k.unmapped, d.k.found], [32, 32, 28, 4, 0]);
-  assert.deepEqual(d.by, [11, 11, 10]);
+  assert.deepEqual([d.n, d.k.total, d.k.mapped, d.k.unmapped, d.k.found], [38, 38, 38, 0, 0]);
+  assert.deepEqual(d.by, [11, 13, 14]);
   assert.deepEqual(d.bad, [], 'stored category matches the angle band');
   const gps = await page.textContent('#v6gps');
-  assert.match(gps, /28 of 32 stairways are on the map/);
-  assert.match(gps, /discovered by GPS check-in: 0 of 28 on the map \(32 stairways in total\)/);
+  assert.match(gps, /38 of 38 stairways are on the map/);
+  assert.match(gps, /discovered by GPS check-in: 0 of 38 on the map \(38 stairways in total\)/);
   const man = await page.textContent('#stman');
-  assert.match(man, /32 stairways[\s\S]*Mild 11 \+ Moderate 11 \+ Vigorous 10/);
+  assert.match(man, /38 stairways[\s\S]*Mild 11 \+ Moderate 13 \+ Vigorous 14/);
   assert.match(man, /Mild < 26°, Moderate 26–31\.2°, Vigorous > 31\.2°/);
   assert.match(man, /θ = tan⁻¹\(rise ÷ run\), estimated from the stairway's stored data/);
   // every stairway shows θ in the Observatory's list, and θ with its band once picked
   await page.click('[data-a="cmptab"][data-t="list"]'); // ALL STAIRCASES (below the Details)
   const t = await page.$$eval('#cmplist .cmpmeta', e => e.map(x => x.textContent));
-  assert.equal(t.length, 32);
+  assert.equal(t.length, 38);
   assert.ok(t.every(x => /θ \d+\.\d\d°/.test(x)), t.join('|'));
   for (const id of ['ST02', 'ST20', 'ST24']) { await pickStair(page, id); assert.match(await page.textContent('#cmplog .stloc'), /θ \d+\.\d\d° \(estimated\)/); assert.match(await page.textContent('#cmplog .stloc'), /Mild|Moderate|Vigorous/); }
   await stairHistory(page); // the summary and the goal are in the Stairs section (the history)
@@ -374,7 +374,7 @@ test('measured stairways card: the three report stairs, report rank vs app band'
   assert.match(rows.map(r => r[0]).join('|'), /A · Generator stairs \(ST20\)\|C · Block Aisyah stairs \(ST19\)\|B · Block Kenanga stairs \(ST14\)/);
   // the report angles are the stored ones
   assert.deepEqual(await page.evaluate(() => ['ST20', 'ST19', 'ST14'].map(i => STAIRS.find(s => s.id === i).angle)), [28.52, 27.23, 26.43]);
-  assert.match(await page.textContent('#ststudy'), /The report ranks these three stairs against each other\. The app uses fixed bands for all 32 campus stairways \(mild < 26°, moderate 26–31\.2°, vigorous > 31\.2°\), so all three are moderate here\./);
+  assert.match(await page.textContent('#ststudy'), /The report ranks these three stairs against each other\. The app uses fixed bands for all 38 campus stairways \(mild < 26°, moderate 26–31\.2°, vigorous > 31\.2°\), so all three are moderate here\./);
   assert.equal(await page.evaluate(() => document.querySelector('#ststudy details').open), false, 'collapsed by default');
   assert.equal(await page.evaluate(() => document.querySelector('#stman').compareDocumentPosition(document.querySelector('#ststudy')) & Node.DOCUMENT_POSITION_FOLLOWING), 4);
   assert.deepEqual(errors, []); await ctx.close();

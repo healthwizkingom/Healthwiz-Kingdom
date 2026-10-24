@@ -1,7 +1,1294 @@
 {
- "about": "No survey imported yet. Fill in data/source/HealthWiz_Campus_Stair_Data_Sheet.docx and run: python3 tools/import_stair_sheet.py your-sheet.docx (see UPDATE_DATA.md). That replaces this file; do not edit it by hand.",
- "source": null,
- "stairs": {},
+ "about": "Made by tools/stair_survey_from_records.py from prototypes/campus-observatory/data/staircases.json. Campus stair survey (shared survey database, export of 24 Oct 2026). Do not edit by hand.",
+ "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+ "stairs": {
+  "ST01": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "U",
+   "survey": {
+    "by": null,
+    "date": null,
+    "tool": null
+   },
+   "stepCount": 20,
+   "verticalRise_m": 2.58,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 10,
+     "riser_cm": 12.9,
+     "tread_cm": 16.9
+    },
+    {
+     "flight": 2,
+     "risers": 10,
+     "riser_cm": 12.9,
+     "tread_cm": 16.9
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image2.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": "New stair, added from the survey document.",
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": false
+   }
+  },
+  "ST02": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "straight",
+   "survey": {
+    "by": "Amir and Iz",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 5,
+   "verticalRise_m": 0.76,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 5,
+     "riser_cm": 15.3,
+     "tread_cm": 33.4
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image1.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": "Coordinate taken from the survey document; the stair now appears on the map.",
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST03": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "U",
+   "survey": {
+    "by": "Amir and Iz",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 55,
+   "verticalRise_m": 5.87,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 11,
+     "riser_cm": 10.67,
+     "tread_cm": 30.0
+    },
+    {
+     "flight": 2,
+     "risers": 11,
+     "riser_cm": 10.67,
+     "tread_cm": 30.0
+    },
+    {
+     "flight": 3,
+     "risers": 11,
+     "riser_cm": 10.67,
+     "tread_cm": 30.0
+    },
+    {
+     "flight": 4,
+     "risers": 11,
+     "riser_cm": 10.67,
+     "tread_cm": 30.0
+    },
+    {
+     "flight": 5,
+     "risers": 11,
+     "riser_cm": 10.67,
+     "tread_cm": 30.0
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image3.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": "Riser and run were entered as 32 and 90 cm; they are divided by 3 here, as confirmed by the surveyor.",
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST04": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "straight",
+   "survey": {
+    "by": "Amir, Iz and Naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 35,
+   "verticalRise_m": 5.42,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 35,
+     "riser_cm": 15.5,
+     "tread_cm": 40.51
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image4.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": null,
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST05": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "straight",
+   "survey": {
+    "by": "Amir and Iz",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 6,
+   "verticalRise_m": 0.72,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 6,
+     "riser_cm": 12.0,
+     "tread_cm": 30.0
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image5.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": null,
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST06": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "U",
+   "survey": {
+    "by": "Amir and Iz",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 22,
+   "verticalRise_m": 3.08,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 11,
+     "riser_cm": 14.0,
+     "tread_cm": 31.5
+    },
+    {
+     "flight": 2,
+     "risers": 11,
+     "riser_cm": 14.0,
+     "tread_cm": 31.5
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image6.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": null,
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST07": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "U",
+   "survey": {
+    "by": "Amir, Iz and Naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 22,
+   "verticalRise_m": 3.17,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 11,
+     "riser_cm": 14.4,
+     "tread_cm": 31.67
+    },
+    {
+     "flight": 2,
+     "risers": 11,
+     "riser_cm": 14.4,
+     "tread_cm": 31.67
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image7.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": null,
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST08": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "straight",
+   "survey": {
+    "by": "Amir and Iz",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 8,
+   "verticalRise_m": 1.12,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 8,
+     "riser_cm": 14.0,
+     "tread_cm": 30.7
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image8.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": "Coordinate taken from the survey document; the stair now appears on the map.",
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST09": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "U",
+   "survey": {
+    "by": "Amir and Iz",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 22,
+   "verticalRise_m": 3.19,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 11,
+     "riser_cm": 14.5,
+     "tread_cm": 31.5
+    },
+    {
+     "flight": 2,
+     "risers": 11,
+     "riser_cm": 14.5,
+     "tread_cm": 31.5
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image9.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": null,
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST10": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "straight",
+   "survey": {
+    "by": "Amir, Iz and Naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 24,
+   "verticalRise_m": 4,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 24,
+     "riser_cm": 16.68,
+     "tread_cm": 36.0
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image10.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": null,
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST11": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "landing",
+   "survey": {
+    "by": "Amir, Iz and Naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 27,
+   "verticalRise_m": 4.28,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 27,
+     "riser_cm": 15.86,
+     "tread_cm": 31.25
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image11.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": null,
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST12": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "straight",
+   "survey": {
+    "by": "Izz, Amir and Naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 37,
+   "verticalRise_m": 5.74,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 37,
+     "riser_cm": 15.5,
+     "tread_cm": 32.0
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image12.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": null,
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST13": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "landing",
+   "survey": {
+    "by": "Amir, Iz and Naufal",
+    "date": null,
+    "tool": "tape"
+   },
+   "stepCount": 32,
+   "verticalRise_m": 5,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 32,
+     "riser_cm": 15.61,
+     "tread_cm": 32.02
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image13.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": null,
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": false
+   }
+  },
+  "ST14": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "straight",
+   "survey": {
+    "by": "Amir and Iz",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 13,
+   "verticalRise_m": 1.94,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 13,
+     "riser_cm": 14.9,
+     "tread_cm": 30.0
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image14.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": "Rise and run taken from the Group 14 F21 report (mean of 5 steps); the survey row repeated the ST20 numbers.",
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST15": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "U",
+   "survey": {
+    "by": "Izz, Amir and Naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 22,
+   "verticalRise_m": 3.39,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 11,
+     "riser_cm": 15.4,
+     "tread_cm": 30.2
+    },
+    {
+     "flight": 2,
+     "risers": 11,
+     "riser_cm": 15.4,
+     "tread_cm": 30.2
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image15.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": null,
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST16": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "straight",
+   "survey": {
+    "by": null,
+    "date": null,
+    "tool": "tape"
+   },
+   "stepCount": 5,
+   "verticalRise_m": 0.76,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 5,
+     "riser_cm": 15.3,
+     "tread_cm": 33.4
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image1.jpg",
+     "caption": "Same picture as ST02, still to be checked"
+    }
+   ],
+   "notes": "Coordinate taken from the survey document; the stair now appears on the map.",
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": false
+   }
+  },
+  "ST17": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "U",
+   "survey": {
+    "by": "Amir, Naufal and Iz",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 20,
+   "verticalRise_m": 3.62,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 10,
+     "riser_cm": 18.1,
+     "tread_cm": 27.9
+    },
+    {
+     "flight": 2,
+     "risers": 10,
+     "riser_cm": 18.1,
+     "tread_cm": 27.9
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image16.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": null,
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST18": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "straight",
+   "survey": {
+    "by": "Amir and Iz",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 20,
+   "verticalRise_m": 3.6,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 20,
+     "riser_cm": 18.0,
+     "tread_cm": 36.0
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image17.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": null,
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST19": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "straight",
+   "survey": {
+    "by": "Amir and Iz",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 9,
+   "verticalRise_m": 1.41,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 9,
+     "riser_cm": 15.7,
+     "tread_cm": 30.5
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image18.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": null,
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST20": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "straight",
+   "survey": {
+    "by": "Amir and Iz",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 28,
+   "verticalRise_m": 4.73,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 28,
+     "riser_cm": 16.9,
+     "tread_cm": 31.1
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image17.jpg",
+     "caption": "Same picture as ST18, still to be checked"
+    }
+   ],
+   "notes": null,
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST21": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "straight",
+   "survey": {
+    "by": "Amir and Iz",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 8,
+   "verticalRise_m": 1.12,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 8,
+     "riser_cm": 14.0,
+     "tread_cm": 30.7
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image8.jpg",
+     "caption": "Same picture as ST08: same structure and a similar place"
+    }
+   ],
+   "notes": null,
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST22": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "U",
+   "survey": {
+    "by": "Amir, Iz and Naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 20,
+   "verticalRise_m": 3.59,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 10,
+     "riser_cm": 17.95,
+     "tread_cm": 31.8
+    },
+    {
+     "flight": 2,
+     "risers": 10,
+     "riser_cm": 17.95,
+     "tread_cm": 31.8
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image19.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": null,
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST23": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "straight",
+   "survey": {
+    "by": null,
+    "date": null,
+    "tool": null
+   },
+   "stepCount": 10,
+   "verticalRise_m": 1.83,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 10,
+     "riser_cm": 18.3,
+     "tread_cm": 20.9
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image21.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": null,
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": false
+   }
+  },
+  "ST24": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "U",
+   "survey": {
+    "by": "Fatihah",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 20,
+   "verticalRise_m": 2.92,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 10,
+     "riser_cm": 14.6,
+     "tread_cm": 24.1
+    },
+    {
+     "flight": 2,
+     "risers": 10,
+     "riser_cm": 14.6,
+     "tread_cm": 24.1
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image20.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": null,
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST25": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "U",
+   "survey": {
+    "by": "Fatihah",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 20,
+   "verticalRise_m": 3,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 10,
+     "riser_cm": 15.0,
+     "tread_cm": 24.0
+    },
+    {
+     "flight": 2,
+     "risers": 10,
+     "riser_cm": 15.0,
+     "tread_cm": 24.0
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image20.jpg",
+     "caption": "Same picture as ST24, still to be checked"
+    }
+   ],
+   "notes": null,
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST26": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "landing",
+   "survey": {
+    "by": "Izz, Amir and Naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 50,
+   "verticalRise_m": 7.45,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 50,
+     "riser_cm": 14.9,
+     "tread_cm": 24.3
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image22.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": null,
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST27": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "straight",
+   "survey": {
+    "by": "Izz, Amir and Naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 10,
+   "verticalRise_m": 2.1,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 10,
+     "riser_cm": 21.0,
+     "tread_cm": 34.67
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image10.jpg",
+     "caption": "Same picture as ST10, still to be checked"
+    }
+   ],
+   "notes": "Renamed to Tangga Anjung Santap.",
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST28": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "U",
+   "survey": {
+    "by": "Izz, Amir and Naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 20,
+   "verticalRise_m": 3.44,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 10,
+     "riser_cm": 17.2,
+     "tread_cm": 22.8
+    },
+    {
+     "flight": 2,
+     "risers": 10,
+     "riser_cm": 17.2,
+     "tread_cm": 22.8
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image23.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": null,
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST29": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "U",
+   "survey": {
+    "by": "Izz, Amir and Naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 20,
+   "verticalRise_m": 4.2,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 10,
+     "riser_cm": 21.0,
+     "tread_cm": 30.0
+    },
+    {
+     "flight": 2,
+     "risers": 10,
+     "riser_cm": 21.0,
+     "tread_cm": 30.0
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image24.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": "Coordinate taken from the survey document; the stair now appears on the map.",
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST30": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "landing",
+   "survey": {
+    "by": "Amir, Iz and Naufal",
+    "date": null,
+    "tool": null
+   },
+   "stepCount": 25,
+   "verticalRise_m": 4.17,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 25,
+     "riser_cm": 16.68,
+     "tread_cm": 36.0
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image25.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": null,
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": false
+   }
+  },
+  "ST31": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "U",
+   "survey": {
+    "by": "Amir, Iz and Naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 11,
+   "verticalRise_m": 1.54,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 11,
+     "riser_cm": 14.0,
+     "tread_cm": 31.5
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image26.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": null,
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST32": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "U",
+   "survey": {
+    "by": "Amir, Iz and Naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 11,
+   "verticalRise_m": 1.57,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 11,
+     "riser_cm": 14.3,
+     "tread_cm": 31.74
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image26.jpg",
+     "caption": "Same picture as ST31, still to be checked"
+    }
+   ],
+   "notes": null,
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST33": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "U",
+   "survey": {
+    "by": "Amir, Iz and Naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "stepCount": 20,
+   "verticalRise_m": 3.62,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 10,
+     "riser_cm": 18.1,
+     "tread_cm": 30.73
+    },
+    {
+     "flight": 2,
+     "risers": 10,
+     "riser_cm": 18.1,
+     "tread_cm": 30.73
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image19.jpg",
+     "caption": "Same picture as ST22, still to be checked"
+    }
+   ],
+   "notes": "Coordinate updated from the survey document.",
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST34": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "straight",
+   "survey": {
+    "by": null,
+    "date": null,
+    "tool": null
+   },
+   "stepCount": 25,
+   "verticalRise_m": 5.61,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 25,
+     "riser_cm": 22.45,
+     "tread_cm": 30.0
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image27.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": "New stair, added from the survey document.",
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": false
+   }
+  },
+  "ST35": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "U",
+   "survey": {
+    "by": null,
+    "date": null,
+    "tool": null
+   },
+   "stepCount": 20,
+   "verticalRise_m": 3.03,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 10,
+     "riser_cm": 15.15,
+     "tread_cm": 30.3
+    },
+    {
+     "flight": 2,
+     "risers": 10,
+     "riser_cm": 15.15,
+     "tread_cm": 30.3
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image28.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": "New stair, added from the survey document.",
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": false
+   }
+  },
+  "ST36": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "straight",
+   "survey": {
+    "by": null,
+    "date": null,
+    "tool": null
+   },
+   "stepCount": 3,
+   "verticalRise_m": 0.5,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 3,
+     "riser_cm": 16.67,
+     "tread_cm": 23.33
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image29.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": "Rise and run are the totals (50 and 70) divided by the 3 steps. New stair, added from the survey document.",
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": false
+   }
+  },
+  "ST37": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "straight",
+   "survey": {
+    "by": null,
+    "date": null,
+    "tool": null
+   },
+   "stepCount": 6,
+   "verticalRise_m": 1.02,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 6,
+     "riser_cm": 16.93,
+     "tread_cm": 29.63
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image30.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": "Run was worked out from the recorded angle (29.74 deg) and riser (16.93 cm); the run itself was not entered. New stair, added from the survey document.",
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": false
+   }
+  },
+  "ST38": {
+   "source": "Campus stair survey (shared survey database, export of 24 Oct 2026)",
+   "shape": "U",
+   "survey": {
+    "by": null,
+    "date": null,
+    "tool": null
+   },
+   "stepCount": 20,
+   "verticalRise_m": 3.48,
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 10,
+     "riser_cm": 17.4,
+     "tread_cm": 22.4
+    },
+    {
+     "flight": 2,
+     "risers": 10,
+     "riser_cm": 17.4,
+     "tread_cm": 22.4
+    }
+   ],
+   "photos": [
+    {
+     "src": "data/stair-photos/image31.jpg",
+     "caption": "Survey photo"
+    }
+   ],
+   "notes": "Latitude seconds taken as 04.0 from the survey document (an earlier message said 04.8). New stair, added from the survey document.",
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": false
+   }
+  }
+ },
  "buildings": [],
  "answers": {},
  "warnings": []

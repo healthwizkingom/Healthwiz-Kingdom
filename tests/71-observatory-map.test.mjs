@@ -2,7 +2,7 @@
 // flags of prototypes/campus-observatory/qa/smoke.mjs; slow, so the checks are few and the motion is reduced).
 //   * lazy: nothing of the map (module, MapLibre, data) is requested before the campus page opens;
 //   * the map: OSM attribution and a scale, the illustrative terrain in the right order (highest > middle > base),
-//     25 markers on their coordinates, clusters, the zone labels saying "illustrative";
+//     34 markers on their coordinates, clusters, the zone labels saying "illustrative";
 //   * both modes use the same positions; the terrain and the buildings switch off and on; selecting from the list
 //     flies to the marker; a shared point opens the chooser; mode, switches, selection and camera are kept for the tab;
 //   * no WebGL, or map data that fails to load: a clear message, and the list and details still work.
@@ -69,7 +69,7 @@ const menu = async (page, a) => { await page.click('.hudbtn'); await page.click(
 const idle = page => page.waitForFunction(() => { const m = HWCampus.map && HWCampus.map.map; return !!m && !m.isMoving(); }, null, { timeout: 20000 }).then(() => page.waitForTimeout(400));
 const cam = page => page.evaluate(() => { const m = HWCampus.map.map, c = m.getCenter(); return { lng: c.lng, lat: c.lat, z: m.getZoom() }; });
 
-test('lazy and complete: nothing of the map before the page opens; then OSM attribution, a scale, terrain in order, 25 markers on their coordinates, clusters', async () => {
+test('lazy and complete: nothing of the map before the page opens; then OSM attribution, a scale, terrain in order, 34 markers on their coordinates, clusters', async () => {
   const { ctx, page, errors, reqs } = await openHttp();
   await goView(page, 'sleep'); await goView(page, 'health'); // (Stairs is a section of the map page now: tests/83-stairs-in-campus)
   assert.deepEqual(reqs.filter(u => /observatory\/|vendor\/|\.geojson/.test(u)), [], 'the rest of the app never loads the map');
@@ -88,22 +88,22 @@ test('lazy and complete: nothing of the map before the page opens; then OSM attr
       worst = Math.max(worst, Math.hypot(b.x + b.width / 2 - (c.x + p.x), b.bottom - 6 - (c.y + p.y))); }
     return { attr: document.querySelector('.maplibregl-ctrl-attrib').textContent, scale: !!document.querySelector('.maplibregl-ctrl-scale'),
       t: { hi: q(100.5388927, 5.3490042), mid: q(100.5389, 5.3526), terrace: q(100.5392, 5.34955), slope: q(100.5383771, 5.3519878), base: q(100.5368, 5.3509) }, markers: document.querySelectorAll('.stm').length,
-      clusters: document.querySelectorAll('.clu').length, worst, zl: [...document.querySelectorAll('.zlab')].map(z => z.textContent), est: document.querySelectorAll('.stm.est').length };
+      clusters: document.querySelectorAll('.clu').length, worst, zl: [...document.querySelectorAll('.zlab')].map(z => z.textContent), real: document.querySelectorAll('.stm.real').length };
   });
   assert.match(r.attr, /© OpenStreetMap contributors/);
   assert.ok(r.scale, 'a scale bar');
   assert.ok(r.t.hi > r.t.mid && r.t.mid > r.t.base, 'terrain order: highest > middle > base ' + JSON.stringify(r.t));
   assert.deepEqual([r.t.hi, r.t.mid, r.t.terrace], [24, 12, 10], 'the illustrative heights from data/elevation-zones.geojson');
   assert.ok(r.t.slope > r.t.base && r.t.slope < r.t.mid, 'ST20 (stairs going up) is on the estimated slope: ' + r.t.slope);
-  assert.equal(r.markers, 25, 'one marker per stored point');
-  assert.equal(r.est, 25, 'all estimated locations (no survey imported)');
+  assert.equal(r.markers, 34, 'one marker per stored point');
+  assert.equal(r.real, 34, 'all real locations (recorded on site; none from the survey GPS)');
   assert.ok(r.clusters > 0, 'close markers cluster at campus zoom');
   assert.ok(r.worst < 1.5, 'markers on their coordinates: ' + r.worst.toFixed(2) + ' px');
   assert.deepEqual(r.zl.map(t => /estimated slope, illustrative height, not measured/.test(t)), [true, true, true], 'the three levels, labelled');
   // every marker is named for screen readers (MapLibre would otherwise call each one "Map marker")
   const names = await page.evaluate(() => [...document.querySelectorAll('.stm, .clu')].map(e => e.getAttribute('aria-label')));
   assert.ok(names.length && names.every(n => n && n !== 'Map marker'), names.filter(n => !n || n === 'Map marker').length + ' unnamed');
-  assert.match(await page.getAttribute('.stm[data-key="5.3519878,100.5383771"]', 'aria-label'), /^ST20 Tangga sebelah rumah penjana elektrik ke Dewan Kenanga\. Estimated location\.$/);
+  assert.match(await page.getAttribute('.stm[data-key="5.3519878,100.5383771"]', 'aria-label'), /^ST20 Tangga sebelah rumah penjana elektrik ke Dewan Kenanga\. Real location\.$/);
   assert.deepEqual(errors, []);
   await ctx.close();
 });

@@ -72,8 +72,8 @@ function renderList() {
   $('.qx').hidden = !S.q;
   $('#list').innerHTML = L.length ? L.map(s => '<li><button type="button" class="item" data-id="' + s.id + '"' + (cur === s.id ? ' aria-current="true"' : '') + '>' + dot(s)
     + '<span class="nm">' + esc(s.name) + '</span><span class="meta"><b>' + s.id + '</b>'
-    + (s.estimatedAngle != null ? '<span>θ ' + s.estimatedAngle.toFixed(2) + '° ' + (s.measuredStep ? '(from measured steps)' : '(estimated)') + '</span>' : '')
-    + '<span>' + (!placed(s) ? 'No location recorded' : s.locationStatus === 'measured' ? 'Measured location' : 'Estimated location') + '</span>'
+    + (s.estimatedAngle != null ? '<span>θ ' + s.estimatedAngle.toFixed(2) + '° ' + (s.measuredStep ? '(from measured steps)' : '(from the stair list)') + '</span>' : '')
+    + '<span>' + (!placed(s) ? 'No location recorded' : s.locationStatus === 'measured' ? 'Measured location' : 'Real location') + '</span>'
     + (s.measurementStatus === 'surveyed' ? '<span>Surveyed</span>' : '') + '</span></button></li>').join('')
     : '<li class="empty">No staircase matches. Try another word or filter.</li>';
 }
@@ -84,48 +84,52 @@ const na = t => '<dd class="na">' + esc(t) + '</dd>';
 const group = (icon, title, body) => '<section class="grp-card"><h3><span class="gi" aria-hidden="true">' + px(icon, 2) + '</span>' + title + '</h3>' + body + '</section>';
 function chipsFor(s) {
   const m = s.measuredStep, ch = [];
-  ch.push(!placed(s) ? chip('miss', 'No location recorded') : s.locationStatus === 'measured' ? chip('part', 'Measured location (survey)') : chip('est', 'Estimated location'));
-  ch.push(s.surveyAngle != null ? chip('calc', 'Angle from surveyed steps') : s.estimatedAngle == null ? chip('miss', 'Angle unavailable') : m ? chip('calc', 'Angle from measured steps') : chip('est', 'Estimated angle'));
+  ch.push(!placed(s) ? chip('miss', 'No location recorded') : s.locationStatus === 'measured' ? chip('part', 'Measured location (survey)') : chip('real', 'Real location'));
+  ch.push(s.surveyAngle != null ? chip('calc', 'Angle from surveyed steps') : s.estimatedAngle == null ? chip('miss', 'Angle unavailable') : m ? chip('calc', 'Angle from measured steps') : chip('est', 'Angle from the stair list'));
   ch.push(s.orientationStatus === 'measured' ? chip('part', 'Measured orientation') : s.orientationDeg != null ? chip('est', 'Estimated orientation') : chip('miss', 'Orientation not surveyed'));
   ch.push(s.measurementStatus === 'surveyed' ? chip('part', 'Surveyed') : s.survey ? chip('part', 'Partially surveyed') : s.measurementStatus === 'partially measured' ? chip('part', 'Partially measured: step size only') : chip('miss', 'Not yet surveyed'));
-  if (s.survey && !s.survey.recordComplete) ch.push(chip('flag', 'Survey record incomplete (who, when or tool missing)'));
+  if (s.survey && s.survey.label && !s.survey.recordComplete) ch.push(chip('flag', 'Survey record incomplete (who, when or tool missing)'));
   if (flagged(s)) ch.push(chip('flag', 'Needs checking'));
   return ch;
 }
 function details(s) {
   const m = s.measuredStep, near = s._near, z = s._zone;
   let loc = '<dl class="facts">';
-  loc += '<dt>Coordinates</dt>' + (placed(s) ? '<dd class="num">' + s.latitude + ', ' + s.longitude + '<span class="src">' + (s.locationStatus === 'measured' ? 'Measured location · ' : 'Estimated location · ') + esc(s.locationSource) + '</span></dd>' : na('No location recorded, so it is not placed on the map.'));
+  loc += '<dt>Coordinates</dt>' + (placed(s) ? '<dd class="num">' + s.latitude + ', ' + s.longitude + '<span class="src">' + (s.locationStatus === 'measured' ? 'Measured location · ' : 'Real location · ') + esc(s.locationSource) + '</span></dd>' : na('No location recorded, so it is not placed on the map.'));
   if (s.app && s.locationStatus === 'measured' && s.app.latitude != null) loc += '<dt>App estimate</dt><dd class="num">' + s.app.latitude + ', ' + s.app.longitude + '<span class="src">The original app coordinate (unverified), about ' + Math.round(distM(s.app, s)) + ' m from the measured point. No longer used on the map.</span></dd>';
   const v = s.survey;
   if (v && (v.building || v.indoorOutdoor || v.lowerLevel || v.upperLevel)) loc += '<dt>Building, levels</dt><dd>' + esc([v.building, v.indoorOutdoor].filter(Boolean).join(' · ') || '–') + (v.lowerLevel || v.upperLevel ? ' · from ' + esc(v.lowerLevel || '?') + ' to ' + esc(v.upperLevel || '?') : '') + '<span class="src">' + esc(v.label) + '</span></dd>';
   if (s.sharedLocationWith && s.sharedLocationWith.length) loc += '<dt>Same point as</dt><dd>' + s.sharedLocationWith.map(id => '<button type="button" class="lnk" data-id="' + id + '">' + id + '</button>').join(', ') + '<span class="src">These records store the identical coordinate.</span></dd>';
-  if (near) loc += '<dt>Nearest OSM place</dt><dd>' + (near.inside ? 'Inside the outline of ' : 'About ' + Math.round(near.d) + ' m from ') + '<b>' + esc(near.name) + '</b><span class="src">Computed from the estimated location and OpenStreetMap outlines. Not a survey.</span></dd>';
+  if (near) loc += '<dt>Nearest OSM place</dt><dd>' + (near.inside ? 'Inside the outline of ' : 'About ' + Math.round(near.d) + ' m from ') + '<b>' + esc(near.name) + '</b><span class="src">Computed from the location and OpenStreetMap outlines. Not a survey.</span></dd>';
   if (placed(s)) loc += '<dt>Map terrain</dt><dd>' + (z ? esc(z.name) + ' (' + esc(z.region) + ')' : 'Base level') + '<span class="src">Illustrative zone from your annotated screenshot. Not a measured elevation.</span></dd>';
   loc += '<dt>Floor label</dt><dd>"' + esc(s.appFloorLabel || '–') + '"<span class="src">App data; its meaning on site is not documented.</span></dd></dl>';
   let pro = '<dl class="facts">';
   if (s.surveyAngle != null) pro += '<dt>Angle θ (survey)</dt><dd class="num">' + s.surveyAngle.toFixed(2) + '°<span class="src">Calculated: θ = arctan(riser ÷ tread) per flight from the survey sheet, mean over its steps (the F21 method).</span></dd>';
-  pro += '<dt>' + (s.surveyAngle != null ? 'Angle θ (app)' : 'Angle θ') + '</dt>' + (s.estimatedAngle == null ? na('Unavailable') : '<dd class="num">' + s.estimatedAngle.toFixed(2) + '°<span class="src">' + esc(m ? 'Calculated from measured step rise and run' : 'Estimated') + ' · ' + esc(s.angleSource) + '</span></dd>');
-  pro += '<dt>Step size</dt>' + (m ? '<dd class="num">rise ' + m.rise_m.toFixed(3) + ' m · run ' + m.run_m.toFixed(3) + ' m · hypotenuse ' + m.hypotenuse_m.toFixed(3) + ' m<span class="src">Measured: ' + esc(m.method) + ' · ' + esc(m.source) + ', Staircase ' + esc(m.reportStaircase) + ' (' + esc(m.reportName) + ')</span></dd>' : na('Measurements unavailable'));
+  pro += '<dt>' + (s.surveyAngle != null ? 'Angle θ (app)' : 'Angle θ') + '</dt>' + (s.estimatedAngle == null ? na('Unavailable') : '<dd class="num">' + s.estimatedAngle.toFixed(2) + '°<span class="src">' + esc(m ? 'Calculated from measured step rise and run' : 'From the stair list') + ' · ' + esc(s.angleSource) + '</span></dd>');
+  pro += '<dt>Step size</dt>' + (m ? '<dd class="num">rise ' + m.rise_m.toFixed(3) + ' m · run ' + m.run_m.toFixed(3) + ' m · hypotenuse ' + m.hypotenuse_m.toFixed(3) + ' m<span class="src">Measured' + (m.method ? ': ' + esc(m.method) : '') + ' · ' + esc(m.source) + (m.reportStaircase ? ', Staircase ' + esc(m.reportStaircase) + ' (' + esc(m.reportName) + ')' : '') + '</span></dd>' : na('Measurements unavailable'));
   pro += '<dt>Orientation</dt>' + (s.orientationDeg != null ? '<dd>' + s.orientationDeg + '° from north<span class="src">Estimated orientation · ' + esc(s.orientationSource || 'source not recorded') + '</span></dd>' : na('Not yet surveyed'));
   pro += '<dt>Step count</dt>' + (s.stepCount != null ? '<dd>' + s.stepCount + (s.stepCountSource ? '<span class="src">' + esc(s.stepCountSource) + '</span>' : '') + '</dd>' : na('Measurements unavailable'));
   const FS = s.flightsSurveyed || [];
-  pro += '<dt>Flights, landings</dt>' + (FS.length ? '<dd>' + FS.length + ' flight' + (FS.length > 1 ? 's' : '') + (v && v.shape ? ' · ' + esc(v.shape) + ' shape' : '') + (v && v.complete && !v.complete.flights ? ' · <b>incomplete</b>' : '') + '<span class="src">' + esc(v.label) + '</span></dd>' : na('Not yet surveyed'));
+  const FL = !FS.length && s.flights && s.flights.length ? s.flights : null; // flights from the shared survey database: step counts only
+  pro += '<dt>Flights, landings</dt>' + (FL ? '<dd>' + FL.length + (FL.length === 1 ? ' flight' : ' flights') + (FL.length > 1 && FL.some(f => f.steps != null) ? ' (' + FL.map(f => f.steps).join(' + ') + ' steps)' : '') + (v && v.shape ? ' · ' + esc(v.shape) : '') + '</dd>' : FS.length ? '<dd>' + FS.length + ' flight' + (FS.length > 1 ? 's' : '') + (v && v.shape ? ' · ' + esc(v.shape) + ' shape' : '') + (v && v.complete && !v.complete.flights ? ' · <b>incomplete</b>' : '') + '<span class="src">' + esc(v.label) + '</span></dd>' : na('Not yet surveyed'));
   pro += '<dt>Vertical rise</dt>' + (s.verticalRise_m != null ? '<dd class="num">' + s.verticalRise_m + ' m<span class="src">' + esc(s.verticalRiseStatus || '') + '</span></dd>' : na('Measurements unavailable')) + '</dl>';
   if (FS.length) pro += '<div class="ftab-wrap"><table class="ftab"><caption>Flights (survey sheet; blank = not measured)</caption><thead><tr><th>#</th><th>Risers</th><th>Riser cm</th><th>Tread cm</th><th>θ</th><th>Width cm</th><th>Heading</th><th>Then</th></tr></thead><tbody>'
     + FS.map(f => '<tr><td>' + (f.flight ?? '') + '</td><td>' + (f.risers ?? '') + '</td><td>' + (f.riser_cm ?? '') + '</td><td>' + (f.tread_cm ?? '') + '</td><td>' + (f.angle_deg != null ? f.angle_deg + '°' : '') + '</td><td>' + (f.width_cm ?? '') + '</td><td>' + (f.heading_deg != null ? f.heading_deg + '°' : '') + '</td><td>' + esc(f.turn || '') + '</td></tr>').join('')
     + '</tbody></table></div>';
+  const ph = s.photos && s.photos[0];
+  const hero = ph ? '<figure class="hero c' + catN(s.appCategory) + '"><span class="heart"><img src="' + esc(ph.src) + '" alt="Photo of ' + esc(s.name) + '" loading="lazy"></span>'
+    + '<figcaption>' + esc(ph.caption || 'Photo') + '</figcaption></figure>' : '';
   let q = '<ul class="chips">' + chipsFor(s).join('') + '</ul><dl class="facts"><dt>Verification</dt><dd>' + esc(s.verification && s.verification.status || 'unverified') + '</dd>'
     + '<dt>App category</dt><dd>' + esc(CAT[s.appCategory] || 'None') + '<span class="src">The HealthWiz app\'s own label, not a measurement.</span></dd></dl>';
   if (s.notes) q += '<p class="notes">' + esc(s.notes) + '</p>';
   return '<div class="det"><button type="button" class="back" data-act="back">&lsaquo; All staircases</button>'
-    + '<p class="eyebrow">' + s.id + ' · ' + esc(CAT[s.appCategory] || 'Staircase') + '</p><h2 tabindex="-1">' + esc(s.name) + '</h2>'
+    + '<p class="eyebrow">' + s.id + ' · ' + esc(CAT[s.appCategory] || 'Staircase') + '</p><h2 tabindex="-1">' + esc(s.name) + '</h2>' + hero
     + '<div class="row det-act">' + (S.viewerOpen ? '' : '<button type="button" class="btn" data-act="3d">Show 3D preview</button>') + (placed(s) ? '<button type="button" class="btn sec" data-act="zoom">Show on map</button>' : '') + '</div>'
     + group('pin', 'Location', loc) + group('stairs', 'Staircase profile', pro) + group('shield', 'Data quality', q) + '</div>';
 }
 function groupChooser(g) {
   return '<div class="det"><button type="button" class="back" data-act="back">&lsaquo; All staircases</button><p class="eyebrow">Shared point</p><h2 tabindex="-1">' + g.items.length + ' staircases at one stored point</h2>'
-    + '<p class="idl">' + g.lat + ', ' + g.lng + ' · Estimated location (app data). These records store the identical coordinate; on site they are probably separate stairs. Pick one to see it and its 3D preview.</p>'
+    + '<p class="idl">' + g.lat + ', ' + g.lng + ' · Real location. These records store the identical coordinate; on site they are probably separate stairs. Pick one to see it and its 3D preview.</p>'
     + '<ul class="list grp">' + g.items.map(s => '<li><button type="button" class="item" data-id="' + s.id + '">' + dot(s) + '<span class="nm">' + esc(s.name) + '</span><span class="meta"><b>' + s.id + '</b><span>' + esc(s.appFloorLabel) + '</span></span></button></li>').join('') + '</ul></div>';
 }
 
@@ -206,7 +210,7 @@ async function openViewer(s) {
 function fillViewer(s) {
   const m = s.measuredStep, d = S.demo, shape = S.viewer ? S.viewer.shape : d.defaultShape;
   $('#vw-title').textContent = s.name;
-  $('#vw-sub').textContent = s.id + ' · ' + (CAT[s.appCategory] || '') + ' · ' + (!placed(s) ? 'no location recorded' : s.locationStatus === 'measured' ? 'measured location' : 'estimated location');
+  $('#vw-sub').textContent = s.id + ' · ' + (CAT[s.appCategory] || '') + ' · ' + (!placed(s) ? 'no location recorded' : s.locationStatus === 'measured' ? 'measured location' : 'real location');
   $('#vw-status').innerHTML = s._plan ? chip('part', 'Built from survey measurements') + chip('ill', 'Finishes illustrative')
     : chip('ill', 'Illustrative 3D model') + (m ? chip('part', 'Step size measured (F21)') : chip('miss', 'Not yet surveyed'));
   $('.vw-stage .illus').textContent = s._plan ? 'Flights, steps and landings from the survey sheet; materials, railings and the dais are illustrative.' : 'Illustrative model — actual dimensions not surveyed.';
@@ -315,9 +319,9 @@ function padding() {
 
 /* ---------- chips legend in the About dialog ---------- */
 const VOCAB = [
-  ['est', 'Estimated location', 'From the HealthWiz app data; the source was never recorded.'],
-  ['est', 'Estimated angle', 'From the app data; method not recorded.'],
-  ['calc', 'Angle from measured steps', 'θ = arctan(rise ÷ run) from the F21 report\'s tape measurements.'],
+  ['real', 'Real location', 'Recorded on site by the survey team and confirmed as real.'],
+  ['est', 'Angle from the stair list', 'From the app stair list; used only where steps were not measured.'],
+  ['calc', 'Angle from measured steps', 'θ = arctan(rise ÷ run) from the survey measurements (stair survey, F21 report).'],
   ['part', 'Partially measured: step size only', 'Only one step\'s mean rise and run are measured.'],
   ['miss', 'Not yet surveyed', 'Nothing measured on site yet.'],
   ['miss', 'Measurements unavailable', 'The value is unknown, so nothing is shown in its place.'],
@@ -349,7 +353,7 @@ async function start() {
     return;
   }
   const n = S.stairs.length, p = S.stairs.filter(placed).length, sv = S.stairs.filter(s => s.measurementStatus === 'surveyed').length;
-  $('#sum').textContent = n + ' staircases · ' + p + ' at estimated locations · ' + (n - p) + ' without a location · ' + sv + ' surveyed';
+  $('#sum').textContent = n + ' staircases · ' + p + ' at real locations · ' + (n - p) + ' without a location · ' + sv + ' surveyed';
   renderFilters(); renderList();
 
   FX = createFx($('#fx'));
