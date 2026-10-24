@@ -138,7 +138,7 @@ test('saved data carries over: old stair sessions and pulse entries are read and
 test('the list, its filters and details work beside the forms; a staircase without coordinates can be logged too', async () => {
   const { page, ctx, errors } = await openApp({ seed: RETURNING });
   await page.waitForSelector('.wl'); await go(page, 'health'); await page.click('[data-a="cmpgo"]');
-  assert.equal(await page.locator('#cmplist .cmpitem').count(), 32);
+  assert.equal(await page.locator('#cmplist .cmpitem').count(), 38);
   await page.click('[data-a="cmpfilt"][data-f="nol"]');
   const nol = await page.$$eval('#cmplist .cmpitem', b => b.map(x => x.dataset.id));
   assert.equal(nol.length, 4, 'the 4 staircases with no coordinates');

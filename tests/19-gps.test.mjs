@@ -1,6 +1,6 @@
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { openApp, closeBrowser, go, RETURNING, state } from './helpers.mjs';
+import { openApp, closeBrowser, go, RETURNING, state, fillSteps } from './helpers.mjs';
 
 after(closeBrowser);
 // a few metres from "Tangga sebelah rumah penjana elektrik ke Dewan Kenanga" (ST20: 5.3519878, 100.5383771)
@@ -18,7 +18,7 @@ const find = page => page.click('#v6gps [data-a="gpsfind"]');
 
 test('GPS check-in: explanation first, one reading, nearby list, confirm logs a stair session, discovery once, position never saved', async () => {
   const { page, ctx, errors } = await boot({ pos: AT_ST20 });
-  assert.match(await page.textContent('#v6gps'), /GPS CHECK-IN[\s\S]*at Kolej MARA Kulim\?[\s\S]*28 of 32 stairways are on the map; the other 4 can be logged by hand[\s\S]*discovered by GPS check-in: 0 of 28 on the map \(32 stairways in total\)/);
+  assert.match(await page.textContent('#v6gps'), /GPS CHECK-IN[\s\S]*at Kolej MARA Kulim\?[\s\S]*34 of 38 stairways are on the map; the other 4 can be logged by hand[\s\S]*discovered by GPS check-in: 0 of 34 on the map \(38 stairways in total\)/);
   const order = await page.evaluate(() => { const h = document.querySelector('#main').innerHTML; return h.indexOf('v6gps') < h.indexOf('id="stman"'); });
   assert.ok(order, 'the GPS check-in comes first; the hand-log card follows it');
   await find(page);
@@ -34,10 +34,10 @@ test('GPS check-in: explanation first, one reading, nearby list, confirm logs a 
   assert.equal(s0.gp.ok, 1);
   await page.click('[aria-label="Check in at Tangga sebelah rumah penjana elektrik ke Dewan Kenanga"]');
   assert.match(await page.textContent('#v6gps'), /standing still[\s\S]*don't use your phone on the stairs/);
-  await page.fill('#gps-s', '0');
+  await fillSteps(page, '#gps-s', '0');
   await page.click('[data-a="gpsconfirm"]');
   assert.equal((await state(page)).e.length, 0, 'invalid input is not saved');
-  await page.fill('#gps-s', '20');
+  await fillSteps(page, '#gps-s', '20');
   await page.fill('#gps-c', '2');
   await page.click('[data-a="gpsconfirm"]');
   await page.waitForFunction(() => /Checked in at/.test(document.querySelector('#v6gps').textContent));
@@ -49,7 +49,7 @@ test('GPS check-in: explanation first, one reading, nearby list, confirm logs a 
   const xp = () => page.evaluate(() => HWEvents.recent('xp:gained').map(x => [x.amount, x.reason]).filter(x => /check-in|Discovered/.test(x[1])));
   assert.deepEqual(await xp(), [[25, 'Stair check-in'], [5, 'Discovered Tangga sebelah rumah penjana elektrik ke Dewan Kenanga']], '25 for the session + 5 for the discovery');
   assert.ok(s.gp.v.ST20);
-  assert.match(await page.textContent('#v6gps'), /discovered by GPS check-in: 1 of 28 on the map/);
+  assert.match(await page.textContent('#v6gps'), /discovered by GPS check-in: 1 of 34 on the map/);
   assert.match(await page.textContent('#cmplog .stloc'), /penjana elektrik/, 'the manual form now points at that stairway');
   const raw = await page.evaluate(() => localStorage.getItem('healthwiz'));
   assert.ok(!raw.includes('5.35202') && !raw.includes('100.53838'), 'the user position is never stored');
@@ -57,7 +57,7 @@ test('GPS check-in: explanation first, one reading, nearby list, confirm logs a 
   await find(page);
   await page.waitForSelector('#v6gps .v6gpl');
   await page.click('[aria-label="Check in at Tangga sebelah rumah penjana elektrik ke Dewan Kenanga"]');
-  assert.equal(await page.inputValue('#gps-s'), '20', 'steps per climb remembered from the last visit');
+  assert.equal(await page.inputValue('#gps-s'), '28', 'steps per climb are fixed by the stair (ST20: 28 steps)');
   await page.click('[data-a="gpsconfirm"]');
   await page.waitForFunction(() => /Checked in at/.test(document.querySelector('#v6gps').textContent));
   s = await state(page);
@@ -110,7 +110,7 @@ test('stairways without coordinates are never GPS targets; distance and radius m
     return { n: L.length, ids: L.map(x => x.s.id), sorted: L.every((x, i) => !i || L[i - 1].d <= x.d),
       d: Math.round(HWGps.dist(5.3519878, 100.5383771, 5.3525206, 100.5386027)), r: [HWGps.radius(0), HWGps.radius(30), HWGps.radius(500)] };
   });
-  assert.equal(r.n, 28);
+  assert.equal(r.n, 34);
   for (const id of ['ST02', 'ST08', 'ST16', 'ST29']) assert.ok(!r.ids.includes(id), id + ' has no coordinates');
   assert.ok(r.sorted);
   assert.ok(r.d > 55 && r.d < 75, 'ST20 → ST19 is about 64 m: ' + r.d);

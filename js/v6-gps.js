@@ -71,8 +71,12 @@ function card(compact){const K=counts(),n=K.mapped,un=K.unmapped,found=K.found;
       +(x.here?btn('gpspick','CHECK IN','sm',' data-i="'+x.i+'" aria-label="Check in at '+esc(x.s.name)+'"'):'')+'</div>').join('');
     return h+'<div class="row" style="margin-top:8px">'+btn('gpsfind','↻ REFRESH','g')+btn('gpsno','CLOSE','g')+'</div>'+manual}
   if(U.k==='confirm'){const s=STAIRS[U.i],last=LC('stair').filter(e=>e.m&&e.m.sid===s.id).pop();
+    const fx=Array.isArray(s.steps)&&s.steps.length?s:null,tot=fx?fx.steps.reduce((a,b)=>a+b,0):0; // fixed step count (js/v6-stairs-data.js)
     return h+'<p>Check in at <b>'+esc(s.name)+'</b> ('+CAT[s.cat]+', '+esc(s.floor)+').</p><p class="mut">Fill this in while standing still, before or after your climb. Please don\'t use your phone on the stairs.</p>'
-      +'<div class="stlabr gpsss"><b>Steps per climb</b>'+(typeof HWGravity==='undefined'?'':'<button type="button" class="g sm gvbtn" data-a="gvgo" data-k="g" aria-label="Stair Sense: count the steps with your phone and fill in Steps per climb">'+HWPixel.icon('wizard')+' STAIR SENSE</button>')+'</div><div class="row"><label>Steps per climb<input id="gps-s" type="number" min="1" max="1000" value="'+(last&&+last.m.steps||'')+'"></label><label>Number of climbs<input id="gps-c" type="number" min="1" max="500" value="1"></label></div>'
+      +(fx?'<p class="stfix"><b>Steps per climb:</b> <b>'+tot+' steps</b> <small class="mut">(fixed for this staircase'+(fx.steps.length>1?': '+fx.steps.length+' flights':'')+')</small></p>'
+        +(fx.steps.length>2?'<label>Levels (flights) climbed in one climb<select id="gps-lv">'+fx.steps.map((_,k)=>'<option value="'+(k+1)+'"'+(k+1===fx.steps.length?' selected':'')+'>'+(k+1)+' ('+fx.steps.slice(0,k+1).reduce((a,b)=>a+b,0)+' steps)</option>').join('')+'</select></label>':'')
+        +'<input type="hidden" id="gps-s" value="'+tot+'"><div class="row">'
+      :'<div class="stlabr gpsss"><b>Steps per climb</b>'+(typeof HWGravity==='undefined'?'':'<button type="button" class="g sm gvbtn" data-a="gvgo" data-k="g" aria-label="Stair Sense: count the steps with your phone and fill in Steps per climb">'+HWPixel.icon('wizard')+' STAIR SENSE</button>')+'</div><div class="row"><label>Steps per climb<input id="gps-s" type="number" min="1" max="1000" value="'+(last&&+last.m.steps||'')+'"></label>')+'<label>Number of climbs<input id="gps-c" type="number" min="1" max="500" value="1"></label></div>'
       +'<label>Pace<select id="gps-p">'+PACES.map(p=>'<option>'+p[1]+'</option>').join('')+'</select></label>'
       +'<div class="row" style="margin-top:8px">'+btn('gpsconfirm','CONFIRM CHECK-IN')+btn('gpscancel','BACK','g')+'</div>'}
   return h}
@@ -110,7 +114,7 @@ acts.gpscancel=()=>{if(U.prev){U=U.prev;paint()}else acts.gpsno()};
 acts.gpspick=d=>{if(U.k!=='result')return;const x=U.list.find(y=>y.i===+d.i);if(!x||!x.here)return;U={k:'confirm',i:x.i,prev:U};paint();const f=document.getElementById('gps-s');if(f)f.focus()};
 acts.gpsconfirm=()=>{if(U.k!=='confirm')return;
   if(Date.now()-U.prev.at>FRESH){U={k:'idle'};paint();toast('That GPS reading is over 10 minutes old. Tap FIND STAIRS NEAR ME again.');return}
-  const s=+$('#gps-s').value,c=+$('#gps-c').value;
+  const lv=document.getElementById('gps-lv'),fq=STAIRS[U.i],s=lv&&fq.steps?fq.steps.slice(0,+lv.value).reduce((a,b)=>a+b,0):+$('#gps-s').value,c=+$('#gps-c').value;
   if(!(Number.isInteger(s)&&s>=1&&s<=1000&&Number.isInteger(c)&&c>=1&&c<=500)){toast('Enter steps per climb (1–1000) and number of climbs (1–500)');return}
   const i=U.i,q=STAIRS[i],G=gp(),first=!G.v[q.id];
   // the same session record as a climb logged by hand (js/v6-stairs.js), marked as a casual GPS check-in

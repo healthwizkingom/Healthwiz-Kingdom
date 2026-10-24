@@ -1,13 +1,14 @@
 /* v6: the staircase stop (owner's request, 2026-10-21, after a Pokestop). Not part of the original.
    On the map every staircase is a heart spinning on a post, in its difficulty colour (observatory/map.js, the Blender
    sprite of tools/art/make_heart_sprite.py). Tapping one (or picking it in the search on the map) zooms a disc out of the
-   heart to fill the map: its photo (none has been taken yet, so the frame says so instead of showing a made-up one), its
-   name, its ID, difficulty and whether its place is measured or estimated. The Details card pops up right below the
+   heart to fill the map: its photo (assets/stairs/, from the survey document; a stair without one says so instead of showing a made-up one), its
+   name, its ID, difficulty and whether its place is measured or real. The Details card pops up right below the
    map at the same time, with the stair illustration and everything to log there. Closing turns the disc back into the
    heart and shrinks it onto its post. With reduced motion the disc simply appears and disappears.
    State: memory only (which stop is open); nothing is saved. */
 const HWCampusStop=(()=>{
 let cur=null,enter=false,dx=0,dy=0,ds=260;
+const NOPHOTO='<div class="cmpphoto" role="img" aria-label="No photo of this staircase yet">'+HWPixel.icon('camera',2)+'<span>No photo yet</span><small>A photo of this staircase will go here once it is taken.</small></div>';
 const CAT={MILD:['Mild',1],MODERATE:['Moderate',2],VIGOROUS:['Vigorous',3]};
 const rec=id=>typeof HWCampusData!=='undefined'?HWCampusData.record(id):null;
 const ctl=()=>typeof HWCampus!=='undefined'?HWCampus.map:null;
@@ -33,11 +34,13 @@ function close(then){const el=document.getElementById('cmpstop');if(!el||!cur){c
 function html(){const s=cur&&rec(cur);if(!s)return '';const c=CAT[s.appCategory]||['–',2];
   return '<div class="cmpstop c'+c[1]+(enter?' enter':'')+'" id="cmpstop" role="dialog" aria-modal="false" aria-labelledby="cmpstop-t" style="--dx:'+dx+'px;--dy:'+dy+'px;--ds:'+ds+'px">'
     +'<div class="cmpstopbg" aria-hidden="true"></div>'
-    +'<div class="cmpstoph"><b id="cmpstop-t">'+esc(s.name)+'</b><small>'+s.id+' · '+c[0]+' (app category) · '+(s.locationStatus==='measured'?'measured location':'estimated location')+'</small></div>'
-    +'<div class="cmpdisc"><div class="cmpdiscr" aria-hidden="true"></div><div class="cmpphoto" role="img" aria-label="No photo of this staircase yet">'+HWPixel.icon('camera',2)+'<span>No photo yet</span><small>A photo of this staircase will go here once it is taken.</small></div></div>'
+    +'<div class="cmpstoph"><b id="cmpstop-t">'+esc(s.name)+'</b><small>'+s.id+' · '+c[0]+' (app category) · '+(s.locationStatus==='measured'?'measured location':'real location')+'</small></div>'
+    +'<div class="cmpdisc"><div class="cmpdiscr" aria-hidden="true"></div>'+(s.photo?'<div class="cmpphoto has"><img class="cmpimg" src="'+esc(s.photo)+'" alt="Photo of '+esc(s.name)+'" decoding="async"></div>':NOPHOTO)+'</div>'
     +'<div class="cmpstopa"><button type="button" data-a="cmpstoplog">LOG A CLIMB HERE</button></div>'
     +'<button type="button" class="cmpstopx" data-a="cmpstopx" aria-label="Close and go back to the map">×</button></div>'}
 acts.cmpstopx=()=>close();
+// a photo that cannot load (offline, file missing): the disc shows the "no photo" frame instead of a broken image
+document.addEventListener('error',e=>{const i=e.target;if(i&&i.classList&&i.classList.contains('cmpimg')){const h=document.createElement('div');h.innerHTML=NOPHOTO;i.parentNode.replaceWith(h.firstChild)}},true);
 // with the map, Details are the sheet inside it (js/v6-campus-hud.js): it rises to half the map
 acts.cmpstoplog=()=>close(()=>{if(typeof HWCampusHud!=='undefined'&&document.querySelector('.hudbtn')){HWCampus.openSheet('stairs','half');return}const e=document.getElementById('cmpdet')||document.getElementById('cmplog');if(e)e.scrollIntoView({block:'start',behavior:HWUI.reduced()?'auto':'smooth'})});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&cur&&S.v==='campus'&&!document.querySelector('dialog[open], .hwh-pop:not([hidden])'))close()});
@@ -52,6 +55,7 @@ HWUI.css('campusstop',`
 .cmpdisc{position:relative;width:var(--ds,260px);height:var(--ds,260px);box-sizing:border-box;border-radius:50%;padding:12px;background:conic-gradient(from 0deg,#fff,color-mix(in srgb,var(--mc) 60%,#fff),#fff,color-mix(in srgb,var(--mc) 60%,#fff),#fff);box-shadow:0 0 0 6px color-mix(in srgb,var(--mc) 80%,#fff),0 0 0 14px rgba(255,255,255,.35),0 10px 30px rgba(0,0,0,.35)}
 .cmpdiscr{position:absolute;inset:-18px;border-radius:50%;border:3px solid rgba(255,255,255,.7);pointer-events:none}
 .cmpphoto{width:100%;height:100%;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:#eef1f5;color:#4a5262;text-align:center;padding:16%}
+.cmpphoto.has{padding:0;overflow:hidden;background:#222}.cmpphoto .cmpimg{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}
 .cmpphoto span{font-weight:700}.cmpphoto small{font-size:12px;line-height:1.3}
 @media(max-height:520px),(max-width:420px){.cmpphoto small{display:none}.cmpstoph b{font-size:15px}}
 .cmpstopa{position:relative}.cmpstopa button{min-height:44px;margin:0}

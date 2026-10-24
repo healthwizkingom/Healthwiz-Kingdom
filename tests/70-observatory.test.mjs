@@ -56,15 +56,15 @@ test('records: one set built from STAIRS + the F21 study, with computed statuses
       survey: HWCampusData.survey, note: HWCampusData.surveyNote() };
   });
   assert.equal(r.ids, r.stairs, 'the same IDs, in STAIRS order');
-  assert.equal(r.n, 32);
-  assert.equal(r.est, 28);
+  assert.equal(r.n, 38);
+  assert.equal(r.est, 34);
   assert.deepEqual(r.miss, ['ST02', 'ST08', 'ST16', 'ST29']);
   for (const x of r.step) assert.deepEqual(x, [true, true, 'calculated from measured step rise and run', 'partially measured', true]);
   assert.equal(r.others, 3, 'only the three F21 stairs have a measured step size');
-  assert.deepEqual(r.flagged, ['ST08', 'ST10', 'ST21', 'ST27', 'ST31', 'ST32', 'ST33']);
+  assert.deepEqual(r.flagged, ['ST08', 'ST21', 'ST23', 'ST27', 'ST31', 'ST32', 'ST33']);
   assert.deepEqual(r.shared, ['ST06', 'ST32']);
-  assert.deepEqual(r.labels, ['No location recorded', 'Estimated angle', 'Orientation not surveyed', 'Not yet surveyed']);
-  assert.deepEqual(r.labels20, ['Estimated location', 'Angle from measured steps', 'Orientation not surveyed', 'Partially measured: step size only']);
+  assert.deepEqual(r.labels, ['No location recorded', 'Real angle', 'Orientation not surveyed', 'Not yet surveyed']);
+  assert.deepEqual(r.labels20, ['Real location', 'Angle from measured steps', 'Orientation not surveyed', 'Partially measured: step size only']);
   assert.equal(r.survey.status, 'local');
   assert.match(r.note, /Survey data: not loaded \(the app was opened from this device/);
   assert.match(await page.textContent('.cmpsv'), /Survey data: not loaded/);
@@ -128,7 +128,7 @@ test('a staircase without coordinates: selectable from the list, never placed; l
   await page.click('#cmplist .cmpitem[data-id="ST02"]');
   assert.deepEqual(await view(page), { sid: 'ST02', grp: null, tab: 'det', f: 'all', q: '', mode: 'fantasy' });
   assert.equal(await page.evaluate(() => HWCampus.points().some(g => g.items.some(s => s.id === 'ST02'))), false, 'never a map point');
-  assert.match(await page.textContent('#cmpdet'), /Tangga Selangkah Menara Gading[\s\S]*No location recorded, so it is not placed on the map\.[\s\S]*No location recorded[\s\S]*Estimated angle/);
+  assert.match(await page.textContent('#cmpdet'), /Tangga Selangkah Menara Gading[\s\S]*No location recorded, so it is not placed on the map\.[\s\S]*No location recorded[\s\S]*Real angle/);
   assert.deepEqual(await page.evaluate(() => [S.v, HWStairs.pick]), ['campus', 'ST02']);
   assert.match(await page.textContent('#cmplog .stloc'), /Tangga Selangkah Menara Gading[\s\S]*no map coordinates/);
   await logClimb(page);
@@ -158,12 +158,12 @@ const FIXTURE = { about: 'TEST FIXTURE: made-up values', source: null, buildings
     complete: { position: false, flights: false, record: false } } } };
 
 test('over http: the committed (empty) survey changes nothing; a survey is laid over the records with measured / calculated labels; STAIRS unchanged', async () => {
-  // the committed file: fetched, nothing imported yet, the records are the app's
+  // the committed file: fetched; the survey table and the 2026-10-24 experiment are imported (38 stairs)
   const a = await openApp({ seed: SEED, url: base });
   await a.page.waitForSelector('.wl');
   await go(a.page, 'campus'); await a.page.waitForFunction(() => HWCampusData.survey.status === 'ok');
-  assert.equal(await a.page.evaluate(() => HWCampusData.survey.stairs), 0);
-  assert.match(await a.page.textContent('.cmpsv'), /Survey data: none imported yet\./);
+  assert.equal(await a.page.evaluate(() => HWCampusData.survey.stairs), 38);
+  assert.match(await a.page.textContent('.cmpsv'), /Survey data: 38 staircases from the survey sheet/);
   assert.equal(await a.page.evaluate(() => HWCampusData.record('ST20').locationStatus), 'estimated');
   assert.deepEqual(a.errors, []);
   // a survey (test fixture)

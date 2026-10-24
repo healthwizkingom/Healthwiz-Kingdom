@@ -89,10 +89,10 @@ test('with the map: the search on the map keeps only matching markers; a pick lo
   assert.ok(Math.abs(c1.lng - c0.lng) < 1e-5 && Math.abs(c1.lat - c0.lat) < 1e-5 && Math.abs(c1.z - c0.z) < .01, 'saving keeps the map view');
   assert.equal(await page.evaluate(() => document.querySelector('.stm.sel').dataset.key), '5.3519878,100.5383771');
   assert.match(await page.textContent('#cmpdet'), /You saved 1 stair session here/);
-  // ST02 (no coordinates) from the search: its details, the camera unchanged, nothing highlighted
+  // ST08 (no coordinates anywhere) from the search: its details, the camera unchanged, nothing highlighted
   await page.click('.hudbtn');
-  await page.fill('#cmpfind', 'ST02');
-  await page.click('#cmpfindres [data-a="cmppick"][data-id="ST02"]'); await idle(page);
+  await page.fill('#cmpfind', 'ST08');
+  await page.click('#cmpfindres [data-a="cmppick"][data-id="ST08"]'); await idle(page);
   const c2 = await cam(page);
   assert.ok(Math.abs(c2.lng - c1.lng) < 1e-5 && Math.abs(c2.z - c1.z) < .01, 'the map does not move');
   assert.equal(await page.locator('.stm.sel').count(), 0);

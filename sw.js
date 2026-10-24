@@ -10,11 +10,11 @@
    Saved health data is in localStorage and never passes through here.
 
    Keep PRECACHE in sync with index.html and assets/: tests/20-pwa.test.mjs fails when a file is missing. */
-const CACHE = 'hwk-shell-v3', WAIT = 4000;
+const CACHE = 'hwk-shell-v4', WAIT = 4000;
 const PRECACHE = [
   './', 'index.html', 'manifest.webmanifest',
   'js/hw-01-menu-data.js', 'js/v6-schema.js', 'js/hw-02-core.js', 'js/hw-03-part.js', 'js/hw-04-part.js',
-  'js/hw-05-v5-4-module.js', 'js/hw-06-v5-3-health-module.js', 'js/v6-loader.js', 'js/v6-events.js', 'js/v6-ui.js', 'js/v6-pixel.js',
+  'js/hw-05-v5-4-module.js', 'js/hw-06-v5-3-health-module.js', 'js/v6-stairs-data.js', 'js/v6-loader.js', 'js/v6-events.js', 'js/v6-ui.js', 'js/v6-pixel.js',
   'js/v6-emoji.js', 'js/v6-sources.js', 'js/v6-calcx.js', 'js/v6-f21.js', 'js/v6-provisions.js', 'js/v6-ppg.js', 'js/v6-hr.js', 'js/v6-hrlog.js', 'js/v6-stairs.js', 'js/v6-stairs-css.js', 'js/v6-conditions.js', 'js/v6-motion.js', 'js/v6-particles.js', 'js/v6-insights.js', 'js/v6-quests.js',
   'js/v6-streaks.js', 'js/v6-xp.js', 'js/v6-kingdom.js', 'js/v6-luna.js', 'js/v6-medius.js', 'js/v6-music.js', 'js/v6-charts.js', 'js/v6-world.js',
   'js/v6-title.js', 'js/v6-games.js', 'js/v6-water.js', 'js/v6-rig.js', 'js/v6-waterquest.js', 'js/v6-dream.js', 'js/v6-storm.js', 'js/v6-ambient.js', 'js/v6-grove.js', 'js/v6-relief.js', 'js/v6-dass.js', 
@@ -25,6 +25,7 @@ const PRECACHE = [
   'assets/img/kn.webp', 'assets/img/knight-kbd.webp', 'assets/img/knight-kcp.webp', 'assets/img/knight-khr.webp',
   'assets/img/orb-scene.webp', 'assets/img/luna-faces.webp', 'assets/img/luna-poses.webp', 'assets/img/luna-lab.webp', 'assets/img/luna-props.webp', 'assets/img/luna-room.webp', 'assets/img/luke-poses.webp', 'assets/img/luke-faces.webp', 'assets/img/luke-props.webp', 'assets/img/luke-room.webp', 'assets/img/lab-scene.webp', 'assets/img/orc.webp', 'assets/img/study.jpg', 'assets/img/wiz.webp', 'assets/img/heart-spin.webp', 'assets/img/medius-reactions.webp',
   'assets/img/exercise/moves.webp', 'assets/img/exercise/muscles.webp',
+  'assets/stairs/ST01.webp', 'assets/stairs/ST02.webp', 'assets/stairs/ST03.webp', 'assets/stairs/ST04.webp', 'assets/stairs/ST05.webp', 'assets/stairs/ST06.webp', 'assets/stairs/ST07.webp', 'assets/stairs/ST08.webp', 'assets/stairs/ST09.webp', 'assets/stairs/ST10.webp', 'assets/stairs/ST11.webp', 'assets/stairs/ST12.webp', 'assets/stairs/ST13.webp', 'assets/stairs/ST14.webp', 'assets/stairs/ST15.webp', 'assets/stairs/ST17.webp', 'assets/stairs/ST18.webp', 'assets/stairs/ST19.webp', 'assets/stairs/ST22.webp', 'assets/stairs/ST23.webp', 'assets/stairs/ST24.webp', 'assets/stairs/ST26.webp', 'assets/stairs/ST28.webp', 'assets/stairs/ST29.webp', 'assets/stairs/ST30.webp', 'assets/stairs/ST31.webp', 'assets/stairs/ST34.webp', 'assets/stairs/ST35.webp', 'assets/stairs/ST36.webp', 'assets/stairs/ST37.webp',
   'assets/fonts/PressStart2P-Latin.woff2', 'assets/fonts/PixelifySans-Latin.woff2',
   'assets/fonts/OFL-PressStart2P.txt', 'assets/fonts/OFL-PixelifySans.txt',
   'assets/audio/home-theme.mp3',

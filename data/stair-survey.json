@@ -1,8 +1,1890 @@
 {
- "about": "No survey imported yet. Fill in data/source/HealthWiz_Campus_Stair_Data_Sheet.docx and run: python3 tools/import_stair_sheet.py your-sheet.docx (see UPDATE_DATA.md). That replaces this file; do not edit it by hand.",
- "source": null,
- "stairs": {},
+ "about": "Survey values read from the Campus stair survey table and the 2026-10-24 experiment by tools/import_survey_table.py. Riser and tread are per step. Blank = not surveyed. Regenerate by running the tool; do not edit by hand. STAIRS in js/hw-02-core.js is not changed by it.",
+ "source": {
+  "file": "881c5410-Campus_Stair_Survey_edited.docx",
+  "sha256": "a30beddf58682e80bdf50c8429e39a6557912fcf243c2aa0d6d0bf66b015688b",
+  "experiment": "stair-experiment-2026-10-24.json",
+  "importedAt": "2026-10-24T03:51:58"
+ },
+ "units": {
+  "riser_cm": "cm per step",
+  "tread_cm": "cm per step",
+  "accuracy_m": "m"
+ },
+ "stairs": {
+  "ST01": {
+   "id": "ST01",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "U",
+   "flightCount": 2,
+   "bottom": {
+    "lat": 5.352509,
+    "lng": 100.538922,
+    "accuracy_m": null
+   },
+   "top": null,
+   "survey": {
+    "by": null,
+    "date": null,
+    "tool": null
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 10,
+     "riser_cm": 12.9,
+     "tread_cm": 16.9,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": "reverse",
+     "notes": null
+    },
+    {
+     "flight": 2,
+     "risers": 10,
+     "riser_cm": 12.9,
+     "tread_cm": 16.9,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": true,
+    "flights": false,
+    "record": false
+   }
+  },
+  "ST02": {
+   "id": "ST02",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "straight",
+   "flightCount": 1,
+   "bottom": {
+    "lat": 5.35145,
+    "lng": 100.53777,
+    "accuracy_m": null
+   },
+   "top": null,
+   "survey": {
+    "by": "Amir and Iz",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 5,
+     "riser_cm": 15.3,
+     "tread_cm": 33.4,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": true,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST03": {
+   "id": "ST03",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "U",
+   "flightCount": 5,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "Amir and Iz",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 11,
+     "riser_cm": 32.0,
+     "tread_cm": 90.0,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": "reverse",
+     "notes": null
+    },
+    {
+     "flight": 2,
+     "risers": 11,
+     "riser_cm": 32.0,
+     "tread_cm": 90.0,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": "reverse",
+     "notes": null
+    },
+    {
+     "flight": 3,
+     "risers": 11,
+     "riser_cm": 32.0,
+     "tread_cm": 90.0,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": "reverse",
+     "notes": null
+    },
+    {
+     "flight": 4,
+     "risers": 11,
+     "riser_cm": 32.0,
+     "tread_cm": 90.0,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": "reverse",
+     "notes": null
+    },
+    {
+     "flight": 5,
+     "risers": 11,
+     "riser_cm": 32.0,
+     "tread_cm": 90.0,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST04": {
+   "id": "ST04",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "straight",
+   "flightCount": 1,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "Amir iz and Naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 35,
+     "riser_cm": 15.5,
+     "tread_cm": 40.51,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST05": {
+   "id": "ST05",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "straight",
+   "flightCount": 1,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "Amir and Iz",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 6,
+     "riser_cm": 12.0,
+     "tread_cm": 30.0,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST06": {
+   "id": "ST06",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "U",
+   "flightCount": 2,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "Amir and Iz",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 11,
+     "riser_cm": 14.0,
+     "tread_cm": 31.5,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": "reverse",
+     "notes": null
+    },
+    {
+     "flight": 2,
+     "risers": 11,
+     "riser_cm": 14.0,
+     "tread_cm": 31.5,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST07": {
+   "id": "ST07",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "U",
+   "flightCount": 2,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "Amir Iz and Naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 11,
+     "riser_cm": 14.4,
+     "tread_cm": 31.67,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": "reverse",
+     "notes": null
+    },
+    {
+     "flight": 2,
+     "risers": 11,
+     "riser_cm": 14.4,
+     "tread_cm": 31.67,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST08": {
+   "id": "ST08",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "straight",
+   "flightCount": 1,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "Amir and Iz",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 8,
+     "riser_cm": 14.0,
+     "tread_cm": 30.7,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST09": {
+   "id": "ST09",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "U",
+   "flightCount": 2,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "Amir and Iz",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 11,
+     "riser_cm": 14.5,
+     "tread_cm": 31.5,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": "reverse",
+     "notes": null
+    },
+    {
+     "flight": 2,
+     "risers": 11,
+     "riser_cm": 14.5,
+     "tread_cm": 31.5,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST10": {
+   "id": "ST10",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "straight",
+   "flightCount": 1,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "Amir Iz and Naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 24,
+     "riser_cm": 16.68,
+     "tread_cm": 36.0,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST11": {
+   "id": "ST11",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "other",
+   "flightCount": 1,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "Amir iz and Naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 27,
+     "riser_cm": 15.8625,
+     "tread_cm": 31.25,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": "recorded as \"landing\" (a landing part way)"
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST12": {
+   "id": "ST12",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "straight",
+   "flightCount": 1,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "izz,amir, naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 37,
+     "riser_cm": 15.5,
+     "tread_cm": 32.0,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST13": {
+   "id": "ST13",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "other",
+   "flightCount": 1,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "Amir Iz and Naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 32,
+     "riser_cm": 15.61,
+     "tread_cm": 32.02,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": "recorded as \"landing\" (a landing part way)"
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST14": {
+   "id": "ST14",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "straight",
+   "flightCount": 1,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "Amir and Iz",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 13,
+     "riser_cm": 16.9,
+     "tread_cm": 31.1,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST15": {
+   "id": "ST15",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "U",
+   "flightCount": 2,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "izz, amir, naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 11,
+     "riser_cm": 15.4,
+     "tread_cm": 30.2,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": "reverse",
+     "notes": null
+    },
+    {
+     "flight": 2,
+     "risers": 11,
+     "riser_cm": 15.4,
+     "tread_cm": 30.2,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST16": {
+   "id": "ST16",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "straight",
+   "flightCount": 1,
+   "bottom": {
+    "lat": 5.35145,
+    "lng": 100.53777,
+    "accuracy_m": null
+   },
+   "top": null,
+   "survey": {
+    "by": "izz, amir, naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 5,
+     "riser_cm": 15.3,
+     "tread_cm": 33.4,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": true,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST17": {
+   "id": "ST17",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "U",
+   "flightCount": 2,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "amir naufal and iz",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 10,
+     "riser_cm": 18.1,
+     "tread_cm": 27.9,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": "reverse",
+     "notes": null
+    },
+    {
+     "flight": 2,
+     "risers": 10,
+     "riser_cm": 18.1,
+     "tread_cm": 27.9,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST18": {
+   "id": "ST18",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "straight",
+   "flightCount": 1,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "amir and iz",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 20,
+     "riser_cm": 18.0,
+     "tread_cm": 36.0,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST19": {
+   "id": "ST19",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "straight",
+   "flightCount": 1,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "Amir and Iz",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 9,
+     "riser_cm": 15.7,
+     "tread_cm": 30.5,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST20": {
+   "id": "ST20",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "straight",
+   "flightCount": 1,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "Amir and Iz",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 28,
+     "riser_cm": 16.9,
+     "tread_cm": 31.1,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST21": {
+   "id": "ST21",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "straight",
+   "flightCount": 1,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "amir and iz",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 8,
+     "riser_cm": 14.0,
+     "tread_cm": 30.7,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST22": {
+   "id": "ST22",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "U",
+   "flightCount": 2,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "amiz iz and naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 10,
+     "riser_cm": 17.95,
+     "tread_cm": 31.8,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": "reverse",
+     "notes": null
+    },
+    {
+     "flight": 2,
+     "risers": 10,
+     "riser_cm": 17.95,
+     "tread_cm": 31.8,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST23": {
+   "id": "ST23",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "straight",
+   "flightCount": 1,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "amiz iz and naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 10,
+     "riser_cm": 18.3,
+     "tread_cm": 20.9,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST24": {
+   "id": "ST24",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "U",
+   "flightCount": 2,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "fatihah",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 10,
+     "riser_cm": 14.6,
+     "tread_cm": 24.1,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": "reverse",
+     "notes": null
+    },
+    {
+     "flight": 2,
+     "risers": 10,
+     "riser_cm": 14.6,
+     "tread_cm": 24.1,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST25": {
+   "id": "ST25",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "U",
+   "flightCount": 2,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "fatihah",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 10,
+     "riser_cm": 15.0,
+     "tread_cm": 24.0,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": "reverse",
+     "notes": null
+    },
+    {
+     "flight": 2,
+     "risers": 10,
+     "riser_cm": 15.0,
+     "tread_cm": 24.0,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST26": {
+   "id": "ST26",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "other",
+   "flightCount": 1,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "izz,amir,naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 50,
+     "riser_cm": 14.9,
+     "tread_cm": 24.3,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": "recorded as \"landing\" (a landing part way)"
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST27": {
+   "id": "ST27",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "straight",
+   "flightCount": 1,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "izz,amir,naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 10,
+     "riser_cm": 21.0,
+     "tread_cm": 34.67,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST28": {
+   "id": "ST28",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "U",
+   "flightCount": 2,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "izz,amir,naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 10,
+     "riser_cm": 17.2,
+     "tread_cm": 22.8,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": "reverse",
+     "notes": null
+    },
+    {
+     "flight": 2,
+     "risers": 10,
+     "riser_cm": 17.2,
+     "tread_cm": 22.8,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST29": {
+   "id": "ST29",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "U",
+   "flightCount": 2,
+   "bottom": {
+    "lat": 5.35077,
+    "lng": 100.53819,
+    "accuracy_m": null
+   },
+   "top": null,
+   "survey": {
+    "by": "izz,amir,naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 10,
+     "riser_cm": 21.0,
+     "tread_cm": 30.0,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": "reverse",
+     "notes": null
+    },
+    {
+     "flight": 2,
+     "risers": 10,
+     "riser_cm": 21.0,
+     "tread_cm": 30.0,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": true,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST30": {
+   "id": "ST30",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "other",
+   "flightCount": 1,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "Amir iz naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 25,
+     "riser_cm": 16.68,
+     "tread_cm": 36.0,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": "recorded as \"landing\" (a landing part way)"
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST31": {
+   "id": "ST31",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "U",
+   "flightCount": 1,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "Amir Iz Naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 11,
+     "riser_cm": 14.0,
+     "tread_cm": 31.5,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST32": {
+   "id": "ST32",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "U",
+   "flightCount": 1,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "Amir Iz and Naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 11,
+     "riser_cm": 14.3,
+     "tread_cm": 31.74,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST33": {
+   "id": "ST33",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "U",
+   "flightCount": 2,
+   "bottom": null,
+   "top": null,
+   "survey": {
+    "by": "Amir Iz and Naufal",
+    "date": "2026-10-23",
+    "tool": "tape"
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 10,
+     "riser_cm": 18.1,
+     "tread_cm": 30.73,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": "reverse",
+     "notes": null
+    },
+    {
+     "flight": 2,
+     "risers": 10,
+     "riser_cm": 18.1,
+     "tread_cm": 30.73,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": false,
+    "flights": false,
+    "record": true
+   }
+  },
+  "ST34": {
+   "id": "ST34",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "straight",
+   "flightCount": 1,
+   "bottom": {
+    "lat": 5.352826,
+    "lng": 100.538445,
+    "accuracy_m": null
+   },
+   "top": null,
+   "survey": {
+    "by": null,
+    "date": null,
+    "tool": null
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 25,
+     "riser_cm": 22.45,
+     "tread_cm": 30.0,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": true,
+    "flights": false,
+    "record": false
+   }
+  },
+  "ST35": {
+   "id": "ST35",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "U",
+   "flightCount": 2,
+   "bottom": {
+    "lat": 5.35111,
+    "lng": 100.537968,
+    "accuracy_m": null
+   },
+   "top": null,
+   "survey": {
+    "by": null,
+    "date": null,
+    "tool": null
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 11,
+     "riser_cm": 15.15,
+     "tread_cm": 30.3,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": "reverse",
+     "notes": "Steps per flight: the message said '11 step 2 flight'; the first caption said 10."
+    },
+    {
+     "flight": 2,
+     "risers": 11,
+     "riser_cm": 15.15,
+     "tread_cm": 30.3,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": true,
+    "flights": false,
+    "record": false
+   }
+  },
+  "ST36": {
+   "id": "ST36",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "straight",
+   "flightCount": 1,
+   "bottom": {
+    "lat": 5.3518611,
+    "lng": 100.5380278,
+    "accuracy_m": null
+   },
+   "top": null,
+   "survey": {
+    "by": null,
+    "date": null,
+    "tool": null
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 3,
+     "riser_cm": 16.6667,
+     "tread_cm": 23.3333,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": true,
+    "flights": false,
+    "record": false
+   }
+  },
+  "ST37": {
+   "id": "ST37",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "straight",
+   "flightCount": 1,
+   "bottom": {
+    "lat": 5.3513889,
+    "lng": 100.5395,
+    "accuracy_m": null
+   },
+   "top": null,
+   "survey": {
+    "by": null,
+    "date": null,
+    "tool": null
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 6,
+     "riser_cm": 10.6667,
+     "tread_cm": 24.5,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": true,
+    "flights": false,
+    "record": false
+   }
+  },
+  "ST38": {
+   "id": "ST38",
+   "building": null,
+   "indoorOutdoor": null,
+   "lowerLevel": null,
+   "upperLevel": null,
+   "shape": "U",
+   "flightCount": 2,
+   "bottom": {
+    "lat": 5.3513333,
+    "lng": 100.5396111,
+    "accuracy_m": null
+   },
+   "top": null,
+   "survey": {
+    "by": null,
+    "date": null,
+    "tool": null
+   },
+   "flights": [
+    {
+     "flight": 1,
+     "risers": 10,
+     "riser_cm": 17.4,
+     "tread_cm": 22.4,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": "reverse",
+     "notes": null
+    },
+    {
+     "flight": 2,
+     "risers": 10,
+     "riser_cm": 17.4,
+     "tread_cm": 22.4,
+     "width_cm": null,
+     "totalRise_cm": null,
+     "heading_deg": null,
+     "landing": null,
+     "turn": null,
+     "notes": null
+    }
+   ],
+   "complete": {
+    "position": true,
+    "flights": false,
+    "record": false
+   }
+  }
+ },
  "buildings": [],
  "answers": {},
- "warnings": []
+ "warnings": [
+  {
+   "stair": "ST01",
+   "field": "Measured by",
+   "level": "check",
+   "message": "\"same\" with no row above: left blank."
+  },
+  {
+   "stair": "ST01",
+   "field": "Date",
+   "level": "check",
+   "message": "\"same\" with no row above: left blank."
+  },
+  {
+   "stair": "ST01",
+   "field": "Tool",
+   "level": "check",
+   "message": "\"same\" with no row above: left blank."
+  },
+  {
+   "stair": "ST01",
+   "field": "Flights",
+   "level": "check",
+   "message": "2 flights but 1 step counts; the step counts are used."
+  },
+  {
+   "stair": "ST01",
+   "field": "flight 1 tread depth",
+   "level": "check",
+   "message": "16.9 cm is unusual (typical 22 to 40). Kept; please re-measure if it is a typo."
+  },
+  {
+   "stair": "ST01",
+   "field": "Position",
+   "level": "note",
+   "message": "5.352509, 100.538922 read from the table."
+  },
+  {
+   "stair": "ST02",
+   "field": "Position",
+   "level": "note",
+   "message": "5.35145, 100.53777 read from the table."
+  },
+  {
+   "stair": "ST03",
+   "field": "flight 1 riser height",
+   "level": "check",
+   "message": "32 cm is unusual (typical 12 to 21). Kept; please re-measure if it is a typo."
+  },
+  {
+   "stair": "ST03",
+   "field": "flight 1 tread depth",
+   "level": "check",
+   "message": "90 cm is unusual (typical 22 to 40). Kept; please re-measure if it is a typo."
+  },
+  {
+   "stair": "ST03",
+   "field": "flight 2 riser height",
+   "level": "check",
+   "message": "32 cm is unusual (typical 12 to 21). Kept; please re-measure if it is a typo."
+  },
+  {
+   "stair": "ST03",
+   "field": "flight 2 tread depth",
+   "level": "check",
+   "message": "90 cm is unusual (typical 22 to 40). Kept; please re-measure if it is a typo."
+  },
+  {
+   "stair": "ST03",
+   "field": "flight 3 riser height",
+   "level": "check",
+   "message": "32 cm is unusual (typical 12 to 21). Kept; please re-measure if it is a typo."
+  },
+  {
+   "stair": "ST03",
+   "field": "flight 3 tread depth",
+   "level": "check",
+   "message": "90 cm is unusual (typical 22 to 40). Kept; please re-measure if it is a typo."
+  },
+  {
+   "stair": "ST03",
+   "field": "flight 4 riser height",
+   "level": "check",
+   "message": "32 cm is unusual (typical 12 to 21). Kept; please re-measure if it is a typo."
+  },
+  {
+   "stair": "ST03",
+   "field": "flight 4 tread depth",
+   "level": "check",
+   "message": "90 cm is unusual (typical 22 to 40). Kept; please re-measure if it is a typo."
+  },
+  {
+   "stair": "ST03",
+   "field": "flight 5 riser height",
+   "level": "check",
+   "message": "32 cm is unusual (typical 12 to 21). Kept; please re-measure if it is a typo."
+  },
+  {
+   "stair": "ST03",
+   "field": "flight 5 tread depth",
+   "level": "check",
+   "message": "90 cm is unusual (typical 22 to 40). Kept; please re-measure if it is a typo."
+  },
+  {
+   "stair": "ST04",
+   "field": "flight 1 tread depth",
+   "level": "check",
+   "message": "40.51 cm is unusual (typical 22 to 40). Kept; please re-measure if it is a typo."
+  },
+  {
+   "stair": "ST04",
+   "field": "flight 1 risers",
+   "level": "note",
+   "message": "35 risers is unusual (typical 2 to 22). Kept."
+  },
+  {
+   "stair": "ST10",
+   "field": "flight 1 risers",
+   "level": "note",
+   "message": "24 risers is unusual (typical 2 to 22). Kept."
+  },
+  {
+   "stair": "ST11",
+   "field": "flight 1 risers",
+   "level": "note",
+   "message": "27 risers is unusual (typical 2 to 22). Kept."
+  },
+  {
+   "stair": "ST12",
+   "field": "flight 1 risers",
+   "level": "note",
+   "message": "37 risers is unusual (typical 2 to 22). Kept."
+  },
+  {
+   "stair": "ST13",
+   "field": "Date",
+   "level": "note",
+   "message": "\"same\" read as the row above: 2026-10-23."
+  },
+  {
+   "stair": "ST13",
+   "field": "flight 1 risers",
+   "level": "note",
+   "message": "32 risers is unusual (typical 2 to 22). Kept."
+  },
+  {
+   "stair": "ST16",
+   "field": "Measured by",
+   "level": "note",
+   "message": "\"same\" read as the row above: izz, amir, naufal."
+  },
+  {
+   "stair": "ST16",
+   "field": "Date",
+   "level": "note",
+   "message": "\"same\" read as the row above: 2026-10-23."
+  },
+  {
+   "stair": "ST16",
+   "field": "Position",
+   "level": "note",
+   "message": "5.35145, 100.53777 read from the table."
+  },
+  {
+   "stair": "ST20",
+   "field": "flight 1 risers",
+   "level": "note",
+   "message": "28 risers is unusual (typical 2 to 22). Kept."
+  },
+  {
+   "stair": "ST23",
+   "field": "Measured by",
+   "level": "note",
+   "message": "\"same\" read as the row above: amiz iz and naufal."
+  },
+  {
+   "stair": "ST23",
+   "field": "Date",
+   "level": "note",
+   "message": "\"same\" read as the row above: 2026-10-23."
+  },
+  {
+   "stair": "ST23",
+   "field": "Tool",
+   "level": "note",
+   "message": "\"same\" read as the row above: tape."
+  },
+  {
+   "stair": "ST23",
+   "field": "flight 1 tread depth",
+   "level": "check",
+   "message": "20.9 cm is unusual (typical 22 to 40). Kept; please re-measure if it is a typo."
+  },
+  {
+   "stair": "ST26",
+   "field": "flight 1 risers",
+   "level": "note",
+   "message": "50 risers is unusual (typical 2 to 22). Kept."
+  },
+  {
+   "stair": "ST29",
+   "field": "Position",
+   "level": "note",
+   "message": "5.35077, 100.53819 read from the table."
+  },
+  {
+   "stair": "ST30",
+   "field": "Date",
+   "level": "note",
+   "message": "\"same\" read as the row above: 2026-10-23."
+  },
+  {
+   "stair": "ST30",
+   "field": "Tool",
+   "level": "note",
+   "message": "\"same\" read as the row above: tape."
+  },
+  {
+   "stair": "ST30",
+   "field": "flight 1 risers",
+   "level": "note",
+   "message": "25 risers is unusual (typical 2 to 22). Kept."
+  },
+  {
+   "stair": "ST01",
+   "field": "flight 1 tread depth",
+   "level": "check",
+   "message": "16.9 cm is unusual (typical 22 to 40). Kept; please re-measure if it is a typo."
+  },
+  {
+   "stair": "ST01",
+   "field": "flight 2 tread depth",
+   "level": "check",
+   "message": "16.9 cm is unusual (typical 22 to 40). Kept; please re-measure if it is a typo."
+  },
+  {
+   "stair": "ST01",
+   "field": "By / Date / Tool",
+   "level": "check",
+   "message": "Not given for the new measurements: shown as \"survey record incomplete\"."
+  },
+  {
+   "stair": "ST34",
+   "field": "flight 1 riser height",
+   "level": "check",
+   "message": "22.45 cm is unusual (typical 12 to 21). Kept; please re-measure if it is a typo."
+  },
+  {
+   "stair": "ST34",
+   "field": "flight 1 risers",
+   "level": "note",
+   "message": "25 risers is unusual (typical 2 to 22). Kept."
+  },
+  {
+   "stair": "ST34",
+   "field": "By / Date / Tool",
+   "level": "check",
+   "message": "Not given for the new measurements: shown as \"survey record incomplete\"."
+  },
+  {
+   "stair": "ST35",
+   "field": "By / Date / Tool",
+   "level": "check",
+   "message": "Not given for the new measurements: shown as \"survey record incomplete\"."
+  },
+  {
+   "stair": "ST36",
+   "field": "By / Date / Tool",
+   "level": "check",
+   "message": "Not given for the new measurements: shown as \"survey record incomplete\"."
+  },
+  {
+   "stair": "ST37",
+   "field": "flight 1 riser height",
+   "level": "check",
+   "message": "10.6667 cm is unusual (typical 12 to 21). Kept; please re-measure if it is a typo."
+  },
+  {
+   "stair": "ST37",
+   "field": "By / Date / Tool",
+   "level": "check",
+   "message": "Not given for the new measurements: shown as \"survey record incomplete\"."
+  },
+  {
+   "stair": "ST38",
+   "field": "By / Date / Tool",
+   "level": "check",
+   "message": "Not given for the new measurements: shown as \"survey record incomplete\"."
+  }
+ ]
 }
