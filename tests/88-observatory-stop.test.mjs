@@ -108,7 +108,7 @@ test('with the map, on a phone: spinning hearts; a tap zooms the stop\'s disc ou
   await page.waitForSelector('#cmpstop');
   const t = await page.textContent('#cmpstop');
   assert.match(t, /Tangga sebelah rumah penjana elektrik[\s\S]*ST20 · Moderate \(app category\) · real location[\s\S]*LOG A CLIMB HERE/);
-  // the photo of the survey document sits inside the disc (ST20 shows the picture it shares with ST18, flagged in its notes)
+  // the photo of the survey document sits inside the disc (ST20 shows the picture it shares with ST18, with no note about it)
   assert.equal(await page.locator('#cmpstop .cmpphoto.has img.cmpimg').getAttribute('src'), 'assets/stairs/ST18.webp');
   assert.equal(await page.evaluate(() => document.querySelector('#cmpstop img').naturalWidth > 0), true, 'the photo loads');
   assert.deepEqual(await page.evaluate(() => [document.getElementById('cmpstop').classList.contains('enter'), getComputedStyle(document.querySelector('#cmpstop .cmpdisc')).animationName]), [true, 'stopin']);
