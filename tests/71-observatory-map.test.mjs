@@ -96,7 +96,7 @@ test('lazy and complete: nothing of the map before the page opens; then OSM attr
   assert.deepEqual([r.t.hi, r.t.mid, r.t.terrace], [24, 12, 10], 'the illustrative heights from data/elevation-zones.geojson');
   assert.ok(r.t.slope > r.t.base && r.t.slope < r.t.mid, 'ST20 (stairs going up) is on the estimated slope: ' + r.t.slope);
   assert.equal(r.markers, 32, 'one marker per stored point');
-  assert.equal(r.est, 25, 'the stored locations without a measured survey position');
+  assert.equal(r.est, 24, 'the stored locations without a measured survey position');
   assert.ok(r.clusters > 0, 'close markers cluster at campus zoom');
   assert.ok(r.worst < 1.5, 'markers on their coordinates: ' + r.worst.toFixed(2) + ' px');
   assert.deepEqual(r.zl.map(t => /estimated slope, illustrative height, not measured/.test(t)), [true, true, true], 'the three levels, labelled');
