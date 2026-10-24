@@ -99,6 +99,11 @@ export function yearOfLogs(days = 365, base = RETURNING) {
 /** Fill "Steps per climb" (#ss casual, #wk-s workout): the number box is behind the Custom chip until a range is chosen. */
 export async function fillSteps(page, sel, value) {
   const box = page.locator(sel);
+  // since 2026-10-24 the count is fixed by the picked stair (a hidden field); tests that need another number set it directly
+  if (await box.evaluate(e => e.type === 'hidden')) {
+    await box.evaluate((e, v) => { e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); }, String(value));
+    return;
+  }
   if (!(await box.isVisible())) await page.locator(sel === '#ss' ? '#stcnt-c' : '#stcnt-w').locator('[data-a="strng"][data-r="c"]').click();
   await box.fill(String(value));
 }

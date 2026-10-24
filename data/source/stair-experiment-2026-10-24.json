@@ -1,0 +1,16 @@
+{
+ "about": "New stair measurements typed by the owner on 2026-10-24 (chat message), the seven stairs of the latest experiment. Riser and run are per step, in cm. Names and list angles follow the group stair list (GROUP_HEALTH_DASHBOARD.pdf). Who measured them, when and with what was not given, so those stay blank.",
+ "stairs": {
+  "ST01": {"steps": [10, 10], "riser_cm": 12.9, "tread_cm": 16.9, "shape": "U", "bottom": [5.352509, 100.538922]},
+  "ST22": {"steps": [10, 10], "tread_cm": 30, "list_angle": 29.44, "shape": "U",
+           "note": "Run 30 cm from the experiment; riser calculated as run x tan(list angle), not measured."},
+  "ST33": {"steps": [10, 10], "tread_cm": 30, "list_angle": 65.52, "shape": "U",
+           "note": "Run 30 cm from the experiment; riser calculated as run x tan(list angle), not measured. 66 cm is not a possible riser: re-measure."},
+  "ST34": {"steps": [25], "riser_cm": 22.45, "tread_cm": 30, "shape": "straight", "bottom": [5.352826, 100.538445]},
+  "ST35": {"steps": [11, 11], "riser_cm": 15.15, "tread_cm": 30.3, "shape": "U", "bottom": [5.35111, 100.537968],
+           "note": "Steps per flight: the message said '11 step 2 flight'; the first caption said 10."},
+  "ST36": {"steps": [3], "riser_cm": "50/3", "tread_cm": "70/3", "shape": "straight", "bottom": [5.3518611, 100.5380278]},
+  "ST37": {"steps": [6], "riser_cm": "64/6", "tread_cm": "147/6", "shape": "straight", "bottom": [5.3513889, 100.5395]},
+  "ST38": {"steps": [10, 10], "riser_cm": 17.4, "tread_cm": 22.4, "shape": "U", "bottom": [5.3513333, 100.5396111]}
+ }
+}

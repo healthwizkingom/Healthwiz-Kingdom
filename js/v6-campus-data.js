@@ -13,7 +13,7 @@
      staircase and opens its Details. A leftover 'hw_obs_ctx' from an older version is removed. No health data is put
      in a URL. */
 const HWCampusData=(()=>{
-const APP='HealthWiz app data (STAIRS list from the original v5.4.3 app); source and method not recorded';
+const APP='HealthWiz stair list (STAIRS, js/hw-02-core.js); the owner confirmed on 2026-10-24 that these coordinates are real';
 const F21='Group 14 F21 Full Written Report (v4), Table 2';
 const STEEP=45; // degrees: a stored angle above this is unusually steep for a staircase, so it is flagged for re-measurement
 const CK='hw_obs_ctx',SURVEY='data/stair-survey.json';
@@ -22,15 +22,16 @@ const deg=r=>r*180/Math.PI;
 /* ---------- the records ---------- */
 const key=q=>q.lat.toFixed(7)+','+q.lng.toFixed(7);
 function base(){const S2=typeof HWStairs!=='undefined'?HWStairs.STUDY:[],G={},N={};
-  STAIRS.forEach(q=>{if(hasXY(q))(G[key(q)]=G[key(q)]||[]).push(q.id);(N[q.name]=N[q.name]||[]).push(q.id)});
-  return STAIRS.map(q=>{const xy=hasXY(q),m=S2.find(x=>x.id===q.id)||null,sh=xy?G[key(q)].filter(i=>i!==q.id):[],same=N[q.name].filter(i=>i!==q.id),notes=[];
+  const P={};STAIRS.forEach(q=>{if(hasXY(q))(G[key(q)]=G[key(q)]||[]).push(q.id);(N[q.name]=N[q.name]||[]).push(q.id);if(q.photo)(P[q.photo]=P[q.photo]||[]).push(q.id)});
+  return STAIRS.map(q=>{const xy=hasXY(q),m=S2.find(x=>x.id===q.id)||null,sh=xy?G[key(q)].filter(i=>i!==q.id):[],same=N[q.name].filter(i=>i!==q.id),sp=q.photo?P[q.photo].filter(i=>i!==q.id):[],notes=[];
     if(!xy)notes.push('No coordinates recorded: listed, not placed on the map.');
     if(sh.length)notes.push('Shares one stored coordinate with '+sh.join(', ')+'.');
     if(same.length)notes.push('Same name as '+same.join(', ')+' in the app data: may be the same staircase.');
+    if(sp.length)notes.push('Shows the same photo as '+sp.join(', ')+': check that it is the right staircase.');
     if(q.angle>STEEP)notes.push('Stored angle is unusually steep for a staircase: flagged for re-measurement.');
     if(m){notes.push('Staircase '+m.k+' ('+m.n+') in the Group 14 F21 report: step rise and run measured. The report ranks it '+m.rank+' among its three stairs.');
       if(Math.abs(m.th-q.angle)>.005)notes.push('The F21 angle ('+m.th.toFixed(2)+'°) differs from the app angle ('+q.angle.toFixed(2)+'°): check against the report.')}
-    return{id:q.id,name:q.name,appFloorLabel:q.floor,appCategory:q.cat,
+    return{id:q.id,name:q.name,photo:q.photo||null,photoShared:sp,appFloorLabel:q.floor,appCategory:q.cat,
       latitude:xy?q.lat:null,longitude:xy?q.lng:null,locationSource:xy?APP:null,locationStatus:xy?'estimated':'missing',
       estimatedAngle:q.angle,angleSource:m?F21+': θ = arctan(rise ÷ run) from measured steps':APP,angleStatus:m?'calculated from measured step rise and run':'estimated',
       orientationDeg:null,orientationSource:null,stepCount:null,floorCount:null,verticalRise_m:null,
@@ -82,8 +83,8 @@ function surveyNote(){const n=(records(),SVn);
     :SVst==='error'?'Survey data: the survey file could not be loaded. The app\'s own values are shown.':'Survey data: loading.'}
 /** The prototype's labels for a record: [kind, text]; kind is est | calc | part | miss | flag. */
 function labels(s){const L=[],m=s.measuredStep;
-  L.push(!placed(s)?['miss','No location recorded']:s.locationStatus==='measured'?['part','Measured location (survey)']:['est','Estimated location']);
-  L.push(s.surveyAngle!=null?['calc','Angle from surveyed steps']:s.estimatedAngle==null?['miss','Angle unavailable']:m?['calc','Angle from measured steps']:['est','Estimated angle']);
+  L.push(!placed(s)?['miss','No location recorded']:s.locationStatus==='measured'?['part','Measured location (survey)']:['est','Real location']);
+  L.push(s.surveyAngle!=null?['calc','Angle from surveyed steps']:s.estimatedAngle==null?['miss','Angle unavailable']:m?['calc','Angle from measured steps']:['est','Real angle']);
   L.push(s.orientationStatus==='measured'?['part','Measured orientation']:s.orientationDeg!=null?['est','Estimated orientation']:['miss','Orientation not surveyed']);
   L.push(s.measurementStatus==='surveyed'?['part','Surveyed']:s.survey?['part','Partially surveyed']:s.measurementStatus==='partially measured'?['part','Partially measured: step size only']:['miss','Not yet surveyed']);
   if(s.survey&&!s.survey.recordComplete)L.push(['flag','Survey record incomplete']);

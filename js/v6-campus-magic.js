@@ -42,7 +42,7 @@ function stage(){let h='';const st=layState();
       +(fresh===l.id?'<p class="cmplmkd" role="status">New landmark discovered</p>':'')
       +'<b id="cmplmk-t">'+esc(l.name)+'</b><small>'+esc(l.kindName)+' · mapped in OpenStreetMap ('+esc(l.osm.join(', '))+')'+(l.named?'':'; not named there, so called by what it is and the nearest named building')+'</small>'
       +'<p>'+(z?'On the '+esc(z.name)+' level ('+esc(z.region)+'), illustrative height.':'On the base level of the map.')+'</p>'
-      +(near.length?'<p>Nearest staircases: '+near.map(n=>'<button type="button" class="cmplnk" data-a="cmppick" data-id="'+n.g.items[0].id+'">'+esc(n.g.items[0].name)+'</button> (about '+Math.round(n.d/5)*5+' m, estimated location)').join(', ')+'.</p>':'')
+      +(near.length?'<p>Nearest staircases: '+near.map(n=>'<button type="button" class="cmplnk" data-a="cmppick" data-id="'+n.g.items[0].id+'">'+esc(n.g.items[0].name)+'</button> (about '+Math.round(n.d/5)*5+' m, real location)').join(', ')+'.</p>':'')
       +'<p class="mut">'+(F[l.id]?'Discovered on '+esc(F[l.id])+'.':'')+' Exploring the map is not a climb: it adds nothing to your health records.</p></div>'}
   return h}
 
