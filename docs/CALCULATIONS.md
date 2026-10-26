@@ -75,6 +75,36 @@ the sum of all 21 answers (0–63). Worked example, checked in the browser: all 
 severe), because the manual that sets them was not opened; the scores are shown without labels. The storm level and
 the order of the creatures are game choices, not part of the DASS.
 
+**Added 2026-10-26: The Ascent Monument** (`js/v6-monument.js`, route `monument`). Read-only, from the saved stair sessions
+(`HWStairs.all()`), so edits and deletions show at once.
+* Rise of one session: h = steps logged (e.v = steps per climb × climbs) × rise of one step of that staircase. The rise is
+  the F21 report's measured step rise for ST14, ST19 and ST20 (`HWStairs.STUDY`: 0.149, 0.157, 0.169 m), otherwise the
+  survey sheet's riser height (`data/stair-survey.json`, averaged over the flights weighted by their risers; a riser
+  outside 12 to 21 cm is shown with CHECK). No known rise (a staircase not surveyed, an old entry with no staircase id
+  whose name is not unique, or the survey file not readable because the app was opened from the device): the steps count,
+  the height does not, and the page says how many sessions and steps that is. No rise is guessed.
+* Total vertical ascent H = h₁ + … + hₙ. Repeated climbs are added vertically; descents are not subtracted.
+  Worked example (tests/92-monument): ST20 28 × 6 = 168 steps × 0.169 m = 28.392 m; ST14 13 × 2 = 26 × 0.149 m = 3.874 m;
+  H = 32.266 m from the device. Over http the survey adds ST04 35 × 4 = 140 × 0.155 m = 21.7 m → 53.966 m.
+* Landmark ratio R = H ÷ landmark height (32.266 ÷ 451.9 = 7.1 % of a Petronas tower; 32.266 ÷ 6 = 5.4 two-storey houses).
+  Bars are linear from 0 to the landmark; the to-scale picture uses one linear scale and one baseline; the ladder is
+  logarithmic and says so. "Climbs to go" = remaining height ÷ (steps per climb × rise) of the staircase climbed most;
+  "weeks at your pace" = remaining height ÷ (ascent of the last 28 days ÷ 4).
+* Estimated mechanical work against gravity W = m g H with g = 9.81 m/s² and the user's confirmed weight only
+  (`HWStairs.profile()`); 60 kg × 9.81 × 192.355 m = 113.2 kJ. "Lifting a 1,000 kg car" = W ÷ (1,000 kg × g) = m H ÷ 1,000.
+  Labelled as idealised work, never calories.
+* Summit air: NASA Glenn Research Center's Earth atmosphere model (troposphere, to 11 km): T = 15.04 − 0.00649 h °C,
+  p = 101.29 × [(T + 273.1) ÷ 288.08]^5.256 kPa, shown as the drop in °C and p as a percentage of p at h = 0.
+* The tower: stones = floor(H ÷ 0.25 m), one stair stone for every 0.25 m of verified ascent (32.266 m → 129 stones;
+  9,000 m → 36,000). The stair never ends; its colour bands start at the stones for 451.9, 828, 4,095.2 and 8,848.86 m
+  (1,807, 3,312, 16,380, 35,395) and a gold stone with a banner marks each real landmark passed. A symbol, not a measurement.
+* Floors: H ÷ 3 m, HealthWiz's own round storey height (also used for the two illustrative buildings, 6 m and 30 m).
+* Reference heights (checked 2026-10-26, each with its link and what was read, in `LANDMARKS`): Statue of Liberty 92.99 m
+  (NPS), Eiffel Tower 330 m (official site), Menara KL 420.4 m, Petronas Twin Tower 451.9 m, Merdeka 118 678.9 m and
+  Burj Khalifa 828 m (CTBUH Skyscraper Center, architectural height), Penang Hill 833 m (penanghill.gov.my), Mount
+  Kinabalu 4,095.2 m (Sabah Parks), Mount Everest 8,848.86 m (2020 Nepal and China survey, news report), ISS ≈ 400 km
+  (NASA). These are reference data shown in each landmark's own "Why this number?" panel, not `HWSources` records.
+
 ## Rules for adding a "?"
 
 1. Read the code that computes the number; the formula in the panel must be the one that runs.

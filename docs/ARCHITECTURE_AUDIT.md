@@ -1710,3 +1710,41 @@ The system and the evidence for the font choice are in `docs/PIXEL_STYLE.md` ("D
 * **Full `npm test`:** 489 tests, 484 pass, 3 skipped. The failing ones differ from run to run (the Luke guess-icon test, the
   camera-mixed test, the water "one action, one write" test, a theme reload) and each passes when run alone; the Luke test also
   fails intermittently on the untouched original.
+
+## The Ascent Monument (`js/v6-monument.js`, `js/v6-monument-scene.js`, `js/v6-monument-css.js`), 2026-10-26
+
+* **Door:** a card on Statistics inserted right after the Health Time Machine's door (`#tm-door`), with an original pixel
+  illustration (lit front, shaded side, ledges, a gold measuring rod) and the live ascent. ENTER MY MONUMENT opens route
+  `monument` (parent: the Health Hall, like the Time Machine).
+* **Data:** see `docs/CALCULATIONS.md`. Read-only; one optional settings key `st.s.mon = {m, n, d}` (the acknowledged ascent
+  in metres, the number of sessions, the date), written when a construction finishes or is skipped, or at once with reduced
+  motion. Nothing is written for an empty history. No schema change.
+* **Renderer:** chosen after looking at what the repository has: Three.js (r169) and MapLibre are loaded only by the
+  Observatory as ES modules over http(s) with WebGL, so they do not run from the device or in the single-file build. A
+  2.5D isometric voxel renderer on a 2D canvas gives true top and side faces, cast shadows (voxels projected along the
+  light; faces ray-marched to the light), ambient occlusion, glow and atmosphere, in the app's pixel style, with no new
+  dependency, everywhere the app runs.
+* **The endless tower (owner's request, 2026-10-26: "like the Tower of Babel, the stair will build endlessly"):** a spiral
+  stair with one stone for every 0.25 m of verified ascent, 8 levels a turn round an arcaded core: wide sandstone terraces
+  for the first turns, then a slender core for ever. Any stone's place is worked out from its number (no stored geometry),
+  and only the slice in view is generated and drawn, so the work per frame is the same at 10 m or 10 km. The camera follows
+  the top; the island and land sink away and the lower turns fade into a cloud bank. Colour bands (sandstone, marble,
+  lapis and gold, crystal, starlight) start where the ascent passed a Petronas tower, the Burj Khalifa, Mount Kinabalu and
+  Mount Everest; gold stones with banners mark every landmark passed; the next stones always wait as glowing outlines.
+  (This replaced a first version with a fixed six-stage tower of 1,023 voxels that stopped growing.)
+* **Blender:** Blender 4.2.3 LTS was installed for the session with `tools/get-blender.sh` (download.blender.org); the
+  archive was checked against the official `blender-4.2.3.sha256` (OK) and a headless test run passed. Used for the door
+  card's picture: `tools/art/make_babel_card.py` models an original Tower of Babel (tapering arcaded tiers, a helical stair
+  running out of the frame, a gold measuring rod), renders it with Cycles and reduces it to 96 x 112 pixel art in the
+  scene's palette (`assets/img/monument-card.webp`, 1.8 KB; source `tools/art/babel_card.blend`). The tower in the page is
+  generated in code, not from Blender, because each stone must be placed and animated from the user's own data. Visitors
+  never need Blender.
+* **MCP tools:** the repository has no MCP configuration of its own. The session's Playwright MCP browser was used for
+  visual checks over a local server (door card, page, the catch-up climb); it needed the session's Chromium linked at
+  `/opt/google/chrome/chrome` with `--no-sandbox` (container only, nothing in the repository).
+* **Motion:** stones above the acknowledged ascent are carried up and lock in at the top (the last 36 one by one, earlier
+  ones in one catch-up climb with the camera rising along); a soft tone only when Sound is on; SKIP ANIMATION; nothing
+  moves with reduced motion; idle sparkle stops in the Performance mode, a hidden tab or off screen. A redraw of the page
+  continues a running animation; over http the scene waits (at most 10 s) for the survey sheet so the stones match it.
+* **Tests:** `tests/92-monument.test.mjs`.
+
