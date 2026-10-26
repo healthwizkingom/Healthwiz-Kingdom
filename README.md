@@ -36,6 +36,9 @@ js/v6-vault.js             the Evidence Vault: every source on shelves, source â
 js/v6-uncert.js            the Uncertainty Engine: how unmeasured assumptions move an estimate (no made-up error margins)
 js/v6-plan.js              Stair Prescription on the Stairs page: a weekly stair plan the player chooses (st.s.pl); not a prescription
 js/v6-time.js              the Health Time Machine (route 'time', door on Statistics): saved records on a day / week / month timeline
+js/v6-monument.js          The Ascent Monument (route 'monument', door on Statistics right under the Time Machine's): vertical ascent from the saved stair sessions (steps Ã— measured or surveyed step rise), stages, the acknowledged state st.s.mon, landmark comparisons with sources, fun facts, ledger
+js/v6-monument-scene.js    the monument's scene: an isometric voxel tower in pixel art on one canvas (real faces, cast shadows, AO, glow, floating island), construction animation, skip, reduced motion
+js/v6-monument-css.js      the monument's styles
 js/v6-campus-data.js        the Observatory's staircase records (STAIRS + the F21 step sizes + data/stair-survey.json), its links with the Stairs page
 js/v6-campus-stairs.js     the collapsible "Stairs" section under the Observatory on the Campus page (the history: summary, heart-rate chart, measured stairways, Session Chronicle), the `stair` and `pulse` routes and the address `#stairs`, which open the Campus page at the top with the Observatory's Details; events `stairs:opened` / `stairs:closed`
 js/v6-campus.js            the Campus Health Observatory (route 'campus', door in the Health Hall): the full-width map with its search, the list and the Details below it, where a staircase's climbs and workouts are logged (LOG A CLIMB HERE); fallback; loads the map over https

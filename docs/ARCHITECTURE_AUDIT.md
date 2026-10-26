@@ -1710,3 +1710,26 @@ The system and the evidence for the font choice are in `docs/PIXEL_STYLE.md` ("D
 * **Full `npm test`:** 489 tests, 484 pass, 3 skipped. The failing ones differ from run to run (the Luke guess-icon test, the
   camera-mixed test, the water "one action, one write" test, a theme reload) and each passes when run alone; the Luke test also
   fails intermittently on the untouched original.
+
+## The Ascent Monument (`js/v6-monument.js`, `js/v6-monument-scene.js`, `js/v6-monument-css.js`), 2026-10-26
+
+* **Door:** a card on Statistics inserted right after the Health Time Machine's door (`#tm-door`), with an original pixel
+  illustration (lit front, shaded side, ledges, a gold measuring rod) and the live ascent. ENTER MY MONUMENT opens route
+  `monument` (parent: the Health Hall, like the Time Machine).
+* **Data:** see `docs/CALCULATIONS.md`. Read-only; one optional settings key `st.s.mon = {m, n, d}` (the acknowledged ascent
+  in metres, the number of sessions, the date), written when a construction finishes or is skipped, or at once with reduced
+  motion. Nothing is written for an empty history. No schema change.
+* **Renderer:** chosen after looking at what the repository has: Three.js (r169) and MapLibre are loaded only by the
+  Observatory as ES modules over http(s) with WebGL, so they do not run from the device or in the single-file build. A
+  2.5D isometric voxel renderer on a 2D canvas gives true top and side faces, cast shadows (voxels projected along the
+  light; faces ray-marched to the light), ambient occlusion, glow and atmosphere, in the app's pixel style, with no new
+  dependency, everywhere the app runs. The tower is a fixed design of 1,023 voxels in six stages, so it never grows
+  without bound; a stage's voxels are laid in proportion to the progress through it.
+* **Blender:** not installed in the session's container (`tools/get-blender.sh` could fetch 4.2 LTS from
+  download.blender.org, which was reachable). Not used: the tower's pieces are generated in code at run time so that each
+  stone can be animated into place from the user's own data, and no pre-rendered asset is needed.
+* **Motion:** stones above the acknowledged ascent rise from a rune circle and lock in (the last 48 one by one, earlier ones
+  in one catch-up wave); a soft tone only when Sound is on; SKIP ANIMATION; nothing moves with reduced motion; idle
+  sparkle stops in the Performance mode, a hidden tab or off screen. A redraw of the page continues a running animation.
+* **Tests:** `tests/92-monument.test.mjs`.
+
