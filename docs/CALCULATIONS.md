@@ -95,6 +95,9 @@ the order of the creatures are game choices, not part of the DASS.
   Labelled as idealised work, never calories.
 * Summit air: NASA Glenn Research Center's Earth atmosphere model (troposphere, to 11 km): T = 15.04 − 0.00649 h °C,
   p = 101.29 × [(T + 273.1) ÷ 288.08]^5.256 kPa, shown as the drop in °C and p as a percentage of p at h = 0.
+* The tower: stones = floor(H ÷ 0.25 m), one stair stone for every 0.25 m of verified ascent (32.266 m → 129 stones;
+  9,000 m → 36,000). The stair never ends; its colour bands start at the stones for 451.9, 828, 4,095.2 and 8,848.86 m
+  (1,807, 3,312, 16,380, 35,395) and a gold stone with a banner marks each real landmark passed. A symbol, not a measurement.
 * Floors: H ÷ 3 m, HealthWiz's own round storey height (also used for the two illustrative buildings, 6 m and 30 m).
 * Reference heights (checked 2026-10-26, each with its link and what was read, in `LANDMARKS`): Statue of Liberty 92.99 m
   (NPS), Eiffel Tower 330 m (official site), Menara KL 420.4 m, Petronas Twin Tower 451.9 m, Merdeka 118 678.9 m and

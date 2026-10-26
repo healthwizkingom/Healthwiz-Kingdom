@@ -14,8 +14,9 @@
      steps logged); the total H = sum of h. Repeated climbs are added vertically: H is not one continuous climb.
    * Estimated mechanical work against gravity W = m g H (g = 9.81 m/s2) only with the user's confirmed weight
      (HWStairs.profile()); never presented as calories burned.
-   THE MONUMENT  Six fixed stages (STAGES) unlock at published heights; within a stage the stones are laid in proportion
-   to the progress, so the tower's look is symbolic and its drawn height is not a measurement. The last acknowledged
+   THE MONUMENT  An endless Tower of Babel: a spiral stair with one stone for every 0.25 m of verified ascent (CELL), so it
+   never stops growing. Its colour bands (ERAS) start where the ascent passed a landmark, and a gold stone with a banner
+   marks each landmark passed. A symbol of the ascent, not a measurement of it. The last acknowledged
    ascent is kept in st.s.mon {m, n, d} (an optional key, like st.s.orb): only stones above it are animated, once.
    THE COMPARISON  LANDMARKS are configurable data, each height checked against its source on 2026-10-26 (CTBUH Skyscraper
    Center, official sites, NASA); R = H / height. The to-scale view uses one linear scale and one baseline; the ladder
@@ -28,19 +29,19 @@ const two=n=>String(n).padStart(2,'0'),D0=d=>new Date(d+'T12:00:00'),addD=(d,n)=
 const monday=d=>addD(d,-((D0(d).getDay()+6)%7)),MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const nice=d=>{const x=D0(d);return x.getDate()+' '+MN[x.getMonth()]+' '+x.getFullYear()};
 
-/* ---------- the monument's stages: thresholds in metres of verified ascent ---------- */
-const STAGES=[
- {n:'Foundation',m:0,d:'a stone plinth, the front steps and four lanterns'},
- {n:'First Ascent',m:10,d:'the hall: an arched door, glowing windows, buttresses and a cornice'},
- {n:'Rising Keep',m:50,d:'the keep with corner turrets and a walkway'},
- {n:'High Citadel',m:150,d:'balconies with golden rails and flying buttresses'},
- {n:'Grand Monument',m:451.9,d:'the upper chamber, banners and four turrets',why:'one Petronas Twin Tower'},
- {n:'Skyward Spire',m:828,d:'tiers of roof, a golden ring and the crystal finial',why:'one Burj Khalifa'},
- {n:'Celestial Crown',m:4095.2,d:'a beam of light from the crystal',why:'Mount Kinabalu'}];
-/** H (m) → {placed stones, stage index, fraction of the stage, aura}. */
-function build(H){const C=HWMonumentScene.counts();let placed=0,i=0,frac=1;
-  for(;i<C.length;i++){const a=STAGES[i].m,b=STAGES[i+1].m;if(H>=b){placed+=C[i];continue}frac=Math.max(0,(H-a)/(b-a));placed+=Math.floor(C[i]*frac);break}
-  return{placed,stage:i,frac:i>=C.length?1:frac,aura:H>=8848.86?2:H>=4095.2?1:0,total:C.reduce((a,b)=>a+b,0)}}
+/* ---------- the tower: stones, turns and the eras of its colour bands ---------- */
+const ERAS=[
+ {n:'Sandstone Terraces',m:0,d:'warm sandstone'},
+ {n:'Marble Galleries',m:451.9,d:'white marble',why:'a Petronas Twin Tower'},
+ {n:'Lapis and Gold',m:828,d:'lapis walls on golden steps',why:'the Burj Khalifa'},
+ {n:'Crystal Stair',m:4095.2,d:'glowing crystal',why:'Mount Kinabalu'},
+ {n:'Starlit Stair',m:8848.86,d:'starlight',why:'Mount Everest'}];
+const CELL=()=>HWMonumentScene.CELL;
+const stones=H=>Math.floor(H/CELL()+1e-9);
+/** H (m) → {placed stones, turns, era index, aura, eras and marks as stone numbers}. */
+function build(H){const placed=stones(H),era=ERAS.reduce((e,x,i)=>H>=x.m?i:e,0);
+  return{placed,turns:HWMonumentScene.turns(placed),era,aura:H>=8848.86?2:H>=4095.2?1:0,
+    eras:ERAS.slice(1).map(x=>stones(x.m)),marks:LANDMARKS.filter(L=>L.kind!=='illus'&&L.h<=H).map(L=>stones(L.h))}}
 
 /* ---------- landmarks (configurable; heights checked 2026-10-26) ----------
    h metres · k silhouette · w width as a share of its height (drawing only) · why: what the number is · src: [title, by, url, checked]
@@ -128,22 +129,10 @@ function explainWork(D){if(!D.P)return'';const W=D.W;
     limits:['Muscles turn only part of the energy they use into work, so the body spends several times more.','Descents, pauses, carrying a bag and changes in weight are not counted.','Not a calorie estimate and not a health measurement.']})}
 
 /* ---------- the door on Statistics (under the Health Time Machine) ---------- */
-function doorArt(){return '<svg class="mndart" viewBox="0 0 48 56" width="96" height="112" aria-hidden="true" shape-rendering="crispEdges">'
-  +'<rect width="48" height="56" fill="#16123d"/><rect y="34" width="48" height="22" fill="#2b2163"/><path d="M0 40h6v-3h6v2h5v-4h7v3h6v-2h8v3h10v17H0z" fill="#1b173f"/>'
-  +'<rect x="9" y="4" width="2" height="1" fill="#fff"/><rect x="38" y="9" width="1" height="1" fill="#fff"/><rect x="31" y="3" width="1" height="1" fill="#cfc8ff"/><rect x="5" y="16" width="1" height="1" fill="#cfc8ff"/>'
-  // the measuring rod (gold ticks)
-  +'<rect x="40" y="12" width="1" height="36" fill="#9a6414"/>'+[12,18,24,30,36,42,47].map((y,i)=>'<rect x="'+(i%2?41:41)+'" y="'+y+'" width="'+(i%2?2:3)+'" height="1" fill="#f6c94f"/>').join('')
-  // the island
-  +'<path d="M6 48h30v2h-3v2h-6v2h-8v-2h-6v-2H6z" fill="#40334f"/><path d="M6 46h30v2H6z" fill="#3d8a4c"/><path d="M8 45h26v1H8z" fill="#5bbf62"/>'
-  // the tower: front face lit, side face shaded, top faces light; ledges project
-  +'<path d="M12 44V36h10v8z" fill="#a69dc2"/><path d="M22 44V36h8v8z" fill="#665e8a"/><path d="M10 35h22v2H10z" fill="#b2a7d1"/><path d="M22 36h10v1H22z" fill="#4c4372"/>'
-  +'<path d="M14 35V22h8v13z" fill="#a69dc2"/><path d="M22 35V22h6v13z" fill="#665e8a"/><path d="M12 21h18v2H12z" fill="#b2a7d1"/><path d="M22 22h8v1h-8z" fill="#4c4372"/>'
-  +'<path d="M15 20v-6h7v6z" fill="#a69dc2"/><path d="M22 20v-6h5v6z" fill="#665e8a"/><path d="M14 13l7-5 7 5z" fill="#8a6cf0"/><path d="M21 8l7 5h-7z" fill="#3a2a7e"/>'
-  +'<rect x="20" y="5" width="2" height="3" fill="#f6c94f"/><rect x="20" y="3" width="2" height="2" fill="#7ff0ff"/>'
-  +'<rect x="16" y="26" width="2" height="3" fill="#ffc94a"/><rect x="16" y="16" width="2" height="2" fill="#ffc94a"/><rect x="24" y="27" width="2" height="3" fill="#e89a2c"/><rect x="14" y="39" width="3" height="5" fill="#2a1838"/><rect x="15" y="40" width="1" height="2" fill="#ffcf6a"/>'
-  +'<path d="M12 44h14l6 2H12z" fill="#000" opacity=".35"/></svg>'}
+// the card's picture: an endless Tower of Babel, modelled and rendered in Blender and reduced to pixel art (tools/art/make_babel_card.py)
+const doorArt=()=>'<img class="mndart" src="assets/img/monument-card.webp" width="96" height="112" alt="">';
 function door(){let stat='';
-  try{const D=data();stat=D.n?'<p class="mndstat"><b>'+mtr(D.H,1)+'</b> climbed'+(D.un.n?' <small>(+'+fm(D.un.steps,0)+' steps without a known rise)</small>':'')+' · '+esc(STAGES[build(D.H).stage].n)+'</p>'
+  try{const D=data();stat=D.n?'<p class="mndstat"><b>'+mtr(D.H,1)+'</b> climbed'+(D.un.n?' <small>(+'+fm(D.un.steps,0)+' steps without a known rise)</small>':'')+' · '+fm(build(D.H).placed,0)+' stones, turn '+fm(build(D.H).turns,0)+'</p>'
     :'<p class="mndstat mut">No climbs logged yet: your first one lays the first stone.</p>'}catch(e){}
   return '<div class="card mndoor" id="mn-door">'+doorArt()+'<div class="mndtx"><h3>'+ico('tower')+' THE ASCENT MONUMENT</h3><p class="mntag">Every climb builds your legacy.</p>'
     +'<p>Every staircase you conquer adds to your monument. Watch your accumulated ascent become something extraordinary.</p>'+stat
@@ -238,7 +227,7 @@ function note(D){const sv=D.sv;
     +(sv==='local'?'<p class="mut">The survey sheet cannot be read when the app is opened from this device, so only the three measured staircases give a height here. Open the app from its website for the rest.</p>'
       :sv==='error'?'<p class="mut">The survey sheet could not be loaded just now, so only the three measured staircases give a height. It will be tried again next time.</p>':sv==='loading'?'<p class="mut">Loading the survey sheet…</p>':'')
     +(D.flagged?'<p class="mut">'+D.flagged+' session'+(D.flagged>1?'s use':' uses')+' a riser the survey marked as unusual (CHECK in the ledger); it is used as measured until it is re-measured.</p>':'')
-    +'<p class="mut">The monument is a picture of your progress: its stages unlock at '+STAGES.slice(1).map(s=>esc(mtr(s.m,1))+(s.why?' ('+s.why+')':'')).join(', ')+'. Its drawn height is not a measurement.</p></div>'}
+    +'<p class="mut">The tower is a picture of your progress: one stair stone for every '+fm(CELL(),2)+' m you climbed, and the stair never ends. Its colour changes at '+ERAS.slice(1).map(s=>esc(mtr(s.m,1))+' ('+s.why+')').join(', ')+'. Its drawn height is a symbol, not a measurement.</p></div>'}
 
 /* ---------- the page ---------- */
 const sel=()=>S.mnl||null;
@@ -250,18 +239,19 @@ function cmpCard(D){const L=LANDMARKS.find(x=>x.id===sel())||nextLm(D);
     +'<div class="mnscale" id="mnscale"><p class="mnlbl">To scale</p>'+scaleView(D,L)+'</div>'
     +rows(D)
     +'<details class="mnladw"><summary>The height ladder <small class="mut">(logarithmic scale)</small></summary><p class="mut">Each step up the ladder is ten times higher than the one below it.</p>'+ladder(D)+'</details></div>'}
-function sceneCard(D,B){const st0=STAGES[B.stage],nx=STAGES[B.stage+1],nl=nextLm(D);
-  const stTxt=B.stage>=6?'Celestial Crown'+(B.aura>1?' (higher than Mount Everest)':''):st0.n+' · '+fm(B.frac*100,0)+' % built';
+function sceneCard(D,B){const er=ERAS[B.era],nx=ERAS[B.era+1],nl=nextLm(D),past=LANDMARKS.filter(L=>L.kind!=='illus'&&L.h<=D.H);
+  const stTxt=D.n?'Turn '+fm(B.turns,0)+' · '+er.n:'The first stone awaits';
   return '<div class="card mnmain"><div class="mnstage" id="mnstage"><div class="mnhud"><span class="mnchip">'+ico('tower')+' '+esc(stTxt)+'</span></div>'
     +'<button type="button" class="g sm mnskip" data-a="mnskip" hidden>SKIP ANIMATION</button><p class="mnnew" id="mnnew" aria-live="polite"></p></div>'
-    +'<div class="mnside"><p class="mnalt">'+(D.n?'Your monument: the '+esc(st0.n)+' stage'+(B.stage<6?', '+fm(B.frac*100,0)+' % built ('+esc(st0.d)+')':', complete, with '+esc(st0.d))+'. '+B.placed+' of '+B.total+' stones laid.'
-      :'An empty island with a stone circle, waiting for your first climb.')+' <small class="mut">A picture of progress: its height is not your ascent.</small></p>'
+    +'<div class="mnside"><p class="mnalt">'+(D.n?'Your endless tower: '+fm(B.placed,0)+' stair stones in '+fm(B.turns,0)+' turn'+(B.turns===1?'':'s')+' round its core, '+esc(er.d)+' at the top.'
+      +(past.length?' Gold stones with banners mark where you passed '+past.map(L=>esc(L.n.split(' (')[0])).join(', ')+'.':'')+' The next stones wait at the top: the stair never ends.'
+      :'An island with a stone plinth, waiting for your first climb.')+' <small class="mut">One stone for every '+fm(CELL(),2)+' m you climbed: a symbol of your ascent, not a measurement.</small></p>'
     +'<div class="mnstats">'
     +'<div class="t mnbig"><small>Total vertical ascent '+explainAscent(D)+'</small><b>'+esc(mtr(D.H,D.H<100?2:1))+'</b>'+(D.un.n?'<small class="mut">+ '+fm(D.un.steps,0)+' steps with no known rise</small>':'')+'</div>'
     +'<div class="t"><small>Steps climbed</small><b>'+fm(D.steps,0)+'</b></div>'
     +'<div class="t"><small>Climbs completed</small><b>'+fm(D.climbs||D.n,0)+'</b><small class="mut">in '+D.n+' session'+(D.n===1?'':'s')+'</small></div>'
-    +'<div class="t"><small>Current stage</small><b class="mnw">'+esc(B.stage>=6?'Celestial Crown':st0.n)+'</b></div>'
-    +'<div class="t"><small>Next milestone</small><b class="mnw">'+(D.H<nl.h?esc(nl.n.split(' (')[0]):'All passed')+'</b><small class="mut">'+(D.H<nl.h?esc(mtr(nl.h-D.H,1))+' to go':'')+(nx&&B.stage<6?' · next stage at '+esc(mtr(nx.m,1)):'')+'</small></div></div>'
+    +'<div class="t"><small>Your tower</small><b class="mnw">'+esc(er.n)+'</b><small class="mut">'+fm(B.placed,0)+' stones · turn '+fm(B.turns,0)+'</small></div>'
+    +'<div class="t"><small>Next milestone</small><b class="mnw">'+(D.H<nl.h?esc(nl.n.split(' (')[0]):'All passed')+'</b><small class="mut">'+(D.H<nl.h?esc(mtr(nl.h-D.H,1))+' to go':'')+(nx?' · '+esc(nx.n)+' from '+esc(mtr(nx.m,1)):'')+'</small></div></div>'
     +(D.n?'':'<p>Climb a staircase on campus and log it in the Observatory: its steps become your first stones.</p><button type="button" data-a="mnlog">LOG A CLIMB IN THE OBSERVATORY</button>')
     +(D.n?'<button type="button" class="g sm" data-a="mnreplay">REPLAY THE CONSTRUCTION</button>':'')+'</div></div>'}
 function page(){const D=data(),B=build(D.H);
@@ -278,7 +268,7 @@ function mountScene(){const host=document.getElementById('mnstage');if(!host||ho
   const done=()=>{if(skip)skip.hidden=true;acknowledge(D);if(RUN&&grow>0){lastNew={n:grow,m:RUN.dm}}RUN=null;
     if(msg&&lastNew)msg.textContent='+'+lastNew.n+' stone'+(lastNew.n>1?'s':'')+' laid'+(lastNew.m>0?': '+mtr(lastNew.m,1)+' climbed since your last visit':'')+'.'};
   if(skip)skip.hidden=!(grow>0&&!HWUI.reduced());
-  const s=HWMonumentScene.mount(host,{from,to:B.placed,aura:B.aura,t0:RUN?RUN.t0:0,onDone:done});
+  const s=HWMonumentScene.mount(host,{from,to:B.placed,aura:B.aura,eras:B.eras,marks:B.marks,t0:RUN?RUN.t0:0,onDone:done});
   if(!s&&host.classList.contains('mnfail'))host.insertAdjacentHTML('beforeend','<p class="mnfb">The monument picture could not be drawn on this device. All your numbers are below.</p>')}
 // the survey sheet arrives after the first render (over http): redraw this page or the door once it has
 function whenSurvey(){if(survey()!=='loading')return;let n=0;const t=setInterval(()=>{if(survey()!=='loading'||++n>41){clearInterval(t);
@@ -297,7 +287,7 @@ acts.mnskip=()=>HWMonumentScene.skipNow();
 acts.mnreplay=()=>{const D=data(),B=build(D.H);RUN={from:0,to:B.placed,t0:performance.now(),dm:0};lastNew=null;HWMonumentScene.stop();
   const h=document.getElementById('mnstage');if(h){const c=h.querySelector('canvas');if(c)c.remove()}
   const skip=h&&h.querySelector('.mnskip');if(skip)skip.hidden=HWUI.reduced();
-  HWMonumentScene.mount(h,{from:0,to:B.placed,aura:B.aura,t0:RUN.t0,onDone:()=>{if(skip)skip.hidden=true;RUN=null}})};
+  HWMonumentScene.mount(h,{from:0,to:B.placed,aura:B.aura,eras:B.eras,marks:B.marks,t0:RUN.t0,onDone:()=>{if(skip)skip.hidden=true;RUN=null}})};
 acts.mnlm=d=>{S.mnl=d.id;const D=data(),c=document.getElementById('mncmp');if(!c)return;const L=LANDMARKS.find(x=>x.id===d.id);
   c.querySelectorAll('.mnchips .chip').forEach(b=>{const on=b.dataset.id===d.id;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
   const v=document.getElementById('mnscale');if(v&&L)v.innerHTML='<p class="mnlbl">To scale</p>'+scaleView(D,L)};
@@ -310,4 +300,4 @@ DIS.monument='The monument is a picture of progress made from your logged stair 
 {const p=pages.stats;pages.stats=function(){const h=p.apply(this,arguments),k='id="tm-door"',i=h.indexOf(k);
   if(i<0)return door()+h;const e=h.indexOf('</button></div>',i);return e<0?door()+h:h.slice(0,e+15)+door()+h.slice(e+15)}}
 
-return{data,build,STAGES,LANDMARKS,riseOf,door,acknowledge,get ack(){return ack()}}})();
+return{data,build,ERAS,LANDMARKS,riseOf,door,acknowledge,get ack(){return ack()}}})();

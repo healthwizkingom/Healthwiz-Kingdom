@@ -1,4 +1,4 @@
-// The Ascent Monument (js/v6-monument.js, js/v6-monument-scene.js): the door right under the Health Time Machine's on
+// The Ascent Monument (js/v6-monument.js, js/v6-monument-scene.js), an endless spiral-stair tower: the door right under the Health Time Machine's on
 // Statistics, the ascent worked out from the saved stair sessions (F21 measured rise, then the survey sheet over http; no rise
 // = steps but no height), stages, the acknowledged state st.s.mon (only new stones animate, skip, reduced motion, deletions),
 // landmark ratios, the empty state, the phone layout, and nothing written to the sessions.
@@ -55,9 +55,9 @@ test('ascent = steps x the rise of one step: F21 measured from the device; no ri
   const { page, errors } = await openApp({ seed: SEED });
   const before = JSON.stringify((await state(page)).e);
   await enter(page);
-  const D = await page.evaluate(() => { const d = HWMonument.data(); return { H: d.H, steps: d.steps, un: d.un, n: d.n, known: d.known, sv: d.sv, stage: HWMonument.build(d.H).stage }; });
+  const D = await page.evaluate(() => { const d = HWMonument.data(); const b = HWMonument.build(d.H); return { H: d.H, steps: d.steps, un: d.un, n: d.n, known: d.known, sv: d.sv, era: b.era, placed: b.placed }; });
   assert.ok(Math.abs(D.H - (168 * .169 + 26 * .149)) < 1e-9, 'H = 28.392 + 3.874 m');
-  assert.deepEqual([D.steps, D.n, D.known, D.un.n, D.un.steps, D.sv, D.stage], [168 + 26 + 140 + 60, 4, 2, 2, 200, 'local', 1]);
+  assert.deepEqual([D.steps, D.n, D.known, D.un.n, D.un.steps, D.sv, D.era, D.placed], [168 + 26 + 140 + 60, 4, 2, 2, 200, 'local', 0, 129], 'one stone per 0.25 m: 32.266 / 0.25 = 129');
   const t = await page.textContent('#main');
   assert.match(t, /Total vertical ascent[\s\S]*32\.27 m/);
   assert.match(t, /2 sessions \(200 steps\) are on a staircase without a known step rise/);
@@ -97,7 +97,7 @@ test('only new stones animate, once: first visit, a new climb, SKIP, then nothin
   assert.match(await page.textContent('#mnnew'), /stones? laid: 18\.9 m climbed since your last visit/);
   a = (await state(page)).s.mon;
   assert.deepEqual([a.m, a.n], [51.19, 5]);
-  assert.equal(await page.evaluate(() => HWMonument.build(HWMonument.data().H).stage), 2, 'Rising Keep from 50 m');
+  assert.equal(await page.evaluate(() => HWMonument.build(HWMonument.data().H).placed), 204, '51.194 m / 0.25 = 204 stones');
   // delete it: lower, acknowledged without an animation
   await page.evaluate(() => { const e = st.e.find(x => x.c === 'stair' && x.v === 112); acts.del({ id: e.id }); });
   await go(page, 'home'); await enter(page);
@@ -113,7 +113,7 @@ test('reduced motion: no animation and no skip button; the final picture and eve
   assert.equal(await skipShown(page), false);
   assert.equal(await page.evaluate(() => HWMonumentScene.running), false);
   assert.equal((await state(page)).s.mon.m, 32.27);
-  assert.match(await page.textContent('.mnalt'), /First Ascent stage/);
+  assert.match(await page.textContent('.mnalt'), /Your endless tower: 129 stair stones/);
   assert.deepEqual(errors, []);
 });
 
@@ -155,3 +155,19 @@ test('phone (360 px): no sideways scroll, the canvas fits and is scaled by a who
   assert.equal(r.over, 0); assert.ok(r.fit); assert.equal(r.scale, 2);
   assert.deepEqual(errors, []);
 });
+
+test('the tower never ends: stones keep their place at any height, eras and landmark flags follow the ascent', async () => {
+  const { page, errors } = await openApp({ seed: SEED });
+  const r = await page.evaluate(() => {
+    const Sc = HWMonumentScene, a = Sc.stone(1e6), b = Sc.stone(1e6 + 1), B9 = HWMonument.build(9000);
+    return { cell: Sc.CELL, rises: b.z >= a.z && b.z - a.z <= 1, far: a.z > 1e4, turns: Sc.turns(1e6) > Sc.turns(1e5),
+      era: B9.era, aura: B9.aura, placed: B9.placed, marks: B9.marks.length, eras: B9.eras };
+  });
+  assert.equal(r.cell, .25);
+  assert.ok(r.rises && r.far && r.turns, 'a million stones up the stair still climbs');
+  assert.deepEqual([r.era, r.aura, r.placed], [4, 2, 36000]);
+  assert.deepEqual(r.eras, [1807, 3312, 16380, 35395], 'eras start at 451.9, 828, 4,095.2 and 8,848.86 m');
+  assert.equal(r.marks, 9, 'every real landmark up to Mount Everest is flagged on the stair');
+  assert.deepEqual(errors, []);
+});
+

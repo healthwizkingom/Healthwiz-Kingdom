@@ -1723,13 +1723,28 @@ The system and the evidence for the font choice are in `docs/PIXEL_STYLE.md` ("D
   Observatory as ES modules over http(s) with WebGL, so they do not run from the device or in the single-file build. A
   2.5D isometric voxel renderer on a 2D canvas gives true top and side faces, cast shadows (voxels projected along the
   light; faces ray-marched to the light), ambient occlusion, glow and atmosphere, in the app's pixel style, with no new
-  dependency, everywhere the app runs. The tower is a fixed design of 1,023 voxels in six stages, so it never grows
-  without bound; a stage's voxels are laid in proportion to the progress through it.
-* **Blender:** not installed in the session's container (`tools/get-blender.sh` could fetch 4.2 LTS from
-  download.blender.org, which was reachable). Not used: the tower's pieces are generated in code at run time so that each
-  stone can be animated into place from the user's own data, and no pre-rendered asset is needed.
-* **Motion:** stones above the acknowledged ascent rise from a rune circle and lock in (the last 48 one by one, earlier ones
-  in one catch-up wave); a soft tone only when Sound is on; SKIP ANIMATION; nothing moves with reduced motion; idle
-  sparkle stops in the Performance mode, a hidden tab or off screen. A redraw of the page continues a running animation.
+  dependency, everywhere the app runs.
+* **The endless tower (owner's request, 2026-10-26: "like the Tower of Babel, the stair will build endlessly"):** a spiral
+  stair with one stone for every 0.25 m of verified ascent, 8 levels a turn round an arcaded core: wide sandstone terraces
+  for the first turns, then a slender core for ever. Any stone's place is worked out from its number (no stored geometry),
+  and only the slice in view is generated and drawn, so the work per frame is the same at 10 m or 10 km. The camera follows
+  the top; the island and land sink away and the lower turns fade into a cloud bank. Colour bands (sandstone, marble,
+  lapis and gold, crystal, starlight) start where the ascent passed a Petronas tower, the Burj Khalifa, Mount Kinabalu and
+  Mount Everest; gold stones with banners mark every landmark passed; the next stones always wait as glowing outlines.
+  (This replaced a first version with a fixed six-stage tower of 1,023 voxels that stopped growing.)
+* **Blender:** Blender 4.2.3 LTS was installed for the session with `tools/get-blender.sh` (download.blender.org); the
+  archive was checked against the official `blender-4.2.3.sha256` (OK) and a headless test run passed. Used for the door
+  card's picture: `tools/art/make_babel_card.py` models an original Tower of Babel (tapering arcaded tiers, a helical stair
+  running out of the frame, a gold measuring rod), renders it with Cycles and reduces it to 96 x 112 pixel art in the
+  scene's palette (`assets/img/monument-card.webp`, 1.8 KB; source `tools/art/babel_card.blend`). The tower in the page is
+  generated in code, not from Blender, because each stone must be placed and animated from the user's own data. Visitors
+  never need Blender.
+* **MCP tools:** the repository has no MCP configuration of its own. The session's Playwright MCP browser was used for
+  visual checks over a local server (door card, page, the catch-up climb); it needed the session's Chromium linked at
+  `/opt/google/chrome/chrome` with `--no-sandbox` (container only, nothing in the repository).
+* **Motion:** stones above the acknowledged ascent are carried up and lock in at the top (the last 36 one by one, earlier
+  ones in one catch-up climb with the camera rising along); a soft tone only when Sound is on; SKIP ANIMATION; nothing
+  moves with reduced motion; idle sparkle stops in the Performance mode, a hidden tab or off screen. A redraw of the page
+  continues a running animation; over http the scene waits (at most 10 s) for the survey sheet so the stones match it.
 * **Tests:** `tests/92-monument.test.mjs`.
 
