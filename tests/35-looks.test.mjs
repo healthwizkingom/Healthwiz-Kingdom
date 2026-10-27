@@ -16,11 +16,11 @@ test('themes: Arcane Night by default, light and dark unchanged, every swatch ap
   const { page, ctx, errors } = await boot({ context: { colorScheme: 'light' } });
   assert.equal((await page.evaluate(contrast)).bg, '#0d0b26', 'no choice saved: Arcane Night, the default since the magical redesign');
   const keys = await page.evaluate(() => HWLooks.ORDER);
-  assert.deepEqual(keys, ['arcane', 'auto', 'light', 'dark', 'forest', 'crystal', 'ember', 'frost', 'desert']);
+  assert.deepEqual(keys, ['arcane', 'light', 'dark', 'forest', 'crystal', 'ember', 'frost', 'desert']);
   assert.deepEqual(await page.evaluate(() => [HWLooks.THEMES.light.v.bg, HWLooks.THEMES.dark.v.bg]), ['#efe3bd', '#101a24']);
   await go(page, 'set');
-  assert.equal(await page.locator('#v6theme .v6sw').count(), 9);
-  for (const k of keys.filter(k => k !== 'auto')) {
+  assert.equal(await page.locator('#v6theme .v6sw').count(), 1 + 7 + 7 * 3, 'Default, the seven other themes and seven palettes at three strengths');
+  for (const k of keys) {
     await page.click(`#v6theme [data-a="skin"][data-v="${k}"]`);
     const c = await page.evaluate(contrast), want = await page.evaluate(k => HWLooks.THEMES[k], k);
     assert.equal(c.bg, want.v.bg, k + ' applied');
@@ -35,14 +35,31 @@ test('themes: Arcane Night by default, light and dark unchanged, every swatch ap
     await go(page, 'set');
   }
   await page.click('#v6theme [data-v="crystal"]');
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('healthwiz')).s.theme === 'crystal'); // the write lands before the reload
   await page.reload(); await page.waitForSelector('.wl');
   assert.equal(await page.evaluate(() => document.documentElement.dataset.skin), 'crystal', 'still Crystal Cavern after a reload');
   await go(page, 'set');
   await page.click('[data-a="theme"]');
   assert.deepEqual([await page.evaluate(() => document.documentElement.dataset.skin), (await state(page)).s.theme], [undefined, 'light'], 'THEME button still toggles');
-  await page.click('#v6theme [data-v="auto"]');
-  assert.equal((await state(page)).s.theme, 'auto', 'Match system is saved, so it stays chosen over the default');
-  assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), undefined, 'and follows the device');
+  await page.click('#v6theme [data-v="forest"]');
+  await page.click('#v6theme [data-a="thmatch"]');
+  assert.deepEqual([(await state(page)).s.match, (await state(page)).s.theme], [1, 'forest'], 'Match system is on and the chosen palette is kept');
+  assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'light', 'the light device gets a light base');
+  assert.equal(await page.evaluate(() => document.documentElement.dataset.skin), 'gen', 'Forest regenerated for a light device');
+  assert.ok((await page.evaluate(contrast)).ink.every(x => x >= 7), 'and it reads well');
+  await page.click('#v6theme [data-a="thmatch"]');
+  assert.equal((await state(page)).s.match, 0, 'Match system off again');
+  await page.click('#v6theme [data-v="arcane"]');
+  assert.equal(await page.evaluate(() => document.documentElement.dataset.skin), 'arcane', 'Default is Arcane Night');
+  await page.evaluate(() => { const c = document.getElementById('v6cc'); c.value = '#cc3377'; c.dispatchEvent(new Event('input', { bubbles: true })); });
+  assert.deepEqual([(await state(page)).s.theme, (await state(page)).s.accent], ['custom', '#cc3377'], 'a custom colour is saved');
+  assert.ok((await page.evaluate(contrast)).ink.every(x => x >= 7), 'custom colour text contrast');
+  // every generated palette, at every strength, in both bases: text 7:1, muted text 4.5:1 on all three surfaces
+  const worst = await page.evaluate(() => { let ink = 99, mut = 99; const seeds = HWLooks.PAL.map(p => p[2]).concat(['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#808080', '#ffffff', '#000000']);
+    for (const sd of seeds) for (const t of HWLooks.TINTS) for (const b of ['dark', 'light']) { const v = HWLooks.gen(sd, t / 100, b); for (const sf of ['bg', 'pn', 'p2']) { ink = Math.min(ink, HWLooks.ratio(v.ink, v[sf])); mut = Math.min(mut, HWLooks.ratio(v.mut, v[sf])); } }
+    return { ink, mut }; });
+  assert.ok(worst.ink >= 7, 'generated text contrast ' + worst.ink);
+  assert.ok(worst.mut >= 4.5, 'generated muted contrast ' + worst.mut);
   assert.deepEqual(errors, []);
   await ctx.close();
 });

@@ -27,15 +27,49 @@ const THEMES={
   ember:{name:'Ember Forge',base:'dark',v:{bg:'#1c110e',pn:'#301d17',p2:'#432a20',ink:'#fbeedd',mut:'#d9b9a2',ln:'#0a0504'}},
   frost:{name:'Frost Citadel',base:'light',v:{bg:'#e2edf5',pn:'#f6fafd',p2:'#cfe0ec',ink:'#12243a',mut:'#3f566d',ln:'#12243a'}},
   desert:{name:'Desert Oasis',base:'light',v:{bg:'#f0dbb0',pn:'#fbefd3',p2:'#ecd8a8',ink:'#32200e',mut:'#664622',ln:'#32200e'}}};
-const ORDER=['arcane','auto','light','dark','forest','crystal','ember','frost','desert'];
+/* The Settings theme card has three parts (the owner's request, 2026-10-27): DEFAULT (Arcane Night), MATCH SYSTEM on/off, and
+   CUSTOM COLOUR, which holds the other themes as pickable palettes beside new colour palettes at three strengths ("opacity"
+   of the colour in the surfaces) and a free colour picker. Match system works with all of them: the base follows the device
+   (dark or light); a palette whose own base differs is regenerated from its seed colour for the device's base.
+   Saved (optional, in st.s): theme = a THEMES key | 'p:<palette>:<strength %>' | 'custom'; match = 1 (Match system on);
+   accent = '#rrggbb' and tint = 40 | 70 | 100 and cbase = 'dark' | 'light' for 'custom'. The old theme 'auto' reads as match on. */
+const ORDER=['arcane','light','dark','forest','crystal','ember','frost','desert'];
+const SEED={arcane:'#8b5cf0',light:'#d9a21b',dark:'#2f8fd0',forest:'#3f9f4a',crystal:'#8f9bff',ember:'#e8743b',frost:'#2f8fd0',desert:'#c8863d'};
+const PAL=[['ocean','Ocean','#2a8fd6','dark'],['plum','Plum','#a64fd0','dark'],['sunset','Sunset','#e8743b','dark'],['slate','Slate','#6b7f99','dark'],
+  ['rose','Rose','#d9547c','light'],['mint','Mint','#2fa37a','light'],['sky','Sky','#3b82d9','light']];
+const TINTS=[100,70,40];
+const hex6=x=>/^#[0-9a-f]{6}$/i.test(x||'');
 const s=()=>(typeof st!=='undefined'&&st&&st.s)||{};
 // no choice saved: Arcane Night, the default look since the owner's magical redesign; 'auto' (Match system) is now saved explicitly
-const choice=()=>THEMES[s().theme]?s().theme:s().theme==='auto'?'auto':'arcane';
+const match=()=>!!s().match||s().theme==='auto';
+const parseKey=k=>{if(THEMES[k])return{k};const m=/^p:([a-z]+):(\d+)$/.exec(k||'');if(m&&PAL.some(x=>x[0]===m[1])&&TINTS.includes(+m[2]))return{k};return k==='custom'?{k}:null};
+const choice=()=>{const t=s().theme;return t&&t!=='auto'&&parseKey(t)?t:'arcane'};
 const device=()=>{try{return matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}catch(e){return 'light'}};
-function apply(k){const r=document.documentElement,t=THEMES[k];
-  if(!t){delete r.dataset.theme;delete r.dataset.skin;return}
-  r.dataset.theme=t.base;if(k===t.base)delete r.dataset.skin;else r.dataset.skin=k}
-function set(k){if(k==='auto'||THEMES[k])st.s.theme=k;else return;apply(choice());save()}
+/* colour maths: a theme is generated from a seed colour, a strength (0.4–1) and a base. Text stays at least 7:1 and muted text
+   at least 4.5:1 on all three surfaces (checked by tests/35-looks.test.mjs for every palette). */
+function hsl(h,sa,l){sa/=100;l/=100;const a=sa*Math.min(l,1-l),f=n=>{const k=(n+h/30)%12;return l-a*Math.max(-1,Math.min(k-3,9-k,1))};
+  return'#'+[f(0),f(8),f(4)].map(x=>Math.round(x*255).toString(16).padStart(2,'0')).join('')}
+function hue(x){const[r,g,b]=[1,3,5].map(i=>parseInt(x.slice(i,i+2),16)/255),mx=Math.max(r,g,b),d=mx-Math.min(r,g,b);if(!d)return 0;
+  const h=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;return(Math.round(h*60)+360)%360}
+function gen(seed,tint,base){const h=hue(seed),S=Math.round(8+46*tint);
+  return base==='dark'
+    ?{bg:hsl(h,S,8),pn:hsl(h,S,13),p2:hsl(h,S,20),ink:hsl(h,30,96),mut:hsl(h,Math.min(40,S+8),76),ln:hsl(h,S,4),edge:hsl(h,Math.min(60,S+10),60),glow:'hsla('+h+',80%,60%,.2)'}
+    :{bg:hsl(h,S+4,92),pn:hsl(h,S+8,97),p2:hsl(h,S,85),ink:hsl(h,50,10),mut:hsl(h,30,30),ln:hsl(h,45,10),edge:hsl(h,Math.min(45,S),34),glow:'hsla('+h+',70%,45%,.14)'}}
+/** a palette key → {base, v (the CSS variables), seed, tint} */
+function resolve(k){if(THEMES[k])return{base:THEMES[k].base,v:THEMES[k].v,seed:SEED[k],tint:1};
+  const m=/^p:([a-z]+):(\d+)$/.exec(k),p=m&&PAL.find(x=>x[0]===m[1]);
+  if(p){const t=+m[2]/100;return{base:p[3],seed:p[2],tint:t,v:gen(p[2],t,p[3])}}
+  const a=hex6(s().accent)?s().accent:'#8b5cf0',t=TINTS.includes(+s().tint)?s().tint/100:1,b=s().cbase==='light'?'light':'dark';
+  return{base:b,seed:a,tint:t,v:gen(a,t,b)}}
+let gstyle=null;
+/** puts the saved choice on the page: data-theme = the base, data-skin = the palette (or 'gen' for a generated one) */
+function apply(){const r=document.documentElement,k=choice();let P=resolve(k),mk=k,generated=!THEMES[k];
+  if(match()&&P.base!==device()){P={base:device(),seed:P.seed,tint:P.tint,v:gen(P.seed,P.tint,device())};generated=true}
+  r.dataset.theme=P.base;
+  if(generated){if(!gstyle){gstyle=document.createElement('style');gstyle.id='v6gen';document.head.appendChild(gstyle)}
+    gstyle.textContent='html:root[data-skin="gen"]{'+Object.entries(P.v).map(([n,c])=>'--'+n+':'+c).join(';')+'}';r.dataset.skin='gen'}
+  else if(mk===P.base)delete r.dataset.skin;else r.dataset.skin=mk}
+function set(k){if(!parseKey(k))return;st.s.theme=k;apply();save()}
 // contrast helpers (WCAG relative luminance) used by the swatches' tooltip and the tests
 const lum=h=>{const c=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255).map(x=>x<=.03928?x/12.92:((x+.055)/1.055)**2.4);return .2126*c[0]+.7152*c[1]+.0722*c[2]};
 const ratio=(a,b)=>{const[x,y]=[lum(a),lum(b)].sort((p,q)=>q-p);return(x+.05)/(y+.05)};
@@ -49,16 +83,35 @@ HWUI.css('looks-themes',Object.entries(THEMES).filter(([k,t])=>k!==t.base).map((
 .v6sw .pv i{position:absolute;left:5px;top:5px;right:5px;height:15px;background:var(--p);border:2px solid var(--l);font:normal 9px/11px var(--fb);color:var(--k);text-align:left;padding-left:3px}
 .v6sw .pv u{position:absolute;bottom:4px;width:16%;height:8px;border:1px solid var(--l)}
 .v6sw .pv.au{background:linear-gradient(135deg,#efe3bd 50%,#101a24 50%)}.v6sw .pv.au i{background:linear-gradient(135deg,#fbf3d6 50%,#1d3043 50%);color:#2b2418}`);
-apply(choice());
+apply();
 // the original THEME button still flips light/dark (from a fantasy theme: to its base's opposite); js/v6-ui.js saves it
-{const o=acts.theme;acts.theme=function(){delete document.documentElement.dataset.skin;return o.apply(this,arguments)}}
-acts.skin=d=>{set(d.v);render();toast('🎨 Theme: '+(d.v==='auto'?'Match system':THEMES[d.v].name))};
-try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(choice()==='auto'&&S.v==='set')render()})}catch(e){}
-function card(){const c=choice();
-  return '<div class="card" id="v6theme"><h3>🎨 THEME</h3><p class="mut" style="margin:0">Tap a theme to try it at once. Health colours stay the same in every theme.</p><div class="v6thg" role="group" aria-label="Theme">'
-  +ORDER.map(k=>{const t=THEMES[k],on=c===k,v=t&&t.v;
-    const pv=t?'<span class="pv" style="--b:'+v.bg+';--p:'+v.pn+';--k:'+v.ink+';--l:'+v.ln+'"><i>Aa</i>'+['--red','--blue','--grn','--gold'].map((x,j)=>'<u style="left:'+(6+j*22)+'%;background:var('+x+')"></u>').join('')+'</span>':'<span class="pv au" style="--l:#2b2418"><i>Aa</i></span>';
-    return '<button class="v6sw'+(on?' on':'')+'" data-a="skin" data-v="'+k+'" aria-pressed="'+on+'">'+pv+(t?esc(t.name):'Match system')+'</button>'}).join('')+'</div></div>'}
+{const o=acts.theme;acts.theme=function(){delete document.documentElement.dataset.skin;st.s.match=0;return o.apply(this,arguments)}}
+const SW=k=>{const P=resolve(k),v=P.v;return'<span class="pv" style="--b:'+v.bg+';--p:'+v.pn+';--k:'+v.ink+';--l:'+(v.edge||v.ln)+'"><i>Aa</i>'+['--red','--blue','--grn','--gold'].map((x,j)=>'<u style="left:'+(6+j*22)+'%;background:var('+x+')"></u>').join('')+'</span>'};
+acts.skin=d=>{set(d.v);render();const n=THEMES[d.v]?THEMES[d.v].name:d.v==='custom'?'Custom colour':d.v.split(':')[1];toast('🎨 Theme: '+n)};
+acts.thmatch=()=>{st.s.match=match()?0:1;if(st.s.theme==='auto')st.s.theme='arcane';apply();save();render();toast('🎨 Match system: '+(match()?'ON':'OFF'))};
+acts.thtint=d=>{if(!TINTS.includes(+d.v))return;st.s.tint=+d.v;st.s.theme='custom';apply();save();render()};
+acts.thbase=d=>{st.s.cbase=d.b==='light'?'light':'dark';st.s.theme='custom';apply();save();render()};
+// the colour picker applies as it moves; the card is not redrawn then (that would close the picker)
+document.addEventListener('input',e=>{const el=e.target;if(!el||el.id!=='v6cc'||!hex6(el.value))return;st.s.accent=el.value;st.s.theme='custom';apply();save();clearTimeout(el._t);el._t=setTimeout(()=>{if(S.v==='set'&&document.activeElement!==el)render()},600)});
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(match()){apply();if(S.v==='set')render()}})}catch(e){}
+function card(){const c=choice(),m=match(),cust=!!parseKey(s().theme)&&c!=='arcane',cc=hex6(s().accent)?s().accent:'#8b5cf0',tn=TINTS.includes(+s().tint)?+s().tint:100;
+  const sw=(k,name,on)=>'<button class="v6sw'+(on?' on':'')+'" data-a="skin" data-v="'+k+'" aria-pressed="'+on+'">'+SW(k)+esc(name)+'</button>';
+  return '<div class="card" id="v6theme"><h3>🎨 THEME</h3><p class="mut" style="margin:0">Tap to try a look at once. Health colours stay the same in every theme.</p>'
+  +'<div class="v6thr"><button class="v6sw v6swd'+(c==='arcane'&&!cust?' on':'')+'" data-a="skin" data-v="arcane" aria-pressed="'+(c==='arcane')+'">'+SW('arcane')+'Default</button>'
+  +'<button class="g v6mt" data-a="thmatch" aria-pressed="'+m+'"><b>Match system</b><span>'+(m?'ON · follows your phone\'s light or dark':'OFF')+'</span></button></div>'
+  +'<h4 class="v6th4">Custom colour</h4><div class="v6cr"><label for="v6cc">Pick a colour</label><input type="color" id="v6cc" value="'+cc+'" aria-label="Custom colour">'
+  +'<div class="v6tn" role="group" aria-label="Colour strength">'+TINTS.map(t=>'<button class="g sm" data-a="thtint" data-v="'+t+'" aria-pressed="'+(c==='custom'&&tn===t)+'">'+t+'%</button>').join('')+'</div>'
+  +(m?'':'<div class="v6tn" role="group" aria-label="Light or dark"><button class="g sm" data-a="thbase" data-b="dark" aria-pressed="'+(c==='custom'&&s().cbase!=='light')+'">DARK</button><button class="g sm" data-a="thbase" data-b="light" aria-pressed="'+(c==='custom'&&s().cbase==='light')+'">LIGHT</button></div>')+'</div>'
+  +'<h4 class="v6th4">Palettes</h4><div class="v6thg" role="group" aria-label="Palettes">'
+  +ORDER.filter(k=>k!=='arcane').map(k=>sw(k,THEMES[k].name,c===k)).join('')
+  +PAL.map(p=>TINTS.map(t=>sw('p:'+p[0]+':'+t,p[1]+' '+t+'%',c==='p:'+p[0]+':'+t)).join('')).join('')+'</div></div>'}
+HWUI.css('looks-theme-card',`.v6thr{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0;align-items:stretch}.v6swd{min-height:96px}
+.v6mt{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;min-height:96px;text-transform:none;letter-spacing:0}.v6mt b{font:600 16px/1.3 var(--fn)}.v6mt span{font:13px/1.35 var(--fn);color:var(--mut)}
+.v6mt[aria-pressed="true"]{outline:3px solid var(--gold);outline-offset:-3px}
+.v6th4{margin:14px 0 6px;font:700 15px/1.3 var(--fn)}.v6cr{display:flex;flex-wrap:wrap;align-items:center;gap:10px}.v6cr label{font:14px var(--fn)}
+#v6cc{width:56px;height:44px;padding:2px;border:2px solid var(--edge,var(--ln));border-radius:10px;background:var(--p2);cursor:pointer}
+.v6tn{display:flex;gap:6px}.v6tn button[aria-pressed="true"]{background:var(--gold);color:#1d1730}
+.v6sw{border:2px solid var(--edge,var(--ln));border-radius:12px;font:600 12px/1.3 var(--fn)!important;padding:6px}.v6sw .pv{border-radius:8px}`);
 {const p=pages.set;pages.set=(...a)=>{const h=p(...a),k='<div class="card" id="v6motion">';return h.indexOf(k)>=0?h.replace(k,card()+k):h+card()}}
 
 /* ---------- the onboarding chamber ---------- */
@@ -188,4 +241,4 @@ HWUI.css('looks-keep',`.v6ksv{display:block;width:100%;height:clamp(180px,52vw,2
 .v6ksv *,.v6keep *{transform-box:fill-box}.v6rev{animation-direction:reverse!important}
 html.hw-q-performance .v6ksv .zt,html.hw-q-performance .v6ksv .zp{animation:none!important}`);
 {const p=pages.kingdom;pages.kingdom=(...a)=>{const h=p(...a),k='<div class="card" id="v6chron">',i=h.indexOf(k);return i<0?h+kcard():h.slice(0,i)+kcard()+h.slice(i)}}
-return{THEMES,ORDER,choice,apply,set,ratio,keep,title,restored,storm,ring}})();
+return{THEMES,ORDER,PAL,TINTS,choice,match,resolve,gen,apply,set,ratio,keep,title,restored,storm,ring}})();

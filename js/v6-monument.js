@@ -205,7 +205,7 @@ function bars(D){const mx=Math.max(...D.wk.map(w=>w.v),0),Wd=320,Hd=120,bw=30,ga
     +D.wk.map((w,i)=>{const h=w.v/mx*(Hd-20),x=8+i*(bw+gap);return '<g><title>Week of '+esc(lab(w))+': '+esc(mtr(w.v,1))+' ('+w.n+' session'+(w.n===1?'':'s')+')</title>'
       +(w.v>0?'<rect x="'+x.toFixed(1)+'" y="'+(Hd-h).toFixed(1)+'" width="'+bw+'" height="'+h.toFixed(1)+'" rx="2" class="mnb'+(i===7?' now':'')+'"/>':'<rect x="'+x.toFixed(1)+'" y="'+(Hd-2)+'" width="'+bw+'" height="2" class="mnb0"/>')
       +((w.v===mx&&w.v>0)||i===7?'<text x="'+(x+bw/2).toFixed(1)+'" y="'+(Hd-h-4).toFixed(1)+'" text-anchor="middle" class="mnv">'+esc(fm(w.v,w.v<10?1:0))+'</text>':'')
-      +(i%2||i===7?'':'<text x="'+(x+bw/2).toFixed(1)+'" y="'+(Hd+16)+'" text-anchor="middle">'+esc(lab(w))+'</text>')+(i===7?'<text x="'+(x+bw/2).toFixed(1)+'" y="'+(Hd+16)+'" text-anchor="middle" class="mnv">This week</text>':'')+'</g>'}).join('')+'</svg>'
+      +(i%2||i>=6?'':'<text x="'+(x+bw/2).toFixed(1)+'" y="'+(Hd+16)+'" text-anchor="middle">'+esc(lab(w))+'</text>')+(i===7?'<text x="'+(x+bw).toFixed(1)+'" y="'+(Hd+16)+'" text-anchor="end" class="mnv">This week</text>':'')+'</g>'}).join('')+'</svg>'
     +'<table class="mnsr"><caption>Vertical ascent per week (metres)</caption><tr><th>Week of</th><th>Ascent</th><th>Sessions</th></tr>'+D.wk.map(w=>'<tr><td>'+esc(lab(w))+'</td><td>'+esc(mtr(w.v,1))+'</td><td>'+w.n+'</td></tr>').join('')+'</table>'}
 function timeCard(D){const tiles=[['Today',D.today],['Last 7 days',D.d7],['Last 30 days',D.d30]];
   return '<div class="card mntime"><h3>'+ico('chart')+' YOUR ASCENT OVER TIME</h3><div class="mntiles">'+tiles.map(t=>'<div class="t"><small>'+t[0]+'</small><b>'+esc(mtr(t[1],1))+'</b></div>').join('')+'</div>'
