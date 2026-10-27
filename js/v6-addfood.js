@@ -236,8 +236,8 @@ HWEvents.on('data:reset',()=>{clearTimeout(tt);clearTimeout(ft)});
 
 HWUI.css('addfood',`
 .awscene{position:relative;line-height:0;border-radius:14px;overflow:hidden;border:1px solid var(--edge,var(--ln));margin:4px 0 10px;box-shadow:0 0 18px rgba(139,92,240,.3)}
-.awscene{aspect-ratio:3/2}.awroom{display:block;width:100%;height:100%;object-fit:cover;image-rendering:auto}   /* his room is a painting, drawn smoothed */
-.awfig{position:absolute;left:1%;bottom:1%;height:97%;aspect-ratio:2/3;background:url(${POSE}) no-repeat;background-size:${POSES.length*100}% 100%;image-rendering:pixelated;image-rendering:crisp-edges;transform-origin:50% 100%;
+.awscene{aspect-ratio:4/3}.awroom{display:block;width:100%;height:100%;object-fit:cover;image-rendering:auto}   /* his room is a painting, drawn smoothed */
+.awfig{position:absolute;left:50%;margin-left:-37.5%;top:2%;height:150%;aspect-ratio:2/3;background:url(${POSE}) no-repeat;background-size:${POSES.length*100}% 100%;image-rendering:auto;transform-origin:50% 0;
   filter:drop-shadow(0 0 6px rgba(255,226,122,.45))}
 .awfig.bob{animation:awbob 1.6s steps(2) infinite alternate}.awfig.hop{animation:awhop .7s steps(3) infinite}.awfig.shake{animation:awshake .3s steps(2) 6}
 .awfig.tilt{animation:awtilt 1.4s steps(2) infinite alternate}.awfig.sway{animation:awsway 2.6s steps(3) infinite alternate}.awfig.lean{animation:awlean 1s steps(2) infinite alternate}
@@ -245,7 +245,7 @@ HWUI.css('addfood',`
 @keyframes awbob{to{translate:0 -2px}}@keyframes awhop{50%{translate:0 -7%}}@keyframes awshake{25%{translate:-3px 0}75%{translate:3px 0}}
 @keyframes awtilt{from{rotate:-3deg}to{rotate:3deg}}@keyframes awsway{to{rotate:1.5deg}}@keyframes awlean{to{translate:2% 0}}
 @keyframes awturn{0%{background-position:${pat(POSES,'walk')} 0}12.5%{background-position:${pat(POSES,'three')} 0}25%{background-position:${pat(POSES,'side')} 0}37.5%{background-position:${pat(POSES,'back')} 0}62.5%{background-position:${pat(POSES,'side')} 0}75%{background-position:${pat(POSES,'three')} 0}87.5%{background-position:${pat(POSES,'front')} 0}100%{background-position:${pat(POSES,'walk')} 0}}
-.awprop{position:absolute;left:38%;bottom:2%;z-index:1;width:40px;height:40px;background:url(${PROPS}) no-repeat;background-size:280px 40px;image-rendering:pixelated;image-rendering:crisp-edges;transform:scale(1.25);transform-origin:0 100%;
+.awprop{position:absolute;right:6%;top:6%;z-index:1;width:40px;height:40px;background:url(${PROPS}) no-repeat;background-size:280px 40px;image-rendering:pixelated;image-rendering:crisp-edges;transform:scale(1.25);transform-origin:0 100%;
   filter:drop-shadow(0 0 6px rgba(246,201,79,.7));animation:awfloat 1.8s steps(2) infinite alternate}
 .awprop.orbit{animation:aworbit 2s steps(8) infinite}.awprop.flick{animation:awflick .35s steps(2) 5 alternate}
 @keyframes awfloat{to{translate:0 -5px}}@keyframes aworbit{0%{translate:0 -4px}25%{translate:12px 0}50%{translate:0 8px}75%{translate:-12px 0}100%{translate:0 -4px}}@keyframes awflick{from{rotate:-25deg}to{rotate:25deg}}
@@ -255,10 +255,10 @@ HWUI.css('addfood',`
 .awmcap{margin:6px 0;text-align:center}#awmeet .row{justify-content:center}.awmt{margin:10px 0 4px}
 .awprops{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:8px;list-style:none;padding:0;margin:0 0 4px}.awprops li{display:flex;flex-direction:column;align-items:center;gap:2px}
 .awmprop{display:block;width:80px;height:80px;background:url(${PROPS}) 0 0/${PROPN.length*80}px 80px no-repeat;image-rendering:pixelated;image-rendering:crisp-edges}.awprops small{font-size:12px;color:var(--mut)}
-.awsay{position:absolute;right:3%;top:5%;max-width:56%;display:flex;gap:6px;align-items:flex-start;line-height:1.35}
-.awface{flex:0 0 auto;width:44px;height:44px;background:url(${FACE}) no-repeat;background-size:${FACES.length*44}px 44px;image-rendering:pixelated;border:2px solid #f6c94f;border-radius:8px;background-color:#1b1745}
+.awsay{position:absolute;left:3%;right:3%;bottom:3%;z-index:2;display:flex;gap:8px;align-items:flex-end;line-height:1.35}.awsay p{flex:1 1 auto}
+.awface{flex:0 0 auto;width:44px;height:44px;background:url(${FACE}) no-repeat;background-size:${FACES.length*44}px 44px;image-rendering:auto;border:2px solid #f6c94f;border-radius:8px;background-color:#1b1745}
 .awsay p{margin:0;background:rgba(18,15,51,.88);color:#fff6dc;border:1px solid #f6c94f;border-radius:10px;padding:6px 8px;font-size:13px}.awsay p b{display:block;font:12px/1.6 var(--fl);color:#f6c94f}
-@media(max-width:420px){.awsay{flex-direction:column;align-items:flex-end}.awface{width:36px;height:36px;background-size:${FACES.length*36}px 36px}.awsay p{font-size:12px}}
+@media(max-width:420px){.awsay p{font-size:12px}}
 .awq{flex-wrap:nowrap}.awq input{flex:1 1 auto;min-width:0;margin:0}.awq button{flex:0 0 auto}
 .awq+small,label[for="awq"] small{display:block}.awsrcs{margin:4px 0 6px;padding-left:18px;overflow-wrap:anywhere}.awsrcs li{margin:6px 0}.awsrcs a{display:inline-block;min-height:28px;line-height:28px;color:#fff0a8;text-decoration:underline}
 .awsugg{display:block;width:100%;height:76px;border:0;border-radius:10px;background:#fff;margin-top:6px}.awhow{margin-top:8px}.awref{color:var(--text,inherit);opacity:.9}.awwarn{color:var(--red,#ff8a7e);font-weight:bold}

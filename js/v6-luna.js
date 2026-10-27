@@ -59,9 +59,12 @@ const faceOf=e=>{const n=FACEOF[e]||e;return NAMES.includes(n)?n:'neutral'};
 /** A 64 x 64 portrait (whole-number scale s, default 1) with the expression's face from the reference sheet. */
 function portrait(expr,s){s=s||1;const n=faceOf(expr),i=NAMES.indexOf(n),w=FS*s;
   return '<span class="v6lpf" role="img" aria-label="Luna, '+n+'" style="width:'+w+'px;height:'+w+'px;background-size:'+(w*NAMES.length)+'px '+w+'px;background-position:'+(-i*w)+'px 0" data-face="'+n+'"></span>'}
-/** The middle 44 x 44 of a portrait at 1x: her face, for the header button. */
+/** A portrait scaled to the 44 x 44 header button: the whole head (the old crop cut her head halfway), drawn smooth. */
 function mini(expr){const n=faceOf(expr),i=NAMES.indexOf(n);
-  return '<span class="v6lmini" aria-hidden="true" style="background-position:'+(-(i*FS+10))+'px -12px" data-face="'+n+'"></span>'}
+  return '<span class="v6lmini" aria-hidden="true" style="background-position:'+(-i*40)+'px 0" data-face="'+n+'"></span>'}
+/** Her upper body (head to waist) from the full-figure sheet, cropped and enlarged, drawn smooth: the Ask Luna picture. */
+function bust(expr){const p=poseOf(null,expr);
+  return '<span class="v6lbust" role="img" aria-label="Luna" data-pose="'+p+'" style="background-position:'+at(p)+' 0"></span>'}
 /** Her full figure (80 x 120 at scale s) in a pose from the design sheet (o.pose, else the pose for o.expr), with sparkles.
     o.cast adds a sparkle burst; o.enter walks her in first (the walking pose, then the chosen one); o.cycle is the
     Laboratory's slow loop of idle, pointing, casting, reading, curious and waving. */
@@ -196,7 +199,7 @@ HWEvents.on('cloud:signed-in',()=>paintChat());
 HWEvents.on('cloud:signed-out',()=>{CH.m=[];CH.err='';CH.help=0;paintChat()});
 let opened=0;
 function open(q){const m=$('#mo');if(!m||!m.hidden&&!m.querySelector('.v6lp'))return; // never over another open dialog
-  m.innerHTML=sheet(q);m.hidden=false;opened=1;m.querySelector('.v6lpic').innerHTML=portrait('cheerful');
+  m.innerHTML=sheet(q);m.hidden=false;opened=1;m.querySelector('.v6lpic').innerHTML=bust('cheerful');
   const i=m.querySelector('#v6lq');if(i){i.oninput=()=>{const r=m.querySelector('#v6lres');if(r)r.innerHTML=results(i.value);const x=m.querySelector('#v6lqx');if(x)x.hidden=!!i.value};if(q)i.dispatchEvent(new Event('input'))}
   paintChat();
   HWEvents.emit('luna:opened',{view:S.v})}
@@ -221,7 +224,7 @@ function launcher(){if(S.v==='welcome'||S.v==='onb')return;const m=$('#main');if
 
 HWUI.css('luna',`
 .v6lpf,.v6lmini{display:block;background-image:url(${FACES});background-repeat:no-repeat;image-rendering:pixelated;image-rendering:crisp-edges}
-.v6lmini{width:44px;height:44px;background-size:${FS*NAMES.length}px ${FS}px;transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
+.v6lmini{width:40px;height:40px;border-radius:50%;background-size:${40*NAMES.length}px 40px;image-rendering:auto;transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
 .v6lfull{position:relative;display:inline-block;line-height:0;transform-origin:bottom center;animation:animeLunaIdle 3.8s ease-in-out infinite}
 @keyframes animeLunaIdle{
   0%{transform:translateY(0) scale(1,1) rotate(0deg)}
@@ -288,7 +291,8 @@ html.hw-rm .v6lfull,html.hw-rm .v6lfull .v6lfi,html.hw-rm .v6ls,html.hw-rm .v6la
 header .v6lb{margin-right:56px;align-self:flex-start}.hbar .v6lb{grid-area:a;margin:0 56px 0 0}.hbar>button[data-v=quests]{white-space:nowrap}
 .hbar small{min-width:0;overflow-wrap:anywhere} /* a long name wraps instead of widening the page */
 .v6lp{width:min(460px,100%)}.v6lph{display:flex;gap:10px;align-items:center;margin-bottom:8px}.v6lph h3{margin:0 0 4px}
-.v6lpic{flex:0 0 auto;border:3px solid var(--ln);background:var(--pxdk-bg,#2a2350);box-shadow:3px 3px 0 var(--ln);line-height:0}
+.v6lpic{flex:0 0 auto;border:2px solid var(--edge,var(--ln));border-radius:16px;overflow:hidden;background:var(--p2);line-height:0}
+.v6lbust{display:block;width:120px;height:112px;background:url(${POSE_IMG}) no-repeat;background-size:${POSES.length*100}% auto;background-position-y:0;image-rendering:auto}
 .v6lp input{width:100%;margin:4px 0 2px}.v6lp h4{font:12px/1.6 var(--fl);margin:12px 0 6px}
 .v6lf{display:flex;gap:8px;align-items:center;border-top:2px solid var(--ln);padding:8px 0}.v6lf>div{flex:1 1 auto;min-width:0}
 .v6lf b{display:block}.v6lf small{display:block;color:var(--mut);margin-top:2px}.v6lfi{flex:0 0 auto;line-height:0}
@@ -308,4 +312,4 @@ header .v6lb{margin-right:56px;align-self:flex-start}.hbar .v6lb{grid-area:a;mar
 .hwh.v6lpt{outline:4px solid var(--gold);outline-offset:3px;animation:v6lpt .5s steps(2) infinite alternate}@keyframes v6lpt{to{outline-color:var(--vio)}}
 @media(prefers-reduced-motion:reduce){.hwh.v6lpt{animation:none}}
 `);
-return{mount,portrait,mini,full,pose,meet,open,close,style,compact,find,talk,talkError,get chat(){return CH},expressions:NAMES,poses:POSES,turnaround:TURN,props:PROPS.map(q=>q[0]),POSEOF,POSE_IMG,FACES,PROPS_IMG}})();
+return{mount,portrait,mini,bust,full,pose,meet,open,close,style,compact,find,talk,talkError,get chat(){return CH},expressions:NAMES,poses:POSES,turnaround:TURN,props:PROPS.map(q=>q[0]),POSEOF,POSE_IMG,FACES,PROPS_IMG}})();

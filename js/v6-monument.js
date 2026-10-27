@@ -174,12 +174,14 @@ const the=L=>L.kind==='illus'?L.n.replace(/^A /,'a '):/^(Mount|Merdeka|Menara|Pe
 function rows(D){return '<ul class="mnrows">'+LANDMARKS.map(L=>{const R=D.H/L.h,left=L.h-D.H,pct=Math.min(1,R);
   const togo=left>0&&D.one&&D.one.m>0?Math.ceil(left/D.one.m):null,wks=left>0&&D.pace>0?left/D.pace:null;
   const when=wks==null?'':wks>104?'about '+fm(wks/52,0)+' years':wks>=1?'about '+fm(wks,0)+' week'+(Math.round(wks)===1?'':'s'):'less than a week';
-  return '<li class="mnrow'+(R>=1?' got':'')+'"><div class="mnrh"><b>'+esc(L.n)+'</b> <span class="mnh">'+esc(L.h>=1e5?'≈ '+fm(L.h/1000,0)+' km':mtr(L.h))+'</span>'
-    +(L.kind==='illus'?' <span class="pxtag">ILLUSTRATIVE</span>':L.kind==='asl'?' <span class="pxtag">ABOVE SEA LEVEL</span>':L.kind==='orbit'?' <span class="pxtag">ORBIT</span>':'')+' '+lmWhy(L)+'</div>'
+  const tag=L.kind==='illus'?' <span class="pxtag">ILLUSTRATIVE</span>':L.kind==='asl'?' <span class="pxtag">ABOVE SEA LEVEL</span>':L.kind==='orbit'?' <span class="pxtag">ORBIT</span>':'';
+  const pc=R>=1?(R>=100?fm(R,0):fm(R,1))+'×':fm(R*100,R<.01?2:0)+'%';
+  return '<li class="mnrow'+(R>=1?' got':'')+'"><details><summary><span class="mnrt"><b>'+esc(L.n.split(' (')[0])+'</b><span class="mnh">'+esc(L.h>=1e5?'≈ '+fm(L.h/1000,0)+' km':mtr(L.h))+'</span></span><span class="mnpc">'+(R>=1?ico('success')+' ':'')+pc+'</span>'
+    +'<span class="mnbar" role="img" aria-label="'+esc(fm(Math.min(R,1)*100,0))+' percent of '+esc(L.n)+', linear scale"><i style="width:'+(pct*100).toFixed(2)+'%"></i></span></summary>'
+    +'<div class="mnmore"><div class="mnrh">'+esc(L.n)+tag+' '+lmWhy(L)+'</div>'
     +'<div class="mnratio"><b>'+(R>=1?(R>=100?fm(R,0):fm(R,1))+' ×':fm(R*100,R<.01?2:0)+' %')+'</b> '+(R>=1?'the height of '+esc(the(L))+(R>=2?', stacked':''):'of its height')+'</div>'
-    +'<div class="mnbar" role="img" aria-label="'+esc(fm(Math.min(R,1)*100,0))+' percent of '+esc(L.n)+', linear scale"><i style="width:'+(pct*100).toFixed(2)+'%"></i></div>'
     +(left>0?'<small class="mut">'+esc(mtr(left,left<100?1:0))+' to go'+(togo?' · ≈ '+fm(togo,0)+' more climb'+(togo>1?'s':'')+' of '+esc(D.one.loc):'')+(when?' · '+when+' at your last-4-weeks pace':'')+'</small>':'<small class="mnok">'+ico('success')+' Passed</small>')
-    +(L.fact?'<small class="mnfact">'+ico('star')+' '+esc(L.fact)+'</small>':'')+'</li>'}).join('')+'</ul>'}
+    +(L.fact?'<small class="mnfact">'+ico('star')+' '+esc(L.fact)+'</small>':'')+'</div></details></li>'}).join('')+'</ul>'}
 
 /* ---------- fun with the numbers (each one labelled for what it is) ---------- */
 function funCard(D){const out=[],h=D.H;
@@ -221,13 +223,13 @@ function ledger(D){const L=D.L.slice(-15).reverse();if(!L.length)return'';
       +(s.h!=null?esc(mtr(s.h,2))+' <span class="pxtag">'+(s.q.how==='measured'?'MEASURED':'SURVEYED')+'</span>'+(s.q.check?' <span class="pxtag">CHECK</span>':''):'<span class="mut">rise not known</span>')+'</td><td>'+(s.cum!=null?esc(mtr(s.cum,1)):'')+'</td></tr>').join('')
     +'</tbody></table></div></details></div>'}
 function note(D){const sv=D.sv;
-  return '<div class="card mnnote"><h3>'+ico('scroll')+' WHERE THESE NUMBERS COME FROM</h3>'
+  return '<div class="card mnnote"><details><summary><h3>'+ico('scroll')+' WHERE THESE NUMBERS COME FROM</h3></summary>'
     +'<p>Your saved stair sessions only. Each session\'s rise is its steps × the rise of one step of that staircase: <b>measured</b> for the three staircases of the Group 14 F21 report, <b>surveyed</b> (the campus survey sheet) for the others.</p>'
     +(D.un.n?'<p>'+ico('warning')+' '+D.un.n+' session'+(D.un.n>1?'s':'')+' ('+fm(D.un.steps,0)+' steps) '+(D.un.n>1?'are':'is')+' on a staircase without a known step rise, so '+(D.un.n>1?'they add':'it adds')+' steps but no height.</p>':'')
     +(sv==='local'?'<p class="mut">The survey sheet cannot be read when the app is opened from this device, so only the three measured staircases give a height here. Open the app from its website for the rest.</p>'
       :sv==='error'?'<p class="mut">The survey sheet could not be loaded just now, so only the three measured staircases give a height. It will be tried again next time.</p>':sv==='loading'?'<p class="mut">Loading the survey sheet…</p>':'')
     +(D.flagged?'<p class="mut">'+D.flagged+' session'+(D.flagged>1?'s use':' uses')+' a riser the survey marked as unusual (CHECK in the ledger); it is used as measured until it is re-measured.</p>':'')
-    +'<p class="mut">The tower is a picture of your progress: one stair stone for every '+fm(CELL(),2)+' m you climbed, and the stair never ends. Its colour changes at '+ERAS.slice(1).map(s=>esc(mtr(s.m,1))+' ('+s.why+')').join(', ')+'. Its drawn height is a symbol, not a measurement.</p></div>'}
+    +'<p class="mut">The tower is a picture of your progress: one stair stone for every '+fm(CELL(),2)+' m you climbed, and the stair never ends. Its colour changes at '+ERAS.slice(1).map(s=>esc(mtr(s.m,1))+' ('+s.why+')').join(', ')+'. Its drawn height is a symbol, not a measurement.</p></details></div>'}
 
 /* ---------- the page ---------- */
 const sel=()=>S.mnl||null;
@@ -244,8 +246,7 @@ function sceneCard(D,B){const er=ERAS[B.era],nx=ERAS[B.era+1],nl=nextLm(D),past=
   return '<div class="card mnmain"><div class="mnstage" id="mnstage"><div class="mnhud"><span class="mnchip">'+ico('tower')+' '+esc(stTxt)+'</span></div>'
     +'<button type="button" class="g sm mnskip" data-a="mnskip" hidden>SKIP ANIMATION</button><p class="mnnew" id="mnnew" aria-live="polite"></p></div>'
     +'<div class="mnside"><p class="mnalt">'+(D.n?'Your endless tower: '+fm(B.placed,0)+' stair stones in '+fm(B.turns,0)+' turn'+(B.turns===1?'':'s')+' round its core, '+esc(er.d)+' at the top.'
-      +(past.length?' Gold stones with banners mark where you passed '+past.map(L=>esc(L.n.split(' (')[0])).join(', ')+'.':'')+' The next stones wait at the top: the stair never ends.'
-      :'An island with a stone plinth, waiting for your first climb.')+' <small class="mut">One stone for every '+fm(CELL(),2)+' m you climbed: a symbol of your ascent, not a measurement.</small></p>'
+      :'An island with a stone plinth, waiting for your first climb.')+'</p><details class="mnabout"><summary>About the picture</summary><p>'+(D.n&&past.length?'Gold stones with banners mark where you passed '+past.map(L=>esc(L.n.split(' (')[0])).join(', ')+'. ':'')+'One stone for every '+fm(CELL(),2)+' m you climbed: a symbol of your ascent, not a measurement. The next stones wait at the top: the stair never ends.</p></details>'
     +'<div class="mnstats">'
     +'<div class="t mnbig"><small>Total vertical ascent '+explainAscent(D)+'</small><b>'+esc(mtr(D.H,D.H<100?2:1))+'</b>'+(D.un.n?'<small class="mut">+ '+fm(D.un.steps,0)+' steps with no known rise</small>':'')+'</div>'
     +'<div class="t"><small>Steps climbed</small><b>'+fm(D.steps,0)+'</b></div>'
