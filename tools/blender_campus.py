@@ -528,7 +528,7 @@ if PROPS:   # roads, kerbs, drains, lights, goal posts, car parks: a separate GL
 # rectangle, its height at 65 % of its proportions so its spires do not tower over the campus. The pieces share their meshes.
 MEDIEVAL = arg('--medieval', 'tools/art/medieval-kit.glb')
 MEDIEVAL = None if (not FAN or MEDIEVAL == 'none' or not os.path.exists(MEDIEVAL)) else MEDIEVAL
-CASTLE_OSM = 'way/454535317'
+CASTLE_OSM = None   # the owner (2026-10-27) took the castle off the large academic block: it keeps the generated stone-and-timber building with the blue roof, as before (was 'way/454535317')
 KIT = {}
 if MEDIEVAL:
     before = set(bpy.data.objects)
