@@ -62,9 +62,8 @@ function portrait(expr,s){s=s||1;const n=faceOf(expr),i=NAMES.indexOf(n),w=FS*s;
 /** A portrait scaled to the 44 x 44 header button: the whole head (the old crop cut her head halfway), drawn smooth. */
 function mini(expr){const n=faceOf(expr),i=NAMES.indexOf(n);
   return '<span class="v6lmini" aria-hidden="true" style="background-position:'+(-i*40)+'px 0" data-face="'+n+'"></span>'}
-/** Her upper body (head to waist) from the full-figure sheet, cropped and enlarged, drawn smooth: the Ask Luna picture. */
-function bust(expr){const p=poseOf(null,expr);
-  return '<span class="v6lbust" role="img" aria-label="Luna" data-pose="'+p+'" style="background-position:calc('+at(p)+' - 45px) -30px"></span>'}
+/** Her upper body (head to chest) from the Laboratory sheet (160 x 240 frames, twice the detail of the pose sheet), enlarged 1.6 times: the Ask Luna picture. */
+function bust(expr){return '<span class="v6lbust" role="img" aria-label="Luna" data-pose="'+poseOf(null,expr)+'"></span>'}
 /** Her full figure (80 x 120 at scale s) in a pose from the design sheet (o.pose, else the pose for o.expr), with sparkles.
     o.cast adds a sparkle burst; o.enter walks her in first (the walking pose, then the chosen one); o.cycle is the
     Laboratory's slow loop of idle, pointing, casting, reading, curious and waving. */
@@ -169,7 +168,11 @@ function talkError(e){const k=e&&e.code;
 // Talk with Luna happens in her room (assets/img/luna-room.webp, from the owner's scene, tools/art/make_luke.py):
 // her full figure stands in it, and her pose and face follow the chat
 const MOODPOSE={curious:'wave',thoughtful:'think',cheerful:'happy',apologetic:'apologetic'};   // waits and waves; thinks while a reply is on its way
-function room(mood){return '<div class="v6lroom" data-face="'+mood+'"><img src="'+ROOM+'" alt="" width="336" height="189" class="v6lrbg">'+full({pose:MOODPOSE[mood]||'idle'})+'</div>'}
+// the room shows her from the Laboratory sheet (twice the detail), large, head to waist; the pose names stay (data-pose), the sheet has six drawings
+const ROOMLAB={wave:'wave',think:'curious',happy:'idle',apologetic:'idle',curious:'curious',idle:'idle'};
+function roomFig(p){const i=LABP.indexOf(ROOMLAB[p]||'idle');
+  return '<span class="v6lfull lab v6lrf" aria-hidden="true" data-pose="'+p+'" style="--rf:'+i+'"><span class="v6lfi"></span></span>'}
+function room(mood){return '<div class="v6lroom" data-face="'+mood+'"><img src="'+ROOM+'" alt="" width="336" height="189" class="v6lrbg">'+roomFig(MOODPOSE[mood]||'idle')+'</div>'}
 function helpBox(){return typeof HWCounsel!=='undefined'?HWCounsel.help(true):''}
 function chat(){
   const note='<small class="mut v6lcn">Luna\'s replies are written by an AI (Google Gemini). She is not a doctor and can be wrong. What you type here is sent to Google to write her reply; HealthWiz does not save it.</small>';
@@ -292,7 +295,7 @@ header .v6lb{margin-right:56px;align-self:flex-start}.hbar .v6lb{grid-area:a;mar
 .hbar small{min-width:0;overflow-wrap:anywhere} /* a long name wraps instead of widening the page */
 .v6lp{width:min(460px,100%)}.v6lph{display:flex;gap:10px;align-items:center;margin-bottom:8px}.v6lph h3{margin:0 0 4px}
 .v6lpic{flex:0 0 auto;border:2px solid var(--edge,var(--ln));border-radius:16px;overflow:hidden;background:var(--p2);line-height:0}
-.v6lbust{display:block;width:150px;height:150px;background:url(${POSE_IMG}) no-repeat;background-size:${POSES.length*160}% auto;image-rendering:auto}   /* the 80 x 120 figure at 3 times, head to chest, centred in a 150 px square */
+.v6lbust{display:block;width:150px;height:150px;background:url(${LAB_IMG}) no-repeat;background-size:1536px 384px;background-position:-53px -28px;image-rendering:auto}   /* the idle frame at 1.6 times, head to chest, centred in a 150 px square */
 .v6lp input{width:100%;margin:4px 0 2px}.v6lp h4{font:12px/1.6 var(--fl);margin:12px 0 6px}
 .v6lf{display:flex;gap:8px;align-items:center;border-top:2px solid var(--ln);padding:8px 0}.v6lf>div{flex:1 1 auto;min-width:0}
 .v6lf b{display:block}.v6lf small{display:block;color:var(--mut);margin-top:2px}.v6lfi{flex:0 0 auto;line-height:0}
@@ -301,6 +304,9 @@ header .v6lb{margin-right:56px;align-self:flex-start}.hbar .v6lb{grid-area:a;mar
 .v6lrbg{display:block;width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges}
 .v6lroom .v6lfull{position:absolute;left:50%;bottom:4%;transform:translateX(-50%) scale(1);transform-origin:bottom center;animation:none}
 @media(min-width:400px){.v6lroom .v6lfull{transform:translateX(-50%) scale(1.25)}}
+.v6lroom .v6lfull.v6lrf{bottom:auto;top:2px;width:168px;height:252px;transform:translateX(-50%)}
+@media(min-width:400px){.v6lroom .v6lfull.v6lrf{transform:translateX(-50%)}}
+.v6lrf .v6lfi{background-size:600% 100%;background-position:calc(var(--rf) * 20%) 0;image-rendering:auto}
 .v6lprops{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px;list-style:none;padding:0;margin:0 0 4px}.v6lprops li{display:flex;flex-direction:column;align-items:center;gap:2px}.v6lprop{display:block;width:96px;height:96px;background:url(${PROPS_IMG}) 0 0/${48*PROPS_N*2}px 96px no-repeat;image-rendering:pixelated;image-rendering:crisp-edges}.v6lprops small{font-size:12px;color:var(--mut)}.v6lpt2{margin:10px 0 4px}
 .v6lmeet{margin:6px 0 10px;text-align:center}.v6lmst{display:flex;justify-content:center;padding:10px 8px 4px;border:2px solid var(--ln);border-radius:10px;background:var(--p2)}.v6lmcap{margin:6px 0}.v6lmeet .row{justify-content:center}
 .v6lcn{display:block;margin:0 0 6px}.v6lchd{display:flex;gap:10px;align-items:flex-start}.v6lchd .v6lpf{flex:0 0 auto;border:2px solid var(--ln);border-radius:10px;background-color:var(--p2)}.v6lchd .v6lcn{flex:1 1 auto;min-width:0}.v6lclog{max-height:240px;overflow-y:auto;border:2px solid var(--ln);background:var(--bg);padding:8px;margin:6px 0}
