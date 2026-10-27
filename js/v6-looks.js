@@ -247,11 +247,11 @@ html.hw-q-performance .v6ksv .zt,html.hw-q-performance .v6ksv .zp{animation:none
    Theme card: he asks which colours the kingdom shall wear, and the answers sit in his speech box. The choices go from the
    one that suits every device to the more particular: Default, Match my device (follows the phone's light or dark), three
    palettes, and Later. A choice is applied and saved at once, and the tour moves on; tapping elsewhere also moves on and
-   changes nothing. The line has no recording (Medius stays silent on it rather than requesting a file that does not exist). */
+   changes nothing. Medius speaks it like his other lines: assets/audio/tut-djmzrd.mp3 (the hash of TUTLINE), from the owner's
+   recording of 2026-10-27, with the test name it spoke cut out (see tools/audio/cut_medius_voice.py). */
 const TUTLINE="Ere I depart, {name}: what colours shall thy kingdom wear? Choose one now, or change it here in Settings whenever thou wilt.";
 const TUTCH=[['arcane','Default'],['match','Match my device'],['p:ocean:100','Ocean'],['forest','Enchanted Forest'],['p:rose:100','Rose'],['later','Later']];
 if(typeof TS!=='undefined'&&!TS.some(x=>x[3]==='theme'))TS.splice(TS.length-1,0,['set','#v6theme',TUTLINE,'theme']);
-if(typeof HWMedius!=='undefined'){const sp=HWMedius.speak;HWMedius.speak=function(t,tmpl){if(tmpl===TUTLINE){HWMedius.hush();return}return sp.apply(this,arguments)}}
 const tutStep=()=>{const r=document.getElementById('tut'),g=r&&r.querySelector('.tbx small'),m=g&&/^(\d+)\s*\//.exec(g.textContent);return m?+m[1]-1:-1};
 function tutChoices(){const r=document.getElementById('tut');if(!r)return;const bx=r.querySelector('.tbx'),i=tutStep(),on=i>=0&&TS[i]&&TS[i][3]==='theme',have=bx&&bx.querySelector('.tutch');
   if(!bx||on===!!have)return;if(!on){have.remove();return}
