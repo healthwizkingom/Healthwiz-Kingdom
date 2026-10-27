@@ -18,10 +18,10 @@ html body{font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
 html h2{font:700 24px/1.25 var(--fd);letter-spacing:.2px;text-transform:none;margin:18px 0 12px;text-align:left}
 html h3{font:700 14px/1.35 var(--fn);letter-spacing:.07em;text-transform:uppercase}
 html button,html .chip,html summary{font-family:var(--fn);font-weight:650;letter-spacing:.02em}
+html .ppgbtn{font-size:14px;letter-spacing:0}   /* the camera pulse button stays one line in the sans */
 html small,html .mut{line-height:1.45}html .mut{font-size:14px}html small{font-size:13px}
-html .card{padding:14px;margin-bottom:16px}
-@media(max-width:380px){html .card{padding:12px}}
-html .card>h3:first-child{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin:0 0 12px;padding-bottom:10px;overflow-wrap:anywhere}
+html .card{padding:12px;margin-bottom:12px}
+html .card>h3:first-child{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin:0 0 8px;padding-bottom:8px;overflow-wrap:anywhere}
 html .card p{margin:0 0 10px}html .card p:last-child{margin-bottom:0}
 
 /* bottom tabs: sans, centred, same size */
@@ -29,8 +29,8 @@ html nav button{font:650 12px/1.2 var(--fn);letter-spacing:.01em;display:flex;fl
 
 /* rows of buttons: even widths, centred content, no orphans stuck to the left */
 html .row{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
-html .row>button:not(.chip),html .card>button,html #main>button{display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center;min-height:46px}
-html .row>button:not(.chip){flex:1 1 140px}
+html .row>button:not(.chip),html .card>button,html #main>button{display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center;min-height:44px}
+html .row>button:not(.chip){flex:1 1 120px}
 html .row>.chip{flex:1 1 auto}
 /* rows of equal choices sit in equal columns: the seven weekdays, the five restfulness faces */
 html .row.v6ald{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}html .row.v6ald>.chip{padding:8px 0;min-width:0;font-size:12px}

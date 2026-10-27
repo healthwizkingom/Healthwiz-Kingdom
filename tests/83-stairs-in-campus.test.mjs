@@ -157,7 +157,7 @@ test('the footer notice of the page includes the Stairs safety text; Evidence Va
   await page.waitForSelector('.wl'); await go(page, 'stair');
   await page.locator('#main p.dis .hwh').click();
   const t = await page.textContent('#hwh-pop');
-  assert.match(t, /Locations are unverified[\s\S]*General exercise pacing aid, not medical treatment[\s\S]*dizziness, chest pain/);
+  assert.match(t, /Raised ground and building heights on the map are illustrative[\s\S]*General exercise pacing aid, not medical treatment[\s\S]*dizziness, chest pain/);
   await page.keyboard.press('Escape');
   await page.click('#stt-workout'); await page.fill('#wk-a', '130'); await page.fill('#wk-r', '98');
   await page.click('#st-rec .hwh'); await page.click('#hwh-pop .hwev a');

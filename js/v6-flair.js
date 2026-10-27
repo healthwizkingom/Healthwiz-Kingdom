@@ -53,7 +53,7 @@ html #main::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:n
 
 /* the header card (wordmark, level, XP): a night skyline behind its right side, lit in the page's colour */
 html header,html .hbar{position:relative;overflow:hidden;isolation:isolate;background-image:linear-gradient(105deg,color-mix(in srgb,var(--rg) 26%,var(--pn)),var(--pn) 78%)}
-html .hbar{padding:12px 16px;border:1px solid color-mix(in srgb,var(--rg) 40%,var(--edge,var(--ln)));border-radius:var(--r-card);background-color:var(--pn)}
+html .hbar{padding:6px 14px 8px;border:1px solid color-mix(in srgb,var(--rg) 40%,var(--edge,var(--ln)));border-radius:var(--r-card);background-color:var(--pn)}
 html header::before,html .hbar::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:${HDR} right bottom/auto 100% no-repeat;-webkit-mask-image:linear-gradient(90deg,transparent 30%,#000 78%);mask-image:linear-gradient(90deg,transparent 30%,#000 78%)}
 html header::after,html .hbar::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(260px 130px at 100% 100%,var(--rg-mid),transparent 72%)}
 
@@ -127,21 +127,23 @@ ${Object.entries(PATS).map(([k,u])=>'html[data-view="'+k+'"]{--rgp:'+u+'}').join
 
 /* ---------- scene headers: a small illustrated landscape behind each page's title (SVG drawn here, no image files) ---------- */
 const rnd=i=>{const x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x)};
-const mx=(p,c)=>'color-mix(in srgb,var(--rg) '+p+'%,'+c+')';
+let CUR='#8b7bff';   // the region colour of the scene being drawn (a data-URI picture cannot read CSS variables)
+const hx=c=>{c=c.replace('#','');if(c.length===3)c=c.split('').map(x=>x+x).join('');return[0,2,4].map(i=>parseInt(c.slice(i,i+2),16))};
+const mx=(p,c)=>{const a=hx(CUR),b=hx(c);return'#'+a.map((v,i)=>Math.round(v*p/100+b[i]*(100-p)/100).toString(16).padStart(2,'0')).join('')};
 const stars=(n,h)=>Array.from({length:n},(_,i)=>'<circle class="fxs" cx="'+(rnd(i)*390).toFixed(0)+'" cy="'+(rnd(i+50)*h).toFixed(0)+'" r="'+(.6+rnd(i+9)*1.3).toFixed(1)+'" style="animation-delay:'+(rnd(i+3)*3).toFixed(1)+'s"/>').join('');
 const hills=()=>'<path d="M0 112C60 90 110 100 170 108S300 92 390 104V150H0Z" style="fill:'+mx(34,'#0b0a1f')+'"/><path d="M0 132C70 114 140 128 210 122S330 114 390 128V150H0Z" style="fill:'+mx(18,'#07061a')+'"/>';
 const cloud=(x,y,sc,d)=>'<g class="fxc" style="animation-duration:'+d+'s" transform="translate('+x+' '+y+') scale('+sc+')"><ellipse cx="0" cy="0" rx="22" ry="7"/><ellipse cx="-10" cy="-5" rx="11" ry="8"/><ellipse cx="8" cy="-7" rx="13" ry="9"/></g>';
 const wave=(y,amp,op,dur,c)=>'<path class="fxw" style="animation-duration:'+dur+'s;fill:'+c+';opacity:'+op+'" d="M0 '+y+('q32.5 -'+amp+' 65 0t65 0').repeat(1)+'t65 0t65 0t65 0t65 0t65 0t65 0t65 0V150H0Z"/>';
-const castle=(x,k)=>'<g transform="translate('+x+' '+(112-70*k)+') scale('+k+')" style="fill:#0a0820"><rect x="6" y="26" width="64" height="56"/><rect x="-6" y="10" width="20" height="72"/><rect x="62" y="10" width="20" height="72"/><path d="M-9 10l13-20 13 20zM59 10l13-20 13 20z"/><path d="M26 26l12-26 12 26z"/><rect x="33" y="56" width="10" height="26" style="fill:var(--gold)"/><rect x="2" y="30" width="5" height="9" style="fill:#ffe9a0"/><rect x="69" y="30" width="5" height="9" style="fill:#ffe9a0"/><rect x="34" y="34" width="5" height="9" style="fill:#ffe9a0"/></g>';
+const castle=(x,k)=>'<g transform="translate('+x+' '+(112-70*k)+') scale('+k+')" style="fill:#0a0820"><rect x="6" y="26" width="64" height="56"/><rect x="-6" y="10" width="20" height="72"/><rect x="62" y="10" width="20" height="72"/><path d="M-9 10l13-20 13 20zM59 10l13-20 13 20z"/><path d="M26 26l12-26 12 26z"/><rect x="33" y="56" width="10" height="26" style="fill:#f2c14e"/><rect x="2" y="30" width="5" height="9" style="fill:#ffe9a0"/><rect x="69" y="30" width="5" height="9" style="fill:#ffe9a0"/><rect x="34" y="34" width="5" height="9" style="fill:#ffe9a0"/></g>';
 const moon=(x,y,r)=>'<circle cx="'+x+'" cy="'+y+'" r="'+(r*2.4)+'" style="fill:rgba(255,244,200,.12)"/><circle cx="'+x+'" cy="'+y+'" r="'+r+'" style="fill:#fff3c4"/><circle cx="'+(x+r*.5)+'" cy="'+(y-r*.25)+'" r="'+(r*.88)+'" style="fill:'+mx(52,'#0d0b26')+'"/>';
 const sun=(x,y,r,c)=>'<circle cx="'+x+'" cy="'+y+'" r="'+(r*2.2)+'" style="fill:'+c+';opacity:.18"/><circle cx="'+x+'" cy="'+y+'" r="'+r+'" style="fill:'+c+'"/>';
 const tree=(x,h)=>'<path d="M'+x+' 128l-'+(h*.3)+' 0 '+(h*.3)+' -'+h+' '+(h*.3)+' '+h+'z" style="fill:#0a0820"/><path d="M'+x+' 128l-'+(h*.22)+' -'+(h*.5)+' '+(h*.22)+' -'+(h*.9)+' '+(h*.22)+' '+(h*.9)+'z" style="fill:#0a0820;opacity:.0"/>';
 const fire=(n)=>Array.from({length:n},(_,i)=>'<circle class="fxs fxf" cx="'+(20+rnd(i+70)*350).toFixed(0)+'" cy="'+(60+rnd(i+80)*60).toFixed(0)+'" r="1.8" style="animation-delay:'+(rnd(i+5)*3).toFixed(1)+'s"/>').join('');
 const bars=(c)=>[34,58,44,78,62,92,70].map((h,i)=>'<rect x="'+(210+i*22)+'" y="'+(122-h)+'" width="14" height="'+h+'" rx="2" style="fill:'+c+';opacity:'+(.55+i*.06)+'"/>').join('');
-const stairs=()=>'<path d="M170 128l60-26 40-30 50-26 70-18V150H170Z" style="fill:'+mx(24,'#07061a')+'"/><path d="M196 124h16v-10h16v-10h16v-10h16V84h16V74h16V64h16V54h16" fill="none" style="stroke:var(--gold);stroke-width:3;stroke-linejoin:round"/><path d="M308 54V30l18 7-18 7" style="fill:#e0483f;stroke:#fff3c4;stroke-width:1.5"/>';
+const stairs=()=>'<path d="M170 128l60-26 40-30 50-26 70-18V150H170Z" style="fill:'+mx(24,'#07061a')+'"/><path d="M196 124h16v-10h16v-10h16v-10h16V84h16V74h16V64h16V54h16" fill="none" style="stroke:#f2c14e;stroke-width:3;stroke-linejoin:round"/><path d="M308 54V30l18 7-18 7" style="fill:#e0483f;stroke:#fff3c4;stroke-width:1.5"/>';
 const tower=()=>'<g style="fill:#0a0820"><rect x="262" y="40" width="40" height="88"/><rect x="254" y="30" width="56" height="12"/><rect x="266" y="14" width="32" height="18"/><path d="M262 14l20-14 20 14z"/><rect x="278" y="56" width="8" height="14" style="fill:#ffe9a0"/><rect x="278" y="86" width="8" height="14" style="fill:#ffe9a0"/></g>';
-const flasks=()=>'<g style="fill:'+mx(60,'#fff')+';opacity:.85"><path d="M240 128v-26l-14-22h42l-14 22v26z"/></g><g style="fill:var(--gold);opacity:.9"><path d="M312 128v-18l-10-16h30l-10 16v18z"/></g><circle class="fxs fxf" cx="254" cy="66" r="3"/><circle class="fxs fxf" cx="262" cy="52" r="2" style="animation-delay:.8s"/><circle class="fxs fxf" cx="318" cy="82" r="2.4" style="animation-delay:1.6s"/>';
-const gold=(x,y)=>'<g transform="translate('+x+' '+y+')" style="stroke:var(--gold);stroke-width:2.5;fill:none"><path d="M0 -26V8M-26 -14H26M-26 -14l-8 18h16zM26 -14l-8 18h16zM-14 12h28"/></g>';
+const flasks=()=>'<g style="fill:'+mx(60,'#fff')+';opacity:.85"><path d="M240 128v-26l-14-22h42l-14 22v26z"/></g><g style="fill:#f2c14e;opacity:.9"><path d="M312 128v-18l-10-16h30l-10 16v18z"/></g><circle class="fxs fxf" cx="254" cy="66" r="3"/><circle class="fxs fxf" cx="262" cy="52" r="2" style="animation-delay:.8s"/><circle class="fxs fxf" cx="318" cy="82" r="2.4" style="animation-delay:1.6s"/>';
+const gold=(x,y)=>'<g transform="translate('+x+' '+y+')" style="stroke:#f2c14e;stroke-width:2.5;fill:none"><path d="M0 -26V8M-26 -14H26M-26 -14l-8 18h16zM26 -14l-8 18h16zM-14 12h28"/></g>';
 const clock=()=>'<circle cx="300" cy="62" r="34" style="fill:none;stroke:'+mx(70,'#fff')+';stroke-width:3;opacity:.7"/><path d="M300 62V40M300 62l16 10" style="stroke:#fff3c4;stroke-width:3;stroke-linecap:round;fill:none"/>';
 const SC={
   water:()=>sun(300,76,16,'#ffe08a')+wave(96,10,.55,9,mx(60,'#0b0a1f'))+wave(112,12,.8,6.5,mx(44,'#07061a'))+wave(128,9,1,5,mx(26,'#050414')),
@@ -161,33 +163,28 @@ const gear=()=>'<g transform="translate(300 66)" style="fill:none;stroke:'+mx(70
 SC.set=()=>stars(26,70)+gear()+hills();
 SC.exercise=SC.stair;SC.run=SC.stair;SC.campus=SC.stair;SC.score=SC.body;SC.health=SC.kingdom;SC.home=SC.kingdom;SC.bmi=SC.body;SC.calc=SC.body;
 HWUI.css('flair-scene',`
-.fxhero{position:relative;overflow:hidden;margin:6px 0 16px;padding:20px 16px 58px;border-radius:var(--r-card);min-height:150px;isolation:isolate;
+.fxhero{position:relative;overflow:hidden;margin:6px 0 16px;padding:12px 14px 30px;border-radius:var(--r-card);min-height:100px;margin:4px 0 12px;isolation:isolate;
   border:1px solid color-mix(in srgb,var(--rg) 55%,var(--edge,var(--ln)));
-  background:linear-gradient(180deg,${mx(54,'#0d0b26')},${mx(24,'#0d0b26')} 82%);box-shadow:0 14px 34px rgba(0,0,0,.35),0 0 26px var(--rg-soft)}
-.fxhero>svg{position:absolute;inset:0;width:100%;height:100%;z-index:-1}
+  background:var(--scene,none) center bottom/cover no-repeat,linear-gradient(180deg,color-mix(in srgb,var(--rg) 54%,#0d0b26),color-mix(in srgb,var(--rg) 24%,#0d0b26) 82%);box-shadow:0 14px 34px rgba(0,0,0,.35),0 0 26px var(--rg-soft)}
 .fxhero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,rgba(8,6,28,.62),rgba(8,6,28,0) 68%)}
 .fxhero>h2{margin:0 0 4px;background:none;-webkit-text-fill-color:#fff;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.7)!important}
 .fxhero>p{margin:0;max-width:78%;color:#efeaff;text-shadow:0 1px 8px rgba(0,0,0,.7);font-size:14px}
-.fxstrip{min-height:150px;padding:0}.fxstrip>svg{position:absolute}
-.fxs{fill:#fff;animation:fxtw 3.2s ease-in-out infinite alternate}.fxf{fill:#fff3a8;animation-duration:4.4s}
-@keyframes fxtw{from{opacity:.15}to{opacity:1}}
-.fxw{animation:fxwv linear infinite}@keyframes fxwv{from{transform:translateX(0)}to{transform:translateX(-130px)}}
-.fxc{fill:inherit;animation:fxcd linear infinite alternate}@keyframes fxcd{from{translate:-24px 0}to{translate:24px 0}}
-.fxsm{animation:fxsm 3.6s ease-in-out infinite}@keyframes fxsm{0%,100%{transform:translateY(0);opacity:.2}50%{transform:translateY(-8px);opacity:.6}}
-html.hw-rm .fxs,html.hw-rm .fxw,html.hw-rm .fxc,html.hw-rm .fxsm,html.hw-q-performance .fxs,html.hw-q-performance .fxw,html.hw-q-performance .fxc,html.hw-q-performance .fxsm{animation:none!important}
-@media(prefers-reduced-motion:reduce){.fxs,.fxw,.fxc,.fxsm{animation:none!important}}
+.fxstrip{min-height:110px;padding:0}
 `);
+const FIXED=(()=>{const c=document.documentElement.classList;return c.contains('hw-rm')||c.contains('hw-q-performance')||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)})();
+const SVGCSS=()=>'<style>.fxs{fill:#fff;animation:t 3.2s ease-in-out infinite alternate}.fxf{fill:#fff3a8;animation-duration:4.4s}@keyframes t{from{opacity:.15}to{opacity:1}}'
+  +'.fxw{animation:w linear infinite}@keyframes w{from{transform:translateX(0)}to{transform:translateX(-130px)}}.fxc{animation:c linear infinite alternate}@keyframes c{from{transform:translateX(-24px)}to{transform:translateX(24px)}}'
+  +'.fxsm{animation:m 3.6s ease-in-out infinite}@keyframes m{0%,100%{opacity:.2}50%{opacity:.6}}'+(FIXED?'*{animation:none!important}':'@media (prefers-reduced-motion:reduce){*{animation:none!important}}')+'</style>';
+const picture=mk=>'url("data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 150" preserveAspectRatio="xMidYMax slice">'+SVGCSS()+mk()+'</svg>')+'")';
 const NOHERO=['home','lab','welcome','onb','title','campus'];   // Home has its profile card, the Laboratory its painted room, the map its own stage
-/** moves the page title (and the line under it) into a scene header */
-function hero(){const m=document.getElementById('main');if(!m)return;if(NOHERO.includes(S.v))return;const mk=SC[S.v]||SC.kingdom;
-  const h=m.querySelector('h2');
+/** moves the page title (and the line under it) into a scene header; the scene is the header's background picture */
+function hero(){const m=document.getElementById('main');if(!m)return;if(NOHERO.includes(S.v)||m.querySelector('.fxhero'))return;
+  CUR=RG[S.v]||'#8b7bff';const mk=SC[S.v]||SC.kingdom;
+  const h=m.querySelector('h2'),d=document.createElement('div');d.className='fxhero';d.style.setProperty('--scene',picture(mk));
   if(!h||h.closest('.card,.fxhero')){ // pages that open straight into a card (Time Machine, Monument): a plain scene strip, no title (the banner above already names the page)
-    if(m.querySelector('.fxhero'))return;const c=m.querySelector('.card');if(!c)return;
-    const t=document.createElement('div');t.className='fxhero fxstrip';t.innerHTML='<svg viewBox="0 0 390 150" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">'+mk()+'</svg>';c.before(t);return}
+    const c=m.querySelector('.card');if(!c)return;d.classList.add('fxstrip');c.before(d);return}
   const nx=h.nextElementSibling,p=nx&&nx.tagName==='P'?nx:null;
-  const d=document.createElement('div');d.className='fxhero';d.innerHTML='<svg viewBox="0 0 390 150" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">'+mk()+'</svg>';
   h.before(d);d.appendChild(h);if(p)d.appendChild(p)}
-
 // the hook: remember which page this is, and its colour
 {const r=render;render=function(){const x=r.apply(this,arguments);
   try{const e=document.documentElement,v=S.v||'home';e.dataset.view=v;e.style.setProperty('--rg',RG[v]||'#8b7bff');hero()}catch(err){console.error('[HWFlair]',err)}return x}}

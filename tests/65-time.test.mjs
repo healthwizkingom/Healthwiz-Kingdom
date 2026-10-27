@@ -31,7 +31,7 @@ test('the door on Statistics opens the Time Machine under the Health Hall; the w
   const before = JSON.stringify(await state(page));
   assert.equal(await page.evaluate(() => [S.v, PAR[S.v]].join()), 'time,health');
   const t = await page.textContent('#tmcard');
-  assert.match(t, /Everything here comes from what you saved/);
+  assert.match(t, /Only what you saved/);
   const lanes = await page.locator('#tmview .tmrow:not(.tmhead) .tmln').allTextContents(), wk0 = await page.evaluate(() => HWTime.period('w', 0)[0]);
   // heart rate: none here (the GPS stair session has no BPM), so it is not a lane
   assert.deepEqual(lanes.map(s => s.trim()), ['Water', 'Food', 'Energy', 'Stairs', 'Runs'].filter(n => n !== 'Food' || ago(1) >= wk0), 'saved lanes only (food if yesterday is in this week)');
