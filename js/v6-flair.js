@@ -131,7 +131,7 @@ const SC={
   lab:()=>stars(20,70)+hills()+flasks(),
   time:()=>stars(24,70)+clock()+hills(),
   monument:()=>stars(26,70)+tower()+hills(),
-  kingdom:()=>stars(30,66)+moon(236,30,9)+hills()+castle(292,1.05),
+  kingdom:()=>stars(30,66)+moon(352,24,8)+hills()+castle(282,1.05),
   quests:()=>stars(26,66)+sun(250,52,12,'#ffb24a')+hills()+castle(300,.8),
   pulse:()=>stars(16,60)+hills()+'<path d="M0 100h120l12-30 14 56 12-40 10 14h210" fill="none" style="stroke:#ff8f87;stroke-width:3;stroke-linejoin:round;stroke-linecap:round"/>'};
 SC.exercise=SC.stair;SC.run=SC.stair;SC.campus=SC.stair;SC.score=SC.body;SC.health=SC.kingdom;SC.home=SC.kingdom;SC.bmi=SC.body;SC.calc=SC.body;
@@ -143,6 +143,7 @@ HWUI.css('flair-scene',`
 .fxhero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,rgba(8,6,28,.62),rgba(8,6,28,0) 68%)}
 .fxhero>h2{margin:0 0 4px;background:none;-webkit-text-fill-color:#fff;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.7)!important}
 .fxhero>p{margin:0;max-width:78%;color:#efeaff;text-shadow:0 1px 8px rgba(0,0,0,.7);font-size:14px}
+.fxstrip{min-height:150px;padding:0}.fxstrip>svg{position:absolute}
 .fxs{fill:#fff;animation:fxtw 3.2s ease-in-out infinite alternate}.fxf{fill:#fff3a8;animation-duration:4.4s}
 @keyframes fxtw{from{opacity:.15}to{opacity:1}}
 .fxw{animation:fxwv linear infinite}@keyframes fxwv{from{transform:translateX(0)}to{transform:translateX(-130px)}}
@@ -151,9 +152,14 @@ HWUI.css('flair-scene',`
 html.hw-rm .fxs,html.hw-rm .fxw,html.hw-rm .fxc,html.hw-rm .fxsm,html.hw-q-performance .fxs,html.hw-q-performance .fxw,html.hw-q-performance .fxc,html.hw-q-performance .fxsm{animation:none!important}
 @media(prefers-reduced-motion:reduce){.fxs,.fxw,.fxc,.fxsm{animation:none!important}}
 `);
+const STRIP=['time','monument','stats'];
 /** moves the page title (and the line under it) into a scene header */
 function hero(){const m=document.getElementById('main');if(!m)return;const mk=SC[S.v];if(!mk)return;
-  const h=m.querySelector('h2');if(!h||h.closest('.card,.fxhero'))return;const nx=h.nextElementSibling,p=nx&&nx.tagName==='P'?nx:null;
+  const h=m.querySelector('h2');
+  if(!h||h.closest('.card,.fxhero')){ // pages that open straight into a card (Time Machine, Monument): a plain scene strip, no title (the banner above already names the page)
+    if(!STRIP.includes(S.v)||m.querySelector('.fxhero'))return;const c=m.querySelector('.card');if(!c)return;
+    const t=document.createElement('div');t.className='fxhero fxstrip';t.innerHTML='<svg viewBox="0 0 390 150" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">'+mk()+'</svg>';c.before(t);return}
+  const nx=h.nextElementSibling,p=nx&&nx.tagName==='P'?nx:null;
   const d=document.createElement('div');d.className='fxhero';d.innerHTML='<svg viewBox="0 0 390 150" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">'+mk()+'</svg>';
   h.before(d);d.appendChild(h);if(p)d.appendChild(p)}
 
