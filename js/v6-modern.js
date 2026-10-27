@@ -28,8 +28,13 @@ html nav button{font:650 12px/1.2 var(--fn);letter-spacing:.01em;display:flex;fl
 
 /* rows of buttons: even widths, centred content, no orphans stuck to the left */
 html .row{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
-html .row>button,html .card>button,html #main>button{display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center;min-height:46px}
-html .row>button{flex:1 1 140px}
+html .row>button:not(.chip),html .card>button,html #main>button{display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center;min-height:46px}
+html .row>button:not(.chip){flex:1 1 140px}
+html .row>.chip{flex:1 1 auto}
+/* rows of equal choices sit in equal columns: the seven weekdays, the five restfulness faces */
+html .row.v6ald{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}html .row.v6ald>.chip{padding:8px 0;min-width:0;font-size:12px}
+html .row:has(>[data-a="slrest"]){display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+html .row>[data-a="slrest"]{padding:8px 2px;min-width:0;font-size:12px;line-height:1.25;white-space:normal;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
 html .card>button:only-of-type{width:100%}
 html .row>label{flex:1 1 140px;min-width:0}
 html .card>.row:last-child{margin-bottom:0}
