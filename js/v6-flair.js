@@ -54,7 +54,7 @@ html #main::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:n
 /* the header card (wordmark, level, XP): a night skyline behind its right side, lit in the page's colour */
 html header,html .hbar{position:relative;overflow:hidden;isolation:isolate;background-image:linear-gradient(105deg,color-mix(in srgb,var(--rg) 26%,var(--pn)),var(--pn) 78%)}
 html .hbar{padding:6px 14px 8px;border:1px solid color-mix(in srgb,var(--rg) 40%,var(--edge,var(--ln)));border-radius:var(--r-card);background-color:var(--pn)}
-html header::before,html .hbar::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:${HDR} right bottom/auto 100% no-repeat;-webkit-mask-image:linear-gradient(90deg,transparent 30%,#000 78%);mask-image:linear-gradient(90deg,transparent 30%,#000 78%)}
+html header::before,html .hbar::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:${HDR} right -50px bottom/auto 100% no-repeat;-webkit-mask-image:linear-gradient(90deg,transparent 30%,#000 78%);mask-image:linear-gradient(90deg,transparent 30%,#000 78%)}
 html header::after,html .hbar::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(260px 130px at 100% 100%,var(--rg-mid),transparent 72%)}
 
 /* page title: the region colour runs through it */

@@ -64,7 +64,7 @@ function mini(expr){const n=faceOf(expr),i=NAMES.indexOf(n);
   return '<span class="v6lmini" aria-hidden="true" style="background-position:'+(-i*40)+'px 0" data-face="'+n+'"></span>'}
 /** Her upper body (head to waist) from the full-figure sheet, cropped and enlarged, drawn smooth: the Ask Luna picture. */
 function bust(expr){const p=poseOf(null,expr);
-  return '<span class="v6lbust" role="img" aria-label="Luna" data-pose="'+p+'" style="background-position:'+at(p)+' 0"></span>'}
+  return '<span class="v6lbust" role="img" aria-label="Luna" data-pose="'+p+'" style="background-position:calc('+at(p)+' - 45px) -30px"></span>'}
 /** Her full figure (80 x 120 at scale s) in a pose from the design sheet (o.pose, else the pose for o.expr), with sparkles.
     o.cast adds a sparkle burst; o.enter walks her in first (the walking pose, then the chosen one); o.cycle is the
     Laboratory's slow loop of idle, pointing, casting, reading, curious and waving. */
@@ -292,7 +292,7 @@ header .v6lb{margin-right:56px;align-self:flex-start}.hbar .v6lb{grid-area:a;mar
 .hbar small{min-width:0;overflow-wrap:anywhere} /* a long name wraps instead of widening the page */
 .v6lp{width:min(460px,100%)}.v6lph{display:flex;gap:10px;align-items:center;margin-bottom:8px}.v6lph h3{margin:0 0 4px}
 .v6lpic{flex:0 0 auto;border:2px solid var(--edge,var(--ln));border-radius:16px;overflow:hidden;background:var(--p2);line-height:0}
-.v6lbust{display:block;width:120px;height:112px;background:url(${POSE_IMG}) no-repeat;background-size:${POSES.length*100}% auto;background-position-y:0;image-rendering:auto}
+.v6lbust{display:block;width:150px;height:150px;background:url(${POSE_IMG}) no-repeat;background-size:${POSES.length*160}% auto;image-rendering:auto}   /* the 80 x 120 figure at 3 times, head to chest, centred in a 150 px square */
 .v6lp input{width:100%;margin:4px 0 2px}.v6lp h4{font:12px/1.6 var(--fl);margin:12px 0 6px}
 .v6lf{display:flex;gap:8px;align-items:center;border-top:2px solid var(--ln);padding:8px 0}.v6lf>div{flex:1 1 auto;min-width:0}
 .v6lf b{display:block}.v6lf small{display:block;color:var(--mut);margin-top:2px}.v6lfi{flex:0 0 auto;line-height:0}
