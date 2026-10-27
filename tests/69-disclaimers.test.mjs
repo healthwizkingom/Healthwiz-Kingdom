@@ -80,9 +80,12 @@ test('inline disclaimers are off the cards and the same words are in the card\'s
   assert.deepEqual(errors, []); await ctx.close();
 });
 
-test('the Stress page keeps its crisis and emergency numbers in plain sight (a safety instruction, not a disclaimer)', async () => {
+test('the Stress page keeps its crisis and emergency numbers one tap away (NEED HELP NOW), shown at once when crisis words are written', async () => {
   const { page, ctx, errors } = await boot({ seed: RETURNING });
   await go(page, 'stress');
-  assert.match(await page.textContent('#main'), /999|Befrienders/, 'crisis numbers are on the Stress page');
+  assert.equal(await page.locator('#counsel [data-a="cshelp"]').count(), 1, 'the NEED HELP NOW button is on the Stress page');
+  assert.doesNotMatch(await page.textContent('#main'), /Befrienders/, 'the numbers are hidden until asked for (the owner\'s request)');
+  await page.click('#counsel [data-a="cshelp"]');
+  assert.match(await page.textContent('#main'), /999|Befrienders/, 'crisis numbers appear when asked for');
   assert.deepEqual(errors, []); await ctx.close();
 });

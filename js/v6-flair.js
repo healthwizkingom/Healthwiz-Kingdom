@@ -31,6 +31,14 @@ const PATS={
 PATS.exercise=PATS.stair;PATS.run=PATS.stair;PATS.campus=PATS.stair;PATS.pulse=PATS.stats;PATS.score=PATS.body;PATS.bmi=PATS.body;PATS.calc=PATS.body;
 // painted scenes the app already ships (no new images): drawn faintly behind the banner on the right
 const SCENE={sleep:'assets/img/bedroom.webp',stress:'assets/img/study.jpg',monument:'assets/img/monument-card.webp',score:'assets/img/orb-scene.webp',lab:'assets/img/lab-scene.webp'};
+
+// the header card's own scene: a night skyline with a castle and a moon, behind the right side (the left keeps the text clear)
+const HDR=pat(240,120,'<g fill="#fff"><circle cx="20" cy="18" r="1.2" opacity=".8"/><circle cx="64" cy="10" r="1" opacity=".6"/><circle cx="108" cy="26" r="1.4" opacity=".7"/><circle cx="140" cy="12" r="1" opacity=".8"/><circle cx="176" cy="30" r="1.2" opacity=".6"/><circle cx="226" cy="14" r="1.4" opacity=".8"/></g>'
+  +'<circle cx="196" cy="26" r="20" fill="#fff3c4" opacity=".12"/><circle cx="196" cy="26" r="9" fill="#fff3c4"/><circle cx="200" cy="24" r="8" fill="#241a52"/>'
+  +'<path d="M0 94C40 76 80 86 122 90S200 78 240 88V120H0Z" fill="#08061c" opacity=".55"/>'
+  +'<g fill="#07051a" opacity=".92"><rect x="136" y="66" width="46" height="40"/><rect x="128" y="56" width="14" height="50"/><rect x="176" y="56" width="14" height="50"/><path d="M126 56l9-14 9 14zM174 56l9-14 9 14z"/><path d="M149 66l10-20 10 20z"/></g>'
+  +'<g fill="#ffd36b"><rect x="156" y="84" width="7" height="22"/><rect x="131" y="68" width="4" height="7"/><rect x="179" y="68" width="4" height="7"/><rect x="157" y="72" width="4" height="6"/></g>'
+  +'<path d="M0 108C60 96 130 106 190 102S226 100 240 104V120H0Z" fill="#05040f" opacity=".8"/>');
 // Health Hall tile colours (data-v of each tile)
 const TILE={food:'#f0a03c',sleep:'#8b7bff',stair:'#3fbf8f',exercise:'#e8734a',stress:'#e0607e',body:'#f2c14e',stats:'#5ad0e6',score:'#f2c14e',water:'#2aa6d8',pulse:'#e8534a',run:'#3fbf8f'};
 
@@ -41,6 +49,13 @@ html{--rg:#8b7bff;--rg-soft:color-mix(in srgb,var(--rg) 16%,transparent);--rg-mi
 html #main{position:relative}
 html #main::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:radial-gradient(520px 300px at 88% -4%,var(--rg-mid),transparent 70%),radial-gradient(420px 320px at -8% 62%,var(--rg-soft),transparent 72%)}
+
+
+/* the header card (wordmark, level, XP): a night skyline behind its right side, lit in the page's colour */
+html header,html .hbar{position:relative;overflow:hidden;isolation:isolate;background-image:linear-gradient(105deg,color-mix(in srgb,var(--rg) 26%,var(--pn)),var(--pn) 78%)}
+html .hbar{padding:12px 16px;border:1px solid color-mix(in srgb,var(--rg) 40%,var(--edge,var(--ln)));border-radius:var(--r-card);background-color:var(--pn)}
+html header::before,html .hbar::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:${HDR} right bottom/auto 100% no-repeat;-webkit-mask-image:linear-gradient(90deg,transparent 30%,#000 78%);mask-image:linear-gradient(90deg,transparent 30%,#000 78%)}
+html header::after,html .hbar::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(260px 130px at 100% 100%,var(--rg-mid),transparent 72%)}
 
 /* page title: the region colour runs through it */
 html h2{background:linear-gradient(90deg,var(--ink) 30%,color-mix(in srgb,var(--rg) 55%,var(--ink)));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;text-shadow:none!important;width:fit-content;max-width:100%}
@@ -57,7 +72,7 @@ html .bn:not(.hwct){position:relative;overflow:hidden;border-radius:var(--r-card
 html .bn:not(.hwct)::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:var(--rgp,none);opacity:.55;-webkit-mask-image:linear-gradient(90deg,transparent 20%,#000);mask-image:linear-gradient(90deg,transparent 20%,#000)}
 html .bn:not(.hwct)::after{content:"";position:absolute;top:0;bottom:0;left:-40%;width:35%;pointer-events:none;background:linear-gradient(100deg,transparent,rgba(255,255,255,.22),transparent);transform:skewX(-18deg);animation:hwsheen 1.4s ease-out .25s 1 both}
 html .bn:not(.hwct)>*{position:relative;z-index:1}
-html .bn>span:first-child{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;background:color-mix(in srgb,var(--rg) 26%,var(--p2));box-shadow:0 0 16px var(--rg-mid),inset 0 1px 0 rgba(255,255,255,.25)}
+html .bn>span:first-child{display:flex;align-items:center;justify-content:center;gap:2px;min-width:46px;height:46px;padding:0 6px;border-radius:14px;background:color-mix(in srgb,var(--rg) 26%,var(--p2));box-shadow:0 0 16px var(--rg-mid),inset 0 1px 0 rgba(255,255,255,.25)}
 html .bn:not(.hwct) b{font:700 18px/1.25 var(--fn);letter-spacing:0;text-transform:none;margin:0 0 4px}
 html .bn:not(.hwct) small{display:inline-block;font:700 12px/1.4 var(--fn);letter-spacing:.01em;padding:2px 10px;border-radius:12px;background:color-mix(in srgb,var(--rg) 28%,transparent);color:var(--ink)}
 html .hwcr{position:relative;overflow:hidden;border-radius:var(--r-card);padding:10px 12px;border:1px solid color-mix(in srgb,var(--rg) 45%,var(--edge,var(--ln)));
@@ -66,9 +81,9 @@ html .hwcr::before{content:"";position:absolute;inset:0;pointer-events:none;back
 html .hwcr::after{content:"";position:absolute;top:0;bottom:0;left:-40%;width:35%;pointer-events:none;background:linear-gradient(100deg,transparent,rgba(255,255,255,.22),transparent);transform:skewX(-18deg);animation:hwsheen 1.4s ease-out .25s 1 both}
 @keyframes hwsheen{from{left:-40%}to{left:130%}}
 html .hwcr>*{position:relative;z-index:1}
-html .hwct>span:first-child{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;background:color-mix(in srgb,var(--rg) 26%,var(--p2));box-shadow:0 0 16px var(--rg-mid),inset 0 1px 0 rgba(255,255,255,.25)}
+html .hwct>span:first-child{display:flex;align-items:center;justify-content:center;gap:2px;min-width:46px;height:46px;padding:0 6px;border-radius:14px;background:color-mix(in srgb,var(--rg) 26%,var(--p2));box-shadow:0 0 16px var(--rg-mid),inset 0 1px 0 rgba(255,255,255,.25)}
 html .hwct b{font:700 18px/1.25 var(--fn);letter-spacing:0;text-transform:none}
-html .hwct .hwtg{display:inline-block;margin-top:3px;font:700 11px/1.4 var(--fn);letter-spacing:.06em;padding:1px 8px;border-radius:999px;background:color-mix(in srgb,var(--rg) 28%,transparent);color:var(--ink)}
+html .hwct{gap:10px}html .hwct .hwtg{display:inline-block;max-width:100%;line-height:1.3;margin-top:3px;font:700 11px/1.4 var(--fn);letter-spacing:.06em;padding:1px 8px;border-radius:999px;background:color-mix(in srgb,var(--rg) 28%,transparent);color:var(--ink)}
 ${Object.entries(SCENE).map(([k,u])=>'html[data-view="'+k+'"] .hwcr,html[data-view="'+k+'"] .bn:not(.hwct){background-image:linear-gradient(90deg,color-mix(in srgb,var(--rg) 20%,var(--pn)) 12%,color-mix(in srgb,var(--rg) 12%,transparent) 70%),url('+u+');background-size:auto,cover;background-position:0 0,center}').join('\n')}
 
 /* progress bars: glass tubes with a lit fill */

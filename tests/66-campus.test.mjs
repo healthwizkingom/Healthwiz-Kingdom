@@ -38,7 +38,7 @@ test('the door is last in the Health Hall; from the file the page says the map n
   assert.equal(facts.items, 36);
   assert.deepEqual(facts.filters, ['All 36', 'Mild 11', 'Moderate 12', 'Vigorous 13']);
   const t = await page.textContent('#cmpcard');
-  assert.match(t, /Locations are not verified\.[\s\S]*no recorded source/);
+  assert.doesNotMatch(t, /Locations are not verified/, 'the owner confirmed the staircase locations: no disclaimer');
   assert.match(t, /Campus-wide activity[\s\S]*Not available\. HealthWiz does not collect anyone else's location/);
   assert.match(t, /3 staircases have no coordinates in the app data, so they are not on the map\. You can still pick them here\./);
   assert.match(t, /Survey data: not loaded/);
