@@ -52,14 +52,16 @@ test('the extremes and a stress-only pattern; the highest scale picks the first 
   assert.deepEqual(r.all.slice(0, 2), ['rusher', 'perfectionist']);
 });
 
-test('the calming activities follow, and the saved check-in keeps the DASS answers; nothing is saved before FINISH', async () => {
+test('the calming activities follow, and the saved check-in keeps the DASS answers; the weekly DASS-21 logs itself once and FINISH completes that same entry', async () => {
   const { page, errors } = await begin();
   await answer(page, Array(21).fill(1));
-  assert.equal((await state(page)).e.filter(e => e.c === 'stress').length, 0, 'nothing saved yet');
+  assert.equal((await state(page)).e.filter(e => e.c === 'stress').length, 1, 'the weekly check-in logged itself');
+  assert.equal(await page.evaluate(() => HWDass.weekDone()), true, 'this week counts as done');
   await page.click('[data-a="sqe"]');
   assert.equal(await page.evaluate(() => S.sq.ph), 'enc');
   assert.ok(await page.$('.rxcards, [data-a="rxo"], .rxcard'), 'the activity collection (js/v6-relief.js)');
   await page.click('[data-a="sqfin"]');
+  assert.equal((await state(page)).e.filter(x => x.c === 'stress').length, 1, 'FINISH completes the entry, no second one');
   const e = (await state(page)).e.filter(x => x.c === 'stress').pop();
   assert.equal(e.v, 4, 'the value is the storm level, as the quest saved before (1–10)');
   assert.match(e.m.feel, /DASS-21: Depression 14, Anxiety 14, Stress 14/);

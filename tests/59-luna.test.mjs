@@ -57,7 +57,8 @@ test('portraits: the strip from the design sheet loads (12 faces of 64 px), each
   // at 2x a face is 128 px wide: apologetic is the 7th (index 6) → −768 px; idle uses the calm "neutral" face (index 11) → −1408 px
   assert.deepEqual(r.faces, [['cheerful', '0px 0px', '128px', 'Luna, cheerful'], ['apologetic', '-768px 0px', '128px', 'Luna, apologetic'], ['neutral', '-1408px 0px', '128px', 'Luna, neutral'], ['cheerful', '0px 0px', '128px', 'Luna, cheerful']]);
   await go(page, 'home'); await page.click('.hbar .v6lb');
-  assert.equal(await page.getAttribute('#mo .v6lpic .v6lpf', 'data-face'), 'cheerful', 'Ask Luna shows her portrait');
+  assert.equal(await page.locator('#mo .v6lpic .v6lbust').count(), 1, 'Ask Luna shows her upper body, drawn smooth');
+  assert.equal(await page.$eval('#mo .v6lpic .v6lbust', e => getComputedStyle(e).imageRendering), 'auto', 'not pixelated');
   assert.deepEqual(errors, []); await ctx.close();
 });
 

@@ -44,6 +44,14 @@ HWUI.css('monument',`
 .mntw{overflow-x:auto}.mntw table{width:100%;border-collapse:collapse;font-size:13px}.mntw th,.mntw td{text-align:left;padding:6px 4px;border-top:1px solid var(--edge,var(--ln));vertical-align:top}
 .mntw td:nth-child(3),.mntw td:nth-child(5){font-variant-numeric:tabular-nums}
 .mntime p,.mnnote p{display:block}.mntime p svg,.mnnote p svg{vertical-align:-3px}
+/* compact landmark rows: name, height and percent on one line; the detail opens on tap (the owner's "too many words" request) */
+.mnrow{display:block;padding:0}.mnrow>details>summary{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center;list-style:none;cursor:pointer;padding:12px 2px;min-height:48px}
+.mnrow>details>summary::-webkit-details-marker{display:none}.mnrt{display:flex;flex-direction:column;gap:1px;min-width:0}.mnrt b{font:600 15px/1.25 var(--fn)}.mnrt .mnh{font-size:13px}
+.mnpc{font:700 17px/1 var(--fn);font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;gap:4px;justify-self:end}
+.mnrow>details>summary .mnbar{grid-column:1/-1;height:8px}.mnrow>details[open]>summary{padding-bottom:6px}
+.mnmore{display:flex;flex-direction:column;gap:6px;padding:4px 2px 14px}.mnmore .mnrh{font-weight:600}
+.mnabout,.mnnote details{margin-top:8px}.mnabout summary,.mnnote summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font:600 14px var(--fn);color:var(--mut)}.mnnote summary h3{margin:0;border:0;padding:0}
+.mnstats{grid-template-columns:1fr 1fr}.mnstats .t{text-align:center}
 @media(min-width:900px){.mnmain{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}.mnside .mnalt{margin-top:0}.mnstats .mnbig b{font-size:32px}}
 @media(max-width:420px){.mnstats .mnbig b{font-size:30px}.mntiles .t b{font-size:16px}}
 `);

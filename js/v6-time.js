@@ -66,7 +66,7 @@ function label(v,P){if(v==='d')return nice(P[0]);if(v==='w')return nice(P[0])+' 
 /* ---------- the views ---------- */
 const pct=t=>{const m=/^(\d\d?):(\d\d)/.exec(t||'');return m?((+m[1]*60+ +m[2])/1440*100).toFixed(2):null};
 function dayView(d){const has=LANES.filter(L=>L.items(d).length);
-  if(!has.length)return '<p class="mut tmnone">Nothing was saved on '+esc(nice(d))+'.</p>';
+  if(!has.length)return '<div class="tmempty tmnone">'+ico('alarm',3)+'<b>Nothing was saved on '+esc(nice(d))+'</b><span>Log water, food, sleep or a climb and it will appear here.</span></div>';
   return '<div class="tmaxis" aria-hidden="true"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>'
     +has.map(L=>{const I=L.items(d);let n=0;
       return '<div class="tmlane"><span class="tmln">'+ico(L.i)+' '+L.n+'</span><div class="tmtrack">'
@@ -74,7 +74,7 @@ function dayView(d){const has=LANES.filter(L=>L.items(d).length);
         +'</div></div>'}).join('')
     +notLogged([d])}
 function gridView(P){const t=today(),has=LANES.filter(L=>P.some(d=>L.val(d)!=null));
-  if(!has.length)return '<p class="mut tmnone">Nothing was saved in this period.</p>';
+  if(!has.length)return '<div class="tmempty tmnone">'+ico('alarm',3)+'<b>Nothing was saved in this period</b><span>Slide the time bar back, or log something today and come back.</span></div>';
   const head='<div class="tmrow tmhead"><span class="tmln"></span>'+P.map(d=>'<span class="tmc'+(d===t?' now':'')+'">'+(P.length>7?D0(d).getDate():DN[D0(d).getDay()].slice(0,2))+'</span>').join('')+'</div>';
   return '<div class="tmgrid tm'+(P.length>7?'m':'w')+'" style="--n:'+P.length+'">'+head+has.map(L=>'<div class="tmrow"><span class="tmln">'+ico(L.i)+' '+L.n+'</span>'
     +P.map((d,i)=>{const v=d>t?null:L.val(d);return v==null?'<span class="tmc tm0" title="'+(d>t?'Not yet':'Not logged')+'"></span>'
@@ -97,14 +97,17 @@ function compare(v,off){const P=period(v,off),Q=period(v,off+1),t=today();
     +'<p class="mut">Only what was logged. A difference between two periods does not show what caused it.</p>'}
 function view(){const o=T(),P=period(o.v,o.off);return(o.v==='d'?dayView(P[0]):gridView(P))+detail()+(o.cmp?compare(o.v,o.off):'')}
 
+/** how much of the period has anything saved: days with a record, and lanes (trackers) used */
+function summary(P){const t=today(),days=P.filter(d=>d<=t),on=days.filter(d=>LANES.some(L=>L.val(d)!=null)).length,lanes=LANES.filter(L=>days.some(d=>L.val(d)!=null)).length;
+  return '<div class="tmsum" aria-label="Summary of this period"><span><b>'+on+'</b>of '+days.length+' day'+(days.length===1?'':'s')+' logged</span><span><b>'+lanes+'</b>of '+LANES.length+' trackers used</span></div>'}
 function page(){const o=T(),mx=maxOff(o.v);if(o.off>mx)o.off=mx;const P=period(o.v,o.off);
-  return '<div class="card tmcard" id="tmcard"><p class="mut">Everything here comes from what you saved. Pick a day, week or month, slide back through time, and tap a marker for details.</p>'
+  return '<div class="card tmcard" id="tmcard"><p class="mut">Only what you saved. Pick a period, slide back, tap a marker.</p>'
     +'<div class="row tmviews" role="group" aria-label="Period">'+[['d','Day'],['w','Week'],['m','Month']].map(x=>'<button type="button" class="chip'+(o.v===x[0]?' on':'')+'" data-a="tmv" data-v="'+x[0]+'" aria-pressed="'+(o.v===x[0])+'">'+x[1]+'</button>').join('')+'</div>'
     +'<div class="tmnav"><button type="button" class="g sm" data-a="tmstep" data-v="1"'+(o.off>=mx?' disabled':'')+'>EARLIER</button><b id="tmlbl" aria-live="polite">'+esc(label(o.v,P))+'</b><button type="button" class="g sm" data-a="tmstep" data-v="-1"'+(o.off?'':' disabled')+'>LATER</button></div>'
     +'<div class="tmscr"><input type="range" id="tmscrub" min="0" max="'+mx+'" value="'+(mx-o.off)+'" aria-label="Move through time" aria-valuetext="'+esc(label(o.v,P))+'"'+(mx?'':' disabled')+'>'
     +'<span class="tmends" aria-hidden="true"><small>First record</small><small>Today</small></span></div>'
     +'<div class="row"><button type="button" class="sm" data-a="tmtoday"'+(o.off?'':' disabled')+'>RETURN TO TODAY</button><button type="button" class="g sm" data-a="tmcmp" aria-pressed="'+(o.cmp?'true':'false')+'">'+(o.cmp?'HIDE COMPARISON':'COMPARE WITH THE ONE BEFORE')+'</button></div>'
-    +'<div id="tmview">'+view()+'</div></div>'}
+    +summary(P)+'<div id="tmview">'+view()+'</div></div>'}
 
 /* ---------- actions ---------- */
 const keep=f=>{const y=window.scrollY;f();render();window.scrollTo(0,y)};

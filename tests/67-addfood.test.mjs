@@ -252,6 +252,6 @@ test('every figure, expression and prop of his design sheets is used: by his rea
   assert.equal(await page.getAttribute('#awmeet .awmfig', 'data-pose'), 'annoyed', 'PREV wraps the other way');
   const props = await page.$$eval('#awmeet .awmprop', es => es.map(e => [e.dataset.prop, e.getAttribute('aria-label'), e.getBoundingClientRect().width]));
   assert.deepEqual(props, [['books', 'Spellbooks', 80], ['notes', 'Magical notes', 80], ['wand', 'Wand', 80], ['backpack', 'Backpack', 80], ['scrolls', 'Scrolls', 80], ['potion', 'Potion', 80], ['portrait', 'Round portrait', 80]]);
-  assert.equal(await page.$eval('#awmeet .awmfig', e => getComputedStyle(e).imageRendering), 'pixelated', 'drawn as crisp pixel art');
+  assert.equal(await page.$eval('#awmeet .awmfig', e => getComputedStyle(e).imageRendering), 'auto', 'drawn smooth, not as chunky pixels');
   assert.deepEqual(errors, []);
 });

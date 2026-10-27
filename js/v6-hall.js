@@ -86,7 +86,7 @@ function examples(h){return h.replace(/<input\b[^>]*>/g,tag=>{const m=/\bid="([^
 document.addEventListener('input',e=>{const el=e.target,s=el&&el.id?document.getElementById('hwe-'+el.id):null;if(s)s.hidden=el.value!==''});
 
 /* ---------- 2. Health Hall tiles ---------- */
-const done=(c,d)=>c==='stress'?!!(A('stress',d).length||(st.qd||{})[d]):A(c,d).length>0;
+const done=(c,d)=>c==='stress'?!!(A('stress',d).length||(st.qd||{})[d]||(typeof HWDass!=='undefined'&&HWDass.weekDone(d))):A(c,d).length>0; // the DASS-21 is weekly: this week's check-in counts for every day of the week
 // the one required input and today's value for each tile. val(d) = today's value; act(d) = what to do next.
 const TILE={
   // one tile for both (Provisions Hall): two values, and the one input for each
@@ -94,7 +94,7 @@ const TILE={
   sleep:{val:d=>{const s=A('sleep',d).pop();return s?s.v+' h slept':'not logged today'},act:d=>done('sleep',d)?'Logged · tap to review':'Tap to enter bedtime + wake-up'},
   exercise:{keep:1,act:()=>'Tap to train · logs only when you finish'},
   stair:{keep:1,act:d=>done('stair',d)?'Tap to add a climb: steps × climbs':'Tap to enter steps × climbs'},
-  stress:{val:d=>str(d)==null?'no check-in yet':str(d)+'/10 today',act:d=>done('stress',d)?'Tap for another check-in':'Tap for the 21-statement check-in'},
+  stress:{val:d=>str(d)!=null?str(d)+'/10 today':done('stress',d)?'DASS-21 done this week':'no check-in yet',act:d=>done('stress',d)?'Tap for another check-in':'Tap for the weekly 21-statement check-in'},
   body:{val:()=>(st.s.onb||st.p.cfm?'BMI '+bmi():'BMI not set')+(st.s.set?' · '+fmt(st.s.kcal)+' kcal goal':''),act:()=>'Tap to enter height + weight'},
   stats:{val:()=>'all your trends',act:()=>'Nothing to enter'},
   score:{keep:1,act:()=>'Nothing to enter · uses your logs'}
@@ -109,7 +109,7 @@ const NEXT=[
   ['food','Food','No meal logged yet today. Pick what you ate.'],
   ['sleep','Sleep','Last night is not logged. Enter your bedtime and wake-up time.'],
   ['stair','Stairs','No climb logged yet today. Enter steps per climb and the number of climbs.'],
-  ['stress','Stress','No check-in yet today. Pick the face that fits how you feel.']];
+  ['stress','Stress','No weekly check-in yet. Take the 21-statement DASS-21 check-in.']];
 function next(d){d=d||today();return NEXT.find(n=>!done(n[0],d)&&!(n[0]==='stair'&&typeof HWCond!=='undefined'&&HWCond.stairsHidden()))||null} // stairs wait behind a doctor note for some conditions
 function nextCard(){const n=next();
   return '<div class="card hwnx" id="hwnext"><h3>'+ico('quest')+' NEXT STEP</h3>'+(n
