@@ -37,6 +37,22 @@ Both pixel fonts are SIL Open Font License 1.1 (licence texts in `assets/fonts/`
 `@font-face` in `index.html`, pre-cached in `sw.js` and embedded by `tools/build-standalone.mjs`. There is no Google Fonts
 request, so the first visit looks the same offline.
 
+### October 27 2026 update: fonts by situation (`js/v6-modern.js`)
+
+The owner found the all-pixel labels hard to read ("serabut") and asked for fonts chosen by situation, not one face forced
+everywhere. The six roles above still name the sizes; the faces now follow the situation:
+
+| Situation | Face |
+|---|---|
+| Title screen, the HEALTHWIZ wordmark, rewards and game overlays | Press Start 2P (`--fh`), unchanged |
+| Page titles (`h2`) | Pixelify Sans 700 at 24 px (`--fd`): pixel flavour, lower case allowed |
+| Card headings, buttons, tabs, chips, tags, labels | system sans 650 to 700 (`--fl` now points at `--fn`) |
+| Every health number, running text, captions | system sans, as before |
+
+Characters Luna (Ask Luna and her header button) and Luke are drawn smooth (`image-rendering:auto`), as upper-body crops;
+the speech-bubble figure of Luna stays pixel art. Themes: Default (Arcane Night), Match system on/off, and Custom colour
+(a picker, the older themes and seven generated palettes at 100, 70 and 40 percent strength; text stays at least 7:1).
+
 ### Spacing scale
 
 One grid unit is `--px-unit` = 4 px. Allowed steps: 4, 8, 12, 16, 24, 32 (panel padding and gaps 12, panel margin 14).
