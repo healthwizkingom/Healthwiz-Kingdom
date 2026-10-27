@@ -11,7 +11,12 @@ The file name is a hash of the line's *template* (the text before {name} is fill
 js/v6-medius.js, so an edited line never plays a stale recording. Lines that name the user were recorded without the name.
 
   python3 tools/audio/cut_medius_voice.py PATH/TO/FOLDER_WITH_THE_FIVE_MP3S
-Needs ffmpeg with libmp3lame, and numpy."""
+Needs ffmpeg with libmp3lame, and numpy.
+
+One later line is not cut by this script: the tutorial's theme question (js/v6-looks.js TUTLINE, assets/audio/tut-djmzrd.mp3),
+from the owner's single-line recording of 2026-10-27 (fish-audio-20261027-204036.wav). It spoke a test name, so it was cut
+as 0-1.10 s + 2.20 s-end (15 ms crossfade), levelled to -18 LUFS and encoded like the others:
+  ffmpeg -i IN.wav -filter_complex "[0:a]atrim=0:1.10,asetpts=PTS-STARTPTS[a];[0:a]atrim=2.20,asetpts=PTS-STARTPTS[b];[a][b]acrossfade=d=0.015[c];[c]loudnorm=I=-18:TP=-1.5:LRA=11,aresample=24000" -ac 1 -c:a libmp3lame -b:a 40k assets/audio/tut-djmzrd.mp3"""
 import re, subprocess, sys, pathlib
 import numpy as np
 
