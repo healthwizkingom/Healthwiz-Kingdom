@@ -64,6 +64,7 @@ function resolve(k){if(THEMES[k])return{base:THEMES[k].base,v:THEMES[k].v,seed:S
 let gstyle=null;
 /** puts the saved choice on the page: data-theme = the base, data-skin = the palette (or 'gen' for a generated one) */
 function apply(){const r=document.documentElement,k=choice();let P=resolve(k),mk=k,generated=!THEMES[k];
+  if(match()&&k==='arcane'){r.dataset.theme=device();delete r.dataset.skin;return}   // Match system with the default look: the original light and dark sets, as before
   if(match()&&P.base!==device()){P={base:device(),seed:P.seed,tint:P.tint,v:gen(P.seed,P.tint,device())};generated=true}
   r.dataset.theme=P.base;
   if(generated){if(!gstyle){gstyle=document.createElement('style');gstyle.id='v6gen';document.head.appendChild(gstyle)}

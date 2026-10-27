@@ -87,7 +87,7 @@ html .hwct{gap:10px}html .hwct .hwtg{display:inline-block;max-width:100%;line-he
 ${Object.entries(SCENE).map(([k,u])=>'html[data-view="'+k+'"] .hwcr,html[data-view="'+k+'"] .bn:not(.hwct){background-image:linear-gradient(90deg,color-mix(in srgb,var(--rg) 20%,var(--pn)) 12%,color-mix(in srgb,var(--rg) 12%,transparent) 70%),url('+u+');background-size:auto,cover;background-position:0 0,center}').join('\n')}
 
 /* progress bars: glass tubes with a lit fill */
-html .bar{height:12px;border-radius:999px;background:var(--p2);border:1px solid var(--edge,var(--ln));overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.25)}
+html .bar{height:12px;border-radius:999px;background:var(--p2);overflow:hidden;box-shadow:inset 0 0 0 1px var(--edge,var(--ln)),inset 0 2px 4px rgba(0,0,0,.25)}
 html .bar>i{display:block;height:100%;border-radius:999px;background:linear-gradient(180deg,color-mix(in srgb,var(--c,var(--rg)) 55%,#fff) 0,var(--c,var(--rg)) 45%,color-mix(in srgb,var(--c,var(--rg)) 70%,#000) 100%);box-shadow:0 0 12px color-mix(in srgb,var(--c,var(--rg)) 70%,transparent)}
 
 /* stat tiles: a coloured edge and a bigger number */

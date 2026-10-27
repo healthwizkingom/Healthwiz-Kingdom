@@ -19,8 +19,9 @@ html h2{font:700 24px/1.25 var(--fd);letter-spacing:.2px;text-transform:none;mar
 html h3{font:700 14px/1.35 var(--fn);letter-spacing:.07em;text-transform:uppercase}
 html button,html .chip,html summary{font-family:var(--fn);font-weight:650;letter-spacing:.02em}
 html small,html .mut{line-height:1.45}html .mut{font-size:14px}html small{font-size:13px}
-html .card{padding:16px;margin-bottom:16px}
-html .card>h3:first-child{display:flex;align-items:center;gap:8px;margin:0 0 12px;padding-bottom:10px}
+html .card{padding:14px;margin-bottom:16px}
+@media(max-width:380px){html .card{padding:12px}}
+html .card>h3:first-child{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin:0 0 12px;padding-bottom:10px;overflow-wrap:anywhere}
 html .card p{margin:0 0 10px}html .card p:last-child{margin-bottom:0}
 
 /* bottom tabs: sans, centred, same size */
@@ -33,7 +34,7 @@ html .row>button:not(.chip){flex:1 1 140px}
 html .row>.chip{flex:1 1 auto}
 /* rows of equal choices sit in equal columns: the seven weekdays, the five restfulness faces */
 html .row.v6ald{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}html .row.v6ald>.chip{padding:8px 0;min-width:0;font-size:12px}
-html .row:has(>[data-a="slrest"]){display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+html .row.v6rest{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
 html .row>[data-a="slrest"]{padding:8px 2px;min-width:0;font-size:12px;line-height:1.25;white-space:normal;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
 html .card>button:only-of-type{width:100%}
 html .row>label{flex:1 1 140px;min-width:0}
