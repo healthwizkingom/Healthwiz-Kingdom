@@ -41,6 +41,9 @@ const PROPN=['books','notes','wand','backpack','scrolls','potion','portrait'];  
 const PROPNAME={books:'Spellbooks',notes:'Magical notes',wand:'Wand',backpack:'Backpack',scrolls:'Scrolls',potion:'Potion',portrait:'Round portrait'};
 const POSES=['front','three','side','back','walk','cast','read','inspect','wave','rest','happy','confused','nervous','determined','surprised','tired','excited','curious','think','laugh','sad','annoyed'];   // luke-poses.webp, in this order
 const FACES=['happy','confused','nervous','determined','surprised','tired','excited','curious','thinking','laughing','sad','annoyed'];   // luke-faces.webp, in this order
+// the owner's expression sheets (2026-10-27), cut head to waist by tools/art/make_luke_hires.py: the twelve expression poses show these (about four times
+// the detail of the pixel figures) in the scene; the other ten poses and Meet Luke keep the pixel figures. luke-hires-1: the first six faces, -2: the rest.
+const HIRES=['assets/img/luke-hires-1.webp','assets/img/luke-hires-2.webp'],HIFACE={happy:'happy',confused:'confused',nervous:'nervous',determined:'determined',surprised:'surprised',tired:'tired',excited:'excited',curious:'curious',think:'thinking',laugh:'laughing',sad:'sad',annoyed:'annoyed'};
 const POSENAME={front:'Front view',three:'Three-quarter view',side:'Side view',back:'Back view',walk:'Walking',cast:'Casting a spell',read:'Reading his spellbook',inspect:'Inspecting a potion',wave:'Waving hello',rest:'Resting',happy:'Happy',confused:'Confused',nervous:'Nervous',determined:'Determined',surprised:'Surprised',tired:'Tired',excited:'Excited',curious:'Curious',think:'Thinking',laugh:'Laughing',sad:'Sad',annoyed:'Annoyed'};
 const pat=(L,k)=>(L.indexOf(k)/(L.length-1)*100).toFixed(4)+'%';
 const r1=v=>Math.round(v*10)/10,fmt=v=>v==null?'–':(Math.round(v*10)/10).toLocaleString(undefined,{maximumFractionDigits:1});
@@ -135,8 +138,12 @@ function say(){if(W.step==='done')return'Whoa, it worked! I mean... of course it
   if(W.fx&&W.fx.k==='type')return W.q.length<12?'Ooh, go on... I am listening!':'Ah, I am taking notes. Press search when you are ready!';
   if(W.tired)return'Yaaawn... still here! Tell me what you ate whenever you are ready.';
   return'Hi, I am Luke! Tell me what you ate, how much, and any extras. I will find the calories... probably!'}
+/** the figure: the owner's detailed art for the twelve expressions, the pixel figure for the other poses */
+function fig(p,fx){const k=FACES.indexOf(HIFACE[p]);
+  if(k>=0)return '<span class="awfig hi '+fx+'" aria-hidden="true" data-pose="'+p+'" data-fx="'+fx+'" style="background-image:url('+HIRES[k>5?1:0]+');--hx:'+k%6+'"></span>';
+  return '<span class="awfig '+fx+'" aria-hidden="true" data-pose="'+p+'" data-fx="'+fx+'" style="background-position:'+pat(POSES,p)+' 0"></span>'}
 function scene(){const m=director(),p=m.pose,f=m.face,pr=m.prop;
-  return '<div class="awscene"><img class="awroom" src="'+ROOM+'" alt="" width="640" height="358"><span class="awfig '+m.fx+'" aria-hidden="true" data-pose="'+p+'" data-fx="'+m.fx+'" style="background-position:'+pat(POSES,p)+' 0"></span>'
+  return '<div class="awscene"><img class="awroom" src="'+ROOM+'" alt="" width="640" height="358">'+fig(p,m.fx)
     +(pr?'<span class="awprop '+(pr==='books'&&W.busy?'orbit':pr==='wand'?'flick':'')+'" aria-hidden="true" data-prop="'+pr+'" style="background-position:'+(-PROPN.indexOf(pr)*40)+'px 0"></span>':'')
     +'<div class="awsay" role="status"><span class="awface" role="img" aria-label="Luke, '+f+'" data-face="'+f+'" style="background-position:'+pat(FACES,f)+' 0"></span><p><b>LUKE</b>'+esc(say())+'</p></div></div>'}
 /** Updates only his scene (not the inputs, so typing keeps its cursor) when what he does or says has changed. */
@@ -239,6 +246,7 @@ HWUI.css('addfood',`
 .awscene{aspect-ratio:4/3}.awroom{display:block;width:100%;height:100%;object-fit:cover;image-rendering:auto}   /* his room is a painting, drawn smoothed */
 .awfig{position:absolute;left:50%;margin-left:-37.5%;top:2%;height:150%;aspect-ratio:2/3;background:url(${POSE}) no-repeat;background-size:${POSES.length*100}% 100%;image-rendering:auto;transform-origin:50% 0;
   filter:drop-shadow(0 0 6px rgba(255,226,122,.45))}
+.awfig.hi{aspect-ratio:167/192;height:100%;top:2%;margin-left:-32.6%;background-size:600% 100%;background-position:calc(var(--hx) * 20%) 0;background-repeat:no-repeat;filter:drop-shadow(0 4px 10px rgba(0,0,0,.45))}
 .awfig.bob{animation:awbob 1.6s steps(2) infinite alternate}.awfig.hop{animation:awhop .7s steps(3) infinite}.awfig.shake{animation:awshake .3s steps(2) 6}
 .awfig.tilt{animation:awtilt 1.4s steps(2) infinite alternate}.awfig.sway{animation:awsway 2.6s steps(3) infinite alternate}.awfig.lean{animation:awlean 1s steps(2) infinite alternate}
 .awfig.turn{animation:awturn 6s steps(1) infinite}   /* turns all the way round: walking, three-quarter, side, back, side, three-quarter, front */
