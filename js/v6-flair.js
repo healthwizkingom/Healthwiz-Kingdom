@@ -51,7 +51,15 @@ html #main .card,html #main .pxp{position:relative;background-image:radial-gradi
 html #main .card::before{display:block;content:"";position:absolute;left:14px;right:14px;top:-1px;height:3px;border-radius:0 0 3px 3px;background:linear-gradient(90deg,var(--rg),color-mix(in srgb,var(--rg) 0%,transparent) 85%);opacity:.95;pointer-events:none}
 html #main .card>h3:first-child svg,html #main .card>h3:first-child img,html #main .card>h3:first-child canvas{filter:drop-shadow(0 0 6px var(--rg))}
 
-/* banner under the app header: coloured, patterned, with the region's picture where there is one */
+/* banner under the app header (every page): coloured, patterned, glowing icon tile, tag pill; a painted picture where the app has one */
+html .bn:not(.hwct){position:relative;overflow:hidden;border-radius:var(--r-card);padding:10px 12px;border:1px solid color-mix(in srgb,var(--rg) 45%,var(--edge,var(--ln)));
+  background:linear-gradient(105deg,color-mix(in srgb,var(--rg) 34%,var(--pn)),var(--pn) 78%);box-shadow:0 8px 24px rgba(0,0,0,.22),0 0 22px var(--rg-soft)}
+html .bn:not(.hwct)::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:var(--rgp,none);opacity:.55;-webkit-mask-image:linear-gradient(90deg,transparent 20%,#000);mask-image:linear-gradient(90deg,transparent 20%,#000)}
+html .bn:not(.hwct)::after{content:"";position:absolute;top:0;bottom:0;left:-40%;width:35%;pointer-events:none;background:linear-gradient(100deg,transparent,rgba(255,255,255,.22),transparent);transform:skewX(-18deg);animation:hwsheen 1.4s ease-out .25s 1 both}
+html .bn:not(.hwct)>*{position:relative;z-index:1}
+html .bn>span:first-child{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;background:color-mix(in srgb,var(--rg) 26%,var(--p2));box-shadow:0 0 16px var(--rg-mid),inset 0 1px 0 rgba(255,255,255,.25)}
+html .bn:not(.hwct) b{font:700 18px/1.25 var(--fn);letter-spacing:0;text-transform:none;margin:0 0 4px}
+html .bn:not(.hwct) small{display:inline-block;font:700 12px/1.4 var(--fn);letter-spacing:.01em;padding:2px 10px;border-radius:12px;background:color-mix(in srgb,var(--rg) 28%,transparent);color:var(--ink)}
 html .hwcr{position:relative;overflow:hidden;border-radius:var(--r-card);padding:10px 12px;border:1px solid color-mix(in srgb,var(--rg) 45%,var(--edge,var(--ln)));
   background:linear-gradient(105deg,color-mix(in srgb,var(--rg) 34%,var(--pn)),var(--pn) 78%);box-shadow:0 8px 24px rgba(0,0,0,.22),0 0 22px var(--rg-soft)}
 html .hwcr::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:var(--rgp,none);background-size:auto;opacity:.55;-webkit-mask-image:linear-gradient(90deg,transparent 20%,#000);mask-image:linear-gradient(90deg,transparent 20%,#000)}
@@ -61,7 +69,7 @@ html .hwcr>*{position:relative;z-index:1}
 html .hwct>span:first-child{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;background:color-mix(in srgb,var(--rg) 26%,var(--p2));box-shadow:0 0 16px var(--rg-mid),inset 0 1px 0 rgba(255,255,255,.25)}
 html .hwct b{font:700 18px/1.25 var(--fn);letter-spacing:0;text-transform:none}
 html .hwct .hwtg{display:inline-block;margin-top:3px;font:700 11px/1.4 var(--fn);letter-spacing:.06em;padding:1px 8px;border-radius:999px;background:color-mix(in srgb,var(--rg) 28%,transparent);color:var(--ink)}
-${Object.entries(SCENE).map(([k,u])=>'html[data-view="'+k+'"] .hwcr{background-image:linear-gradient(90deg,color-mix(in srgb,var(--rg) 20%,var(--pn)) 12%,color-mix(in srgb,var(--rg) 12%,transparent) 70%),url('+u+');background-size:auto,cover;background-position:0 0,center}').join('\n')}
+${Object.entries(SCENE).map(([k,u])=>'html[data-view="'+k+'"] .hwcr,html[data-view="'+k+'"] .bn:not(.hwct){background-image:linear-gradient(90deg,color-mix(in srgb,var(--rg) 20%,var(--pn)) 12%,color-mix(in srgb,var(--rg) 12%,transparent) 70%),url('+u+');background-size:auto,cover;background-position:0 0,center}').join('\n')}
 
 /* progress bars: glass tubes with a lit fill */
 html .bar{height:12px;border-radius:999px;background:var(--p2);border:1px solid var(--edge,var(--ln));overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.25)}
@@ -95,8 +103,8 @@ ${Object.entries(TILE).map(([k,c])=>'html #hub.hub .hb[data-v="'+k+'"]{--tc:'+c+
 @media(hover:hover){html #hub.hub .hb:hover{transform:translateY(-4px)}}
 
 /* nothing moves with reduced motion or in the Performance mode */
-html.hw-rm .hwcr::after,html.hw-q-performance .hwcr::after,html.hw-rm #hub.hub .hb,html.hw-q-performance #hub.hub .hb{animation:none!important}
-@media(prefers-reduced-motion:reduce){html .hwcr::after,html #hub.hub .hb{animation:none!important}}
+html.hw-rm .hwcr::after,html.hw-q-performance .hwcr::after,html.hw-rm .bn::after,html.hw-q-performance .bn::after,html.hw-rm #hub.hub .hb,html.hw-q-performance #hub.hub .hb{animation:none!important}
+@media(prefers-reduced-motion:reduce){html .bn::after,html .hwcr::after,html #hub.hub .hb{animation:none!important}}
 html.hw-q-performance #main::before{display:none}
 ${Object.entries(PATS).map(([k,u])=>'html[data-view="'+k+'"]{--rgp:'+u+'}').join('\n')}
 `);
@@ -134,6 +142,8 @@ const SC={
   kingdom:()=>stars(30,66)+moon(352,24,8)+hills()+castle(282,1.05),
   quests:()=>stars(26,66)+sun(250,52,12,'#ffb24a')+hills()+castle(300,.8),
   pulse:()=>stars(16,60)+hills()+'<path d="M0 100h120l12-30 14 56 12-40 10 14h210" fill="none" style="stroke:#ff8f87;stroke-width:3;stroke-linejoin:round;stroke-linecap:round"/>'};
+const gear=()=>'<g transform="translate(300 66)" style="fill:none;stroke:'+mx(70,'#fff')+';stroke-width:4;opacity:.8"><circle r="20"/><circle r="7"/>'+Array.from({length:8},(_,i)=>'<rect x="-4" y="-34" width="8" height="10" style="fill:'+mx(70,'#fff')+';stroke:none" transform="rotate('+i*45+')"/>').join('')+'</g>';
+SC.set=()=>stars(26,70)+gear()+hills();
 SC.exercise=SC.stair;SC.run=SC.stair;SC.campus=SC.stair;SC.score=SC.body;SC.health=SC.kingdom;SC.home=SC.kingdom;SC.bmi=SC.body;SC.calc=SC.body;
 HWUI.css('flair-scene',`
 .fxhero{position:relative;overflow:hidden;margin:6px 0 16px;padding:20px 16px 58px;border-radius:var(--r-card);min-height:150px;isolation:isolate;
@@ -152,12 +162,12 @@ HWUI.css('flair-scene',`
 html.hw-rm .fxs,html.hw-rm .fxw,html.hw-rm .fxc,html.hw-rm .fxsm,html.hw-q-performance .fxs,html.hw-q-performance .fxw,html.hw-q-performance .fxc,html.hw-q-performance .fxsm{animation:none!important}
 @media(prefers-reduced-motion:reduce){.fxs,.fxw,.fxc,.fxsm{animation:none!important}}
 `);
-const STRIP=['time','monument','stats'];
+const NOHERO=['home','lab','welcome','onb','title','campus'];   // Home has its profile card, the Laboratory its painted room, the map its own stage
 /** moves the page title (and the line under it) into a scene header */
-function hero(){const m=document.getElementById('main');if(!m)return;const mk=SC[S.v];if(!mk)return;
+function hero(){const m=document.getElementById('main');if(!m)return;if(NOHERO.includes(S.v))return;const mk=SC[S.v]||SC.kingdom;
   const h=m.querySelector('h2');
   if(!h||h.closest('.card,.fxhero')){ // pages that open straight into a card (Time Machine, Monument): a plain scene strip, no title (the banner above already names the page)
-    if(!STRIP.includes(S.v)||m.querySelector('.fxhero'))return;const c=m.querySelector('.card');if(!c)return;
+    if(m.querySelector('.fxhero'))return;const c=m.querySelector('.card');if(!c)return;
     const t=document.createElement('div');t.className='fxhero fxstrip';t.innerHTML='<svg viewBox="0 0 390 150" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">'+mk()+'</svg>';c.before(t);return}
   const nx=h.nextElementSibling,p=nx&&nx.tagName==='P'?nx:null;
   const d=document.createElement('div');d.className='fxhero';d.innerHTML='<svg viewBox="0 0 390 150" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">'+mk()+'</svg>';
