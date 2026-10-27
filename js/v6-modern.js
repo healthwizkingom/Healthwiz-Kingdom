@@ -79,8 +79,20 @@ html .tmsum{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 4px}
 html .tmsum span{flex:1 1 90px;text-align:center;padding:8px 6px;border-radius:12px;background:var(--p2);font-size:13px}
 html .tmsum span b{display:block;font:700 22px/1.2 var(--fn)}
 
-/* Science Laboratory: readable tool cards (muted text on gold buttons was unreadable) */
-html .gold-sub,html #lab button small,html .lbtool small{color:inherit;opacity:.85}
+/* Science Laboratory: four plain-language tool cards, then what / why / first step, readable on every theme */
+html .labtabs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+html .labtool{display:flex;flex-direction:column;align-items:flex-start;gap:8px;text-align:left;padding:12px;min-height:0;border-radius:var(--r-card);flex-wrap:nowrap;justify-content:flex-start}
+html .labtool .labti{flex:0 0 auto;display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--p2)}
+html .labtool .labtt{display:flex;flex-direction:column;gap:2px;min-width:0}
+html .labtool .labtn{font:700 11px/1.2 var(--fn);letter-spacing:.04em;color:var(--mut)}
+html .labtool b{font:700 15px/1.25 var(--fn)}html .labtool .labtd{font:400 12.5px/1.4 var(--fn);color:var(--mut);letter-spacing:0}
+html .labtool.on{background:var(--gold);color:#1d1730;border-color:var(--gold)}html .labtool.on .labtn,html .labtool.on .labtd{color:#3a2c0a}
+@media(max-width:380px){html .labtabs{grid-template-columns:1fr}}
+html .labinfo{display:grid;gap:10px;margin:0 0 14px;padding:14px;border-radius:var(--r-card);background:var(--pn);border:1px solid var(--edge,var(--ln))}
+html .labinfo dt{font:700 12px/1.3 var(--fn);letter-spacing:.04em;color:var(--mut);margin:0 0 2px}
+html .labinfo dd{margin:0;font:400 15px/1.5 var(--fn);color:var(--ink)}
+html .labintro{padding:14px}html .labintro p{font-size:14px}
+html .labq{min-height:64px;text-align:left;justify-content:flex-start;gap:12px}html .labq small{display:block;color:#3a2c0a;font-weight:400;font-size:13px;letter-spacing:0}
 
 /* Ask Luna, Luna's header button and Luke are drawn smooth, never as chunky pixels (the speech bubble keeps her pixel figure) */
 html .v6lp .v6lpf,html .v6lmini,html .v6lbust,html .awfig,html .awface,html .awmfig{image-rendering:auto}

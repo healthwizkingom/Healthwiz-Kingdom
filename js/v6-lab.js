@@ -108,7 +108,13 @@ function bars(vals,labels,unit,what){const ok=vals.filter(v=>v!=null),mx=Math.ma
     return '<div class="lbar" tabindex="0" role="img" aria-label="'+esc(t)+'" title="'+esc(t)+'"><span class="lbv">'+(v==null?'—':fmt(v))+'</span><span class="lbt"><i style="height:'+(v==null?0:Math.max(2,Math.round(Math.abs(v)/mx*100)))+'%"></i></span><span class="lbl">'+esc(labels[i])+'</span></div>'}).join('')+'</div>'}
 
 /* ---------- the page ---------- */
-const tabs=()=>'<div class="labtabs" role="tablist" aria-label="Laboratory sections">'+SEC.map(s=>'<button type="button" role="tab" class="chip'+(Z.tab===s.k?' on':'')+'" aria-selected="'+(Z.tab===s.k)+'" data-a="labtab" data-k="'+s.k+'">'+ico(s.icon)+' '+s.name+'</button>').join('')+'</div>';
+/* plain-language names and one-line descriptions for each tool (the original names stay as the small label) */
+const PLAIN={exp:['Test a guess','Ask a question and check it with your own logs.'],
+  trial:['Spot weak evidence','A short quiz: is this data enough to believe?'],
+  vault:['Where numbers come from','The formula and sources behind each number.'],
+  unc:['How sure are we?','Change one assumption and watch the estimate move.']};
+const tabs=()=>'<div class="labtabs" role="tablist" aria-label="Laboratory sections">'+SEC.map(s=>{const p=PLAIN[s.k]||[s.name,''],on=Z.tab===s.k;
+  return '<button type="button" role="tab" class="chip labtool'+(on?' on':'')+'" aria-selected="'+on+'" data-a="labtab" data-k="'+s.k+'"><span class="labti">'+ico(s.icon,2)+'</span><span class="labtt"><small class="labtn">'+s.name+'</small><b>'+p[0]+'</b><span class="labtd">'+p[1]+'</span></span></button>'}).join('')+'</div>';
 /* what each section is, why it matters and what to do first (plain language); the Vault's and the Uncertainty Engine's texts live here too so the page reads the same everywhere */
 const INFO={
   exp:{what:'A guided mini-experiment: question, prediction, plan, results and a short report, using entries you already log.',why:'It shows the difference between a guess and evidence, and why a few days of data can only hint at an answer.',next:'Pick a question below. There is nothing extra to type.'},
@@ -116,14 +122,14 @@ const INFO={
   vault:{what:'The sources and calculations behind the numbers in HealthWiz: the formula the app runs, where it comes from and what it cannot tell you.',why:'So you can check where an estimate comes from instead of trusting it blindly.',next:'Search, open a calculation, or press the ? beside any result to land on its entry.'},
   unc:{what:'Shows how an estimate moves when an assumption or an input changes. Your original value always stays visible.',why:'One number looks exact, but it depends on assumptions. This shows how much.',next:'Pick an estimate, then change one choice at a time.'}};
 const GLOSS=[['Observation','one saved entry used as evidence, such as one workout or one night of sleep.'],['Prediction','your guess about what you will find. A guess you can test.'],['Independent variable','the thing that changes (for example, stair steepness).'],['Dependent variable','the thing you measure to see the effect (for example, pulse rise in BPM).'],['Control','something you keep the same so it does not blur the result.'],['Mean','the average: the total divided by the number of observations.'],['n','how many observations are in a group.'],['Estimate','a number worked out from a formula and assumptions, not measured directly.']];
-const intro=()=>'<div class="card labintro"><p>Test health questions with your own logs, practise judging evidence, and see where every number in HealthWiz comes from. Results describe patterns in your entries.'+HWHelp.btn('labnote','About the Laboratory','<p>They are not diagnoses and not medical advice.</p>')+'</p>'
+const intro=()=>'<div class="card labintro"><p><b>Real data, real methods.</b> Test your own questions, practise judging evidence, and see where every number comes from. Results describe patterns in your entries, not diagnoses.'+HWHelp.btn('labnote','About the Laboratory','<p>They are not diagnoses and not medical advice.</p>')+'</p>'
   +'<details class="labgl"><summary>Words and labels used here</summary><dl class="labdl">'+GLOSS.map(g=>'<dt>'+g[0]+'</dt><dd>'+g[1]+'</dd>').join('')+'</dl>'
   +'<p class="lableg"><span class="pxtag">ENTERED BY YOU</span> <span class="pxtag">MEASURED BY A DEVICE</span> <span class="pxtag">WORKED OUT</span> <span class="pxtag">ESTIMATE</span> <span class="pxtag">SAMPLE</span> Each number says which of these it is. Anything written by an AI is labelled as such where it appears.</p></details></div>';
 const info=k=>{const i=INFO[k];return i?'<dl class="labinfo"><div><dt>What it is</dt><dd>'+i.what+'</dd></div><div><dt>Why it matters</dt><dd>'+i.why+'</dd></div><div><dt>Do this first</dt><dd>'+i.next+'</dd></div></dl>':''};
 function page(){const s=SEC.find(x=>x.k===Z.tab)||SEC[0];
   return '<div class="labhd" id="labsc"><img class="labbg" src="assets/img/lab-scene.webp" alt="Luna\'s cosy study" width="640" height="358"><span class="labglow" aria-hidden="true"></span>'
     +'<span class="labmotes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="labluna" id="labluna" data-a="labluna" role="button" tabindex="0" title="Luna, the apprentice witch" aria-label="Luna, the apprentice witch: tap for a tip"></span>'
-    +'<p class="labcap"><b>THE SCIENCE LABORATORY</b>Real data and real methods. Every number says where it came from.</p></div>'+intro()+tabs()+info(s?s.k:'')
+    +'<p class="labcap"><b>THE SCIENCE LABORATORY</b>Real data and real methods.</p></div>'+tabs()+info(s?s.k:'')+intro()
     +'<div class="labsec" role="tabpanel" aria-label="'+esc(s?s.name:'')+'">'+(s?s.render():'')+'</div>'}
 
 /* ---------- Be Your Own Experiment ---------- */
