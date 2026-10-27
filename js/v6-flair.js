@@ -44,7 +44,9 @@ const TILE={food:'#f0a03c',sleep:'#8b7bff',stair:'#3fbf8f',exercise:'#e8734a',st
 
 HWUI.css('flair',`
 /* the region colour of the page; set by the hook below */
-html{--rg:#8b7bff;--rg-soft:color-mix(in srgb,var(--rg) 16%,transparent);--rg-mid:color-mix(in srgb,var(--rg) 34%,transparent)}
+html{--rg:#8b7bff}
+/* the colour is set on the page area and the header only (not on <html>), so changing page restyles those, not the whole document */
+html,html #main,html header{--rg-soft:color-mix(in srgb,var(--rg) 16%,transparent);--rg-mid:color-mix(in srgb,var(--rg) 34%,transparent)}
 /* a faint aurora behind everything on the page */
 html #main{position:relative}
 html #main::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
@@ -121,7 +123,6 @@ ${Object.entries(TILE).map(([k,c])=>'html #hub.hub .hb[data-v="'+k+'"]{--tc:'+c+
 html.hw-rm .hwcr::after,html.hw-q-performance .hwcr::after,html.hw-rm .bn::after,html.hw-q-performance .bn::after,html.hw-rm #hub.hub .hb,html.hw-q-performance #hub.hub .hb{animation:none!important}
 @media(prefers-reduced-motion:reduce){html .bn::after,html .hwcr::after,html #hub.hub .hb{animation:none!important}}
 html.hw-q-performance #main::before{display:none}
-${Object.entries(PATS).map(([k,u])=>'html[data-view="'+k+'"]{--rgp:'+u+'}').join('\n')}
 `);
 
 
@@ -175,17 +176,20 @@ const FIXED=(()=>{const c=document.documentElement.classList;return c.contains('
 const SVGCSS=()=>'<style>.fxs{fill:#fff;animation:t 3.2s ease-in-out infinite alternate}.fxf{fill:#fff3a8;animation-duration:4.4s}@keyframes t{from{opacity:.15}to{opacity:1}}'
   +'.fxw{animation:w linear infinite}@keyframes w{from{transform:translateX(0)}to{transform:translateX(-130px)}}.fxc{animation:c linear infinite alternate}@keyframes c{from{transform:translateX(-24px)}to{transform:translateX(24px)}}'
   +'.fxsm{animation:m 3.6s ease-in-out infinite}@keyframes m{0%,100%{opacity:.2}50%{opacity:.6}}'+(FIXED?'*{animation:none!important}':'@media (prefers-reduced-motion:reduce){*{animation:none!important}}')+'</style>';
+const PIC={};   // one drawn picture per page, made on first visit
 const picture=mk=>'url("data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 150" preserveAspectRatio="xMidYMax slice">'+SVGCSS()+mk()+'</svg>')+'")';
 const NOHERO=['home','lab','welcome','onb','title','campus'];   // Home has its profile card, the Laboratory its painted room, the map its own stage
 /** moves the page title (and the line under it) into a scene header; the scene is the header's background picture */
 function hero(){const m=document.getElementById('main');if(!m)return;if(NOHERO.includes(S.v)||m.querySelector('.fxhero'))return;
   CUR=RG[S.v]||'#8b7bff';const mk=SC[S.v]||SC.kingdom;
-  const h=m.querySelector('h2'),d=document.createElement('div');d.className='fxhero';d.style.setProperty('--scene',picture(mk));
+  const h=m.querySelector('h2'),d=document.createElement('div');d.className='fxhero';d.style.setProperty('--scene',PIC[S.v]||(PIC[S.v]=picture(mk)));
   if(!h||h.closest('.card,.fxhero')){ // pages that open straight into a card (Time Machine, Monument): a plain scene strip, no title (the banner above already names the page)
     const c=m.querySelector('.card');if(!c)return;d.classList.add('fxstrip');c.before(d);return}
   const nx=h.nextElementSibling,p=nx&&nx.tagName==='P'?nx:null;
   h.before(d);d.appendChild(h);if(p)d.appendChild(p)}
 // the hook: remember which page this is, and its colour
+let lastV=null;
 {const r=render;render=function(){const x=r.apply(this,arguments);
-  try{const e=document.documentElement,v=S.v||'home';e.dataset.view=v;e.style.setProperty('--rg',RG[v]||'#8b7bff');hero()}catch(err){console.error('[HWFlair]',err)}return x}}
+  try{const v=S.v||'home',c=RG[v]||'#8b7bff',p=PATS[v]||'none';if(v!==lastV){lastV=v;document.documentElement.dataset.view=v}
+    [document.getElementById('main'),document.querySelector('header')].forEach(x=>{if(x){x.style.setProperty('--rg',c);x.style.setProperty('--rgp',p)}});hero()}catch(err){console.error('[HWFlair]',err)}return x}}
 return{RG,TILE}})();
