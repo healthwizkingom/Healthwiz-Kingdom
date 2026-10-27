@@ -43,7 +43,7 @@ const POSES=['front','three','side','back','walk','cast','read','inspect','wave'
 const FACES=['happy','confused','nervous','determined','surprised','tired','excited','curious','thinking','laughing','sad','annoyed'];   // luke-faces.webp, in this order
 // the owner's expression sheets (2026-10-27), cut head to waist by tools/art/make_luke_hires.py: the twelve expression poses show these (about four times
 // the detail of the pixel figures) in the scene; the other ten poses and Meet Luke keep the pixel figures. luke-hires-1: the first six faces, -2: the rest.
-const HIRES=['assets/img/luke-hires-1.webp','assets/img/luke-hires-2.webp'],HIFACE={happy:'happy',confused:'confused',nervous:'nervous',determined:'determined',surprised:'surprised',tired:'tired',excited:'excited',curious:'curious',think:'thinking',laugh:'laughing',sad:'sad',annoyed:'annoyed'};
+const HIRES=['assets/img/luke-hires-1.webp','assets/img/luke-hires-2.webp'],HIFACE={happy:'happy',confused:'confused',nervous:'nervous',determined:'determined',surprised:'surprised',tired:'tired',excited:'excited',curious:'curious',think:'thinking',sad:'sad',annoyed:'annoyed'};
 const POSENAME={front:'Front view',three:'Three-quarter view',side:'Side view',back:'Back view',walk:'Walking',cast:'Casting a spell',read:'Reading his spellbook',inspect:'Inspecting a potion',wave:'Waving hello',rest:'Resting',happy:'Happy',confused:'Confused',nervous:'Nervous',determined:'Determined',surprised:'Surprised',tired:'Tired',excited:'Excited',curious:'Curious',think:'Thinking',laugh:'Laughing',sad:'Sad',annoyed:'Annoyed'};
 const pat=(L,k)=>(L.indexOf(k)/(L.length-1)*100).toFixed(4)+'%';
 const r1=v=>Math.round(v*10)/10,fmt=v=>v==null?'–':(Math.round(v*10)/10).toLocaleString(undefined,{maximumFractionDigits:1});
@@ -246,12 +246,24 @@ HWUI.css('addfood',`
 .awscene{aspect-ratio:4/3}.awroom{display:block;width:100%;height:100%;object-fit:cover;image-rendering:auto}   /* his room is a painting, drawn smoothed */
 .awfig{position:absolute;left:50%;margin-left:-37.5%;top:2%;height:150%;aspect-ratio:2/3;background:url(${POSE}) no-repeat;background-size:${POSES.length*100}% 100%;image-rendering:auto;transform-origin:50% 0;
   filter:drop-shadow(0 0 6px rgba(255,226,122,.45))}
-.awfig.hi{aspect-ratio:167/192;height:100%;top:2%;margin-left:-32.6%;background-size:600% 100%;background-position:calc(var(--hx) * 20%) 0;background-repeat:no-repeat;filter:drop-shadow(0 4px 10px rgba(0,0,0,.45))}
-.awfig.bob{animation:awbob 1.6s steps(2) infinite alternate}.awfig.hop{animation:awhop .7s steps(3) infinite}.awfig.shake{animation:awshake .3s steps(2) 6}
-.awfig.tilt{animation:awtilt 1.4s steps(2) infinite alternate}.awfig.sway{animation:awsway 2.6s steps(3) infinite alternate}.awfig.lean{animation:awlean 1s steps(2) infinite alternate}
+.awfig.hi{aspect-ratio:167/192;height:100%;top:2%;margin-left:-32.6%;background-size:600% 100%;background-position:calc(var(--hx) * 20%) 0;background-repeat:no-repeat;filter:drop-shadow(0 4px 10px rgba(0,0,0,.45)) drop-shadow(0 0 8px rgba(255,226,122,.35))}
+.awfig{z-index:1;transform-origin:50% 75%}
+.awfig.bob{animation:awbob 3.8s ease-in-out infinite}.awfig.hop{animation:awhop .8s ease-in-out infinite}.awfig.shake{animation:awshake .5s ease-in-out 3}
+.awfig.tilt{animation:awtilt 2.6s ease-in-out infinite alternate}.awfig.sway{animation:awsway 3.4s ease-in-out infinite alternate}.awfig.lean{animation:awlean 1.8s ease-in-out infinite alternate}
 .awfig.turn{animation:awturn 6s steps(1) infinite}   /* turns all the way round: walking, three-quarter, side, back, side, three-quarter, front */
-@keyframes awbob{to{translate:0 -2px}}@keyframes awhop{50%{translate:0 -7%}}@keyframes awshake{25%{translate:-3px 0}75%{translate:3px 0}}
-@keyframes awtilt{from{rotate:-3deg}to{rotate:3deg}}@keyframes awsway{to{rotate:1.5deg}}@keyframes awlean{to{translate:2% 0}}
+/* the motion follows Luna's idle: a slow breath (rise, a little squash and stretch, a hair of tilt) that never steps */
+@keyframes awbob{0%,100%{transform:translateY(0) scale(1,1) rotate(0)}32%{transform:translateY(-3.5px) scale(1.02,1.028) rotate(.6deg)}68%{transform:translateY(-1.2px) scale(.992,1.012) rotate(-.5deg)}}
+@keyframes awhop{0%,100%{transform:translateY(0) scale(1.03,.97)}45%{transform:translateY(-16px) scale(.98,1.03)}}
+@keyframes awshake{0%,100%{transform:translateX(0) rotate(0)}25%{transform:translateX(-5px) rotate(-1.2deg)}75%{transform:translateX(5px) rotate(1.2deg)}}
+@keyframes awtilt{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}
+@keyframes awsway{from{transform:translateX(-4px) rotate(-1deg)}to{transform:translateX(4px) rotate(1.2deg)}}
+@keyframes awlean{from{transform:translateX(0) rotate(0)}to{transform:translateX(10px) rotate(2deg)}}
+/* a soft glow behind him and a few glints, as around Luna */
+.awscene::before{content:"";position:absolute;left:50%;top:4%;width:74%;aspect-ratio:1;margin-left:-37%;border-radius:50%;pointer-events:none;background:radial-gradient(closest-side,rgba(255,226,122,.30),rgba(139,92,240,.16) 55%,transparent 76%);animation:awaura 4.2s ease-in-out infinite alternate}
+@keyframes awaura{from{opacity:.55;transform:scale(.94)}to{opacity:1;transform:scale(1.06)}}
+.awscene::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle 2px at 20% 28%,#fff7c8 96%,transparent),radial-gradient(circle 2.5px at 80% 20%,#fff7c8 96%,transparent),radial-gradient(circle 1.8px at 72% 52%,#cfe9ff 96%,transparent),radial-gradient(circle 2px at 28% 58%,#fff 96%,transparent);animation:awtw 3.2s ease-in-out infinite alternate}
+@keyframes awtw{from{opacity:.1}to{opacity:.95}}
+html.hw-rm .awscene::before,html.hw-rm .awscene::after,html.hw-q-performance .awscene::before,html.hw-q-performance .awscene::after,html.hw-q-performance .awfig{animation:none!important}
 @keyframes awturn{0%{background-position:${pat(POSES,'walk')} 0}12.5%{background-position:${pat(POSES,'three')} 0}25%{background-position:${pat(POSES,'side')} 0}37.5%{background-position:${pat(POSES,'back')} 0}62.5%{background-position:${pat(POSES,'side')} 0}75%{background-position:${pat(POSES,'three')} 0}87.5%{background-position:${pat(POSES,'front')} 0}100%{background-position:${pat(POSES,'walk')} 0}}
 .awprop{position:absolute;right:6%;top:6%;z-index:1;width:40px;height:40px;background:url(${PROPS}) no-repeat;background-size:280px 40px;image-rendering:pixelated;image-rendering:crisp-edges;transform:scale(1.25);transform-origin:0 100%;
   filter:drop-shadow(0 0 6px rgba(246,201,79,.7));animation:awfloat 1.8s steps(2) infinite alternate}
