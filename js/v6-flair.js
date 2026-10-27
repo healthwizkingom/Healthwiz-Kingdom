@@ -192,4 +192,53 @@ let lastV=null;
 {const r=render;render=function(){const x=r.apply(this,arguments);
   try{const v=S.v||'home',c=RG[v]||'#8b7bff',p=PATS[v]||'none';if(v!==lastV){lastV=v;document.documentElement.dataset.view=v}
     [document.getElementById('main'),document.querySelector('header')].forEach(x=>{if(x){x.style.setProperty('--rg',c);x.style.setProperty('--rgp',p)}});hero()}catch(err){console.error('[HWFlair]',err)}return x}}
-return{RG,TILE}})();
+
+/* ---------- START YOUR QUEST: a flight through the clouds into the kingdom (the owner's request, 2026-10-27) ----------
+   The camera flies up through three depths of cumulus: far clouds small, pale and a little soft; middle ones; near ones large
+   and sharp, rushing past the edges. Each cloud is white on top with a light-blue underside and a soft light-blue shadow.
+   Behind them a sky veil brightens with slow sun rays; a flock of birds crosses; golden glints twinkle. While the veil
+   covers the screen the page changes to Home (or the Registry for a new traveller), then the clouds part and fade.
+   About 1.7 s in all. Nothing of it with reduced motion or in the Performance mode (the old quick fade is kept there).
+   A fixed layer over the page that ignores the pointer, removed when it ends; CSS animations only. */
+const CLOUD=pat(200,100,'<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset=".38" stop-color="#ffffff"/><stop offset=".78" stop-color="#e3efff"/><stop offset="1" stop-color="#b5d1f4"/></linearGradient></defs>'
+  +'<path fill="url(#g)" d="M28 86c-15 0-22-10-20-20 2-11 13-16 22-13 1-15 15-26 30-23 6-15 23-23 39-17 10-12 30-13 41 0 14-4 30 5 31 21 13 1 22 12 20 25-2 10-10 17-20 17z"/>'
+  +'<path fill="#ffffff" opacity=".75" d="M60 40c4-10 17-15 27-11M108 26c7-6 19-6 26 1" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>');
+const BIRD='<svg viewBox="0 0 20 8" width="20" height="8" aria-hidden="true"><path d="M1 6q4.5-5 9 0q4.5-5 9 0" fill="none" stroke="#3a4f7a" stroke-width="1.6" stroke-linecap="round"/></svg>';
+HWUI.css('flair-clouds',`
+#v6sky{position:fixed;inset:0;z-index:95;pointer-events:none;overflow:hidden;perspective:900px}
+#v6sky .sv{position:absolute;inset:-10%;background:radial-gradient(70% 60% at 50% 45%,#ffffff 0,#eaf4ff 40%,#cfe5ff 72%,#b8d6fb 100%);opacity:0;animation:svv 1.7s ease-in-out forwards}
+@keyframes svv{0%{opacity:0}22%,50%{opacity:1}100%{opacity:0}}
+#v6sky .sr{position:absolute;left:50%;top:42%;width:170vmax;height:170vmax;margin:-85vmax 0 0 -85vmax;border-radius:50%;
+  background:repeating-conic-gradient(from 0deg,rgba(255,250,225,.55) 0deg 5deg,rgba(255,250,225,0) 5deg 18deg);
+  -webkit-mask-image:radial-gradient(closest-side,#000 8%,transparent 70%);mask-image:radial-gradient(closest-side,#000 8%,transparent 70%);
+  opacity:0;animation:svr 1.7s ease-in-out forwards}
+@keyframes svr{0%{opacity:0;transform:rotate(-8deg) scale(.9)}45%{opacity:.85}100%{opacity:0;transform:rotate(10deg) scale(1.08)}}
+#v6sky .cl{position:absolute;left:50%;top:50%;width:var(--w);aspect-ratio:2/1;margin:calc(var(--w) * -.25) 0 0 calc(var(--w) * -.5);
+  background:${CLOUD} center/100% 100% no-repeat;filter:drop-shadow(0 calc(var(--w) * .06) calc(var(--w) * .05) rgba(120,170,235,.55));
+  opacity:0;animation:svc var(--d) cubic-bezier(.4,.05,.5,1) var(--l) forwards}
+#v6sky .cl.far{filter:blur(1.5px) drop-shadow(0 8px 8px rgba(140,185,240,.45))}
+@keyframes svc{0%{opacity:0;transform:translate(var(--x0),var(--y0)) scale(.25)}
+  18%{opacity:var(--o)}75%{opacity:var(--o)}100%{opacity:0;transform:translate(var(--x1),var(--y1)) scale(var(--s1))}}
+#v6sky .bd{position:absolute;left:-10%;animation:svb 1.5s ease-in-out .15s forwards;opacity:0}
+#v6sky .bd svg{display:block;animation:svf .3s ease-in-out infinite alternate}
+@keyframes svb{0%{opacity:0;transform:translate(0,0)}15%{opacity:.9}85%{opacity:.9}100%{opacity:0;transform:translate(125vw,-14vh)}}
+@keyframes svf{to{transform:scaleY(.45)}}
+#v6sky .gl{position:absolute;width:14px;height:14px;background:radial-gradient(closest-side,#fff8d0,#ffd36b 45%,transparent 72%);
+  clip-path:polygon(50% 0,60% 40%,100% 50%,60% 60%,50% 100%,40% 60%,0 50%,40% 40%);opacity:0;animation:svgl 1s ease-in-out var(--l) 1 forwards}
+@keyframes svgl{0%,100%{opacity:0;transform:scale(.3) rotate(0)}50%{opacity:1;transform:scale(1.2) rotate(45deg)}}
+`);
+const rnd2=i=>{const x=Math.sin(i*91.7+17.3)*43758.5453;return x-Math.floor(x)};
+function skyFlight(){if(document.getElementById('v6sky'))return;const el=document.createElement('div');el.id='v6sky';el.setAttribute('aria-hidden','true');
+  let h='<div class="sv"></div><div class="sr"></div>';
+  // [count, width (vmin), end scale, opacity, duration range, class]: far, middle, near
+  [[8,26,2.2,.75,[1100,1400],'far'],[7,44,3.0,.95,[950,1200],''],[6,70,4.2,1,[800,1000],'']].forEach((L,li)=>{for(let k=0;k<L[0];k++){const n=li*20+k,a=rnd2(n)*Math.PI*2,r0=4+rnd2(n+3)*10,r1=55+rnd2(n+7)*40;
+    const d=L[4][0]+rnd2(n+11)*(L[4][1]-L[4][0]),l=rnd2(n+13)*(li===2?520:380);
+    h+='<i class="cl '+L[5]+'" style="--w:'+L[1]+'vmin;--o:'+L[3]+';--s1:'+L[2]+';--d:'+Math.round(d)+'ms;--l:'+Math.round(l)+'ms;--x0:'+(Math.cos(a)*r0).toFixed(1)+'vw;--y0:'+(Math.sin(a)*r0*.7).toFixed(1)+'vh;--x1:'+(Math.cos(a)*r1*1.4).toFixed(1)+'vw;--y1:'+(Math.sin(a)*r1).toFixed(1)+'vh;z-index:'+(li+1)+'"></i>'}});
+  for(let k=0;k<5;k++)h+='<span class="bd" style="top:'+(18+k*4+rnd2(k+40)*6).toFixed(1)+'%;margin-left:'+(k%2?18:0)+'px;animation-delay:'+(150+k*70)+'ms">'+BIRD+'</span>';
+  for(let k=0;k<9;k++)h+='<i class="gl" style="left:'+(10+rnd2(k+60)*80).toFixed(1)+'%;top:'+(15+rnd2(k+70)*65).toFixed(1)+'%;--l:'+(250+k*110)+'ms"></i>';
+  el.innerHTML=h;document.body.appendChild(el);setTimeout(()=>el.remove(),1900)}
+// START / CONTINUE on the title screen: the flight starts at once; the page changes while the clouds cover it
+{const g=acts.go;acts.go=function(d){const calm=HWUI.reduced()||(typeof HWMotion!=='undefined'&&HWMotion.level()==='performance');
+  if(S.v==='welcome'&&d&&d.v!=='set'&&!calm&&!document.getElementById('v6sky'))skyFlight();   // the title's own zoom then changes the page at about 420 ms, under the full veil
+  return g.apply(this,arguments)}}
+return{RG,TILE,skyFlight}})();

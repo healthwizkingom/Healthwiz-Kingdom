@@ -242,4 +242,30 @@ HWUI.css('looks-keep',`.v6ksv{display:block;width:100%;height:clamp(180px,52vw,2
 .v6ksv *,.v6keep *{transform-box:fill-box}.v6rev{animation-direction:reverse!important}
 html.hw-q-performance .v6ksv .zt,html.hw-q-performance .v6ksv .zp{animation:none!important}`);
 {const p=pages.kingdom;pages.kingdom=(...a)=>{const h=p(...a),k='<div class="card" id="v6chron">',i=h.indexOf(k);return i<0?h+kcard():h.slice(0,i)+kcard()+h.slice(i)}}
+/* ---------- the tutorial asks for a theme (the owner's request, 2026-10-27) ----------
+   One more step in Medius's tour (TS, js/hw-04-part.js), on the Settings page right before his farewell, pointing at this
+   Theme card: he asks which colours the kingdom shall wear, and the answers sit in his speech box. The choices go from the
+   one that suits every device to the more particular: Default, Match my device (follows the phone's light or dark), three
+   palettes, and Later. A choice is applied and saved at once, and the tour moves on; tapping elsewhere also moves on and
+   changes nothing. The line has no recording (Medius stays silent on it rather than requesting a file that does not exist). */
+const TUTLINE="Ere I depart, {name}: what colours shall thy kingdom wear? Choose one now, or change it here in Settings whenever thou wilt.";
+const TUTCH=[['arcane','Default'],['match','Match my device'],['p:ocean:100','Ocean'],['forest','Enchanted Forest'],['p:rose:100','Rose'],['later','Later']];
+if(typeof TS!=='undefined'&&!TS.some(x=>x[3]==='theme'))TS.splice(TS.length-1,0,['set','#v6theme',TUTLINE,'theme']);
+if(typeof HWMedius!=='undefined'){const sp=HWMedius.speak;HWMedius.speak=function(t,tmpl){if(tmpl===TUTLINE){HWMedius.hush();return}return sp.apply(this,arguments)}}
+const tutStep=()=>{const r=document.getElementById('tut'),g=r&&r.querySelector('.tbx small'),m=g&&/^(\d+)\s*\//.exec(g.textContent);return m?+m[1]-1:-1};
+function tutChoices(){const r=document.getElementById('tut');if(!r)return;const bx=r.querySelector('.tbx'),i=tutStep(),on=i>=0&&TS[i]&&TS[i][3]==='theme',have=bx&&bx.querySelector('.tutch');
+  if(!bx||on===!!have)return;if(!on){have.remove();return}
+  const c=choice(),m=match();
+  bx.querySelector('p').insertAdjacentHTML('afterend','<div class="tutch" role="group" aria-label="Choose a theme">'+TUTCH.map(x=>{const pressed=x[0]==='match'?m:x[0]!=='later'&&!m&&c===x[0];
+    return '<button type="button" class="sm'+(x[0]==='later'?' g':'')+'" data-tth="'+x[0]+'" aria-pressed="'+pressed+'">'+(THEMES[x[0]]||/^p:/.test(x[0])?'<i style="background:'+resolve(x[0]).v.p2+';border-color:'+resolve(x[0]).v.ink+'"></i>':'')+x[1]+'</button>'}).join('')+'</div>')}
+document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('#tut [data-tth]');if(!b)return;e.stopPropagation();const k=b.dataset.tth;
+  if(k==='match'){st.s.match=1;if(st.s.theme==='auto')st.s.theme='arcane';apply();save()}else if(k!=='later'){st.s.match=0;set(k)}
+  if(k!=='later'&&S.v==='set')render();
+  const r=document.getElementById('tut'),i0=tutStep();if(r){r.click();if(tutStep()===i0&&document.getElementById('tut'))r.click()}},true);
+// watch only the tutorial overlay (it is a direct child of <body>), not every change in the app
+new MutationObserver(()=>{const r=document.getElementById('tut');if(r&&!r._th){r._th=1;new MutationObserver(()=>{try{tutChoices()}catch(err){}}).observe(r,{childList:true,subtree:true,characterData:true});tutChoices()}}).observe(document.body,{childList:true});
+HWUI.css('looks-tut',`#tut .tutch{pointer-events:auto;display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px}
+#tut .tutch button{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:6px 10px;font:600 13px/1.2 var(--fn);text-transform:none;letter-spacing:0}
+#tut .tutch button i{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid}
+#tut .tutch button[aria-pressed="true"]{outline:3px solid var(--gold);outline-offset:1px}`);
 return{THEMES,ORDER,PAL,TINTS,choice,match,resolve,gen,apply,set,ratio,keep,title,restored,storm,ring}})();
