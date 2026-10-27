@@ -67,16 +67,30 @@ pages.stress=function(){const q=S.sq;
     return '<h2>🧠 STRESS QUEST</h2><div class="card dscard">'+top+(q.ph==='dass'?question(q):result(q))+'</div><div class="card"><h3>CHECK-INS</h3>'+list('stress')+'</div>'}
   return base.apply(this,arguments)};
 
+/* The DASS-21 is a WEEKLY check-in (its statements ask about "the past week"): finishing the 21 statements logs it by itself,
+   once per Monday–Sunday week, and that week then counts as done on the Health Hall (the tile and the Next step stop asking).
+   FINISH QUEST later completes this same entry (the storm, the calming tools) instead of adding a second one. */
+const mon=d=>{const x=new Date((d||today())+'T12:00:00');x.setDate(x.getDate()-((x.getDay()+6)%7));return ymd(x)};
+const sun=d=>{const x=new Date(mon(d)+'T12:00:00');x.setDate(x.getDate()+6);return ymd(x)};
+/** this week's DASS-21 entry (the one containing day d, default today), or undefined */
+const weekEntry=d=>{const a=mon(d),z=sun(d);return LC('stress').filter(e=>e.m&&e.m.dass&&e.d>=a&&e.d<=z).pop()};
+const weekDone=d=>!!weekEntry(d);
+function autolog(q){if(!q||!q.dass||weekDone())return;const w=HWWhen.stamp({sig:'s'+q.r0});if(!w)return;const D=q.dass;
+  add('stress',q.r0,{feel:q.feel,end:q.r0,why:[],tech:[],dass:{d:D.d,a:D.a,s:D.s,t:D.t,i:D.i.slice()}},'',w.d,w.t,10,'DASS-21 check-in');
+  q.dassId=st.e[st.e.length-1].id;HWWhen.saved(w,'Check-in')}
 // BEGIN THE QUEST: the 21 statements (instead of the faces, the reasons and the slider)
 acts.sqs=()=>{sqk();S.sq={ph:'dass',i:0,ans:[]};render();const e=document.getElementById('dsq');if(e)e.scrollIntoView({block:'center',behavior:'auto'})};
 acts.dsa=d=>{const q=S.sq;if(!q||q.ph!=='dass')return;const v=+d.v;if(!(v>=0&&v<=3))return;q.ans[q.i]=v;
   if(q.i<IT.length-1){q.i++;render();return}
   const sc=scores(q.ans),r=level(sc.t);
   S.sq={ph:'res',r,r0:r,dass:Object.assign(sc,{i:q.ans.slice()}),feel:'DASS-21: Depression '+sc.d+', Anxiety '+sc.a+', Stress '+sc.s+' (of 42)',why:[],own:'',all:crew(sc),tries:[]};
-  render();window.scrollTo(0,0)};
+  autolog(S.sq);render();window.scrollTo(0,0)};
 acts.dsb=()=>{const q=S.sq;if(q&&q.ph==='dass'&&q.i>0){q.i--;render()}};
 // the saved check-in keeps the DASS answers and scores (an optional field; nothing else in the entry changes)
-{const f0=acts.sqfin;acts.sqfin=(...a)=>{const q=S.sq,n=st.e.length,D=q&&q.dass;f0(...a);
+{const f0=acts.sqfin;acts.sqfin=(...a)=>{const q=S.sq,n=st.e.length,D=q&&q.dass;
+  const e0=q&&q.dassId&&st.e.find(x=>x.id===q.dassId);
+  if(e0){sqk();e0.m.end=q.r;e0.m.why=(q.why||[]).map(i=>SQW[i][1]);e0.m.tech=q.tries;e0.n=q.own||'';save();gain(10+q.tries.length*5,'Quest complete');q.ph='end';render();return}
+  f0(...a);
   const e=st.e[st.e.length-1];if(D&&st.e.length>n&&e&&e.c==='stress'){e.m.dass={d:D.d,a:D.a,s:D.s,t:D.t,i:D.i.slice()};save()}}}
 
 HWUI.css('dass',`
@@ -88,4 +102,4 @@ HWUI.css('dass',`
 .dsrow .num{font-size:24px}.dsrow .bar{grid-column:1/-1;margin:0}.dsnote{margin:10px 0}
 .dshelp{border:3px solid var(--red);padding:8px 12px;margin:10px 0;font-size:14px}.dshelp ul{margin:6px 0;padding-left:18px}.dshelp a{color:var(--gold)}
 `);
-return{IT,OPT,scores,level,crew}})();
+return{IT,OPT,scores,level,crew,weekDone,weekEntry}})();

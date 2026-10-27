@@ -49,6 +49,8 @@ function strength(list,age){const L=(list||[]).filter(e=>+e.v>0).slice().sort((a
   const pd=prev.length?prev.reduce((a,e)=>a+dur(+e.v,lo,hi),0)/prev.length:null;
   const deff=pd==null?d:.75*d+.25*pd;
   return{s:clamp(deff*(.7+.3*q),0,1),d,q,deff,prev:prev.map(e=>+e.v),last,lo,hi}}
+/** Like strength(), but only for a night logged on the day being viewed: yesterday's log is "not logged yet", not today's fight. */
+const fresh=(list,age)=>{const p=strength(list,age),t=typeof HWWhen!=='undefined'&&HWWhen.custom()?HWWhen.date():today();return p&&p.last.d===t?p:null};
 const TIER=[[.2,'EXHAUSTED','Very poor sleep: the knight can barely lift his sword.'],[.45,'WEARY','Poor sleep: slow, heavy swings.'],[.7,'SHORT ON REST','A little short: close, but not quite enough.'],[.9,'READY','Enough sleep: strong and quick.'],[1.01,'FULLY POWERED','Rested and in range: full power.']];
 const tier=s=>TIER.findIndex(t=>s<t[0]);
 
@@ -152,8 +154,8 @@ function scale(p){const pos=Math.round(p.s*100);
     +'<b class="d-mk" style="left:'+pos+'%"></b><b class="d-vt" style="left:'+(T*100)+'%"><span>WIN</span></b></div>'
     +'<div class="db6tl"><span>EXHAUSTED</span><span>WEARY</span><span>SHORT</span><span>READY</span><span>FULL</span></div>'}
 
-function card(){const l=LC('sleep'),p0=strength(l,st.p.age);
-  if(!p0)return scene(null,false)+'<p style="margin:0 0 4px">Log last night\'s sleep to begin the battle. The more rested the knight, the stronger he fights.</p>';
+function card(){const l=LC('sleep'),p0=fresh(l,st.p.age);
+  if(!p0)return scene(null,false)+'<p style="margin:0 0 4px"><b>Not logged yet today.</b> Log last night\'s sleep to begin the battle. The more rested the knight, the stronger he fights.</p>';
   const p=plan(p0.s),key=p0.last.id+':'+Math.round(p.s*1000),live=!played[key]&&!HWMotion.reduced(),t=tier(p.s);
   const qn=p0.last.m||{},prev=p0.prev.length?' · earlier nights '+p0.prev.map(v=>v+' h').join(', '):'';
   const cap=p.win?(p.rounds.length<ROUNDS?'Well rested: the knight wins in '+p.rounds.length+' strikes and frees the princess.':'Rested enough: the knight wears the orc down and frees the princess.')
@@ -168,7 +170,7 @@ function card(){const l=LC('sleep'),p0=strength(l,st.p.age);
   +'<p>At '+Math.round(T*100)+' or more the knight defeats the orc; above that he wins faster.</p></small></details>'}
 
 /* ---------- the battle, played once per night per visit ---------- */
-function play(){const el=$('#dbat');if(!el)return;const l=LC('sleep'),p0=strength(l,st.p.age);if(!p0)return;
+function play(){const el=$('#dbat');if(!el)return;const l=LC('sleep'),p0=fresh(l,st.p.age);if(!p0)return;
   const p=plan(p0.s),key=p0.last.id+':'+Math.round(p.s*1000);played[key]=1;
   if(run)run.t.forEach(clearTimeout);const R=run={t:[]},sp=api.speed;
   const at=(ms,f)=>{R.t.push(setTimeout(()=>{if(run!==R)return;if(!el.isConnected){stop();return}try{f()}catch(e){console.error('[HWDream]',e);stop()}},ms*sp))};
@@ -216,23 +218,23 @@ function play(){const el=$('#dbat');if(!el)return;const l=LC('sleep'),p0=strengt
     const sk=el.parentNode&&el.parentNode.querySelector('.db6skip');if(sk)sk.remove();
     stop()})}
 // SKIP: stop the timers and show the finished outcome at once
-function skip(){if(run){run.t.forEach(clearTimeout);run=null}const old=$('#dbat'),p0=strength(LC('sleep'),st.p.age);if(!old||!p0)return;
+function skip(){if(run){run.t.forEach(clearTimeout);run=null}const old=$('#dbat'),p0=fresh(LC('sleep'),st.p.age);if(!old||!p0)return;
   played[p0.last.id+':'+Math.round(p0.s*1000)]=1;const c=old.parentNode,sk=c.querySelector('.db6skip');if(sk)sk.remove();
   const box=document.createElement('div');box.innerHTML=scene(plan(p0.s),false);c.replaceChild(box.firstChild,old);const b=c.querySelector('[data-a="dbreplay"]');if(b)b.focus({preventScroll:true})}
 acts.dbskip=skip;
-acts.dbreplay=()=>{const l=LC('sleep'),p0=strength(l,st.p.age);if(!p0)return;const c=$('#dbatc');if(!c)return;
+acts.dbreplay=()=>{const l=LC('sleep'),p0=fresh(l,st.p.age);if(!p0)return;const c=$('#dbatc');if(!c)return;
   const k=p0.last.id+':'+Math.round(p0.s*1000);delete played[k];const old=$('#dbat');if(old&&old.parentNode){const box=document.createElement('div');box.innerHTML=scene(plan(p0.s),true);old.parentNode.replaceChild(box.firstChild,old)}
   if(HWMotion.reduced()){render();return}setTimeout(play,120)};
 
 // the original names stay: dbat() draws the card body, dbState() gives the old five-step state (0 = no sleep logged)
 dbat=card;
-dbState=function(){const p=strength(LC('sleep'),st.p.age);return p?Math.min(4,1+Math.floor(p.s*4)):0};
+dbState=function(){const p=fresh(LC('sleep'),st.p.age);return p?Math.min(4,1+Math.floor(p.s*4)):0};
 // a successful sleep save starts the battle by itself (once per saved entry): the entry is already stored by then,
 // so leaving, skipping or a failure here never loses it. A second tap within a moment is ignored (no duplicate night).
 {const o=acts.slsave;let lock=0;acts.slsave=function(){const now=Date.now();if(now-lock<1500)return;
   const n0=st.e.length,r=o.apply(this,arguments),e=st.e[st.e.length-1];
   if(st.e.length>n0&&e&&e.c==='sleep'){lock=now;try{auto()}catch(err){console.error('[HWDream]',err)}}return r}}
-function auto(){const c=$('#dbatc'),p0=strength(LC('sleep'),st.p.age);if(!c||!p0)return;
+function auto(){const c=$('#dbatc'),p0=fresh(LC('sleep'),st.p.age);if(!c||!p0)return;
   const rm=HWMotion.reduced();delete played[p0.last.id+':'+Math.round(p0.s*1000)];
   const old=$('#dbat');if(old){const box=document.createElement('div');box.innerHTML=scene(plan(p0.s),!rm);old.parentNode.replaceChild(box.firstChild,old)}
   const el=$('#dbat');if(!el)return;el.scrollIntoView({behavior:rm?'auto':'smooth',block:'center'});

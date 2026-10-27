@@ -51,6 +51,9 @@ test('Wizard\'s Counsel signed out: the study and the breathing bubble, "Sign in
   const sent = []; page.on('request', r => { if (/supabase\.co|googleapis|anthropic/.test(r.url())) sent.push(r.url()); });
   await go(page, 'stress');
   let t = await page.textContent('#counsel');
+  assert.doesNotMatch(t, /If you might be in danger/, 'the help box is hidden until asked for');
+  await page.click('#counsel [data-a="cshelp"]');
+  t = await page.textContent('#counsel');
   assert.match(t, /If you might be in danger[\s\S]*999[\s\S]*03-7627 2929[\s\S]*15999/, 'crisis numbers before entering the study');
   assert.match(t, /Medius is an AI listener, not a therapist or crisis service\./);
   await page.click('#counsel .hwh[data-hwh="medpriv"]'); assert.match(await page.textContent('#hwh-pop'), /Messages are processed by Google Gemini to generate Medius's replies and are not saved by HealthWiz\./); await page.keyboard.press('Escape');
@@ -60,6 +63,8 @@ test('Wizard\'s Counsel signed out: the study and the breathing bubble, "Sign in
   t = await page.textContent('#counsel');
   assert.match(t, /Sign in to talk with Medius[\s\S]*SIGN IN TO TALK WITH MEDIUS/);
   assert.equal(await page.locator('#csin').count(), 0, 'no message box while signed out');
+  await page.click('#counsel [data-a="cshelp"]');
+  t = await page.textContent('#counsel');
   assert.match(t, /03-7627 2929/);
   assert.equal(await page.locator('#counsel a[href="tel:999"]').count(), 1, 'tap to call');
   assert.deepEqual(await visibleEmoji(page), [], 'icons are pixel art');
