@@ -65,7 +65,16 @@ HWUI.css('board',`
 #v6lb ol{list-style:none;margin:6px 0;padding:0}#v6lb li{display:flex;gap:8px;align-items:center;border:3px solid var(--ln);background:var(--p2);padding:6px 8px;margin:4px 0}
 #v6lb li .rk{font:12px/1 var(--fl);min-width:34px}#v6lb li .nm{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#v6lb li .vl{font:12px/1.4 var(--fl);text-align:right}
 #v6lb li.me{outline:3px solid var(--gold);outline-offset:-6px;background:var(--pn)}#v6lb li.gap{border:0;background:none;justify-content:center;padding:0}
-#v6lb li small{display:block;color:var(--mut);font-size:12px}#v6lb .row button{flex:1 1 140px}#v6lb details{margin-top:8px}#v6lb .warn,#v6lbs .warn{margin:8px 0}
+#v6lb li small{display:block;color:var(--mut);font-size:12px}
+.v6pod{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:8px;align-items:end;margin:14px 0 10px;text-align:center}
+.v6pod .pd{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;padding-top:6px}.v6pod .pd.empty{visibility:hidden}
+.v6pod .pdm{font-size:22px;line-height:1}.v6pod .pdav{width:56px;height:64px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35))}
+.v6pod .pd1{order:2}.v6pod .pd2{order:1}.v6pod .pd3{order:3}.v6pod .pd1 .pdav{width:70px;height:80px}
+.v6pod .pdn{font:700 13px/1.25 var(--fn);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:4px}.v6pod .pdn i{display:block;font-style:normal;color:var(--gold)}
+.v6pod .pdv{font:700 20px/1.1 var(--fn);font-variant-numeric:tabular-nums}.v6pod small{font-size:11px;color:var(--mut);line-height:1.2;min-height:2.4em}
+.v6pod .pdb{display:grid;place-items:center;width:100%;border-radius:10px 10px 0 0;font:700 26px/1 var(--fn);color:#1d1730;background:linear-gradient(180deg,#f6d77a,#d9a21b);margin-top:4px}
+.v6pod .pd1 .pdb{height:84px}.v6pod .pd2 .pdb{height:60px;background:linear-gradient(180deg,#e3e8ee,#9aa6b4)}.v6pod .pd3 .pdb{height:44px;background:linear-gradient(180deg,#e8b88a,#b9763d)}
+.v6pod .pd.me .pdb{outline:3px solid var(--accent,var(--gold));outline-offset:2px}#v6lb .row button{flex:1 1 140px}#v6lb details{margin-top:8px}#v6lb .warn,#v6lbs .warn{margin:8px 0}
 `);
 const lvName=x=>{let n=LV[0][0];LV.forEach(l=>{if(x>=l[1])n=l[0]});return n};
 const medal=r=>r===1?'🥇':r===2?'🥈':r===3?'🥉':'#'+r;
@@ -73,12 +82,26 @@ function list(){const c=rows[tab],T=TABS.find(x=>x[0]===tab);
   if(!c)return'<p class="mut" role="status">'+(phase==='load'?'⏳ Opening the Hall of Heroes…':'')+'</p>';
   const R=c.r;
   if(!R.length)return'<p class="mut">No heroes on this board yet'+(tab==='week'?' this week':'')+'. Your progress counts as soon as you play.</p>';
-  let last=0;const li=x=>{const gap=last&&+x.rank>last+1&&x.me?'<li class="gap" aria-hidden="true">⋯</li>':'';last=+x.rank;
+  const mineRow=R.find(x=>x.me),top=R.filter(x=>+x.rank<=3).slice(0,3),rest=R.filter(x=>!top.includes(x));
+  let last=3;const li=x=>{const gap=last&&+x.rank>last+1&&x.me?'<li class="gap" aria-hidden="true">⋯</li>':'';last=+x.rank;
     const nm=x.name==null?'🕶️ Hidden adventurer':esc(x.name);
-    return gap+'<li class="'+(x.me?'me':'')+'"><span class="rk">'+medal(+x.rank)+'</span><span class="nm">'+nm+(x.me?' <b>(YOU)</b>':'')+'<small>'+esc(lvName(+x.xp||0))+'</small></span><span class="vl">'+(+x.value||0).toLocaleString()+'<small>'+T[2]+'</small></span></li>'};
-  const mineRow=R.find(x=>x.me);
-  return'<ol aria-label="'+T[1]+' leaderboard">'+R.map(li).join('')+'</ol>'+(mineRow?'<p class="mut" role="status">Your place: <b>'+medal(+mineRow.rank)+'</b>'+(B.hidden?' · your name is hidden from others':'')+'</p>':'')
+    return gap+'<li class="'+(x.me?'me':'')+'"><span class="rk">#'+(+x.rank)+'</span><span class="nm">'+nm+(x.me?' <b>(YOU)</b>':'')+'<small>'+esc(lvName(+x.xp||0))+'</small></span><span class="vl">'+(+x.value||0).toLocaleString()+'<small>'+T[2]+'</small></span></li>'};
+  return podium(top,T)+(rest.length?'<ol start="4" aria-label="'+T[1]+' leaderboard, places 4 and below">'+rest.map(li).join('')+'</ol>':'')
+    +(mineRow?'<p class="mut" role="status">Your place: <b>'+medal(+mineRow.rank)+'</b>'+(B.hidden?' · your name is hidden from others':'')+'</p>':'')
     +(R.every(x=>!(+x.value>0))?'<p class="mut">Nobody has any yet'+(tab==='week'?' this week':'')+'. Every log and quest counts.</p>':'')}
+/* The podium: places 1 to 3 standing on three blocks (2nd, 1st, 3rd). Each shows a hero character with the player's hero name
+   and score. The character follows the player's game LEVEL (Beginner and Trail Walker: wizard; Health Explorer and Fitness
+   Knight: knight; Wellness Hero and Sage: king), not BMI: the board never carries a health value, and the BMI-based avatar
+   on the Home page would give one away. */
+const HEROIMG=['wz','wz','kn','kn','kg','kg'];
+const heroOf=xp=>{let i=0;LV.forEach((l,k)=>{if(xp>=l[1])i=k});return HEROIMG[i]||'wz'};
+function podium(P,T){if(!P.length)return'';const by={};P.forEach(x=>by[+x.rank]=x);
+  const col=r=>{const x=by[r];if(!x)return'<div class="pd pd'+r+' empty" aria-hidden="true"></div>';
+    const nm=x.name==null?'🕶️ Hidden adventurer':esc(x.name),k=heroOf(+x.xp||0);
+    return '<div class="pd pd'+r+(x.me?' me':'')+'" role="group" aria-label="Place '+r+': '+nm.replace(/<[^>]*>/g,'')+', '+(+x.value||0).toLocaleString()+' '+T[2]+'"><span class="pdm">'+medal(r)+'</span>'
+      +'<img class="pdav" alt="" src="'+AVI[k]+'" width="56" height="64"><b class="pdn">'+nm+(x.me?' <i>(YOU)</i>':'')+'</b>'
+      +'<span class="pdv">'+(+x.value||0).toLocaleString()+'</span><small>'+T[2]+'</small><span class="pdb" aria-hidden="true">'+r+'</span></div>'};
+  return '<div class="v6pod" role="list" aria-label="'+T[1]+' podium">'+[1,2,3].map(col).join('')+'</div>'}
 function card(){const c=cloud(),s=c?c.status():{},u=me();let h='<div class="card" id="v6lb"><h3>🏆 HALL OF HEROES</h3>';
   if(!s.configured||!u){h+='<p class="mut">An optional leaderboard of game progress: XP, quests, badges, kingdom and discoveries. It never shows health data. Sign in (Settings → Account) to join.</p>'
     +'<button class="g" data-a="go" data-v="set" style="width:100%">OPEN CLOUD SAVE SETTINGS</button>'}
