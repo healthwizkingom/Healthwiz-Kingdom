@@ -210,7 +210,7 @@ acts.arcgwr=()=>guildSync();
 /* =====================================================================================================================
    3 + 5 + 6. THE STAIR CHAMBER (a staircase's Details in the Observatory)
    ===================================================================================================================== */
-const Z={sid:null,P:'',pace:{on:0},mic:null,peaks:[],cad:null,breath:null,match:0,cam:null,you:0};
+const Z={sid:null,P:'',pace:{on:0},mic:null,peaks:[],cad:null,breath:null,match:0,cam:null,sight:null,you:0};
 function stopMic(){const m=Z.mic;Z.mic=null;if(!m)return;cancelAnimationFrame(m.raf);clearTimeout(m.tm);try{m.stream.getTracks().forEach(t=>t.stop())}catch(e){}try{m.ctx.close()}catch(e){}}
 async function openMic(){
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('This browser has no microphone access.');
@@ -268,6 +268,18 @@ function towerFrame(c,q,s){
     GHOST.forEach((row,yy)=>[...row].forEach((ch,xx)=>{if(ch!=='.')px(gx+xx*ps,gy+yy*ps,ps,ps,ch==='b'?'#1b1340':'#e9fbff')}))};
   const rune=(X,Y,on,z)=>{z=z||2;if(on){x.fillStyle=sync?'rgba(255,216,107,.35)':'rgba(95,246,255,.35)';x.fillRect(r(X)-z,r(Y)-z,z*3,z*3)}px(X,Y,z,z,on?'#ffffff':dim);if(on&&z>1){px(X-1,Y+.5,1,1,neon);px(X+2,Y+.5,1,1,neon)}};   // z: 1 px on a long stairway, so 55 runes still fit
   const bob=Z.pace.on?Math.sin(T*6)*1.2:0,you=Z.pace.on&&Z.you>0?(Z.you-1)%G.n:-1,sg=s==null?0:s;
+  if(ar&&Z.sight&&Z.sight.st.locked&&Z.sight.st.edges.length>1){
+    /* Stair Sight locked on: the ghost climbs the step edges seen in the camera picture (js/v6-stairsight.js), bottom first. The pacer
+       still counts the stairway's own steps; on screen it loops over the edges in view, as the next steps come into view while you climb. */
+    const sx=TW/HWStairSight.DW,sy=TH/HWStairSight.DH,E=Z.sight.st.edges.map(e=>({y:e.y*sy,x0:e.x0*sx,x1:e.x1*sx,fill:e.fill})),m=E.length;
+    const p=s==null?0:sg%m,j=Math.floor(p),f=p-j,lv=s==null?-1:j,w0=E[0].x1-E[0].x0;
+    E.forEach((e,i)=>{x.fillStyle=sync?'rgba(255,216,107,.25)':'rgba(95,246,255,.22)';x.fillRect(r(e.x0),r(e.y)-1,r(e.x1-e.x0),3);px(e.x0,e.y,e.x1-e.x0,1,e.fill?dim:neon)});
+    for(let i=0;i<m-1;i++){const a1=E[i],b1=E[i+1];for(let t=0;t<=1;t+=.25){px(a1.x0+(b1.x0-a1.x0)*t,a1.y+(b1.y-a1.y)*t,1,1,dim);px(a1.x1+(b1.x1-a1.x1)*t-1,a1.y+(b1.y-a1.y)*t,1,1,dim)}}
+    E.forEach((e,i)=>{const z=(e.x1-e.x0)>w0*.45?2:1;rune(e.x0-1,e.y-1,i<=lv,z);rune(e.x1-1,e.y-1,i<=lv,z)});
+    if(you>=0){const e=E[you%m],X=(e.x0+e.x1)/2,y=e.y-3;px(X-1,y-2,3,1,'#ffd86b');px(X-2,y-1,5,1,'#ffd86b');px(X-1,y,3,1,'#ffd86b')}
+    const A=E[j],B=E[Math.min(j+1,m-1)],mid=e=>(e.x0+e.x1)/2,wd=(A.x1-A.x0)+((B.x1-B.x0)-(A.x1-A.x0))*f;
+    const gx=mid(A)+(mid(B)-mid(A))*f,by=A.y+(B.y-A.y)*f+bob,ps=Math.max(1,Math.round(3*wd/w0));
+    trail(gx,by-2*ps,ps);ghost(gx,by,ps);return}
   if(ar){
     /* the climber's view: the camera looks up the stairway, so the flight recedes UP the screen to a vanishing point near the top.
        Depth d (in steps) maps to y = top + (foot − top) ÷ (1 + a d); width and the ghost shrink by the same factor. */
@@ -286,24 +298,31 @@ function towerFrame(c,q,s){
   const i=Math.floor(sg),f=sg-i,gx=G.x(Math.min(i,G.n-1))+G.tk*Math.min(1,f*1.6),by=G.y(Math.min(G.n,i+(f>.6?1:0)))-3+bob;
   trail(gx+7,by-6,2);ghost(gx+7,by,2)}
 function towerStop(){cancelAnimationFrame(TV.raf);clearInterval(TV.iv);TV.raf=TV.iv=0}
-function pace(){towerStop();const c=$i('arc-canvas'),q=STAIRS.find(s=>s.id===Z.sid);if(!c||!q)return;const n=stepsOf(q),rate=pacer();
-  if(!Z.pace.on||!rate){TV.trail=[];TV.sp=[];towerFrame(c,q,null);return}
+/* Stair Sight: about 8 frames a second while the camera is open */
+function sense(t){const S=Z.sight;if(!S||t-S.at<125)return;S.at=t;const g=S.smp.read($i('camera-feed'),TW/TH);S.st=g?S.trk.push(g):S.trk.state;scryTag()}
+function scryTag(){const e=$i('arc-scry-tag'),S=Z.sight;if(!e)return;const on=!!(S&&S.st.locked),t=!S?'SCRYING GLASS':on?'STAIRS SEEN · '+S.st.edges.length+' STEP EDGES':'LOOKING FOR STEPS…';
+  if(e.textContent!==t){e.textContent=t;e.classList.toggle('seen',on);const l=$i('arc-seen');if(l)l.textContent=on?'Stair Sight sees '+S.st.edges.length+' step edges; the ghost climbs them.':S?'Stair Sight is looking for steps. Stand at the foot and point the camera up the stairs.':''}}
+function pace(){towerStop();const c=$i('arc-canvas'),q=STAIRS.find(s=>s.id===Z.sid);if(!c||!q)return;const n=stepsOf(q),rate=pacer(),live=!!(Z.pace.on&&rate);
+  if(!live){TV.trail=[];TV.sp=[]}
+  if(!live&&!Z.cam){towerFrame(c,q,null);return}
   const still=HWUI.reduced&&HWUI.reduced(),lb=$i('arc-pst');
-  const step=t=>{if(!c.isConnected||!Z.pace.on){towerStop();return false}const s=((t-TV.t0)/1000*rate)%n,k=Math.floor(s);
+  const step=t=>{if(!c.isConnected||(!Z.pace.on&&!Z.cam)){towerStop();return false}sense(t);
+    if(!live){towerFrame(c,q,null);return true}
+    const s=((t-TV.t0)/1000*rate)%n,k=Math.floor(s);
     if(k<TV.last)TV.trail=[];if(k!==TV.last){TV.last=k;if(lb)lb.textContent='Ghost on step '+(k+1)+' of '+n}towerFrame(c,q,still?k:s);return true};
   TV.t0=performance.now();TV.last=-1;
-  if(still){step(TV.t0);TV.iv=setInterval(()=>step(performance.now()),Math.max(150,1000/rate))}
+  if(still){step(TV.t0);TV.iv=setInterval(()=>step(performance.now()),live?Math.max(150,1000/rate):250)}
   else{const tick=t=>{if(step(t))TV.raf=requestAnimationFrame(tick)};TV.raf=requestAnimationFrame(tick)}}
 
 /* ---------- the Scrying Glass: the rear camera behind the tower ---------- */
 function attachCam(){const v=$i('camera-feed');if(!v)return;if(Z.cam){v.srcObject=Z.cam.stream;v.style.display='block';const p=v.play();if(p&&p.catch)p.catch(()=>{})}else{v.srcObject=null;v.style.display='none'}}
-function stopCam(){const c=Z.cam;Z.cam=null;if(c)try{c.stream.getTracks().forEach(t=>t.stop())}catch(e){}const v=$i('camera-feed');if(v){v.srcObject=null;v.style.display='none'}}
+function stopCam(){const c=Z.cam;Z.cam=null;Z.sight=null;if(c)try{c.stream.getTracks().forEach(t=>t.stop())}catch(e){}const v=$i('camera-feed');if(v){v.srcObject=null;v.style.display='none'}}
 async function scry(){
   if(Z.cam)return;
   try{if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('This browser cannot open the camera.');
     const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
     if(!$i('stair-sense-modal')){stream.getTracks().forEach(t=>t.stop());return}                                       // left while asking
-    Z.cam={stream};if(pacer())Z.pace.on=1;paint()}
+    Z.cam={stream};Z.sight=typeof HWStairSight!=='undefined'?{smp:HWStairSight.sampler(),trk:HWStairSight.tracker(),at:0,st:{locked:false,edges:[]}}:null;if(pacer())Z.pace.on=1;paint()}
   catch(e){stopCam();oops(e&&e.name==='NotAllowedError'?'The camera was not allowed, so the tower stays in its night sky.':String(e&&e.message||'The camera could not start.')+' The tower stays in its night sky.');paint()}}
 function halt(){Z.pace.on=0;Z.you=0;stopCam();paint()}
 
@@ -315,7 +334,7 @@ function chamber(id){
   return '<section class="arc-ch" id="stair-sense-modal" aria-labelledby="arc-ch-t"><h3 id="arc-ch-t">'+ico('stairs')+' THE ENCHANTED TOWER · '+esc(q.id)+'</h3>'
     +'<div class="arc-tg2"><div class="arc-stage'+(cam?' ar':'')+(Z.match?' arc-rune':'')+(on?' live':'')+'" id="arc-tower" role="img" aria-label="'+esc(q.id)+' in profile at '+q.angle.toFixed(2)+' degrees, '+n+' steps'+(on?', the spectral pacer climbing':'')+(cam?', over the camera view':'')+'">'
     +'<video id="camera-feed" autoplay playsinline muted style="display:none;"></video><canvas id="arc-canvas" width="'+TW+'" height="'+TH+'"></canvas>'
-    +(cam?'<span class="arc-scry-tag">SCRYING GLASS</span>':'')+'</div>'
+    +(cam?'<span class="arc-scry-tag" id="arc-scry-tag" aria-hidden="true">'+(Z.sight?'LOOKING FOR STEPS…':'SCRYING GLASS')+'</span>':'')+'</div>'
     +'<div class="arc-book"><h4>Spellbook</h4><dl>'
     +'<div class="arc-bk"><dt><label for="arc-p">Target power</label></dt><dd><input type="number" min="10" max="1500" step="1" inputmode="numeric" data-in="arcp" id="arc-p" value="'+esc(Z.P)+'" placeholder="'+(best?'best '+Math.round(best):'e.g. 120')+'" aria-describedby="arc-p-u"> <span id="arc-p-u">W</span></dd></div>'
     +row('Rate','<b id="arc-rate">'+(rate?fx(rate,2)+' steps/s':'–')+'</b>',mi?'P ÷ (m g r), with '+esc(mi.src):'needs your weight: log it on the BMI page or in your profile')
@@ -323,6 +342,8 @@ function chamber(id){
     +row('Angle',q.angle.toFixed(2)+'°',(counted(q)?n+' steps counted'+(q.steps.length>1?' in '+q.steps.length+' flights ('+q.steps.join(' + ')+')':''):'steps not counted yet: '+n+' drawn as a picture only'))
     +'</dl><div class="arc-btns"><button type="button" class="btn-primary" id="start-ar-btn" data-a="arcar" '+(cam?'disabled':'')+'>'+(cam?'SCRYING…':'CAST SCRYING GLASS (AR)')+'</button>'
     +'<button type="button" class="btn-secondary g sm" id="stop-btn" data-a="'+(on||cam?'archalt':'arcpace')+'" '+(on||cam||rate?'':'disabled ')+'>'+(on||cam?'HALT PACER':'SUMMON PACER')+'</button></div>'
+    +(cam?'<small class="mut" id="arc-seen" aria-live="polite">'+(Z.sight?'Stair Sight is looking for steps. Stand at the foot and point the camera up the stairs.':'')+'</small>':'')
+    +'<small class="mut arc-sight-note">Stair Sight finds the edges of steps in the camera picture (a simple 2D estimate, on this device only). It can miss steps in dim light and mistake stripes or shelves for stairs; without a lock the ghost climbs the drawn stairs.</small>'
     +'<small class="mut" id="arc-pst" aria-live="polite">'+(rate?'':'Type a target power to summon the ghost.')+'</small></div></div>'
     +'<h4>'+ico('energy')+' CADENCE ECHO</h4><p class="mut">The microphone hears footsteps: each rise in loudness (RMS over 0.1) is one step, shown as a gold mark on the tower. f = 1 ÷ the mean time between steps; ω = 2πf. Nothing is recorded or sent.</p>'
     +'<div class="row arc-row"><button type="button" class="'+(lis?'arc-listen':'')+'" data-a="arcecho" aria-pressed="'+(lis?'true':'false')+'">'+(lis?'LISTENING · TAP TO STOP':'LISTEN FOR FOOTSTEPS')+'</button></div>'

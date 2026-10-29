@@ -212,3 +212,47 @@ test('Alchemy: the balance beam tilts by (work ÷ food) × 45° and the forge na
   assert.match(await txt(page, '#arc-forge'), /assumed from your last logged meal/);
   assert.deepEqual(errors, []); await ctx.close();
 });
+
+// a staircase seen from its foot, drawn in perspective: light treads and dark risers, each step narrower and shorter than the one below
+const STAIRS_JS = `window.__stairs = (c, steps) => { const x = c.getContext('2d'), W = c.width, H = c.height; x.fillStyle = '#6b6b6b'; x.fillRect(0, 0, W, H);
+  let y = H, h = H * .16, w = W * .9; for (let i = 0; i < steps; i++) { const t = h * .55, l = (W - w) / 2;
+    x.fillStyle = '#d8d8d8'; x.fillRect(l, y - t, w, t); x.fillStyle = '#3a3a3a'; x.fillRect(l, y - h, w, h - t); y -= h; h *= .84; w *= .9; } };`;
+
+test('Stair Sight (pure): a stack of step edges locks after 3 frames; a flat picture or one line never does', async () => {
+  const { page, ctx, errors } = await openApp(); await page.waitForSelector('.wl');
+  await page.addScriptTag({ content: STAIRS_JS });
+  const r = await page.evaluate(() => {
+    const grey = paint => { const c = document.createElement('canvas'); c.width = HWStairSight.DW; c.height = HWStairSight.DH; paint(c); const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data, g = new Float32Array(c.width * c.height); for (let i = 0, j = 0; i < g.length; i++, j += 4) g[i] = .3 * d[j] + .59 * d[j + 1] + .11 * d[j + 2]; return g; };
+    const run = (g, n) => { const t = HWStairSight.tracker(); const out = []; for (let i = 0; i < n; i++) out.push(t.push(g).locked); return { locks: out, edges: t.state.edges }; };
+    const stairs = run(grey(c => window.__stairs(c, 9)), 4);
+    const flat = run(grey(c => { const x = c.getContext('2d'); x.fillStyle = '#777'; x.fillRect(0, 0, c.width, c.height); }), 8);
+    const line = run(grey(c => { const x = c.getContext('2d'); x.fillStyle = '#777'; x.fillRect(0, 0, c.width, c.height); x.fillStyle = '#ddd'; x.fillRect(0, 40, c.width, 40); }), 8);
+    return { stairs: { locks: stairs.locks, n: stairs.edges.length, down: stairs.edges.every((e, i, a) => !i || e.y < a[i - 1].y) }, flat: flat.locks.some(Boolean), line: line.locks.some(Boolean) };
+  });
+  assert.deepEqual(r.stairs.locks, [false, false, true, true], 'locks on the third good frame');
+  assert.ok(r.stairs.n >= 4, 'at least 4 step edges: ' + r.stairs.n); assert.ok(r.stairs.down, 'edges listed bottom first');
+  assert.equal(r.flat, false); assert.equal(r.line, false);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('Scrying Glass + Stair Sight: pointed at stairs it locks and the ghost climbs the edges it sees; pointed at a wall it keeps looking', async () => {
+  const { page, ctx, errors } = await openApp({ seed: SEED }); await page.waitForSelector('.wl');
+  await page.addScriptTag({ content: STAIRS_JS });
+  await page.evaluate(() => {
+    window.__scene = 'stairs';
+    navigator.mediaDevices.getUserMedia = async () => { const c = document.createElement('canvas'); c.width = 240; c.height = 300;
+      const draw = () => { if (window.__scene === 'stairs') window.__stairs(c, 9); else { const x = c.getContext('2d'); x.fillStyle = '#808080'; x.fillRect(0, 0, 240, 300); } };
+      draw(); setInterval(draw, 100); return c.captureStream(15); };
+    const d = document.createElement('div'); d.id = 'arc-test'; d.innerHTML = HWStairs.logPanel('ST20', 'workout'); document.getElementById('main').appendChild(d); });
+  await page.click('#start-ar-btn');
+  assert.match(await page.textContent('#arc-scry-tag'), /LOOKING FOR STEPS/);
+  await page.waitForFunction(() => /STAIRS SEEN · \d+ STEP EDGES/.test(document.getElementById('arc-scry-tag').textContent), null, { timeout: 15000 });
+  assert.match(await txt(page, '#arc-seen'), /Stair Sight sees \d+ step edges; the ghost climbs them/);
+  assert.ok(await page.evaluate(() => HWArcana.z.sight.st.edges.length) >= 4);
+  // the wall: after 6 frames without stairs it lets go and looks again
+  await page.evaluate(() => { window.__scene = 'wall'; });
+  await page.waitForFunction(() => /LOOKING FOR STEPS/.test(document.getElementById('arc-scry-tag').textContent), null, { timeout: 15000 });
+  await page.click('#stop-btn');
+  assert.equal(await page.evaluate(() => HWArcana.z.sight), null, 'halting the glass stops Stair Sight');
+  assert.deepEqual(errors, []); await ctx.close();
+});

@@ -203,4 +203,6 @@ HWUI.css('arcana-tower',`
 :root[data-motion="full"]:not(.hw-q-performance) .arc-stage.live{animation:arcStage 3s ease-in-out infinite alternate}
 @keyframes arcListen{0%,100%{box-shadow:0 0 0 2px #9ff,0 0 0 0 rgba(159,255,255,.6)}50%{box-shadow:0 0 0 2px #9ff,0 0 0 10px rgba(159,255,255,0)}}
 @keyframes arcStage{to{box-shadow:0 0 0 2px color-mix(in srgb,var(--vio) 80%,transparent),0 0 34px 6px color-mix(in srgb,var(--vio) 60%,transparent)}}
+.arc-scry-tag.seen{background:#ffd86b;box-shadow:0 0 10px #ffd86b}
+.arc-sight-note{display:block;margin:4px 0}
 `);
