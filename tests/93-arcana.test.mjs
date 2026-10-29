@@ -87,7 +87,7 @@ test('Home: the potion shows logged water against the goal, the oracle explains 
   assert.match(await txt(page, '#arc-oracle'), /mild path \(below 26°\)/);
   assert.match(await txt(page, '#arc-oracle'), /not a medical measure/);
   assert.equal(calls, 0, 'no weather request before the tap');
-  await page.click('[data-a="arcwx"]');
+  await page.click('#arc-elem summary'); await page.click('[data-a="arcwx"]');
   await page.waitForFunction(() => HWArcana.wx.st === 'ok');
   assert.equal(calls, 1);
   const el = await txt(page, '#arc-elem');
@@ -99,7 +99,7 @@ test('Home: the potion shows logged water against the goal, the oracle explains 
 test('Home: a failed weather call degrades to a message and a retry, never a broken page', async () => {
   const { page, ctx, errors } = await openApp({ seed: SEED }); await page.waitForSelector('.wl');
   await page.route(/api\.open-meteo\.com/, r => r.fulfill({ status: 503, body: 'down' }));
-  await go(page, 'home'); await page.click('[data-a="arcwx"]');
+  await go(page, 'home'); await page.click('#arc-elem summary'); await page.click('[data-a="arcwx"]');
   await page.waitForFunction(() => HWArcana.wx.st === 'err');
   assert.match(await txt(page, '#arc-elem'), /did not answer \(HTTP 503\)/);
   assert.equal(await page.locator('#arc-elem [data-a="arcwx"]').count(), 1);

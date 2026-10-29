@@ -22,6 +22,7 @@
 const HWArcana=(()=>{
 const G0=9.80665,KJ=4.184,D=document,$i=i=>D.getElementById(i),ico=n=>HWPixel.icon(n,1);
 const clamp=(v,a,b)=>v<a?a:v>b?b:v,fx=(x,d)=>(+x).toLocaleString('en',{minimumFractionDigits:d,maximumFractionDigits:d});
+const fv=x=>(+x).toLocaleString('en',{maximumFractionDigits:2});
 const S6=()=>st.s||(st.s={});
 
 /* =====================================================================================================================
@@ -59,7 +60,8 @@ const math={
 /* =====================================================================================================================
    DATA FROM THE SAVE (read at the moment, never copied)
    ===================================================================================================================== */
-const sessions=()=>typeof HWStairs!=='undefined'?HWStairs.all():[];
+let SC={k:'',v:[]};                                                                    // the stair sessions, rebuilt only after a save
+const sessions=()=>{if(typeof HWStairs==='undefined')return[];const k=SV+':'+st.e.length;if(SC.k!==k)SC={k,v:HWStairs.all()};return SC.v};
 const lastWorkout=d=>sessions().filter(s=>s.kind==='workout'&&(!d||s.d===d)).sort((a,b)=>(a.d+(a.t||'')).localeCompare(b.d+(b.t||''))).pop()||null;
 const hrMaxOf=s=>s?Math.max(+s.hrHi||0,+s.hrA||0)||null:null;
 const massInfo=()=>typeof HWGravity!=='undefined'?HWGravity.massInfo():null;
@@ -85,13 +87,13 @@ async function weather(force){
     const r=await fetch(WX_URL,{cache:'no-store',signal:ac&&ac.signal});clearTimeout(tm);
     if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json(),c=j&&j.current;
     if(!c||!isFinite(+c.temperature_2m)||!isFinite(+c.relative_humidity_2m))throw new Error('no reading in the reply');
-    WX={st:'ok',w:{temp:+c.temperature_2m,rh:+c.relative_humidity_2m,time:String(c.time||'')},at:Date.now(),err:''}}
-  catch(e){WX={st:'err',w:null,at:0,err:'The weather service did not answer ('+(e&&e.name==='AbortError'?'timed out':String(e&&e.message||e))+').'};oops('The weather could not be read. Try again later.')}
+    WX={open:WX.open,st:'ok',w:{temp:+c.temperature_2m,rh:+c.relative_humidity_2m,time:String(c.time||'')},at:Date.now(),err:''}}
+  catch(e){WX={open:WX.open,st:'err',w:null,at:0,err:'The weather service did not answer ('+(e&&e.name==='AbortError'?'timed out':String(e&&e.message||e))+').'};oops('The weather could not be read. Try again later.')}
   const n=$i('arc-elem');if(n)n.outerHTML=elemCard();return WX}
 function potion(){
   const d=today(),w=wt(d),t=+st.s.water||0,p=math.potionPct(w,t),full=p>=100;
-  return '<div class="arc-pot'+(full?' full':'')+'"><div class="potion-bottle" role="progressbar" aria-label="Water today" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+Math.round(p)
-    +'" aria-valuetext="'+w+' of '+t+' mL, '+Math.round(p)+' percent"><i class="cork"></i><div class="liquid-fill" style="height:'+p.toFixed(1)+'%"></div></div>'
+  return '<div class="arc-pot'+(full?' full':'')+'"><div class="arc-potw"><div class="potion-bottle" role="progressbar" aria-label="Water today" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+Math.round(p)
+    +'" aria-valuetext="'+w+' of '+t+' mL, '+Math.round(p)+' percent"><i class="cork"></i><div class="liquid-fill" style="height:'+p.toFixed(1)+'%"><i class="wave"></i><b class="bub"></b><b class="bub"></b><b class="bub"></b><b class="bub"></b></div><i class="shine"></i></div>'+(full?'<span class="arc-spark" aria-hidden="true">'+'<i></i>'.repeat(8)+'</span>':'')+'</div>'
     +'<div><b class="num">'+w.toLocaleString('en')+'</b> <small>of '+t.toLocaleString('en')+' mL</small><span class="arc-st">'+(full?stt('good')+' Potion brewed':p>=50?stt('watch')+' Half full':stt('caution')+' Under half')+'</span>'
     +'<small class="mut">Logged water toward your own goal (calculated).</small></div></div>'}
 function elemCard(){
@@ -100,12 +102,13 @@ function elemCard(){
   if(!S6().wx)wx='<p class="mut">Read the sky over Kolej MARA Kulim (5.36° N, 100.56° E) from Open-Meteo? It sends only the college’s fixed position, never yours.</p><button type="button" class="g" data-a="arcwx">READ THE SKY</button>';
   else if(WX.st==='busy')wx='<p class="mut" role="status">Reading the sky…</p>';
   else if(!w)wx='<p class="mut" role="status">'+esc(WX.err||'No weather reading yet.')+'</p><button type="button" class="g" data-a="arcwx">TRY AGAIN</button>';
-  else wx='<div class="arc-thermo'+(hot?' hot':'')+'"><div class="therm" aria-hidden="true"><i style="height:'+clamp((w.temp-15)/25*100,4,100).toFixed(0)+'%"></i></div><div><b class="num">'+fx(w.temp,1)+' °C</b> · <b class="num">'+Math.round(w.rh)+' %</b> <small>humidity</small>'
+  else wx='<div class="arc-thermo'+(hot?' hot':'')+'">'+(hot?'<span class="arc-sun" aria-hidden="true"></span>':'')+'<div class="therm" aria-hidden="true"><i style="height:'+clamp((w.temp-15)/25*100,4,100).toFixed(0)+'%"></i></div><div><b class="num">'+fx(w.temp,1)+' °C</b> · <b class="num">'+Math.round(w.rh)+' %</b> <small>humidity</small>'
     +'<small class="mut">Measured by Open-Meteo’s model for the campus area'+(w.time?', '+esc(w.time.replace('T',' ')):'')+'.</small>'
     +(hot?'<p class="arc-warn" role="note">'+stt('caution')+' The sun is fierce! Your body uses extra energy to cool down.</p>':'<p>'+stt('good')+' Not in the hot and humid band (over 32 °C and over 70 %).</p>')
     +(burn>0?'<p>Estimated burn today: <b class="num">'+burn+' kcal</b>'+(hot?' → <b class="num">'+Math.round(math.heatAdjust(burn,w))+' kcal</b> with HealthWiz’s assumed +5 % for heat (an illustration, not measured).':'.')+'</p>':hot?'<p class="mut">No calorie-burn estimate today, so the assumed +5 % for heat has nothing to adjust.</p>':'')+'</div></div>';
-  return '<div class="card arc-elem" id="arc-elem"><h3>'+ico('water')+' ELEMENTAL THERMOMETER</h3><div class="arc-elg">'+potion()+'<div>'+wx+'</div></div></div>'}
-acts.arcwx=()=>{S6().wx=1;save();weather(true)};
+  const sum=w?'Elemental thermometer: '+fx(w.temp,1)+' °C, '+Math.round(w.rh)+' %'+(hot?' (fierce sun)':''):'Elemental thermometer';
+  return '<div class="arc-elem" id="arc-elem"><h4>Hydration potion</h4>'+potion()+'<details class="arc-more"'+(WX.open?' open':'')+'><summary>'+sum+'</summary>'+wx+'</details></div>'}
+acts.arcwx=()=>{S6().wx=1;WX.open=1;save();weather(true)};
 function dryCheck(){const s=lastWorkout(today()),t=+st.s.water||0;if(s&&math.drySpell(hrMaxOf(s),wt(today()),t))say('arc-dry')}
 
 /* =====================================================================================================================
@@ -120,29 +123,46 @@ function oracle(){
   const I=oracleIn(),miss=[];if(I.sleep==null)miss.push('last night’s sleep (Sleep page)');if(I.dass==null)miss.push('a DASS-21 check-in in the last 14 days (Stress Quest)');
   if(I.drop==null)miss.push('a stair workout with the pulse "after" and "1 minute after"');
   let body;
-  if(miss.length)body='<p class="mut">The crystal stays cloudy until it has: '+miss.map(esc).join('; ')+'.</p>';
+  if(miss.length)body='<p class="arc-sc mut">The crystal is cloudy.</p><details class="arc-more"><summary>What clears it</summary><p class="mut">'+miss.map(esc).join('; ')+'.</p></details>';
   else{const R=math.readiness(I.sleep,I.dass,I.drop),sc=Math.round(R.score),k=sc>=70?'good':sc>=50?'watch':'caution';
-    body='<p><b class="num big">'+sc+'</b> <small>/ 100 readiness index</small> '+stt(k)+'</p>'
-      +'<ul class="arc-orl"><li>Sleep '+fx(I.sleep,1)+' h → '+Math.round(R.sleep)+' × 0.4</li><li>DASS-21 total '+I.dass+' / 63 → '+Math.round(R.stress)+' × 0.3</li><li>1-minute recovery '+I.drop+' BPM → '+Math.round(clamp(R.rec,0,100))+' × 0.3</li></ul>'
-      +(sc<50?'<p class="arc-warn" role="note">Medius: “Your sleep, stress check-in and heart-rate recovery are all pulling the crystal down. A vigorous climb can wait. The Oracle suggests a mild path (below 26°) today.”</p>':'')
-      +'<small class="mut">Calculated from your own logs with the blueprint’s weights (40 / 30 / 30). It is a game index, not a medical measure of readiness.</small>';
+    body='<p class="arc-sc"><b class="num big">'+sc+'</b> <small>/ 100 readiness index</small> '+stt(k)+'</p>'
+      +(sc<50?'<p class="arc-warn" role="note">The Oracle suggests a mild path (below 26°) today.</p>':'')
+      +'<details class="arc-more"><summary>How the Oracle reads you</summary>'+(sc<50?'<p>Medius: “Your sleep, stress check-in and heart-rate recovery are all pulling the crystal down. A vigorous climb can wait.”</p>':'')+'<ul class="arc-orl"><li>Sleep '+fx(I.sleep,1)+' h → '+Math.round(R.sleep)+' × 0.4</li><li>DASS-21 total '+I.dass+' / 63 → '+Math.round(R.stress)+' × 0.3</li><li>1-minute recovery '+I.drop+' BPM → '+Math.round(clamp(R.rec,0,100))+' × 0.3</li></ul>'
+      +'<small class="mut">Calculated from your own logs with the blueprint’s weights (40 / 30 / 30). It is a game index, not a medical measure of readiness.</small></details>';
     if(sc<50)setTimeout(()=>say('arc-oracle'),0)}
-  return '<div class="card arc-orc" id="arc-oracle"><h3>'+ico('chart')+' THE ORACLE’S CRYSTAL BALL</h3><div class="arc-org"><canvas class="arc-ball" id="arc-ball" width="96" height="96" role="img" aria-label="'
-    +(miss.length?'A cloudy crystal ball: not enough data':'A crystal ball glowing with the readiness index')+'"></canvas><div>'+body+'</div></div></div>'}
-let ballRaf=0;
+  return '<div class="arc-orc" id="arc-oracle"><h4>Oracle’s crystal ball</h4><div class="arc-orbw'+(miss.length?' dim':'')+'">'+RING+'<canvas class="arc-ball" id="arc-ball" width="48" height="48" role="img" aria-label="'
+    +(miss.length?'A cloudy crystal ball: not enough data':'A crystal ball glowing with the readiness index')+'"></canvas></div>'+body+'</div>'}
+const RING='<svg class="arc-ring" viewBox="0 0 120 120" aria-hidden="true"><defs><path id="arc-rp" d="M60 60m-50 0a50 50 0 1 1 100 0a50 50 0 1 1-100 0"/></defs><circle cx="60" cy="60" r="56" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="2 4"/><text><textPath href="#arc-rp">✦ ☽ ✧ △ ◇ ✶ ☉ ✦ ▽ ✧ ☾ ◇ ✶ △ ✦ ☽ ✧ ▽ ◇ ✶</textPath></text></svg>';
+let ballRaf=0;const REVEAL=2200;   // the nebula swirls for 2.2 s when Home opens, then holds (the app runs no frame loop while idle); the rune ring and glow stay CSS
+/* The crystal: 48 × 48 pixels drawn per frame (a swirling nebula inside a glass sphere), shown at 2.5× with image-rendering: pixelated.
+   Its colour follows the index band (teal ≥ 70, gold 50–69, rose < 50; grey without data). Still under reduced motion and Performance. */
 function ball(){
   cancelAnimationFrame(ballRaf);const c=$i('arc-ball');if(!c||!c.getContext)return;const x=c.getContext('2d');if(!x)return;
   const I=oracleIn(),ok=I.sleep!=null&&I.dass!=null&&I.drop!=null,sc=ok?math.readiness(I.sleep,I.dass,I.drop).score:0;
-  const col=!ok?[150,150,170]:sc>=70?[79,224,200]:sc>=50?[255,216,107]:[255,122,138],still=HWUI.reduced&&HWUI.reduced();
-  const draw=t=>{if(!c.isConnected)return;x.clearRect(0,0,96,96);const pu=still?0:Math.sin(t/700)*.08;
-    const g=x.createRadialGradient(40,38,4,48,48,44);g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(.35,'rgba('+col+','+(0.85+pu)+')');g.addColorStop(1,'rgba(20,16,48,.9)');
-    x.fillStyle=g;x.beginPath();x.arc(48,46,38,0,Math.PI*2);x.fill();
-    if(ok&&!still)for(let i=0;i<6;i++){const a=t/900+i*1.05,r=18+8*Math.sin(t/500+i);x.fillStyle='rgba(255,255,255,.7)';x.fillRect(Math.round(48+Math.cos(a)*r),Math.round(46+Math.sin(a)*r),2,2)}
-    x.fillStyle='#3a2a5a';x.fillRect(26,84,44,8);x.fillStyle='#d9b45a';x.fillRect(30,82,36,3);
-    if(!still)ballRaf=requestAnimationFrame(draw)};
-  draw(performance.now())}
+  const col=!ok?[140,140,165]:sc>=70?[79,224,200]:sc>=50?[255,216,107]:[255,122,138],vio=[120,80,220],deep=[22,14,52];
+  const lowq=D.documentElement.classList.contains('hw-q-performance'),still=(HWUI.reduced&&HWUI.reduced())||lowq;
+  const im=x.createImageData(48,48),d=im.data,R=19,CX=24,CY=22,mix=(a,b,k)=>[a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k,a[2]+(b[2]-a[2])*k];
+  const BAY=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+  const put=(px,py,c3,al)=>{const o=(py*48+px)*4;d[o]=c3[0];d[o+1]=c3[1];d[o+2]=c3[2];d[o+3]=al};
+  const draw=t=>{if(!c.isConnected)return;d.fill(0);const T=t/1000;
+    for(let py=0;py<48;py++)for(let px=0;px<48;px++){const dx=px-CX,dy=py-CY,r=Math.sqrt(dx*dx+dy*dy);
+      if(r<=R){const a=Math.atan2(dy,dx),sw=a+r*.18-T*(ok?.9:.3);
+        let v=Math.sin(sw*3)*.5+Math.sin(px*.31+T*1.3)*.25+Math.sin(py*.27-T*1.1+dx*.1)*.25;v=(v+1)/2;
+        const q=Math.floor(v*4+(BAY[(py&3)*4+(px&3)]/16-.5)*.9),lv=Math.max(0,Math.min(3,q));
+        let c3=[deep,mix(deep,vio,.8),mix(vio,col,.7),mix(col,[255,255,255],.35)][lv];
+        const edge=r/R;if(edge>.86)c3=mix(c3,[200,190,255],.55);                                   // glass rim
+        if((px-17)**2+(py-14)**2<6)c3=[255,255,255];                                           // highlight
+        if(ok&&((px*7+py*13+Math.floor(T*3))%97===0))c3=[255,255,255];                         // drifting motes
+        put(px,py,c3,255)}
+      else if(r<=R+1.6)put(px,py,mix(col,[255,255,255],.2),Math.round(140*(ok?1:.5)))}             // glow ring
+    for(let px=13;px<35;px++){put(px,42,[217,180,90],255);put(px,43,[140,100,40],255)}               // gilded stand
+    for(let px=16;px<32;px++)for(let py=44;py<47;py++)put(px,py,py===44?[90,60,140]:[58,42,90],255);
+    for(let py=40;py<42;py++)for(let px=19;px<29;px++)put(px,py,[217,180,90],255);
+    x.putImageData(im,0,0);if(!still&&t-t0<REVEAL)ballRaf=requestAnimationFrame(draw)};
+  const t0=performance.now();draw(t0)}
 
-{const p=pages.home;pages.home=function(){const h=p.apply(this,arguments),c=elemCard()+oracle(),k='<div class="card hmq" id="hmq">',i=h.indexOf(k);
+{const p=pages.home;pages.home=function(){const h=p.apply(this,arguments);if(!st.e.length)return h;   // a new player's Home stays short: the table appears with the first log
+  const c='<div class="card arc-home" id="arc-home"><h3>'+ico('wizard')+' THE ORACLE’S TABLE</h3><div class="arc-hg">'+elemCard()+oracle()+'</div></div>',k='<div class="card hmq" id="hmq">',i=h.indexOf(k);
   return i<0?h+c:h.slice(0,i)+c+h.slice(i)}}
 
 /* =====================================================================================================================
@@ -172,7 +192,7 @@ function guild(){
   const rows=GW.rows&&G.on?math.guilds(GW.rows):mine?math.guilds([mine]):[];
   const tb=rows.length?'<div class="arc-tw"><table class="leaderboard"><caption class="mut">This week (from '+esc(me.wk)+'). '+(GW.rows&&G.on?'Totals per block; a block shows once at least 3 players share it.':'Your own row; join to see every block’s totals.')+'</caption>'
     +'<thead><tr><th scope="col">Guild (Block)</th><th scope="col">Total Work (J)</th><th scope="col">Total Energy (kJ)</th></tr></thead><tbody>'
-    +rows.map(r=>'<tr'+(r.top?' class="guild-banner-top"':'')+'><th scope="row">'+(r.top?'<span class="arc-crown" aria-hidden="true"></span>':'')+esc(r.blk)+(r.top?' <span class="pxtag">TOP</span>':'')+(r.n>1?' <small class="mut">'+r.n+' players</small>':'')+'</th><td>'+Math.round(r.W).toLocaleString('en')+'</td><td>'+Math.round(r.E).toLocaleString('en')+'</td></tr>').join('')+'</tbody></table></div>'
+    +rows.map(r=>'<tr'+(r.top?' class="guild-banner-top"':'')+' style="--p:'+(rows[0].W>0?(r.W/rows[0].W*100).toFixed(1):0)+'%"><th scope="row">'+(r.top?'<span class="arc-crown" aria-hidden="true"></span>':'')+esc(r.blk)+(r.top?' <span class="pxtag">TOP</span>':'')+(r.n>1?' <small class="mut">'+r.n+' players</small>':'')+'</th><td>'+Math.round(r.W).toLocaleString('en')+'</td><td>'+Math.round(r.E).toLocaleString('en')+'</td></tr>').join('')+'</tbody></table></div>'
     :'<p class="mut">'+(me.mass?'No stair climbs logged this week yet.':'Add your weight (BMI page or profile) so the work of your climbs can be calculated.')+'</p>';
   return '<div class="card arc-gw" id="guild-war-tab"><h3>'+ico('stairs')+' THE GUILD WAR OF JOULES</h3>'
     +'<p>Not steps: physics. Work against gravity W = steps × mass × 9.80665 m/s² × step rise; energy = estimated kcal burned × 4.184.</p>'
@@ -201,7 +221,7 @@ async function echo(){
   if(Z.mic){stopMic();paint();return}
   try{const m=await openMic();m.kind='echo';Z.mic=m;Z.peaks=[];Z.cad=null;let up=0;
     const loop=()=>{if(Z.mic!==m)return;m.an.getFloatTimeDomainData(m.buf);const r=math.rms(m.buf),t=performance.now();
-      if(r>.1&&!up&&(!Z.peaks.length||t-Z.peaks[Z.peaks.length-1]>=150)){up=1;Z.peaks.push(t);if(Z.peaks.length>9)Z.peaks.shift();Z.cad=math.cadence(Z.peaks);out()}else if(r<.05)up=0;
+      if(r>.1&&!up&&(!Z.peaks.length||t-Z.peaks[Z.peaks.length-1]>=150)){up=1;Z.peaks.push(t);if(Z.peaks.length>9)Z.peaks.shift();ripple();Z.cad=math.cadence(Z.peaks);out()}else if(r<.05)up=0;
       m.raf=requestAnimationFrame(loop)};loop();paint()}
   catch(e){stopMic();oops(e&&e.name==='NotAllowedError'?'The microphone was not allowed.':String(e&&e.message||'The microphone could not start.'));paint()}}
 async function breathe(){
@@ -212,25 +232,28 @@ async function breathe(){
       stopMic();Z.breath={rms:r,loud:r>.3,at:Date.now()};paint();const f=$i('arc-forge');if(f)f.outerHTML=forge()},5000)}
   catch(e){stopMic();oops(e&&e.name==='NotAllowedError'?'The microphone was not allowed.':String(e&&e.message||'The microphone could not start.'));paint()}}
 const breathOn=()=>Z.breath&&Date.now()-Z.breath.at<10*6e4?Z.breath:null;
+function ripple(){const b=$i('arc-echo');if(!b||D.documentElement.dataset.motion!=='full')return;const r=D.createElement('i');r.className='arc-rip';b.appendChild(r);setTimeout(()=>r.remove(),1300)}
 function out(){const o=$i('arc-cad');if(!o)return;const c=Z.cad,gr=pacer();
   o.textContent=c?'Frequency: '+fx(c.f,2)+' Hz | Angular: '+fx(c.w,2)+' rad/s':Z.mic&&Z.mic.kind==='echo'?'Listening… climb, and each footstep louder than the threshold is counted.':'Not listening.';
   const m=!!(c&&gr&&Math.abs(c.f-gr)/gr<=.1);if(m!==!!Z.match){Z.match=m;const t=$i('arc-tower');if(t)t.classList.toggle('arc-rune',m)}}
 function pacer(){const mi=massInfo(),r=riseOf(Z.sid);return r&&mi?math.pacerRate(+Z.P,mi.kg,r):null}
 let pRaf=0;
 function pace(){cancelAnimationFrame(pRaf);const g=$i('ghost-pacer'),q=STAIRS.find(s=>s.id===Z.sid);if(!g||!q)return;const n=stepsOf(q),rate=pacer();
-  if(!Z.pace.on||!rate){g.style.setProperty('--y','0');return}
+  if(!Z.pace.on||!rate){g.style.setProperty('--y','0');Z.pace.k=-1;D.querySelectorAll('#arc-tower .arc-flight>i.lit').forEach(e=>e.classList.remove('lit'));return}
   const still=HWUI.reduced&&HWUI.reduced(),tick=t=>{if(!g.isConnected||!Z.pace.on)return;const s=((t-Z.pace.t0)/1000*rate)%n;g.style.setProperty('--y',(s/n).toFixed(4));
-    const lb=$i('arc-pst');if(lb)lb.textContent='Ghost on step '+(Math.floor(s)+1)+' of '+n;if(!still)pRaf=requestAnimationFrame(tick)};
+    const lb=$i('arc-pst');if(lb)lb.textContent='Ghost on step '+(Math.floor(s)+1)+' of '+n;
+    const k=Math.floor(s);if(k!==Z.pace.k){Z.pace.k=k;const L=D.querySelectorAll('#arc-tower .arc-flight>i');L.forEach((e,i)=>e.classList.toggle('lit',i<=k))}if(!still)pRaf=requestAnimationFrame(tick)};
   Z.pace.t0=performance.now();tick(Z.pace.t0)}
 const allSteps=q=>Array.isArray(q.steps)?q.steps.reduce((a,b)=>a+(+b||0),0):0;                 // every flight (js/v6-stairs-data.js)
 const stepsOf=q=>clamp(Math.round(Array.isArray(q.steps)&&+q.steps[0]>0?+q.steps[0]:12),4,30);  // the tower draws one flight
+const RUNES='<svg class="arc-base" viewBox="0 0 100 30" aria-hidden="true"><ellipse cx="50" cy="15" rx="46" ry="12" fill="none" stroke="currentColor" stroke-width="1.5"/><ellipse cx="50" cy="15" rx="34" ry="8" fill="none" stroke="currentColor" stroke-dasharray="3 3"/><path d="M50 3 L58 23 L38 10 L62 10 L42 23 Z" fill="none" stroke="currentColor" stroke-width="1"/></svg>';
 function chamber(id){
   const q=STAIRS.find(s=>s.id===id);if(!q)return'';if(Z.sid!==id){stopMic();Z.sid=id;Z.pace.on=0;Z.cad=null;Z.peaks=[];Z.match=0;Z.P=''}
   const n=stepsOf(q),r=riseOf(id),mi=massInfo(),rate=pacer(),tilt=math.towerTilt(q.angle);
   const best=sessions().map(s=>{const e=st.e.find(x=>x.id===s.id),g=e&&e.m&&e.m.gv;return g&&+g.P>0?+g.P:0}).reduce((a,b)=>Math.max(a,b),0);
   const steps=Array.from({length:n},(_,i)=>'<i style="--i:'+i+'"></i>').join('');
   return '<section class="arc-ch" id="stair-sense-modal" aria-labelledby="arc-ch-t"><h3 id="arc-ch-t">'+ico('stairs')+' THE ENCHANTED TOWER · '+esc(q.id)+'</h3>'
-    +'<div class="arc-tg"><div class="arc-tower'+(Z.match?' arc-rune':'')+'" id="arc-tower" role="img" aria-label="'+esc(q.id)+' drawn at '+q.angle.toFixed(2)+' degrees, '+n+' steps"><div class="arc-flight" style="transform:rotateX('+tilt.toFixed(2)+'deg)">'+steps
+    +'<div class="arc-tg"><div class="arc-tower'+(Z.match?' arc-rune':'')+'" id="arc-tower" role="img" aria-label="'+esc(q.id)+' drawn at '+q.angle.toFixed(2)+' degrees, '+n+' steps"><i class="arc-stars" aria-hidden="true"></i>'+RUNES+'<div class="arc-flight" style="transform:rotateX('+tilt.toFixed(2)+'deg)">'+steps
     +'<div id="ghost-pacer" class="ghost-pacer" aria-hidden="true"></div></div></div>'
     +'<div><p>Angle <b class="num">'+q.angle.toFixed(2)+'°</b> → rotateX(90° − '+q.angle.toFixed(2)+'°) = <b class="num">'+tilt.toFixed(2)+'°</b>. '+(Array.isArray(q.steps)&&q.steps.length?'First flight: '+n+' steps'+(+q.steps[0]>30?' (30 drawn)':''):'Step count not surveyed: '+n+' steps drawn as a picture only')+'.</p>'
     +'<label>Target power for the Spectral Pacer (W)<input type="number" min="10" max="1500" step="1" inputmode="numeric" data-in="arcp" id="arc-p" value="'+esc(Z.P)+'" placeholder="'+(best?'your best: '+Math.round(best):'e.g. 120')+'"></label>'
@@ -238,9 +261,9 @@ function chamber(id){
     +'<div class="row arc-row"><button type="button" data-a="arcpace" '+(rate?'':'disabled ')+'aria-pressed="'+(Z.pace.on?'true':'false')+'">'+(Z.pace.on?'STOP THE GHOST':'SUMMON THE GHOST')+'</button></div><small class="mut" id="arc-pst" aria-live="polite"></small></div></div>'
     +'<h4>'+ico('energy')+' CADENCE ECHO</h4><p class="mut">The microphone hears footsteps: each rise in loudness (RMS over 0.1) is one step. f = 1 ÷ the mean time between steps; ω = 2πf. Nothing is recorded or sent.</p>'
     +'<div class="row arc-row"><button type="button" data-a="arcecho" aria-pressed="'+(Z.mic&&Z.mic.kind==='echo'?'true':'false')+'">'+(Z.mic&&Z.mic.kind==='echo'?'STOP LISTENING':'LISTEN FOR FOOTSTEPS')+'</button></div>'
-    +'<p class="num arc-cad" id="arc-cad" aria-live="polite"></p><small class="mut">When your step frequency is within 10 % of the ghost’s, the tower’s runes glow (and the words above say so).</small>'
+    +'<div class="arc-echo'+(Z.mic&&Z.mic.kind==='echo'?' on':'')+'" id="arc-echo" aria-hidden="true"><b></b></div><p class="num arc-cad" id="arc-cad" aria-live="polite"></p><small class="mut">When your step frequency is within 10 % of the ghost’s, the tower’s runes glow (and the words above say so).</small>'
     +'<h4>'+ico('heart')+' LUNA’S WIND SPELL (TALK TEST)</h4><p class="mut">After the climb, breathe near the phone for 5 seconds.</p>'
-    +'<div class="row arc-row"><button type="button" id="luna-breathalyzer" data-a="arcbreath" '+(Z.mic&&Z.mic.kind==='breath'?'disabled':'')+'>'+(Z.mic&&Z.mic.kind==='breath'?'LISTENING FOR 5 SECONDS…':'CAST THE WIND SPELL')+'</button></div>'+breathTxt()
+    +'<div class="row arc-row"><button type="button" id="luna-breathalyzer" data-a="arcbreath" '+(Z.mic&&Z.mic.kind==='breath'?'disabled':'')+'>'+(Z.mic&&Z.mic.kind==='breath'?'LISTENING FOR 5 SECONDS…':'CAST THE WIND SPELL')+'</button></div>'+(Z.mic&&Z.mic.kind==='breath'?'<div class="arc-wind" aria-hidden="true">'+'<i></i>'.repeat(7)+'</div>':'')+breathTxt()
     +gravityCard(q)+'</section>'}
 function breathTxt(){const b=breathOn();if(!b)return'';
   return '<p class="arc-warn" role="status">'+(b.loud?stt('watch')+' Luna’s Wind Spell hears heavy breathing (loudness '+fx(b.rms,2)+'). The Metabolic Forge now uses the RER 1.0 value for the next 10 minutes.':stt('good')+' Calm breathing (loudness '+fx(b.rms,2)+'). The forge keeps the value from your meal.')+'</p>'
@@ -257,6 +280,12 @@ function gravityCard(q){
   const g0=math.gravity(KMK.lat,0),gB=math.gravity(KMK.lat,ALT),gT=math.gravity(KMK.lat,ALT+(h||0));
   const sea=mi?mi.kg:null,top=mi?math.scaleRead(mi.kg,g0,gT):null;
   return '<h4>'+ico('balance')+' THE GRAVITY ANOMALY</h4>'
+    +'<figure class="arc-grav"><svg viewBox="0 0 220 120" role="img" aria-label="Earth’s pull at the foot and at the top of the stair; the top arrow is shorter. Not to scale."><defs><radialGradient id="arc-eg" cx="50%" cy="100%" r="90%"><stop offset="0" stop-color="#4fe0c8"/><stop offset=".6" stop-color="#2a4fb0"/><stop offset="1" stop-color="#14204f"/></radialGradient><marker id="arc-ah" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#ffd86b"/></marker></defs>'
+    +'<g class="arc-field">'+[30,70,110,150,190].map(x=>'<line x1="'+x+'" y1="0" x2="'+x+'" y2="96"/>').join('')+'</g>'
+    +'<path d="M-20 120 Q110 70 240 120 Z" fill="url(#arc-eg)"/><path class="arc-gst" d="M70 96 h12 v-8 h12 v-8 h12 v-8 h12 v-8 h12 v-8 h12 v-8" fill="none"/>'
+    +'<circle cx="70" cy="86" r="5" class="arc-fig"/><line x1="70" y1="70" x2="70" y2="92" marker-end="url(#arc-ah)" class="arc-g"/>'
+    +'<circle cx="142" cy="38" r="5" class="arc-fig"/><line x1="142" y1="24" x2="142" y2="43" marker-end="url(#arc-ah)" class="arc-g"/>'
+    +'<text x="6" y="66">foot: g '+fx(gB,6)+'</text><text x="96" y="16">top: g '+fx(gT,6)+'</text></svg><figcaption class="mut">Arrow lengths exaggerated: the real difference is a few millionths.</figcaption></figure>'
     +'<p>g = 9.780327 (1 + 0.0053024 sin²φ − 0.0000058 sin² 2φ) − 3.086×10⁻⁶ h, at φ = 5.36°:</p>'
     +'<ul class="arc-orl num"><li>sea level: '+fx(g0,6)+' m/s²</li><li>campus (about '+ALT+' m, assumed): '+fx(gB,6)+' m/s²</li>'+(h?'<li>top of '+esc(q.id)+' (+'+fx(h,2)+' m): '+fx(gT,6)+' m/s²</li>':'')+'</ul>'
     +(mi?'<p class="arc-cmp num" title="Gravity is slightly weaker up here!"><span>Scale reading at sea level: <b>'+fx(sea,3)+' kg</b></span><span>Same scale at the stair top: <b>'+fx(top,3)+' kg</b></span></p>'
@@ -279,15 +308,16 @@ function forge(){
       +'<p>Fuel: <b>'+esc(fct[1])+'</b>'+(b&&b.loud?' — Luna’s Wind Spell detected heavy breathing; energy calculation adjusted.':mk.e?' (from '+esc((mk.e.m&&mk.e.m.name)||'your last meal')+(mk.c!=null?', '+Math.round(mk.c*100)+' % of its energy from carbohydrate':'')+')':'')+'.</p>'
       +'<p class="num">E = '+fx(V.lmin,2)+' L/min × '+fx(V.dur,1)+' min × '+fx(fct[0],1)+' kJ/L = <b>'+Math.round(E).toLocaleString('en')+' kJ</b> ('+Math.round(E/KJ)+' kcal)'
       +(fct[0]!==20.1?' <small class="mut">mixed-diet value: '+Math.round(E0)+' kJ</small>':'')+'</p>'}
-  return '<div class="card arc-forge" id="arc-forge"><h3>'+ico('energy')+' THE METABOLIC FORGE</h3><p class="mut">Each litre of oxygen releases more energy when the body burns carbohydrate (21.1 kJ, RER 1.0) than fat (19.6 kJ, RER 0.7); a mixed diet is about 20.1 kJ.</p>'
-    +body+'<small class="mut">Estimated: the fuel mix is assumed from your last logged meal (carbohydrate ≥ 60 % of its energy = high-carb, ≤ 25 % = low-carb), not measured. The difference is a few percent.</small></div>'}
+  const fl='<div class="arc-flame f-'+k+'" aria-hidden="true">'+'<i></i>'.repeat(7)+'<b class="arc-anvil"></b>'+'<s></s>'.repeat(5)+'</div>';
+  return '<div class="card arc-forge" id="arc-forge"><h3>'+ico('energy')+' THE METABOLIC FORGE</h3><div class="arc-fg">'+fl+'<div><p class="mut">Each litre of oxygen releases more energy when the body runs on carbohydrate (21.1 kJ, RER 1.0) than on fat (19.6 kJ, RER 0.7); a mixed diet is about 20.1 kJ.</p>'
+    +body+'</div></div><small class="mut">Estimated: the fuel mix is assumed from your last logged meal (carbohydrate ≥ 60 % of its energy = high-carb, ≤ 25 % = low-carb), not measured. The difference is a few percent.</small></div>'}
 function ledger(){
   let f=null,c=null;try{f=HWAlchemy.food();c=HWAlchemy.climb()}catch(e){}
   const fk=f&&f.ok?f.kJ:null,wk=c&&c.W!=null?c.W/1000:null;
   if(fk==null||wk==null)return '<div class="arc-led" id="arc-led"><p class="mut">Choose a food and a climb above to load the balance.</p></div>';
   const t=math.tilt(wk,fk),still=HWUI.reduced&&HWUI.reduced();
   return '<div class="arc-led" id="arc-led"><div class="arc-scale'+(still?' still':'')+'" role="img" aria-label="Balance: food '+Math.round(fk)+' kJ on the left, work '+fx(wk,1)+' kJ on the right; the beam rises '+fx(45-t,1)+' degrees on the work side">'
-    +'<div class="scale-beam" style="--a:-'+(45-t).toFixed(1)+'deg"><div class="scale-pan" id="pan-food"><b>'+Math.round(fk).toLocaleString('en')+' kJ</b><small>food</small></div><div class="scale-pan" id="pan-work"><b>'+fx(wk,wk<10?2:1)+' kJ</b><small>work</small></div></div><i class="arc-post"></i></div>'
+    +'<div class="scale-beam" style="--a:-'+(45-t).toFixed(1)+'deg"><div class="scale-pan" id="pan-food"><span class="arc-coins" aria-hidden="true">'+'<i></i>'.repeat(6)+'</span><b>'+Math.round(fk).toLocaleString('en')+' kJ</b><small>food</small></div><div class="scale-pan" id="pan-work"><span class="arc-feather" aria-hidden="true"></span><b>'+fx(wk,wk<10?2:1)+' kJ</b><small>work</small></div></div><i class="arc-post"></i></div>'
     +'<p class="num">tilt = (work ÷ food) × 45° = ('+fx(wk,2)+' ÷ '+fx(fk,0)+') × 45° = <b>'+fx(t,2)+'°</b> from the food side (45° would be level).</p>'
     +'<p>Behold the law of conservation of energy (and Hess’s law: the energy a food releases is the same whichever path the body takes). The chemical energy in a food is far larger than the mechanical work of a climb, because muscles are only about 20 to 25 % efficient and the body uses energy all day.</p>'
     +'<small class="mut">Not a trade: no number of stairs cancels a meal.</small></div>'}
@@ -312,8 +342,14 @@ function survey(){
     +'<div id="arc-svr" aria-live="polite">'+survRes(q,R)+'</div>'
     +(mine?'<small class="mut">Your saved survey of '+esc(SZ.sid)+' ('+esc(mine.d)+'): '+fx(mine.r,1)+' cm ÷ '+fx(mine.t,1)+' cm = '+fx(mine.a,2)+'°.</small>':'')
     +'<small class="mut">Your measurement is kept as yours; the database angle is not changed by it. A disagreement over 2° is worth reporting to the survey team.</small></div>'}
-function survRes(q,R){if(!q)return'';if(!R)return '<p class="mut">Type both measurements.</p>';
-  return '<p class="num">atan('+fx(+SZ.r,1)+' ÷ '+fx(+SZ.t,1)+') = <b>'+fx(R.a,2)+'°</b>; database '+q.angle.toFixed(2)+'°; difference '+fx(R.diff,2)+'° '+(R.ok?stt('good')+' within 2°':stt('caution')+' over 2°')+'</p>'
+function tri(r,t,a){const k=Math.min(150/t,80/r),W=t*k,H=r*k,x0=30,y0=100,ar=Math.min(28,W*.5),A=Math.atan(r/t);
+  return '<svg class="arc-tri" viewBox="0 0 200 120" role="img" aria-label="Step triangle: riser '+fv(r)+' cm, tread '+fv(t)+' cm, angle '+fx(a,2)+' degrees">'
+    +'<path class="arc-tp" d="M'+x0+' '+y0+' h'+W.toFixed(1)+' v-'+H.toFixed(1)+' Z"/>'
+    +'<path class="arc-ta" d="M'+(x0+ar)+' '+y0+' A'+ar+' '+ar+' 0 0 0 '+(x0+ar*Math.cos(A)).toFixed(1)+' '+(y0-ar*Math.sin(A)).toFixed(1)+'"/>'
+    +'<text x="'+(x0+W/2)+'" y="'+(y0+14)+'" text-anchor="middle">tread '+fv(t)+'</text><text x="'+(x0+W-4)+'" y="'+(y0-H/2)+'" text-anchor="end">riser '+fv(r)+'</text>'
+    +'<text class="arc-tav" x="'+(x0+ar+6)+'" y="'+(y0-5)+'">'+fx(a,1)+'°</text></svg>'}
+function survRes(q,R){if(!q)return'';if(!R)return tri(17.95,31.8,math.angleOf(17.95,31.8)).replace('class="arc-tri"','class="arc-tri ghost"')+'<p class="mut">Type both measurements.</p>';
+  return tri(+SZ.r,+SZ.t,R.a).replace('class="arc-tri"','class="arc-tri '+(R.ok?'ok':'off')+'"')+'<p class="num">atan('+fv(SZ.r)+' ÷ '+fv(SZ.t)+') = <b>'+fx(R.a,2)+'°</b>; database '+q.angle.toFixed(2)+'°; difference '+fx(R.diff,2)+'° '+(R.ok?stt('good')+' within 2°':stt('caution')+' over 2°')+'</p>'
     +'<button type="button" data-a="arcsvsave">'+(R.ok?'RECORD MY SURVEY (TRUTH-SEEKER)':'RECORD MY SURVEY')+'</button>'}
 INP.arcsv=el=>{SZ[el.dataset.f]=el.value;const q=STAIRS.find(s=>s.id===SZ.sid),o=$i('arc-svr');if(o)o.innerHTML=survRes(q,q&&SZ.r!==''&&SZ.t!==''?math.survey(+SZ.r,+SZ.t,q.angle):null)};
 CH.arcsid=v=>{if(FLAGGED.includes(v)){SZ.sid=v;SZ.r=SZ.t=''}const n=$i('royal-surveyors');if(n)n.outerHTML=survey()};
