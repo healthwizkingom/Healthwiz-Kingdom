@@ -54,7 +54,7 @@ test('details in three groups with the player\'s own climbs and honest labels; p
   await page.evaluate(id => { add('stair', 100, { sid: id, steps: 20, climbs: 5 }, '', today(), '08:00', 0, ''); st.gp = { ok: 1, v: { [id]: '2026-10-01' } }; save(); render(); }, id);
   await page.click('#cmplist .cmpitem[data-id="' + id + '"]');
   assert.equal(await page.locator('#cmppane > #cmpdet').count(), 1, 'its Details, right below the map');
-  assert.deepEqual(await page.$$eval('#cmpdet .cmpgrp h3', a => a.map(x => x.textContent.trim())), ['Location', 'Staircase profile', 'Data quality']);
+  assert.deepEqual(await page.$$eval('#cmpdet .cmpgrp h3', a => a.map(x => x.textContent.trim())), ['NAVIGATOR’S COMPASS', 'Location', 'Staircase profile', 'Data quality']); // the sun compass (js/v6-astral.js, 2026-10-29) above the three groups
   const d = await page.textContent('#cmpdet');
   assert.match(d, /You saved 1 stair session here \(last \d{4}-\d\d-\d\d\) · first GPS check-in 2026-10-01/);
   assert.match(d, /5\.3519878, 100\.5383771Real location · HealthWiz stair list/);

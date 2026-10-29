@@ -241,7 +241,8 @@ D.addEventListener('keydown',e=>{if(e.key==='Escape'&&hudOpen&&$i('asthudp')){e.
 if(typeof HWCampusHud!=='undefined'){const h=HWCampusHud.html;HWCampusHud.html=function(){return h.apply(this,arguments)+hud()}}
 acts.astnow=()=>repaint();
 acts.astfx=()=>{pref.fx=fx()?0:1;keep();repaint();const n=D.querySelector('#asthudp [data-a="astfx"]');if(n)n.focus({preventScroll:true})};
-D.addEventListener('toggle',e=>{const t=e.target;if(t&&t.id==='astral'){pref.open=t.open?1:0;keep()}},true);
+// a <details open> also fires 'toggle' when it is drawn: save only a real change, so looking writes nothing
+D.addEventListener('toggle',e=>{const t=e.target;if(t&&t.id==='astral'&&t.open!==open()){pref.open=t.open?1:0;keep()}},true);
 D.addEventListener('visibilitychange',()=>{if(D.hidden)arm(0);else if(on$()){repaint();arm()}});
 HWEvents.on('page:viewed',e=>{if(e.view!=='campus'){arm(0);hudOpen=false}});
 
