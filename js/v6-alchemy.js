@@ -25,7 +25,7 @@ const kj=kcal=>kcal*KJ,kcalOfJ=j=>j/(KJ*1000);
 const fmt=(x,d)=>(+x).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d});
 const en=x=>x>=100||(x>=10&&Math.abs(x-Math.round(x))<1e-9)?fmt(x,0):x>=10?fmt(x,1):fmt(x,2);                      // enough digits, not false precision
 const MIN_ETA=.20,MAX_ETA=.25;
-const Z0=()=>({src:'menu',q:'',fi:'',pm:1,kc:'',por:'',nm:'',sid:'',n:'',rise:'',mass:'',rec:'',recRise:'',recMass:'',scale:0,ed:{rise:0,mass:0}});
+const Z0=()=>({src:'menu',q:'',fi:'',pm:1,kc:'',por:'',nm:'',sid:'',cl:'1',rise:'',rec:'',recRise:'',recMass:'',scale:0,ed:{rise:0,mass:0}});
 let Z=Z0();
 
 /* ---------- the three quantities ---------- */
@@ -41,16 +41,18 @@ function food(){
   const pm=scalable&&+Z.pm>0&&+Z.pm<=20?+Z.pm:1,kcal=base*pm;
   return{ok:1,name,por,scalable,pm,base,kcal,kJ:kj(kcal),src}}
 function climbRec(){return Z.rec?HWStairs.all().find(s=>s.id===Z.rec):null}
+const counted=q=>q&&Array.isArray(q.steps)?q.steps.reduce((a,b)=>a+(+b||0),0):0;   // the stairway's counted steps, every flight (js/v6-stairs-data.js)
 function climb(){
-  const q=STAIRS.find(s=>s.id===Z.sid)||null,n=Math.round(+Z.n),vr=q?HWGravity.verifiedRise(q.id):null;
-  const mi=HWGravity.massInfo(),rec=climbRec();
+  const q=STAIRS.find(s=>s.id===Z.sid)||null,vr=q?HWGravity.verifiedRise(q.id):null;
+  const mi=HWGravity.massInfo(),rec=climbRec(),per=counted(q),cl=Math.round(+Z.cl),okC=Number.isInteger(cl)&&cl>=1&&cl<=50;
+  const n=rec?rec.total:per&&okC?per*cl:NaN;
   const riseCm=Z.rise!==''?+Z.rise:(Z.recRise!==''?+Z.recRise:vr?vr*100:null);
-  const massKg=Z.mass!==''?+Z.mass:(Z.recMass!==''?+Z.recMass:mi?mi.kg:null);
+  const massKg=Z.recMass!==''?+Z.recMass:mi?mi.kg:null;
   const riseSrc=Z.rise!==''?'typed by you':Z.recRise!==''?'saved with that Stair Sense record':vr?(HWGravity.riseKind(q.id)==='study'?'measured in the Group 14 study':'estimated from the stairway\u2019s angle (tread 30.5 cm \u00d7 tan \u03b8)'):'';
-  const massSrc=Z.mass!==''?'typed by you':Z.recMass!==''?'saved with that Stair Sense record':mi?mi.src:'';
+  const massSrc=Z.recMass!==''?'saved with that Stair Sense record':mi?mi.src:'';
   const P=HWGravity.physics(n,riseCm==null?NaN:riseCm/100,massKg==null?NaN:massKg,60);
   const saved=rec&&rec.kcal?rec.kcal:null;
-  return{q,n,okN:P.okN,riseCm,massKg,riseSrc,massSrc,h:P.h,W:P.W,okR:P.okR,okM:P.okM,saved,rec,
+  return{q,n,per,cl,okC,okN:P.okN,riseCm,massKg,riseSrc,massSrc,h:P.h,W:P.W,okR:P.okR,okM:P.okM,saved,rec,
     lo:P.W==null?null:P.W/MAX_ETA,hi:P.W==null?null:P.W/MIN_ETA}}                  // J of metabolic energy if 25% / 20% of it becomes the lifting work
 
 /* ---------- pieces ---------- */
@@ -83,15 +85,21 @@ function foodRes(){
 function climbCard(){
   const L=HWStairs.all().filter(s=>s.total>0).slice(-12).reverse();
   return '<div class="card alc" id="al-climb"><h3>'+ico('stairs')+' ASCENT CRYSTAL</h3><span class="pxtag">MOVEMENT</span>'
-    +(L.length?'<label for="al-rec">A climb you recorded <small class="mut">(optional)</small></label><select id="al-rec" data-in="al" data-f="rec"><option value="">Pick a recorded climb…</option>'+L.map(s=>'<option value="'+esc(s.id)+'"'+(s.id===Z.rec?' selected':'')+'>'+esc(s.d)+' · '+esc(s.loc.length>34?s.loc.slice(0,33)+'…':s.loc)+' · '+s.total+' steps</option>').join('')+'</select>':'<small class="mut">No stair sessions recorded yet. Choose a staircase and type a step count to explore.</small>')
+    +(L.length?'<label for="al-rec">A climb you recorded <small class="mut">(optional)</small></label><select id="al-rec" data-in="al" data-f="rec"><option value="">Pick a recorded climb…</option>'+L.map(s=>'<option value="'+esc(s.id)+'"'+(s.id===Z.rec?' selected':'')+'>'+esc(s.d)+' · '+esc(s.loc.length>34?s.loc.slice(0,33)+'…':s.loc)+' · '+s.total+' steps</option>').join('')+'</select>':'<small class="mut">No stair sessions recorded yet. Choose a staircase and how many times you climb it.</small>')
     +'<label for="al-sid">Staircase</label><select id="al-sid" data-in="al" data-f="sid"><option value="">Choose a staircase…</option>'+CATS.map(c=>'<optgroup label="'+c[1]+'">'+stairsOf(c[1]).map(s=>'<option value="'+s.id+'"'+(s.id===Z.sid?' selected':'')+'>'+esc(s.name)+(HWGravity.riseKind(s.id)==='study'?' · step height measured':HWGravity.riseKind(s.id)==='angle'?' · step height from angle':'')+'</option>').join('')+'</optgroup>').join('')+'</select>'
-    +'<label for="al-n">Steps climbed (up only)</label><input id="al-n" data-in="al" data-f="n" type="number" min="1" max="1000" inputmode="numeric" value="'+esc(Z.n)+'">'
+    +'<div id="al-stp">'+stepsBlock()+'</div>'
     +'<label for="al-r">Height of one step (cm)</label><input id="al-r" data-in="al" data-f="rise" type="number" min="5" max="30" step="0.1" inputmode="decimal" placeholder="measured value" value="'+esc(Z.rise)+'">'
-    +'<label for="al-m">Body mass (kg)</label><input id="al-m" data-in="al" data-f="mass" type="number" min="20" max="300" step="0.1" inputmode="decimal" value="'+esc(Z.mass)+'">'
     +'<div id="al-cres">'+climbRes()+'</div></div>'}
+function stepsBlock(){
+  const c=climb();
+  if(c.rec)return '<p class="alres alnum" role="status">Steps: <b>'+c.rec.total+'</b> <small class="mut">from the climb you recorded on '+esc(c.rec.d)+'</small></p>';
+  return '<label for="al-cl">Number of climbs</label><input id="al-cl" data-in="al" data-f="cl" type="number" min="1" max="50" step="1" inputmode="numeric" value="'+esc(Z.cl)+'">'
+    +'<p class="alnum" role="status" id="al-stpn">'+(!c.q?'<small class="mut">Choose a staircase: its counted steps are used.</small>'
+      :c.per?'Steps: <b>'+c.per+'</b> counted'+(c.okC?' × '+c.cl+(c.cl===1?' climb':' climbs')+' = <b>'+c.n+'</b>':'')+' <small class="mut">(counted on the stair survey, up only)</small>'
+      :'<small class="mut">The steps of this staircase have not been counted yet, so the work is unavailable.</small>')+'</p>'}
 function climbRes(){
   const c=climb();let h='';
-  const need=[];if(!c.q)need.push('a staircase');if(!c.okN)need.push('steps climbed (1–1000)');if(!c.okR)need.push('the height of one step (5–30 cm)'+(c.q&&!HWGravity.verifiedRise(c.q.id)?', which cannot be worked out for this very steep stairway':''));if(!c.okM)need.push('your body mass (20–300 kg)');
+  const need=[];if(!c.q)need.push('a staircase');if(c.q&&!c.rec&&!c.per)need.push('a counted step number for this staircase (not surveyed yet)');else if(c.q&&!c.rec&&!c.okC)need.push('the number of climbs (1–50)');else if(c.q&&!c.okN)need.push('a step total of 1–1000');if(!c.okR)need.push('the height of one step (5–30 cm)'+(c.q&&!HWGravity.verifiedRise(c.q.id)?', which cannot be worked out for this very steep stairway':''));if(!c.okM)need.push('your weight: log it on the BMI page or in your profile');
   h+='<small class="mut">Step height: '+(c.okR?fmt(c.riseCm,1)+' cm, '+esc(c.riseSrc):'<b>unavailable</b>')+'. Mass: '+(c.okM?fmt(c.massKg,1)+' kg, '+esc(c.massSrc):'<b>unavailable</b>')+'.</small>';
   if(c.W==null)return h+'<p class="mut" role="status">The work against gravity is unavailable. Needs: '+need.join('; ')+'.</p>'+(c.saved?savedLine(c):'');
   return h+'<div class="alres" role="status"><p class="alnum">h = '+c.n+' × '+fmt(c.riseCm/100,3)+' m = <b>'+fmt(c.h,2)+' m</b></p><p class="alnum">W = m g h = '+fmt(c.massKg,1)+' × 9.80665 × '+fmt(c.h,2)+' = <b>'+fmt(c.W,0)+' J</b> <span class="mut">=</span> <b>'+en(c.W/1000)+' kJ</b> <span class="mut">=</span> '+en(kcalOfJ(c.W))+' kcal</p>'
@@ -142,13 +150,15 @@ function refresh(){
 INP.al=el=>{const f=el.dataset.f;if(!(f in Z))return;Z[f]=el.value;
   if(f==='q'){const s=$i('al-fi');if(s)s.innerHTML=foodOptions();return}
   if(f==='fi'){Z.pm=1;Z.kc='';const k=$i('al-kc');if(k)k.innerHTML=kcInput()}
-  if(f==='rise')Z.ed.rise=1;if(f==='mass')Z.ed.mass=1;
+  if(f==='rise')Z.ed.rise=1;
   if(f==='sid'){const q=STAIRS.find(s=>s.id===Z.sid);if(Z.rec){Z.rec='';Z.recRise=Z.recMass=''}const r=$i('al-r');if(r&&q&&HWGravity.verifiedRise(q.id)&&!Z.ed.rise)r.placeholder=fmt(HWGravity.verifiedRise(q.id)*100,1)+(HWGravity.riseKind(q.id)==='study'?' (measured)':' (from angle)');else if(r)r.placeholder='measured value'}
   if(f==='rec'){const s=climbRec();Z.recRise=Z.recMass='';
-    if(s){Z.sid=s.sid||'';Z.n=String(s.total);const e=st.e.find(x=>x.id===s.id),g=e&&e.m&&e.m.gv;
+    if(s){Z.sid=s.sid||'';const e=st.e.find(x=>x.id===s.id),g=e&&e.m&&e.m.gv;
       if(g){if(+g.rise>0)Z.recRise=String(Math.round(g.rise*1000)/10);if(+g.mass>0)Z.recMass=String(g.mass)}
-      Z.rise='';Z.mass='';Z.ed={rise:0,mass:0}}
-    const q=$i('al-sid'),n=$i('al-n'),r=$i('al-r'),m=$i('al-m');if(q)q.value=Z.sid;if(n)n.value=Z.n;if(r)r.value='';if(m)m.value=''}
+      Z.rise='';Z.ed={rise:0,mass:0}}
+    const q=$i('al-sid'),r=$i('al-r');if(q)q.value=Z.sid;if(r)r.value='';const b=$i('al-stp');if(b)b.innerHTML=stepsBlock()}
+  if(f==='sid'){const b=$i('al-stp');if(b)b.innerHTML=stepsBlock()}
+  if(f==='cl'){const t=$i('al-stpn'),c=climb();if(t){const h=document.createElement('div');h.innerHTML=stepsBlock();const nn=h.querySelector('#al-stpn');if(nn)t.innerHTML=nn.innerHTML}}
   refresh()};
 acts.alsrc=d=>{Z.src=d.v==='manual'?'manual':'menu';Z.pm=1;Z.kc='';render()};
 acts.alpm=d=>{if(PMS.includes(+d.v)){Z.pm=+d.v;refresh()}};

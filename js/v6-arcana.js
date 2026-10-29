@@ -258,23 +258,31 @@ function towerFrame(c,q,s){
     x.fillStyle='#fff6c8';x.fillRect(96,10,8,8);x.fillStyle='#241a5e';x.fillRect(99,9,7,7)}                          // a crescent moon
   else{const v=x.createRadialGradient(TW/2,TH/2,TH*.3,TW/2,TH/2,TH*.75);v.addColorStop(0,'rgba(10,6,30,0)');v.addColorStop(1,'rgba(10,6,30,.55)');x.fillStyle=v;x.fillRect(0,0,TW,TH)}
   const r=Math.round,px=(X,Y,w,h,c3)=>{x.fillStyle=c3;x.fillRect(r(X),r(Y),Math.max(1,r(w)),Math.max(1,r(h)))};
-  for(let i=0;i<G.n;i++){const X=G.x(i),Y=G.y(i+1),w=G.tk,h=G.y(0)-Y;
-    if(!ar){px(X,Y,w+1,h,i%2?'#3b3466':'#443c75');px(X,Y,w+1,1,'#d9b45a')}                                           // stone and gilded tread edge
-    else{px(X,Y,w+1,1,neon);px(X,Y,1,G.rk+1,neon)}}                                                                   // neon outline over the world
-  if(!ar){px(G.L-2,G.B,TW-G.L,2,'#1a1440')}
-  for(let i=0;i<G.n;i++){const X=G.x(i)+1,Y=G.y(i)-G.rk/2-1,on=i<=lit;                                             // the runes
-    if(on){x.fillStyle=sync?'rgba(255,216,107,.35)':'rgba(95,246,255,.35)';x.fillRect(r(X)-2,r(Y)-2,6,6)}
-    px(X,Y,2,2,on?'#ffffff':dim);if(on){px(X-1,Y+.5,1,1,neon);px(X+2,Y+.5,1,1,neon)}}
-  const you=Z.pace.on&&Z.you>0?(Z.you-1)%G.n:-1;                                                                     // your own footsteps (Cadence Echo)
-  if(you>=0){const X=G.x(you)+G.tk/2,Y=G.y(you+1)-4;px(X-1,Y-2,3,1,'#ffd86b');px(X-2,Y-1,5,1,'#ffd86b');px(X-1,Y,3,1,'#ffd86b')}
-  if(s==null)s=0;                                                                                                   // the ghost waits at the foot
-  const i=Math.floor(s),f=s-i,gx=G.x(Math.min(i,G.n-1))+G.tk*Math.min(1,f*1.6),gy=G.y(Math.min(G.n,i+(f>.6?1:0)))-17+(Z.pace.on?Math.sin(T*6)*1.2:0);
-  if(Z.pace.on&&!(HWUI.reduced&&HWUI.reduced())){TV.trail.push([gx+3,gy+8]);if(TV.trail.length>16)TV.trail.shift();
-    if(Math.random()<.5)TV.sp.push([gx+3+Math.random()*8,gy+12,1]);TV.sp=TV.sp.filter(p=>(p[1]-=.6,p[2]-=.03)>0);
-    TV.trail.forEach((p,k)=>{x.fillStyle='rgba(127,243,255,'+(k/TV.trail.length*.55).toFixed(2)+')';x.fillRect(r(p[0])+1,r(p[1]),3,2)});
-    TV.sp.forEach(p=>{x.fillStyle='rgba(255,255,255,'+p[2].toFixed(2)+')';x.fillRect(r(p[0]),r(p[1]),1,1)})}
-  x.fillStyle='rgba(127,243,255,.22)';x.fillRect(r(gx)-3,r(gy)-3,20,20);x.fillStyle='rgba(127,243,255,.3)';x.fillRect(r(gx)-1,r(gy)-1,16,16);   // halo
-  GHOST.forEach((row,yy)=>[...row].forEach((ch,xx)=>{if(ch!=='.')px(gx+xx*2,gy+yy*2,2,2,ch==='b'?'#1b1340':'#e9fbff')}))}   // the sprite at 2 px per pixel
+  const still=HWUI.reduced&&HWUI.reduced(),trail=(gx,gy,ps)=>{if(!Z.pace.on||still)return;TV.trail.push([gx,gy,ps]);if(TV.trail.length>16)TV.trail.shift();
+    if(Math.random()<.5)TV.sp.push([gx-3*ps+Math.random()*6*ps,gy,1]);TV.sp=TV.sp.filter(p=>(p[1]-=.6,p[2]-=.03)>0);
+    TV.trail.forEach((p,k)=>{x.fillStyle='rgba(127,243,255,'+(k/TV.trail.length*.55).toFixed(2)+')';x.fillRect(r(p[0]-p[2]),r(p[1]),Math.max(2,r(p[2]*2)),2)});
+    TV.sp.forEach(p=>{x.fillStyle='rgba(255,255,255,'+p[2].toFixed(2)+')';x.fillRect(r(p[0]),r(p[1]),1,1)})};
+  const ghost=(cx,by,ps)=>{const w=7*ps,h=7*ps,gx=cx-w/2,gy=by-h;                                                  // centred on cx, feet at by
+    x.fillStyle='rgba(127,243,255,.22)';x.fillRect(r(gx)-2*ps,r(gy)-2*ps,w+4*ps,h+4*ps);x.fillStyle='rgba(127,243,255,.3)';x.fillRect(r(gx)-ps,r(gy)-ps,w+2*ps,h+2*ps);
+    GHOST.forEach((row,yy)=>[...row].forEach((ch,xx)=>{if(ch!=='.')px(gx+xx*ps,gy+yy*ps,ps,ps,ch==='b'?'#1b1340':'#e9fbff')}))};
+  const rune=(X,Y,on)=>{if(on){x.fillStyle=sync?'rgba(255,216,107,.35)':'rgba(95,246,255,.35)';x.fillRect(r(X)-2,r(Y)-2,6,6)}px(X,Y,2,2,on?'#ffffff':dim);if(on){px(X-1,Y+.5,1,1,neon);px(X+2,Y+.5,1,1,neon)}};
+  const bob=Z.pace.on?Math.sin(T*6)*1.2:0,you=Z.pace.on&&Z.you>0?(Z.you-1)%G.n:-1,sg=s==null?0:s;
+  if(ar){
+    /* the climber's view: the camera looks up the stairway, so the flight recedes UP the screen to a vanishing point near the top.
+       Depth d (in steps) maps to y = top + (foot − top) ÷ (1 + a d); width and the ghost shrink by the same factor. */
+    const cx=TW/2,top=12,foot=TH-8,w0=50,a=((foot-top)/9-1)/G.n,k=d=>1/(1+a*d),Y=d=>top+(foot-top)*k(d),HW=d=>w0*k(d);
+    for(let i=0;i<=G.n;i++){const y=Y(i),hw=HW(i);px(cx-hw,y,hw*2,1,neon)}                                             // each step's nosing
+    for(let i=0;i<G.n;i++){const y0=Y(i),y1=Y(i+1),h0=HW(i),h1=HW(i+1);for(let t=0;t<=1;t+=.25){px(cx-h0+(h0-h1)*t,y0+(y1-y0)*t,1,1,dim);px(cx+h0-(h0-h1)*t,y0+(y1-y0)*t,1,1,dim)}}   // rails
+    for(let i=0;i<G.n;i++){const y=Y(i+1)-1,hw=HW(i+1);rune(cx-hw-1,y,i<=lit);rune(cx+hw-1,y,i<=lit)}                // a rune at each end of each step
+    if(you>=0){const y=Y(you+1)-3;px(cx-1,y-2,3,1,'#ffd86b');px(cx-2,y-1,5,1,'#ffd86b');px(cx-1,y,3,1,'#ffd86b')}
+    const d=sg+.5,ps=Math.max(1,Math.round(3*k(d))),by=Y(d)+bob*k(d);
+    trail(cx,by-2*ps,ps);ghost(cx,by,ps);return}
+  for(let i=0;i<G.n;i++){const X=G.x(i),Yy=G.y(i+1),w=G.tk,h=G.y(0)-Yy;px(X,Yy,w+1,h,i%2?'#3b3466':'#443c75');px(X,Yy,w+1,1,'#d9b45a')}   // stone and gilded tread edge
+  px(G.L-2,G.B,TW-G.L,2,'#1a1440');
+  for(let i=0;i<G.n;i++)rune(G.x(i)+1,G.y(i)-G.rk/2-1,i<=lit);
+  if(you>=0){const X=G.x(you)+G.tk/2,Yy=G.y(you+1)-4;px(X-1,Yy-2,3,1,'#ffd86b');px(X-2,Yy-1,5,1,'#ffd86b');px(X-1,Yy,3,1,'#ffd86b')}
+  const i=Math.floor(sg),f=sg-i,gx=G.x(Math.min(i,G.n-1))+G.tk*Math.min(1,f*1.6),by=G.y(Math.min(G.n,i+(f>.6?1:0)))-3+bob;
+  trail(gx+7,by-6,2);ghost(gx+7,by,2)}
 function towerStop(){cancelAnimationFrame(TV.raf);clearInterval(TV.iv);TV.raf=TV.iv=0}
 function pace(){towerStop();const c=$i('arc-canvas'),q=STAIRS.find(s=>s.id===Z.sid);if(!c||!q)return;const n=stepsOf(q),rate=pacer();
   if(!Z.pace.on||!rate){TV.trail=[];TV.sp=[];towerFrame(c,q,null);return}
@@ -308,8 +316,7 @@ function chamber(id){
     +(cam?'<span class="arc-scry-tag">SCRYING GLASS</span>':'')+'</div>'
     +'<div class="arc-book"><h4>Spellbook</h4><dl>'
     +'<div class="arc-bk"><dt><label for="arc-p">Target power</label></dt><dd><input type="number" min="10" max="1500" step="1" inputmode="numeric" data-in="arcp" id="arc-p" value="'+esc(Z.P)+'" placeholder="'+(best?'best '+Math.round(best):'e.g. 120')+'" aria-describedby="arc-p-u"> <span id="arc-p-u">W</span></dd></div>'
-    +row('Rate','<b id="arc-rate">'+(rate?fx(rate,2)+' steps/s':'–')+'</b>','P ÷ (m g r), calculated')
-    +row('Body mass',mi?fx(mi.kg,1)+' kg':'–',mi?esc(mi.src):'add your weight')
+    +row('Rate','<b id="arc-rate">'+(rate?fx(rate,2)+' steps/s':'–')+'</b>',mi?'P ÷ (m g r), with '+esc(mi.src):'needs your weight: log it on the BMI page or in your profile')
     +row('Riser',r?fx(r*100,1)+' cm':'–',r?(HWGravity.riseKind(id)==='study'?'measured (Group 14)':'estimated from the angle'):'not known for this stairway')
     +row('Angle',q.angle.toFixed(2)+'°',(Array.isArray(q.steps)&&q.steps.length?'first flight '+n+' steps':'step count not surveyed: '+n+' drawn'))
     +'</dl><div class="arc-btns"><button type="button" class="btn-primary" id="start-ar-btn" data-a="arcar" '+(cam?'disabled':'')+'>'+(cam?'SCRYING…':'CAST SCRYING GLASS (AR)')+'</button>'

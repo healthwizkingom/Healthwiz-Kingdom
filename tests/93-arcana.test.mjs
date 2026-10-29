@@ -128,7 +128,8 @@ test('Observatory Details: the tower and spellbook, the gravity card reads a sca
   assert.equal(await page.locator('#arc-tower canvas#arc-canvas').count(), 1);
   assert.equal(await page.$eval('#camera-feed', v => [v.autoplay, v.playsInline, v.style.display].join()), 'true,true,none');
   assert.match(await txt(page, '.arc-book'), /Angle28\.52°/);
-  assert.match(await txt(page, '.arc-book'), /Body mass60\.0 kg/);
+  assert.doesNotMatch(await txt(page, '.arc-book'), /Body mass/);
+  assert.match(await txt(page, '.arc-book'), /with your profile weight/);
   assert.equal(await page.$eval('.arc-bk dd', e => getComputedStyle(e).fontVariantNumeric), 'tabular-nums');
   assert.match(await txt(page, '#stair-sense-modal'), /Scale reading at sea level: 60\.000 kg/);
   assert.match(await txt(page, '#stair-sense-modal'), /Same scale at the stair top: 59\.999 kg/);
@@ -196,7 +197,7 @@ test('Alchemy: the balance beam tilts by (work ÷ food) × 45° and the forge na
   await go(page, 'alchemy');
   assert.match(await txt(page, '#arc-led'), /Choose a food and a climb/);
   await page.click('[data-a="alsrc"][data-v="manual"]'); await page.fill('#al-kcin', '100');
-  await page.selectOption('#al-sid', 'ST20'); await page.fill('#al-n', '120');
+  await page.selectOption('#al-sid', 'ST20'); await page.fill('#al-cl', '4');
   const t = await page.evaluate(() => { const w = HWAlchemy.climb().W / 1000; return HWArcana.math.tilt(w, 418.4); });
   assert.match(await txt(page, '#arc-led'), new RegExp('= ' + t.toFixed(2).replace('.', '\\.') + '°'));
   assert.equal(await page.locator('#pan-food').count(), 1);
