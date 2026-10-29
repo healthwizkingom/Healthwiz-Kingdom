@@ -244,11 +244,13 @@ const FL={all:['All',()=>true],MILD:['Mild',s=>s.appCategory==='MILD'],MODERATE:
 let FAC=null; // computed facts (nearest named OSM place, illustrative zone) once the map data is loaded
 const facts=s=>{if(!placed(s)||!window.HWObsMap||!window.HWObsMap.loaded)return null;FAC=FAC||{};const k=s.id+'@'+keyOf(s);return FAC[k]||(FAC[k]=window.HWObsMap.facts(s.longitude,s.latitude))};
 const hay=s=>{const f=facts(s);return(s.id+' '+s.name+' '+s.appFloorLabel+' '+(f&&f.near?f.near.name:'')+' '+(f&&f.zone?f.zone.name+' '+f.zone.region:'')).toLowerCase()};
-function shown(){const fn=FL[V.f][1],q=V.q.trim().toLowerCase();return R().filter(fn).filter(s=>!q||q.split(/\s+/).every(w=>hay(s).indexOf(w)>=0))}
+// easiest first (owner's request, 2026-10-29): Mild, Moderate, Vigorous, then by angle; the stairs added later (ST01, ST33–ST37) take their place
+const byEase=(a,b)=>(CK[a.appCategory]||9)-(CK[b.appCategory]||9)||(a.estimatedAngle-b.estimatedAngle)||a.id.localeCompare(b.id);
+function shown(){const fn=FL[V.f][1],q=V.q.trim().toLowerCase();return R().filter(fn).filter(s=>!q||q.split(/\s+/).every(w=>hay(s).indexOf(w)>=0)).sort(byEase)}
 const dot=s=>placed(s)?'<span class="cmpdot c'+CK[s.appCategory]+'" aria-hidden="true">'+CK[s.appCategory]+'</span>':'<span class="cmpdot nol" aria-hidden="true">?</span>';
 function items(L){return L.length?L.map(s=>'<li><button type="button" class="g cmpitem" data-a="cmppick" data-id="'+s.id+'"'+(V.sid===s.id?' aria-current="true"':'')+'>'+dot(s)
-    +'<span class="cmpnm">'+esc(s.name)+'</span><span class="cmpmeta"><b>'+s.id+'</b><span>θ '+s.estimatedAngle.toFixed(2)+'° '+(s.measuredStep?'(from measured steps)':'(real)')+'</span>'
-    +'<span>'+(!placed(s)?'No location recorded':s.locationStatus==='measured'?'Measured location':'Real location')+'</span>'+(s.measurementStatus==='surveyed'?'<span>Surveyed</span>':'')+'</span></button></li>').join('')
+    +'<span class="cmpnm">'+esc(s.name)+'</span><span class="cmpmeta"><b>'+s.id+'</b><span>θ '+s.estimatedAngle.toFixed(2)+'°</span>'
+    +(!placed(s)?'<span>Not on the map</span>':'')+'</span></button></li>').join('')
   :'<li class="mut">No staircase matches. Try another word or filter.</li>'}
 const countTxt=L=>L.length===R().length?R().length+' staircases':'Showing '+L.length+' of '+R().length;
 function listPane(){const L=shown(),u=unmapped().length;
@@ -292,7 +294,7 @@ function details(s,tab){if(tab==='workout')return '<p class="cmpeye">'+s.id+' ·
   if(s.notes)q+='<p class="cmpnotes">'+esc(s.notes)+'</p>';
   const mine='<p class="cmpmine">'+(a.sessions?'You saved '+a.sessions+' stair session'+(a.sessions>1?'s':'')+' here (last '+esc(a.last)+')':'No stair sessions saved here yet')+(a.firstCheckIn?' · first GPS check-in '+esc(a.firstCheckIn):'')+'</p>';
   return '<p class="cmpeye">'+s.id+' · '+CN[s.appCategory]+'</p><h3 class="cmph" tabindex="-1">'+esc(s.name)+'</h3>'
-    +preview(s)+logBox(s,tab)+mine+(placed(s)&&M.st==='ready'?'<div class="row cmpact"><button type="button" class="g" data-a="cmpshow">SHOW ON MAP</button></div>':'')
+    +preview(s)+logBox(s,tab)+mine+(typeof HWAstral!=='undefined'?HWAstral.panel(s):'')+(placed(s)&&M.st==='ready'?'<div class="row cmpact"><button type="button" class="g" data-a="cmpshow">SHOW ON MAP</button></div>':'')
     +grp('map','Location',loc)+grp('stairs','Staircase profile',pro)+grp('scroll','Data quality',q)
     +'<div class="row cmpact"><button type="button" class="g cmpback" data-a="cmptab" data-t="list">ALL STAIRCASES</button></div>'}
 function chooser(g){return '<button type="button" class="cmpback" data-a="cmptab" data-t="list">‹ All staircases</button><p class="cmpeye">Shared point</p><h3 class="cmph" tabindex="-1">'+g.items.length+' staircases at one stored point</h3>'
