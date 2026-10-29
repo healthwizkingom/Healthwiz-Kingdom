@@ -44,6 +44,11 @@ js/v6-campus-stairs.js     the collapsible "Stairs" section under the Observator
 js/v6-campus.js            the Campus Health Observatory (route 'campus', door in the Health Hall): the full-width map with its search, the list and the Details below it, where a staircase's climbs and workouts are logged (LOG A CLIMB HERE); fallback; loads the map over https
 js/v6-campus-css.js        the Observatory's styles (split from v6-campus.js to keep each file under 64 KB)
 js/v6-addfood.js           Add More Food: Luke (the apprentice) searches the web (Gemini + Google Search via food-guess) for any food, portion and changes, with a source per part; signed out, the canteen menu
+js/v6-arcana.js            the Arcana upgrades (2026-10-29 blueprint): Home's Elemental Thermometer (water potion, opt-in Open-Meteo weather) and the Oracle's
+                           crystal ball (readiness index from sleep, DASS-21 and 1-minute recovery); the Guild War of Joules (Training Hall; opt-in block totals,
+                           supabase/migrations/20261029000000_hw_guild.sql); a staircase's Details: Enchanted Tower, Spectral Pacer, Cadence Echo (mic), Luna's
+                           Wind Spell and the Gravity Anomaly; Alchemy's Metabolic Forge and Caloric Ledger; the Laboratory's Royal Surveyors (Truth-Seeker badge)
+js/v6-arcana-css.js        the Arcana upgrades' styles
 js/v6-arcane.js            the magical, modern look: Arcane Night default theme, glowing rounded panels and controls (docs/PIXEL_STYLE.md)
 js/v6-emoji.js             every emoji the app shows drawn as pixel art (hand-drawn icon or the emoji pixelated)
 js/v6-provisions.js        Nutrition & Hydration as one page (the Provisions Hall): 'food' and 'water' are its two halves
