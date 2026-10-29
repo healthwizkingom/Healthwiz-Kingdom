@@ -210,7 +210,7 @@ acts.arcgwr=()=>guildSync();
 /* =====================================================================================================================
    3 + 5 + 6. THE STAIR CHAMBER (a staircase's Details in the Observatory)
    ===================================================================================================================== */
-const Z={sid:null,P:'',pace:{on:0,t0:0,y:0},mic:null,peaks:[],cad:null,breath:null,match:0};
+const Z={sid:null,path:null,P:'',pace:{on:0},mic:null,peaks:[],cad:null,breath:null,match:0,cam:null,sight:null,xr:null,you:0};
 function stopMic(){const m=Z.mic;Z.mic=null;if(!m)return;cancelAnimationFrame(m.raf);clearTimeout(m.tm);try{m.stream.getTracks().forEach(t=>t.stop())}catch(e){}try{m.ctx.close()}catch(e){}}
 async function openMic(){
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('This browser has no microphone access.');
@@ -221,7 +221,7 @@ async function echo(){
   if(Z.mic){stopMic();paint();return}
   try{const m=await openMic();m.kind='echo';Z.mic=m;Z.peaks=[];Z.cad=null;let up=0;
     const loop=()=>{if(Z.mic!==m)return;m.an.getFloatTimeDomainData(m.buf);const r=math.rms(m.buf),t=performance.now();
-      if(r>.1&&!up&&(!Z.peaks.length||t-Z.peaks[Z.peaks.length-1]>=150)){up=1;Z.peaks.push(t);if(Z.peaks.length>9)Z.peaks.shift();ripple();Z.cad=math.cadence(Z.peaks);out()}else if(r<.05)up=0;
+      if(r>.1&&!up&&(!Z.peaks.length||t-Z.peaks[Z.peaks.length-1]>=150)){up=1;Z.peaks.push(t);if(Z.peaks.length>9)Z.peaks.shift();ripple();if(Z.pace.on)Z.you++;Z.cad=math.cadence(Z.peaks);out()}else if(r<.05)up=0;
       m.raf=requestAnimationFrame(loop)};loop();paint()}
   catch(e){stopMic();oops(e&&e.name==='NotAllowedError'?'The microphone was not allowed.':String(e&&e.message||'The microphone could not start.'));paint()}}
 async function breathe(){
@@ -236,41 +236,187 @@ function ripple(){const b=$i('arc-echo');if(!b||D.documentElement.dataset.motion
 function out(){const o=$i('arc-cad');if(!o)return;const c=Z.cad,gr=pacer();
   o.textContent=c?'Frequency: '+fx(c.f,2)+' Hz | Angular: '+fx(c.w,2)+' rad/s':Z.mic&&Z.mic.kind==='echo'?'Listening… climb, and each footstep louder than the threshold is counted.':'Not listening.';
   const m=!!(c&&gr&&Math.abs(c.f-gr)/gr<=.1);if(m!==!!Z.match){Z.match=m;const t=$i('arc-tower');if(t)t.classList.toggle('arc-rune',m)}}
-function pacer(){const mi=massInfo(),r=riseOf(Z.sid);return r&&mi?math.pacerRate(+Z.P,mi.kg,r):null}
-let pRaf=0;
-function pace(){cancelAnimationFrame(pRaf);const g=$i('ghost-pacer'),q=STAIRS.find(s=>s.id===Z.sid);if(!g||!q)return;const n=stepsOf(q),rate=pacer();
-  if(!Z.pace.on||!rate){g.style.setProperty('--y','0');Z.pace.k=-1;D.querySelectorAll('#arc-tower .arc-flight>i.lit').forEach(e=>e.classList.remove('lit'));return}
-  const still=HWUI.reduced&&HWUI.reduced(),tick=t=>{if(!g.isConnected||!Z.pace.on)return;const s=((t-Z.pace.t0)/1000*rate)%n;g.style.setProperty('--y',(s/n).toFixed(4));
-    const lb=$i('arc-pst');if(lb)lb.textContent='Ghost on step '+(Math.floor(s)+1)+' of '+n;
-    const k=Math.floor(s);if(k!==Z.pace.k){Z.pace.k=k;const L=D.querySelectorAll('#arc-tower .arc-flight>i');L.forEach((e,i)=>e.classList.toggle('lit',i<=k))}if(!still)pRaf=requestAnimationFrame(tick)};
-  Z.pace.t0=performance.now();tick(Z.pace.t0)}
+function pacer(){const mi=massInfo(),r=(Z.path&&Z.path.flights[0]&&Z.path.flights[0].riser)||riseOf(Z.sid);return r&&mi?math.pacerRate(+Z.P,mi.kg,r):null}
 const allSteps=q=>Array.isArray(q.steps)?q.steps.reduce((a,b)=>a+(+b||0),0):0;                 // every flight (js/v6-stairs-data.js)
-const stepsOf=q=>clamp(Math.round(Array.isArray(q.steps)&&+q.steps[0]>0?+q.steps[0]:12),4,30);  // the tower draws one flight
-const RUNES='<svg class="arc-base" viewBox="0 0 100 30" aria-hidden="true"><ellipse cx="50" cy="15" rx="46" ry="12" fill="none" stroke="currentColor" stroke-width="1.5"/><ellipse cx="50" cy="15" rx="34" ry="8" fill="none" stroke="currentColor" stroke-dasharray="3 3"/><path d="M50 3 L58 23 L38 10 L62 10 L42 23 Z" fill="none" stroke="currentColor" stroke-width="1"/></svg>';
+const counted=q=>allSteps(q)>0;
+const stepsOf=q=>counted(q)?allSteps(q):12;                      // the ghost climbs every counted step of the stairway (12 drawn as a picture if never counted)
+
+/* ---------- the tower: one pixel canvas (120 × 150, scaled with image-rendering: pixelated) ----------
+   The flight is drawn in profile at the stairway's real angle (rise ÷ run = tan θ), one rune on each riser. With the pacer on, a
+   requestAnimationFrame loop moves the ghost up at the target rate (steps/s), lights each rune as it passes, and leaves a trail; at the
+   top it starts again from step 1. With the Scrying Glass on, the canvas is transparent over the rear camera and only neon lines,
+   runes and the ghost are drawn. The loop runs only while the pacer runs (reduced motion: one step at a time, no trail). */
+const TW=120,TH=150,GHOST=['..aaa..','.aaaaa.','aabaaba','aaaaaaa','aaaaaaa','aaaaaaa','a.a.a.a'];
+const TV={trail:[],sp:[],raf:0,iv:0,t0:0,last:-1};
+/* The stairway's shape for the ghost: per flight {n, riser, tread, turn}. Source, in order: the Group 14 measured step (F21 stairs, the
+   report stays the source of truth), the campus survey's per-flight riser and tread when in the usual range (riser 8–25 cm, tread
+   20–45 cm), else the angle estimate (riser = HWGravity's, tread = riser ÷ tan θ). Step counts per flight come from the survey counts. */
+function stairPath(q){
+  if(!q)return null;const counts=Array.isArray(q.steps)&&q.steps.length?q.steps.map(x=>+x||0):[stepsOf(q)],kind=HWGravity.riseKind(q.id),r0=riseOf(q.id);
+  const study=kind==='study'?HWStairs.STUDY.find(x=>x.id===q.id):null,turns=i=>i<counts.length-1?'not surveyed':null;
+  if(study)return{src:'measured (Group 14)',flights:counts.map((n,i)=>({n,riser:study.rise,tread:study.run,turn:turns(i)}))};
+  let plan=null;try{const rec=typeof HWCampusData!=='undefined'?HWCampusData.record(q.id):null;plan=rec?(HWCampusData.surveyPlan(rec)||HWCampusData.stepPlan(rec)):null}catch(e){}
+  if(plan&&plan.length&&plan.every(f=>f.n>0&&f.riser>=.08&&f.riser<=.25&&f.tread>=.2&&f.tread<=.45))
+    return{src:'surveyed per flight',flights:plan.map(f=>({n:f.n,riser:f.riser,tread:f.tread,turn:f.turn,land:f.landingLength}))};
+  if(!r0)return null;
+  return{src:'estimated from the angle',flights:counts.map((n,i)=>({n,riser:r0,tread:r0/Math.tan(q.angle*Math.PI/180),turn:turns(i)}))}}
+const SS=()=>HWStairSight;
+function steps3(F){const L=SS().layout(F),out=[];F.forEach((f,fi)=>{for(let i=0;i<f.n;i++)out.push({fi,i,d:L[fi].d0+i*f.tread,h:L[fi].h0+(i+1)*f.riser,t:f.tread,r:f.riser})});return{L,S:out}}
+function towerFrame(c,q,g){
+  const x=c.getContext('2d');if(!x)return;const path=Z.path||{flights:[{n:stepsOf(q),riser:.17,tread:.17/Math.tan(q.angle*Math.PI/180)}]},F=path.flights,GEO=steps3(F),ST=GEO.S,n=ST.length;
+  const ar=!!Z.cam,sync=!!Z.match,lit=g?g.k:-1,T=performance.now()/1000;
+  const neon=sync?'#ffd86b':ar?'#5ff6ff':'#7ff3ff',dim=ar?'rgba(190,140,255,.95)':'#6a55b8';
+  x.clearRect(0,0,TW,TH);
+  if(!ar){const gr=x.createLinearGradient(0,0,0,TH);gr.addColorStop(0,'#070b24');gr.addColorStop(1,'#241a5e');x.fillStyle=gr;x.fillRect(0,0,TW,TH);
+    for(let i=0;i<28;i++){const sx=(i*37)%TW,sy=(i*53)%(TH-50),tw=(Math.sin(T*2+i)+1)/2;x.fillStyle='rgba(255,255,255,'+(.25+.6*tw).toFixed(2)+')';x.fillRect(sx,sy,1,1)}
+    x.fillStyle='#fff6c8';x.fillRect(96,10,8,8);x.fillStyle='#241a5e';x.fillRect(99,9,7,7)}                          // a crescent moon
+  else{const v=x.createRadialGradient(TW/2,TH/2,TH*.3,TW/2,TH/2,TH*.75);v.addColorStop(0,'rgba(10,6,30,0)');v.addColorStop(1,'rgba(10,6,30,.55)');x.fillStyle=v;x.fillRect(0,0,TW,TH)}
+  const r=Math.round,px=(X,Y,w,h,c3)=>{x.fillStyle=c3;x.fillRect(r(X),r(Y),Math.max(1,r(w)),Math.max(1,r(h)))};
+  const still=HWUI.reduced&&HWUI.reduced(),moving=!!(g&&Z.pace.on),trail=(gx,gy,ps)=>{if(!moving||still)return;TV.trail.push([gx,gy,ps]);if(TV.trail.length>16)TV.trail.shift();
+    if(Math.random()<.5)TV.sp.push([gx-3*ps+Math.random()*6*ps,gy,1]);TV.sp=TV.sp.filter(p=>(p[1]-=.6,p[2]-=.03)>0);
+    TV.trail.forEach((p,k)=>{x.fillStyle='rgba(127,243,255,'+(k/TV.trail.length*.55).toFixed(2)+')';x.fillRect(r(p[0]-p[2]),r(p[1]),Math.max(2,r(p[2]*2)),2)});
+    TV.sp.forEach(p=>{x.fillStyle='rgba(255,255,255,'+p[2].toFixed(2)+')';x.fillRect(r(p[0]),r(p[1]),1,1)})};
+  const ghost=(cx,by,ps)=>{const w=7*ps,h=7*ps,gx=cx-w/2,gy=by-h;                                                  // centred on cx, feet at by
+    x.fillStyle='rgba(127,243,255,.22)';x.fillRect(r(gx)-2*ps,r(gy)-2*ps,w+4*ps,h+4*ps);x.fillStyle='rgba(127,243,255,.3)';x.fillRect(r(gx)-ps,r(gy)-ps,w+2*ps,h+2*ps);
+    GHOST.forEach((row,yy)=>[...row].forEach((ch,xx)=>{if(ch!=='.')px(gx+xx*ps,gy+yy*ps,ps,ps,ch==='b'?'#1b1340':'#e9fbff')}))};
+  const rune=(X,Y,on,z)=>{z=z||2;if(on){x.fillStyle=sync?'rgba(255,216,107,.35)':'rgba(95,246,255,.35)';x.fillRect(r(X)-z,r(Y)-z,z*3,z*3)}px(X,Y,z,z,on?'#ffffff':dim);if(on&&z>1){px(X-1,Y+.5,1,1,neon);px(X+2,Y+.5,1,1,neon)}};   // z: 1 px on a long stairway, so 55 runes still fit
+  const you=Z.pace.on&&Z.you>0?(Z.you-1)%n:-1,pl=g?g.pl:null,lift=pl&&!pl.landing?Math.sin(Math.min(1,(pl.u||0)/.55)*Math.PI):0;
+  const mark=(X,Y)=>{px(X-1,Y-2,3,1,'#ffd86b');px(X-2,Y-1,5,1,'#ffd86b');px(X-1,Y,3,1,'#ffd86b')};
+  if(ar&&Z.sight&&Z.sight.st.locked&&Z.sight.st.edges.length>1){
+    /* Stair Sight locked on: the ghost climbs the step edges seen in the camera picture (js/v6-stairsight.js), bottom first, one edge per
+       step at that step's pace; on screen it loops over the edges in view, as the next steps come into view while you climb. */
+    const sx=TW/SS().DW,sy=TH/SS().DH,E=Z.sight.st.edges.map(e=>({y:e.y*sy,x0:e.x0*sx,x1:e.x1*sx,fill:e.fill})),m=E.length;
+    const kk=pl?(pl.landing?lit:pl.k):-1,u=pl&&!pl.landing?pl.u:1,j=kk<0?-1:kk%m,w0=E[0].x1-E[0].x0;
+    E.forEach(e=>{x.fillStyle=sync?'rgba(255,216,107,.25)':'rgba(95,246,255,.22)';x.fillRect(r(e.x0),r(e.y)-1,r(e.x1-e.x0),3);px(e.x0,e.y,e.x1-e.x0,1,e.fill?dim:neon)});
+    for(let i=0;i<m-1;i++){const a1=E[i],b1=E[i+1];for(let t=0;t<=1;t+=.25){px(a1.x0+(b1.x0-a1.x0)*t,a1.y+(b1.y-a1.y)*t,1,1,dim);px(a1.x1+(b1.x1-a1.x1)*t-1,a1.y+(b1.y-a1.y)*t,1,1,dim)}}
+    E.forEach((e,i)=>{const z=(e.x1-e.x0)>w0*.45?2:1;rune(e.x0-1,e.y-1,i<=j,z);rune(e.x1-1,e.y-1,i<=j,z)});
+    if(you>=0){const e=E[you%m];mark((e.x0+e.x1)/2,e.y-3)}
+    const A=j<0?{y:E[0].y+(E[0].y-(E[1]?E[1].y:E[0].y-8)),x0:E[0].x0,x1:E[0].x1}:E[j],B=j<0?E[0]:E[Math.min(j+1,m-1)],e2=SS().ease(u),mid=e=>(e.x0+e.x1)/2;
+    const wd=(A.x1-A.x0)+((B.x1-B.x0)-(A.x1-A.x0))*e2,gx=mid(A)+(mid(B)-mid(A))*e2,ps=Math.max(1,Math.round(3*wd/w0)),by=A.y+(B.y-A.y)*SS().ease(u/.55)-lift*2*ps;
+    trail(gx,by-2*ps,ps);ghost(gx,by,ps);return}
+  const last=ST[n-1],Dt=last.d+last.t;
+  if(ar){
+    /* the climber's view: the flight recedes UP the screen; depth follows the real distance d (unfolded), so a landing shows as a wider gap
+       and a deeper tread as a wider spacing. y = top + (foot − top) ÷ (1 + 0.25 d ÷ mean tread). */
+    const tm=ST.reduce((a,s2)=>a+s2.t,0)/n,cx=TW/2,top=12,foot=TH-8,w0=50,k=d=>1/(1+.25*Math.max(0,d+tm)/tm),Y=d=>top+(foot-top)*k(d),HW=d=>w0*k(d);
+    px(cx-HW(-tm),Y(-tm),HW(-tm)*2,1,neon);
+    ST.forEach(s2=>{const y=Y(s2.d),hw=HW(s2.d);px(cx-hw,y,hw*2,1,neon)});
+    GEO.L.forEach((o,fi)=>{if(fi<F.length-1){const f=F[fi],d1=o.d0+f.n*f.tread,d2=d1+o.land;for(let t=0;t<=1;t+=.1){px(cx-HW(d1+(d2-d1)*t),Y(d1+(d2-d1)*t),1,1,dim);px(cx+HW(d1+(d2-d1)*t)-1,Y(d1+(d2-d1)*t),1,1,dim)}px(cx-HW(d2),Y(d2),HW(d2)*2,1,dim)}});
+    for(let i=0;i<n-1;i++){const A=ST[i],B=ST[i+1];if(B.fi!==A.fi)continue;for(let t=0;t<=1;t+=.5){const d=A.d+(B.d-A.d)*t;px(cx-HW(d),Y(d),1,1,dim);px(cx+HW(d)-1,Y(d),1,1,dim)}}
+    ST.forEach((s2,i)=>{const y=Y(s2.d)-1,hw=HW(s2.d),z=k(s2.d)>.35?2:1;rune(cx-hw-1,y,i<=lit,z);rune(cx+hw-1,y,i<=lit,z)});
+    if(you>=0)mark(cx,Y(ST[you].d)-3);
+    const gd=pl?pl.d:-tm,ps=Math.max(1,Math.round(3*k(gd))),by=Y(gd+tm*.5)-lift*2*ps;
+    trail(cx,by-2*ps,ps);ghost(cx,by,ps);return}
+  // side view, true proportions, flights unfolded into one line (a turn is drawn straight on)
+  const Ht=SS().layout(F).reduce((a,o,fi)=>Math.max(a,o.h0+F[fi].n*F[fi].riser),0),L0=10,B0=TH-12,sc=Math.min((TW-22)/(Dt+.4),(TH-40)/Ht),X=d=>L0+(d+.2)*sc,Yh=h=>B0-h*sc;
+  ST.forEach((s2,i)=>{px(X(s2.d),Yh(s2.h),s2.t*sc+1,B0-Yh(s2.h),i%2?'#3b3466':'#443c75');px(X(s2.d),Yh(s2.h),s2.t*sc+1,1,'#d9b45a')});
+  GEO.L.forEach((o,fi)=>{if(fi<F.length-1){const f=F[fi],d1=o.d0+f.n*f.tread,h=o.h0+f.n*f.riser;px(X(d1),Yh(h),o.land*sc+1,B0-Yh(h),'#2f2a5a');px(X(d1),Yh(h),o.land*sc+1,1,'#8f7ad8')}});
+  px(L0-2,B0,TW-L0,2,'#1a1440');
+  const rz=ST[0].t*sc>=4?2:1;ST.forEach((s2,i)=>rune(X(s2.d)+(rz>1?1:0),Yh(s2.h-s2.r/2)-(rz>1?1:0),i<=lit,rz));
+  if(you>=0){const s2=ST[you];mark(X(s2.d)+s2.t*sc/2,Yh(s2.h)-4)}
+  const gx=pl?X(pl.d):X(-.1),by=pl?Yh(pl.h)-1:B0-1,ps=Math.max(1,Math.min(2,Math.round(ST[0].t*sc/3)+1));
+  trail(gx,by-3*ps,ps);ghost(gx,by,ps)}
+function towerStop(){cancelAnimationFrame(TV.raf);clearInterval(TV.iv);TV.raf=TV.iv=0}
+/* Stair Sight: about 8 frames a second while the camera is open */
+function sense(t){const S=Z.sight;if(!S||t-S.at<125)return;S.at=t;const g=S.smp.read($i('camera-feed'),TW/TH);S.st=g?S.trk.push(g):S.trk.state;scryTag()}
+function scryTag(){const e=$i('arc-scry-tag'),S=Z.sight;if(!e)return;const on=!!(S&&S.st.locked),t=!S?'SCRYING GLASS':on?'STAIRS SEEN · '+S.st.edges.length+' STEP EDGES':'LOOKING FOR STEPS…';
+  if(e.textContent!==t){e.textContent=t;e.classList.toggle('seen',on);const l=$i('arc-seen');if(l)l.textContent=on?'Stair Sight sees '+S.st.edges.length+' step edges; the ghost climbs them.':S?'Stair Sight is looking for steps. Stand at the foot and point the camera up the stairs.':''}}
+function pace(){towerStop();const c=$i('arc-canvas'),q=STAIRS.find(s=>s.id===Z.sid);if(!c||!q)return;Z.path=Z.path||stairPath(q);
+  const path=Z.path,mi=massInfo(),P=+Z.P,live=!!(Z.pace.on&&pacer()&&path&&mi);
+  if(!live){TV.trail=[];TV.sp=[]}
+  if(!live&&!Z.cam){towerFrame(c,q,null);return}
+  const still=HWUI.reduced&&HWUI.reduced(),lb=$i('arc-pst'),T=live?SS().timeline(path.flights,P,mi.kg):null,L=live?SS().layout(path.flights):null;
+  const ends=[];if(path){let a2=0;path.flights.forEach(f=>{a2+=f.n;ends.push(a2-1)})}const n=ends.length?ends[ends.length-1]+1:0,nf=path?path.flights.length:1;
+  const step=t=>{if(!c.isConnected||(!Z.pace.on&&!Z.cam)){towerStop();return false}sense(t);
+    if(!live){towerFrame(c,q,null);return true}
+    const p=SS().at(T,(t-TV.t0)/1000);if(still&&p)p.u=1;const pl=SS().place(path.flights,L,p),k=pl.landing?ends[pl.fi]:pl.k,key=pl.landing?'L'+pl.fi:k;
+    if(k<TV.last)TV.trail=[];
+    if(key!==TV.key){TV.key=key;TV.last=k;if(lb)lb.textContent=pl.landing?'Ghost on the landing after flight '+(pl.fi+1)+' of '+nf:'Ghost on step '+(k+1)+' of '+n+(nf>1?' (flight '+(pl.fi+1)+' of '+nf+')':'')}
+    towerFrame(c,q,{pl,k});return true};
+  TV.t0=performance.now();TV.last=-1;TV.key=null;
+  if(still){step(TV.t0);TV.iv=setInterval(()=>step(performance.now()),150)}
+  else{const tick=t=>{if(step(t))TV.raf=requestAnimationFrame(tick)};TV.raf=requestAnimationFrame(tick)}}
+
+/* ---------- the Scrying Glass: the rear camera behind the tower ---------- */
+function attachCam(){const v=$i('camera-feed');if(!v)return;if(Z.cam){v.srcObject=Z.cam.stream;v.style.display='block';const p=v.play();if(p&&p.catch)p.catch(()=>{})}else{v.srcObject=null;v.style.display='none'}}
+function stopCam(){const c=Z.cam;Z.cam=null;Z.sight=null;if(c)try{c.stream.getTracks().forEach(t=>t.stop())}catch(e){}const v=$i('camera-feed');if(v){v.srcObject=null;v.style.display='none'}}
+async function scry(){
+  if(Z.cam)return;
+  try{if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('This browser cannot open the camera.');
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+    if(!$i('stair-sense-modal')){stream.getTracks().forEach(t=>t.stop());return}                                       // left while asking
+    Z.cam={stream};Z.sight=typeof HWStairSight!=='undefined'?{smp:HWStairSight.sampler(),trk:HWStairSight.tracker(),at:0,st:{locked:false,edges:[]}}:null;if(pacer())Z.pace.on=1;paint()}
+  catch(e){stopCam();oops(e&&e.name==='NotAllowedError'?'The camera was not allowed, so the tower stays in its night sky.':String(e&&e.message||'The camera could not start.')+' The tower stays in its night sky.');paint()}}
+function halt(){Z.pace.on=0;Z.you=0;stopCam();paint()}
+
+/* ---------- 3D Stair Sight (WebXR, Android Chrome with ARCore): observatory/xrstairs.js ----------
+   Offered only when navigator.xr says 'immersive-ar' is supported (secure page). The session is requested inside the tap with hit-test
+   (required) and depth-sensing and dom-overlay (optional); the module is loaded after. A panel over the AR view (dom-overlay) shows the
+   search, the measured rise, tread and angle (an AR estimate) and the ghost's step, with RESCAN and HALT. Ending, leaving the page or
+   hiding the app ends the session. Without support, the 2D Scrying Glass stays. */
+const XR={sup:null};
+function xrCheck(){if(XR.sup!==null)return;XR.sup=false;try{if(window.isSecureContext&&navigator.xr&&navigator.xr.isSessionSupported)
+  navigator.xr.isSessionSupported('immersive-ar').then(ok=>{XR.sup=!!ok;if(ok){const b=$i('start-xr-btn');if(b)b.hidden=false}}).catch(()=>{})}catch(e){}}
+function xrUI(){let u=$i('arc-xr-ui');if(!u){u=D.createElement('div');u.id='arc-xr-ui';u.className='arc-xr-ui';u.hidden=true;
+    u.innerHTML='<p id="arc-xr-st" role="status" aria-live="polite"></p><p id="arc-xr-m" class="arc-xr-m"></p><div class="arc-xr-b"><button type="button" class="g" data-a="arcxrscan">RESCAN</button><button type="button" data-a="arcxrend">HALT</button></div>';
+    D.body.appendChild(u)}return u}
+function xrState(S){const st=$i('arc-xr-st'),m=$i('arc-xr-m'),q=STAIRS.find(x=>x.id===Z.sid),n=q?stepsOf(q):0;
+  if(S.phase==='ended'){Z.xr=null;const u=$i('arc-xr-ui');if(u)u.hidden=true;paint();return}
+  if(st)st.textContent=S.phase==='locked'?'Stairs found. The ghost '+(pacer()?'climbs all '+n+' steps at '+fx(+Z.P,0)+' W'+(S.landing?': on the landing after flight '+S.flight:S.step>0?': step '+S.step+' of '+n:''):'waits at the foot (no target power was typed)')+'.':S.why;
+  if(m)m.textContent=S.phase==='locked'?'AR estimate: rise ≈ '+fx(S.riser*100,1)+' cm, tread ≈ '+fx(S.tread*100,1)+' cm, angle ≈ '+fx(S.angle,1)+'°'+(q?' (survey: '+q.angle.toFixed(2)+'°)':'')+'.':(S.depth?'Using the phone\u2019s depth sensing and surface hits.':'Using surface hits (this phone gives no depth map).')}
+async function xr(){
+  if(Z.xr||!navigator.xr)return;stopCam();const q=STAIRS.find(x=>x.id===Z.sid);if(!q)return;const ui=xrUI();
+  let session;
+  try{session=await navigator.xr.requestSession('immersive-ar',{requiredFeatures:['local-floor','hit-test'],optionalFeatures:['dom-overlay','depth-sensing'],domOverlay:{root:ui},
+      depthSensing:{usagePreference:['cpu-optimized'],dataFormatPreference:['luminance-alpha','float32']}})}
+  catch(e){oops('3D Scrying could not start on this phone ('+(e&&e.name||'error')+'). The 2D Scrying Glass still works.');return}
+  try{const mod=await import(new URL('observatory/xrstairs.js',D.baseURI).href);ui.hidden=false;
+    const mi=massInfo(),path=Z.path||stairPath(q);const ctl=await mod.start(session,{n:stepsOf(q),flights:path?path.flights.map(f=>({n:f.n,turn:f.turn,land:f.land})):null,P:pacer()?+Z.P:0,m:mi?mi.kg:0,analyse:HWStairSight.profile3d,onState:xrState});Z.xr={ctl,session}}
+  catch(e){try{session.end()}catch(x){}ui.hidden=true;oops('3D Scrying could not load ('+String(e&&e.message||e).slice(0,80)+'). The 2D Scrying Glass still works.')}}
+acts.arcxr=()=>xr();acts.arcxrend=()=>{if(Z.xr)Z.xr.ctl.stop()};acts.arcxrscan=()=>{if(Z.xr)Z.xr.ctl.rescan()};
+
+/* the pace in words: one step takes m g r ÷ P seconds; the whole climb adds the steps of every flight and the landings */
+function climbTxt(){const mi=massInfo(),P=+Z.P,path=Z.path;if(!path)return['–','the shape of this stairway is not known'];if(!mi)return['–','needs your weight'];if(!(P>0))return['–','type a target power'];
+  const T=SS().timeline(path.flights,P,mi.kg),F=path.flights,t1=mi.kg*9.80665*F[0].riser/P,nl=F.length-1;
+  return[fx(T.total,1)+' s','one step: m g r ÷ P = '+fx(mi.kg,1)+' × 9.80665 × '+fx(F[0].riser,3)+' ÷ '+fx(P,0)+' = '+fx(t1,2)+' s'+(nl?'; '+nl+(nl>1?' landings':' landing')+', each 2 step-times (assumed)':'')]}
+function shapeTxt(p){const F=p.flights,same=F.every(f=>Math.abs(f.riser-F[0].riser)<1e-6&&Math.abs(f.tread-F[0].tread)<1e-6);
+  return same?fx(F[0].riser*100,1)+' × '+fx(F[0].tread*100,1)+' cm':F.map(f=>f.n+' × '+fx(f.riser*100,1)+'/'+fx(f.tread*100,1)).join(', ')+' cm'}
 function chamber(id){
-  const q=STAIRS.find(s=>s.id===id);if(!q)return'';if(Z.sid!==id){stopMic();Z.sid=id;Z.pace.on=0;Z.cad=null;Z.peaks=[];Z.match=0;Z.P=''}
-  const n=stepsOf(q),r=riseOf(id),mi=massInfo(),rate=pacer(),tilt=math.towerTilt(q.angle);
+  const q=STAIRS.find(s=>s.id===id);if(!q)return'';if(Z.sid!==id){stopMic();stopCam();Z.sid=id;Z.path=null;Z.pace.on=0;Z.cad=null;Z.peaks=[];Z.match=0;Z.P='';Z.you=0}
+  Z.path=stairPath(q);const n=stepsOf(q),r=riseOf(id),mi=massInfo(),rate=pacer(),on=!!Z.pace.on,cam=!!Z.cam,lis=!!(Z.mic&&Z.mic.kind==='echo');
   const best=sessions().map(s=>{const e=st.e.find(x=>x.id===s.id),g=e&&e.m&&e.m.gv;return g&&+g.P>0?+g.P:0}).reduce((a,b)=>Math.max(a,b),0);
-  const steps=Array.from({length:n},(_,i)=>'<i style="--i:'+i+'"></i>').join('');
+  const row=(k,v,note)=>'<div class="arc-bk"><dt>'+k+'</dt><dd>'+v+(note?'<small>'+note+'</small>':'')+'</dd></div>';
   return '<section class="arc-ch" id="stair-sense-modal" aria-labelledby="arc-ch-t"><h3 id="arc-ch-t">'+ico('stairs')+' THE ENCHANTED TOWER · '+esc(q.id)+'</h3>'
-    +'<div class="arc-tg"><div class="arc-tower'+(Z.match?' arc-rune':'')+'" id="arc-tower" role="img" aria-label="'+esc(q.id)+' drawn at '+q.angle.toFixed(2)+' degrees, '+n+' steps"><i class="arc-stars" aria-hidden="true"></i>'+RUNES+'<div class="arc-flight" style="transform:rotateX('+tilt.toFixed(2)+'deg)">'+steps
-    +'<div id="ghost-pacer" class="ghost-pacer" aria-hidden="true"></div></div></div>'
-    +'<div><p>Angle <b class="num">'+q.angle.toFixed(2)+'°</b> → rotateX(90° − '+q.angle.toFixed(2)+'°) = <b class="num">'+tilt.toFixed(2)+'°</b>. '+(Array.isArray(q.steps)&&q.steps.length?'First flight: '+n+' steps'+(+q.steps[0]>30?' (30 drawn)':''):'Step count not surveyed: '+n+' steps drawn as a picture only')+'.</p>'
-    +'<label>Target power for the Spectral Pacer (W)<input type="number" min="10" max="1500" step="1" inputmode="numeric" data-in="arcp" id="arc-p" value="'+esc(Z.P)+'" placeholder="'+(best?'your best: '+Math.round(best):'e.g. 120')+'"></label>'
-    +(r&&mi?'<small class="mut">Rate = P ÷ (m g r) = '+(rate?fx(rate,2)+' steps/s':'type a power')+' with '+fx(mi.kg,1)+' kg and a '+fx(r*100,1)+' cm rise.</small>':'<small class="mut">The pacer needs '+(mi?'':'your weight'+(r?'':' and ')+'')+(r?'':'a known step rise for this stairway')+'.</small>')
-    +'<div class="row arc-row"><button type="button" data-a="arcpace" '+(rate?'':'disabled ')+'aria-pressed="'+(Z.pace.on?'true':'false')+'">'+(Z.pace.on?'STOP THE GHOST':'SUMMON THE GHOST')+'</button></div><small class="mut" id="arc-pst" aria-live="polite"></small></div></div>'
-    +'<h4>'+ico('energy')+' CADENCE ECHO</h4><p class="mut">The microphone hears footsteps: each rise in loudness (RMS over 0.1) is one step. f = 1 ÷ the mean time between steps; ω = 2πf. Nothing is recorded or sent.</p>'
-    +'<div class="row arc-row"><button type="button" data-a="arcecho" aria-pressed="'+(Z.mic&&Z.mic.kind==='echo'?'true':'false')+'">'+(Z.mic&&Z.mic.kind==='echo'?'STOP LISTENING':'LISTEN FOR FOOTSTEPS')+'</button></div>'
-    +'<div class="arc-echo'+(Z.mic&&Z.mic.kind==='echo'?' on':'')+'" id="arc-echo" aria-hidden="true"><b></b></div><p class="num arc-cad" id="arc-cad" aria-live="polite"></p><small class="mut">When your step frequency is within 10 % of the ghost’s, the tower’s runes glow (and the words above say so).</small>'
+    +'<div class="arc-tg2"><div class="arc-stage'+(cam?' ar':'')+(Z.match?' arc-rune':'')+(on?' live':'')+'" id="arc-tower" role="img" aria-label="'+esc(q.id)+' in profile at '+q.angle.toFixed(2)+' degrees, '+n+' steps'+(on?', the spectral pacer climbing':'')+(cam?', over the camera view':'')+'">'
+    +'<video id="camera-feed" autoplay playsinline muted style="display:none;"></video><canvas id="arc-canvas" width="'+TW+'" height="'+TH+'"></canvas>'
+    +(cam?'<span class="arc-scry-tag" id="arc-scry-tag" aria-hidden="true">'+(Z.sight?'LOOKING FOR STEPS…':'SCRYING GLASS')+'</span>':'')+'</div>'
+    +'<div class="arc-book"><h4>Spellbook</h4><dl>'
+    +'<div class="arc-bk"><dt><label for="arc-p">Target power</label></dt><dd><input type="number" min="10" max="1500" step="1" inputmode="numeric" data-in="arcp" id="arc-p" value="'+esc(Z.P)+'" placeholder="'+(best?'best '+Math.round(best):'e.g. 120')+'" aria-describedby="arc-p-u"> <span id="arc-p-u">W</span></dd></div>'
+    +row('Rate','<b id="arc-rate">'+(rate?fx(rate,2)+' steps/s':'–')+'</b>',mi?'P ÷ (m g r), with '+esc(mi.src):'needs your weight: log it on the BMI page or in your profile')
+    +'<div class="arc-bk"><dt>Whole climb</dt><dd><b id="arc-climb">'+climbTxt()[0]+'</b><small id="arc-climb-n">'+climbTxt()[1]+'</small></dd></div>'
+    +row('Steps',Z.path?shapeTxt(Z.path):(r?fx(r*100,1)+' cm':'–'),Z.path?esc(Z.path.src):'not known for this stairway')
+    +row('Angle',q.angle.toFixed(2)+'°',(counted(q)?n+' steps counted'+(q.steps.length>1?' in '+q.steps.length+' flights ('+q.steps.join(' + ')+')':''):'steps not counted yet: '+n+' drawn as a picture only'))
+    +'</dl><div class="arc-btns"><button type="button" class="btn-primary" id="start-ar-btn" data-a="arcar" '+(cam?'disabled':'')+'>'+(cam?'SCRYING…':'CAST SCRYING GLASS (AR)')+'</button>'
+    +'<button type="button" class="btn-primary arc-xr-btn" id="start-xr-btn" data-a="arcxr"'+(XR.sup?'':' hidden')+'>CAST 3D SCRYING (WebXR)</button>'
+    +'<button type="button" class="btn-secondary g sm" id="stop-btn" data-a="'+(on||cam?'archalt':'arcpace')+'" '+(on||cam||rate?'':'disabled ')+'>'+(on||cam?'HALT PACER':'SUMMON PACER')+'</button></div>'
+    +(cam?'<small class="mut" id="arc-seen" aria-live="polite">'+(Z.sight?'Stair Sight is looking for steps. Stand at the foot and point the camera up the stairs.':'')+'</small>':'')
+    +'<small class="mut arc-sight-note">Stair Sight finds the edges of steps in the camera picture (a simple 2D estimate, on this device only). It can miss steps in dim light and mistake stripes or shelves for stairs; without a lock the ghost climbs the drawn stairs.</small>'
+    +'<small class="mut" id="arc-pst" aria-live="polite">'+(rate?'':'Type a target power to summon the ghost.')+'</small></div></div>'
+    +'<h4>'+ico('energy')+' CADENCE ECHO</h4><p class="mut">The microphone hears footsteps: each rise in loudness (RMS over 0.1) is one step, shown as a gold mark on the tower. f = 1 ÷ the mean time between steps; ω = 2πf. Nothing is recorded or sent.</p>'
+    +'<div class="row arc-row"><button type="button" class="'+(lis?'arc-listen':'')+'" data-a="arcecho" aria-pressed="'+(lis?'true':'false')+'">'+(lis?'LISTENING · TAP TO STOP':'LISTEN FOR FOOTSTEPS')+'</button></div>'
+    +'<div class="arc-echo'+(lis?' on':'')+'" id="arc-echo" aria-hidden="true"><b></b></div><p class="num arc-cad" id="arc-cad" aria-live="polite"></p><small class="mut">When your step frequency is within 10 % of the ghost’s, the runes turn gold (and the words above say so).</small>'
     +'<h4>'+ico('heart')+' LUNA’S WIND SPELL (TALK TEST)</h4><p class="mut">After the climb, breathe near the phone for 5 seconds.</p>'
     +'<div class="row arc-row"><button type="button" id="luna-breathalyzer" data-a="arcbreath" '+(Z.mic&&Z.mic.kind==='breath'?'disabled':'')+'>'+(Z.mic&&Z.mic.kind==='breath'?'LISTENING FOR 5 SECONDS…':'CAST THE WIND SPELL')+'</button></div>'+(Z.mic&&Z.mic.kind==='breath'?'<div class="arc-wind" aria-hidden="true">'+'<i></i>'.repeat(7)+'</div>':'')+breathTxt()
     +gravityCard(q)+'</section>'}
 function breathTxt(){const b=breathOn();if(!b)return'';
   return '<p class="arc-warn" role="status">'+(b.loud?stt('watch')+' Luna’s Wind Spell hears heavy breathing (loudness '+fx(b.rms,2)+'). The Metabolic Forge now uses the RER 1.0 value for the next 10 minutes.':stt('good')+' Calm breathing (loudness '+fx(b.rms,2)+'). The forge keeps the value from your meal.')+'</p>'
     +'<small class="mut">Loudness is a rough cue, not a gas measurement: the microphone cannot see which fuel your muscles use. Hard breathing does go with harder efforts.</small>'}
-function paint(){const s=$i('stair-sense-modal');if(s&&Z.sid){s.outerHTML=chamber(Z.sid);out();pace()}}
-INP.arcp=el=>{Z.P=el.value;const v=+el.value;if(Z.pace.on&&!(v>0))Z.pace.on=0;const b=D.querySelector('[data-a="arcpace"]'),r=pacer();if(b)b.disabled=!r;pace()};
-acts.arcpace=()=>{Z.pace.on=Z.pace.on?0:1;paint()};
+function paint(){xrCheck();const s=$i('stair-sense-modal');if(s&&Z.sid){const f=D.activeElement&&D.activeElement.id;s.outerHTML=chamber(Z.sid);attachCam();out();pace();if(f){const e=$i(f);if(e&&!e.disabled)e.focus()}}}
+INP.arcp=el=>{Z.P=el.value;const r=pacer();if(Z.pace.on&&!r)Z.pace.on=0;const t=$i('arc-rate');if(t)t.textContent=r?fx(r,2)+' steps/s':'–';
+  const C=climbTxt(),c1=$i('arc-climb'),c2=$i('arc-climb-n');if(c1)c1.textContent=C[0];if(c2)c2.textContent=C[1];
+  const b=$i('stop-btn');if(b&&!Z.pace.on&&!Z.cam)b.disabled=!r;const l=$i('arc-pst');if(l&&!Z.pace.on)l.textContent=r?'Ready: summon the pacer or cast the Scrying Glass.':'Type a target power to summon the ghost.';pace()};
+acts.arcpace=()=>{if(!pacer())return;Z.pace.on=1;Z.you=0;paint()};
+acts.archalt=()=>halt();acts.arcar=()=>scry();
 acts.arcecho=()=>echo();acts.arcbreath=()=>breathe();
 
 /* 6. gravity at the campus */
@@ -291,9 +437,10 @@ function gravityCard(q){
     +(mi?'<p class="arc-cmp num" title="Gravity is slightly weaker up here!"><span>Scale reading at sea level: <b>'+fx(sea,3)+' kg</b></span><span>Same scale at the stair top: <b>'+fx(top,3)+' kg</b></span></p>'
       +'<small class="mut">Gravity is slightly weaker up here! Your mass does not change; a spring scale set at sea level reads '+fx((1-gT/g0)*1e6,1)+' parts per million less, because it measures your weight m g. ('+esc(mi.src)+'.)</small>'
       :'<small class="mut">Add your weight to see what a scale would read.</small>')}
-if(typeof HWStairs!=='undefined'){const p=HWStairs.logPanel;HWStairs.logPanel=function(id){const h=p.apply(this,arguments);try{return id?h+chamber(id):h}catch(e){console.warn('[HWArcana]',e);return h}}}
-HWEvents.on('page:viewed',e=>{if(e.view!=='campus'){stopMic();Z.pace.on=0}});
-D.addEventListener('visibilitychange',()=>{if(D.hidden)stopMic()});
+if(typeof HWStairs!=='undefined'){const p=HWStairs.logPanel;HWStairs.logPanel=function(id){if(id)setTimeout(xrCheck,0);const h=p.apply(this,arguments);try{return id?h+chamber(id):h}catch(e){console.warn('[HWArcana]',e);return h}}}
+HWEvents.on('page:viewed',e=>{if(e.view!=='campus'){stopMic();stopCam();towerStop();Z.pace.on=0;if(Z.xr)Z.xr.ctl.stop()}});
+HWEvents.on('stairs:closed',()=>{stopCam();towerStop();Z.pace.on=0});
+D.addEventListener('visibilitychange',()=>{if(D.hidden){stopMic();if(Z.cam){stopCam();Z.pace.on=0;paint()}}});
 
 /* =====================================================================================================================
    5. THE METABOLIC FORGE + 8. THE CALORIC LEDGER (Alchemy)
@@ -367,4 +514,4 @@ HWEvents.on('page:viewed',e=>{
   if(e.view==='exercise'&&gw().on&&!GW.rows&&GW.st!=='busy')guildSync()});
 HWEvents.on('entry:added',e=>{const c=e&&e.entry&&e.entry.c;if(c==='water'||c==='stair')setTimeout(dryCheck,0)});
 
-return{math,weather,myWeek,oracleIn,FLAGGED,BLOCKS,get wx(){return WX},get z(){return Z},stopMic,_set:o=>{if(o.wx)WX=o.wx;if('rows'in o)GW.rows=o.rows}}})();
+return{math,weather,myWeek,oracleIn,FLAGGED,BLOCKS,get wx(){return WX},get z(){return Z},stopMic,stopCam,_set:o=>{if(o.wx)WX=o.wx;if('rows'in o)GW.rows=o.rows}}})();

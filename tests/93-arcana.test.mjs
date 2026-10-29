@@ -122,20 +122,68 @@ test('Training Hall: the Guild War table ranks work in joules, with the player\'
   assert.deepEqual(errors, []); await ctx.close();
 });
 
-test('Observatory Details: the tower is raised to 90° − angle, the gravity card reads a scale, the mic fails gracefully', async () => {
+test('Observatory Details: the tower and spellbook, the gravity card reads a scale, the mic fails gracefully', async () => {
   const { page, ctx, errors } = await openApp({ seed: SEED, context: { permissions: [] } }); await page.waitForSelector('.wl');
   await page.evaluate(() => { const d = document.createElement('div'); d.id = 'arc-test'; d.innerHTML = HWStairs.logPanel('ST20', 'workout'); document.getElementById('main').appendChild(d); });
-  assert.equal(await page.$eval('#arc-tower .arc-flight', e => e.style.transform), 'rotateX(61.48deg)');
+  assert.equal(await page.locator('#arc-tower canvas#arc-canvas').count(), 1);
+  assert.equal(await page.$eval('#camera-feed', v => [v.autoplay, v.playsInline, v.style.display].join()), 'true,true,none');
+  assert.match(await txt(page, '.arc-book'), /Angle28\.52°/);
+  assert.doesNotMatch(await txt(page, '.arc-book'), /Body mass/);
+  assert.match(await txt(page, '.arc-book'), /with your profile weight/);
+  assert.equal(await page.$eval('.arc-bk dd', e => getComputedStyle(e).fontVariantNumeric), 'tabular-nums');
   assert.match(await txt(page, '#stair-sense-modal'), /Scale reading at sea level: 60\.000 kg/);
   assert.match(await txt(page, '#stair-sense-modal'), /Same scale at the stair top: 59\.999 kg/);
   assert.match(await txt(page, '#stair-sense-modal'), /Your mass does not change/);
+  assert.equal(await page.locator('#stop-btn').isDisabled(), true, 'no power, no pacer');
   await page.fill('#arc-p', '100');
-  assert.equal(await page.locator('[data-a="arcpace"]').isDisabled(), false);
+  const rate = await page.evaluate(() => 100 / (60 * 9.80665 * HWGravity.verifiedRise('ST20')));
+  assert.equal(await txt(page, '#arc-rate'), rate.toFixed(2) + ' steps/s');
+  await page.click('#stop-btn');                                         // SUMMON PACER
+  await page.waitForFunction(() => /Ghost on step [1-9]/.test(document.getElementById('arc-pst').textContent));
+  assert.equal(await page.textContent('#stop-btn'), 'HALT PACER');
+  assert.match(await txt(page, '#arc-pst'), /of 28$/, 'ST20: its 28 counted steps');
+  await page.click('#stop-btn');
+  assert.equal(await page.evaluate(() => HWArcana.z.pace.on), 0);
+  // a stairway of five flights: the ghost climbs all 55 counted steps, not one flight
+  await page.evaluate(() => { document.getElementById('arc-test').innerHTML = HWStairs.logPanel('ST03', 'workout'); });
+  assert.match(await txt(page, '.arc-book'), /55 steps counted in 5 flights \(11 \+ 11 \+ 11 \+ 11 \+ 11\)/);
+  await page.fill('#arc-p', '100'); await page.click('#stop-btn');
+  await page.waitForFunction(() => /Ghost on step \d+ of 55/.test(document.getElementById('arc-pst').textContent));
+  await page.click('#stop-btn');
   await page.evaluate(() => { navigator.mediaDevices.getUserMedia = () => Promise.reject(Object.assign(new Error('no'), { name: 'NotAllowedError' })); });
   await page.click('[data-a="arcecho"]');
   await page.waitForFunction(() => /microphone was not allowed/.test(document.body.textContent));
   assert.equal(await page.evaluate(() => HWArcana.z.mic), null);
   assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('Scrying Glass: the rear camera shows behind a transparent tower; HALT and leaving stop every track; a refusal keeps the night sky', async () => {
+  const { page, ctx, errors } = await openApp({ seed: SEED }); await page.waitForSelector('.wl');
+  await page.evaluate(() => {
+    window.__asked = null;
+    navigator.mediaDevices.getUserMedia = async c => { window.__asked = c; const cv = document.createElement('canvas'); cv.width = 64; cv.height = 64; cv.getContext('2d').fillRect(0, 0, 64, 64); window.__stream = cv.captureStream(5); return window.__stream; };
+    const d = document.createElement('div'); d.id = 'arc-test'; d.innerHTML = HWStairs.logPanel('ST20', 'workout'); document.getElementById('main').appendChild(d); });
+  await page.fill('#arc-p', '100');
+  await page.click('#start-ar-btn');
+  await page.waitForFunction(() => document.getElementById('arc-tower').classList.contains('ar'));
+  assert.deepEqual(await page.evaluate(() => window.__asked), { video: { facingMode: 'environment' }, audio: false });
+  const v = await page.$eval('#camera-feed', v => ({ shown: v.style.display, src: !!v.srcObject, fit: getComputedStyle(v).objectFit, z: getComputedStyle(v).zIndex, bg: getComputedStyle(v.parentElement).backgroundColor }));
+  assert.deepEqual(v, { shown: 'block', src: true, fit: 'cover', z: '-1', bg: 'rgba(0, 0, 0, 0)' });
+  assert.equal(await page.evaluate(() => HWArcana.z.pace.on), 1, 'casting also summons the pacer');
+  await page.click('#stop-btn');                                         // HALT PACER
+  assert.deepEqual(await page.evaluate(() => [window.__stream.getTracks().every(t => t.readyState === 'ended'), HWArcana.z.cam, document.getElementById('camera-feed').style.display]), [true, null, 'none']);
+  // casting again, then leaving the page, also releases the camera
+  await page.click('#start-ar-btn'); await page.waitForFunction(() => !!HWArcana.z.cam);
+  await go(page, 'home');
+  assert.deepEqual(await page.evaluate(() => [window.__stream.getTracks().every(t => t.readyState === 'ended'), HWArcana.z.cam]), [true, null]);
+  // a refused camera: a message, and the tower keeps its own sky
+  await go(page, 'campus').catch(() => {});
+  await page.evaluate(() => { navigator.mediaDevices.getUserMedia = () => Promise.reject(Object.assign(new Error('no'), { name: 'NotAllowedError' }));
+    const d = document.createElement('div'); d.id = 'arc-test2'; d.innerHTML = HWStairs.logPanel('ST20', 'workout'); document.body.appendChild(d); });
+  await page.click('#arc-test2 #start-ar-btn');
+  await page.waitForFunction(() => /camera was not allowed/.test(document.body.textContent));
+  assert.equal(await page.evaluate(() => document.querySelector('#arc-test2 #arc-tower').classList.contains('ar')), false);
+  assert.deepEqual(errors.filter(e => !/tile|leaflet|maplibre|integrity|Failed to load/i.test(e)), []); await ctx.close();
 });
 
 test('Science Laboratory: a re-survey within 2° earns Truth-Seeker and leaves the database angle alone', async () => {
@@ -156,11 +204,133 @@ test('Alchemy: the balance beam tilts by (work ÷ food) × 45° and the forge na
   await go(page, 'alchemy');
   assert.match(await txt(page, '#arc-led'), /Choose a food and a climb/);
   await page.click('[data-a="alsrc"][data-v="manual"]'); await page.fill('#al-kcin', '100');
-  await page.selectOption('#al-sid', 'ST20'); await page.fill('#al-n', '120');
+  await page.selectOption('#al-sid', 'ST20'); await page.fill('#al-cl', '4');
   const t = await page.evaluate(() => { const w = HWAlchemy.climb().W / 1000; return HWArcana.math.tilt(w, 418.4); });
   assert.match(await txt(page, '#arc-led'), new RegExp('= ' + t.toFixed(2).replace('.', '\\.') + '°'));
   assert.equal(await page.locator('#pan-food').count(), 1);
   assert.match(await txt(page, '#arc-forge'), /VO₂ ≈/);
   assert.match(await txt(page, '#arc-forge'), /assumed from your last logged meal/);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+// a staircase seen from its foot, drawn in perspective: light treads and dark risers, each step narrower and shorter than the one below
+const STAIRS_JS = `window.__stairs = (c, steps) => { const x = c.getContext('2d'), W = c.width, H = c.height; x.fillStyle = '#6b6b6b'; x.fillRect(0, 0, W, H);
+  let y = H, h = H * .16, w = W * .9; for (let i = 0; i < steps; i++) { const t = h * .55, l = (W - w) / 2;
+    x.fillStyle = '#d8d8d8'; x.fillRect(l, y - t, w, t); x.fillStyle = '#3a3a3a'; x.fillRect(l, y - h, w, h - t); y -= h; h *= .84; w *= .9; } };`;
+
+test('Stair Sight (pure): a stack of step edges locks after 3 frames; a flat picture or one line never does', async () => {
+  const { page, ctx, errors } = await openApp(); await page.waitForSelector('.wl');
+  await page.addScriptTag({ content: STAIRS_JS });
+  const r = await page.evaluate(() => {
+    const grey = paint => { const c = document.createElement('canvas'); c.width = HWStairSight.DW; c.height = HWStairSight.DH; paint(c); const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data, g = new Float32Array(c.width * c.height); for (let i = 0, j = 0; i < g.length; i++, j += 4) g[i] = .3 * d[j] + .59 * d[j + 1] + .11 * d[j + 2]; return g; };
+    const run = (g, n) => { const t = HWStairSight.tracker(); const out = []; for (let i = 0; i < n; i++) out.push(t.push(g).locked); return { locks: out, edges: t.state.edges }; };
+    const stairs = run(grey(c => window.__stairs(c, 9)), 4);
+    const flat = run(grey(c => { const x = c.getContext('2d'); x.fillStyle = '#777'; x.fillRect(0, 0, c.width, c.height); }), 8);
+    const line = run(grey(c => { const x = c.getContext('2d'); x.fillStyle = '#777'; x.fillRect(0, 0, c.width, c.height); x.fillStyle = '#ddd'; x.fillRect(0, 40, c.width, 40); }), 8);
+    return { stairs: { locks: stairs.locks, n: stairs.edges.length, down: stairs.edges.every((e, i, a) => !i || e.y < a[i - 1].y) }, flat: flat.locks.some(Boolean), line: line.locks.some(Boolean) };
+  });
+  assert.deepEqual(r.stairs.locks, [false, false, true, true], 'locks on the third good frame');
+  assert.ok(r.stairs.n >= 4, 'at least 4 step edges: ' + r.stairs.n); assert.ok(r.stairs.down, 'edges listed bottom first');
+  assert.equal(r.flat, false); assert.equal(r.line, false);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('Scrying Glass + Stair Sight: pointed at stairs it locks and the ghost climbs the edges it sees; pointed at a wall it keeps looking', async () => {
+  const { page, ctx, errors } = await openApp({ seed: SEED }); await page.waitForSelector('.wl');
+  await page.addScriptTag({ content: STAIRS_JS });
+  await page.evaluate(() => {
+    window.__scene = 'stairs';
+    navigator.mediaDevices.getUserMedia = async () => { const c = document.createElement('canvas'); c.width = 240; c.height = 300;
+      const draw = () => { if (window.__scene === 'stairs') window.__stairs(c, 9); else { const x = c.getContext('2d'); x.fillStyle = '#808080'; x.fillRect(0, 0, 240, 300); } };
+      draw(); setInterval(draw, 100); return c.captureStream(15); };
+    const d = document.createElement('div'); d.id = 'arc-test'; d.innerHTML = HWStairs.logPanel('ST20', 'workout'); document.getElementById('main').appendChild(d); });
+  await page.click('#start-ar-btn');
+  assert.match(await page.textContent('#arc-scry-tag'), /LOOKING FOR STEPS/);
+  await page.waitForFunction(() => /STAIRS SEEN · \d+ STEP EDGES/.test(document.getElementById('arc-scry-tag').textContent), null, { timeout: 15000 });
+  assert.match(await txt(page, '#arc-seen'), /Stair Sight sees \d+ step edges; the ghost climbs them/);
+  assert.ok(await page.evaluate(() => HWArcana.z.sight.st.edges.length) >= 4);
+  // the wall: after 6 frames without stairs it lets go and looks again
+  await page.evaluate(() => { window.__scene = 'wall'; });
+  await page.waitForFunction(() => /LOOKING FOR STEPS/.test(document.getElementById('arc-scry-tag').textContent), null, { timeout: 15000 });
+  await page.click('#stop-btn');
+  assert.equal(await page.evaluate(() => HWArcana.z.sight), null, 'halting the glass stops Stair Sight');
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('3D Stair Sight (pure): flat treads a riser apart give the rise, tread and angle; a flat floor or a ramp is not stairs', async () => {
+  const { page, ctx, errors } = await openApp(); await page.waitForSelector('.wl');
+  const r = await page.evaluate(() => {
+    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647 - .5;
+    const stairs = []; for (let d = .3; d < 3.2; d += .04) { const k = Math.max(0, Math.floor((d - 1) / .3) + 1); stairs.push({ d, h: k * .17 + rnd() * .012 }); }
+    for (let k = 1; k < 6; k++) for (let h = 0; h < .17; h += .03) stairs.push({ d: 1 + (k - 1) * .3 + rnd() * .01, h: (k - 1) * .17 + h });   // the risers
+    const flat = []; for (let d = .3; d < 3; d += .04) flat.push({ d, h: rnd() * .01 });
+    const ramp = []; for (let d = .3; d < 3; d += .04) ramp.push({ d, h: d * .4 });
+    const f = HWStairSight.profile3d; return { s: f(stairs), flat: f(flat).ok, ramp: f(ramp).ok, few: f(stairs.slice(0, 5)).ok };
+  });
+  assert.equal(r.s.ok, true);
+  assert.ok(Math.abs(r.s.riser - .17) < .01, 'riser ' + r.s.riser); assert.ok(Math.abs(r.s.tread - .30) < .02, 'tread ' + r.s.tread);
+  assert.ok(Math.abs(r.s.angle - Math.atan(.17 / .30) * 180 / Math.PI) < 2.5, 'angle ' + r.s.angle);   // 29.5°
+  assert.ok(Math.abs(r.s.base - 1) < .05, 'the first riser at 1 m: ' + r.s.base);
+  assert.deepEqual([r.flat, r.ramp, r.few], [false, false, false]);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('3D Scrying (WebXR): offered only when immersive AR is supported; asks for hit-test and optional depth; a refusal leaves the 2D glass', async () => {
+  // without WebXR: no button
+  let { page, ctx, errors } = await openApp({ seed: SEED }); await page.waitForSelector('.wl');
+  await page.evaluate(() => { delete Navigator.prototype.xr; Object.defineProperty(navigator, 'xr', { value: undefined, configurable: true });
+    const d = document.createElement('div'); d.id = 'arc-test'; d.innerHTML = HWStairs.logPanel('ST20', 'workout'); document.getElementById('main').appendChild(d); });
+  await page.waitForTimeout(200);
+  assert.equal(await page.locator('#start-xr-btn').isHidden(), true);
+  await ctx.close();
+  // with a phone that supports it (here a stand-in that refuses the session)
+  ({ page, ctx, errors } = await openApp({ seed: SEED, before: p => p.addInitScript(() => {
+    window.__xrAsk = null;
+    Object.defineProperty(navigator, 'xr', { configurable: true, value: { isSessionSupported: async m => m === 'immersive-ar',
+      requestSession: async (m, o) => { window.__xrAsk = { m, req: o.requiredFeatures, opt: o.optionalFeatures, root: o.domOverlay && o.domOverlay.root && o.domOverlay.root.id, depth: o.depthSensing && o.depthSensing.usagePreference }; throw Object.assign(new Error('no'), { name: 'NotSupportedError' }); } } });
+  }) }));
+  await page.waitForSelector('.wl');
+  await page.evaluate(() => { const d = document.createElement('div'); d.id = 'arc-test'; d.innerHTML = HWStairs.logPanel('ST20', 'workout'); document.getElementById('main').appendChild(d); });
+  await page.waitForFunction(() => { const b = document.getElementById('start-xr-btn'); return b && !b.hidden; });
+  await page.click('#start-xr-btn');
+  await page.waitForFunction(() => /3D Scrying could not start on this phone \(NotSupportedError\)/.test(document.body.textContent));
+  assert.deepEqual(await page.evaluate(() => window.__xrAsk), { m: 'immersive-ar', req: ['local-floor', 'hit-test'], opt: ['dom-overlay', 'depth-sensing'], root: 'arc-xr-ui', depth: ['cpu-optimized'] });
+  assert.deepEqual(await page.evaluate(() => [HWArcana.z.xr, document.getElementById('arc-xr-ui').hidden, !!document.getElementById('start-ar-btn')]), [null, true, true]);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('pace along the real shape: each step takes m g r ÷ P; the ghost lifts over the riser, then crosses the tread; landings are flat', async () => {
+  const { page, ctx, errors } = await openApp(); await page.waitForSelector('.wl');
+  const r = await page.evaluate(() => {
+    const S = HWStairSight, F = [{ n: 10, riser: .1795, tread: .318, turn: 'reverse' }, { n: 10, riser: .1795, tread: .318 }];
+    const T = S.timeline(F, 100, 60), L = S.layout(F), d = T.segs[0].dur, at = t => S.place(F, L, S.at(T, t));
+    const mixed = S.timeline([{ n: 2, riser: .15, tread: .3 }, { n: 2, riser: .2, tread: .3 }], 120, 50);
+    return { d, total: T.total, n: T.n, segs: T.segs.length,
+      start: at(0), lift: at(d * .3), stepEnd: at(d * .999), land: at(T.segs[10].t0 + T.segs[10].dur / 2), next: at(T.segs[11].t0 + .001), loop: at(T.total + d * .5).k,
+      mixed: mixed.segs.filter(g => g.type === 'step').map(g => +g.dur.toFixed(4)) };
+  });
+  // 60 kg x 9.80665 m/s² x 0.1795 m ÷ 100 W = 1.0562 s a step; 20 steps + one landing (2 step-times) = 23.24 s
+  assert.ok(Math.abs(r.d - 60 * 9.80665 * .1795 / 100) < 1e-9); assert.ok(Math.abs(r.total - 22 * r.d) < 1e-9);
+  assert.deepEqual([r.n, r.segs], [20, 21]);
+  assert.ok(r.start.h === 0 && Math.abs(r.start.d + .159) < 1e-9, 'starts on the floor, half a tread before the first riser');
+  assert.ok(r.lift.h > .09 && r.lift.d < 0, 'early in the step it has risen most of the riser but not yet crossed the nosing');
+  assert.ok(Math.abs(r.stepEnd.h - .1795) < 1e-3 && Math.abs(r.stepEnd.d - .159) < 1e-3, 'ends on the middle of the first tread');
+  assert.ok(r.land.landing && Math.abs(r.land.h - 1.795) < 1e-9, 'the landing is flat at the top of flight 1 (10 x 17.95 cm)');
+  assert.equal(r.next.k, 10, 'then step 11 starts flight 2'); assert.equal(r.loop, 0, 'at the top it starts again');
+  // a taller riser takes longer at the same power: 50 x 9.80665 x 0.15 ÷ 120 = 0.6129 s, x 0.20 = 0.8172 s
+  assert.deepEqual(r.mixed, [.6129, .6129, .8172, .8172]);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('the Spellbook gives the whole climb in seconds from the step time m g r ÷ P', async () => {
+  const { page, ctx, errors } = await openApp({ seed: SEED }); await page.waitForSelector('.wl');
+  await page.evaluate(() => { const d = document.createElement('div'); d.id = 'arc-test'; d.innerHTML = HWStairs.logPanel('ST20', 'workout'); document.getElementById('main').appendChild(d); });
+  assert.match(await txt(page, '#arc-climb-n'), /type a target power/);
+  await page.fill('#arc-p', '100');
+  // ST20: 28 steps of the Group 14 measured rise; one step 60 x 9.80665 x rise ÷ 100
+  const want = await page.evaluate(() => { const r = HWGravity.verifiedRise('ST20'); return [(28 * 60 * 9.80665 * r / 100).toFixed(1) + ' s', (60 * 9.80665 * r / 100).toFixed(2) + ' s']; });
+  assert.equal(await txt(page, '#arc-climb'), want[0]);
+  assert.match(await txt(page, '#arc-climb-n'), new RegExp('= ' + want[1].replace('.', '\\.') + '$'));
+  assert.match(await txt(page, '.arc-book'), /measured \(Group 14\)/);
   assert.deepEqual(errors, []); await ctx.close();
 });

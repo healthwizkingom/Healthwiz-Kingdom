@@ -58,28 +58,33 @@ test('missing nutrition data and unknown portions are stated, never filled in', 
   assert.deepEqual(errors, []); await ctx.close();
 });
 
-test('work against gravity uses the Stair Sense physics; an unmeasured staircase is unavailable until a height is typed', async () => {
+test('work against gravity uses the Stair Sense physics with the stairway\'s counted steps × climbs and the logged weight; an unmeasured staircase is unavailable until a height is typed', async () => {
   const { page, ctx, errors } = await boot();
-  await page.selectOption('#al-sid', 'ST20'); await page.fill('#al-n', '40');
-  // h = 40 x 0.169 = 6.76 m, W = 60 x 9.80665 x 6.76 = 3978 J = 3.98 kJ = 0.95 kcal
-  const r = await txt(page, '#al-cres');
-  assert.match(r, /6\.76 m/); assert.match(r, /3,978 J/); assert.match(r, /3\.98 kJ/); assert.match(r, /0\.95 kcal/);
-  assert.match(r, /measured in the Group 14 study/); assert.match(r, /your profile weight/);
-  // the body-energy illustration is a labelled assumption: W / 0.25 and W / 0.20 -> 3.8-4.7 kcal
+  assert.equal(await page.locator('#al-n, #al-m').count(), 0, 'no typed step count, no typed body mass');
+  await page.selectOption('#al-sid', 'ST20');
+  assert.match(await txt(page, '#al-stp'), /Steps: 28 counted × 1 climb = 28/);
+  // h = 28 x 0.169 = 4.73 m, W = 60 x 9.80665 x 4.732 = 2784 J = 2.78 kJ = 0.67 kcal
+  let r = await txt(page, '#al-cres');
+  assert.match(r, /4\.73 m/); assert.match(r, /2,784 J/); assert.match(r, /2\.78 kJ/); assert.match(r, /0\.67 kcal/);
+  assert.match(r, /measured in the Group 14 study/); assert.match(r, /60\.0 kg, your profile weight/);
+  // the body-energy illustration is a labelled assumption: W / 0.25 and W / 0.20 -> 2.66-3.33 kcal
   const c = await txt(page, '#al-cr');
-  assert.match(c, /20–25%/); assert.match(c, /3\.8\d?–4\.7\d? kcal/); assert.match(c, /assumptions, not measurements of you/);
-  await page.selectOption('#al-sid', 'ST03');                       // no measured rise: 30.53 cm x tan 19.6 = 10.9 cm, an estimate
+  assert.match(c, /20–25%/); assert.match(c, /2\.66–3\.33 kcal/); assert.match(c, /assumptions, not measurements of you/);
+  await page.fill('#al-cl', '2');                                    // 56 steps: 9.46 m, 5,569 J
+  assert.match(await txt(page, '#al-stp'), /28 counted × 2 climbs = 56/);
+  assert.match(await txt(page, '#al-cres'), /9\.46 m/); assert.match(await txt(page, '#al-cres'), /5,569 J/);
+  await page.selectOption('#al-sid', 'ST03');                       // 55 counted steps; no measured rise: 30.53 cm x tan 19.6 = 10.9 cm, an estimate
   assert.equal(await page.inputValue('#al-r'), '');
   assert.match(await txt(page, '#al-cres'), /10\.9 cm, estimated from the stairway.s angle/);
-  assert.match(await txt(page, '#al-cres'), /4\.35 m/);              // 40 x 0.10878
+  assert.match(await txt(page, '#al-cres'), /11\.96 m/);             // 110 x 0.10878
   await page.selectOption('#al-sid', 'ST32');                       // 65.5 degrees would give 67 cm: not guessed
   assert.match(await txt(page, '#al-cres'), /work against gravity is unavailable.*height of one step.*very steep/);
   assert.match(await txt(page, '#al-cr'), /unavailable/);
   await page.fill('#al-r', '17');
-  assert.match(await txt(page, '#al-cres'), /6\.80 m/);
+  assert.match(await txt(page, '#al-cres'), /6\.80 m/);                // 20 counted x 2 climbs x 0.17
   assert.match(await txt(page, '#al-cres'), /typed by you/);
-  await page.fill('#al-n', '0');
-  assert.match(await txt(page, '#al-cres'), /unavailable/);
+  await page.fill('#al-cl', '0');
+  assert.match(await txt(page, '#al-cres'), /unavailable.*number of climbs/);
   assert.deepEqual(errors, []); await ctx.close();
 });
 
@@ -89,7 +94,7 @@ test('a recorded climb fills in the stairway, steps, and its own saved estimate 
   const { page, ctx, errors } = await boot(seed);
   const id = await page.evaluate(() => st.e[0].id);
   await page.selectOption('#al-rec', id);
-  assert.equal(await page.inputValue('#al-sid'), 'ST19'); assert.equal(await page.inputValue('#al-n'), '40');
+  assert.equal(await page.inputValue('#al-sid'), 'ST19'); assert.match(await txt(page, '#al-stp'), /Steps: 40 from the climb you recorded/);
   const r = await txt(page, '#al-cres');
   assert.match(r, /72\.0 kg, saved with that Stair Sense record/);           // W = 72 x 9.80665 x 6.28 = 4434 J
   assert.match(r, /4,434 J/);
@@ -109,7 +114,7 @@ test('a recorded climb fills in the stairway, steps, and its own saved estimate 
 
 test('neutral wording: no earning, burning off, guilt or compensating; no goal is set', async () => {
   const { page, ctx, errors } = await boot();
-  await pick(page, 'Nasi Goreng Kampung'); await page.selectOption('#al-sid', 'ST20'); await page.fill('#al-n', '60'); await page.click('[data-a="alscale"]');
+  await pick(page, 'Nasi Goreng Kampung'); await page.selectOption('#al-sid', 'ST20'); await page.fill('#al-cl', '2'); await page.click('[data-a="alscale"]');
   const t = await txt(page, '#main');
   assert.doesNotMatch(t, /burn|\bearn|guilt|deserve|cheat|compensat|offset|punish|treat yourself|calories? out|how many stairs/i);
   assert.match(t, /not a goal or a plan/); assert.match(t, /optional/i);
@@ -125,10 +130,10 @@ test('exploring leaves every record unchanged', async () => {
   const { page, ctx, errors } = await boot(seed);
   const before = await snap(page);
   await pick(page, 'Roti Canai'); await page.click('[data-a="alpm"][data-v="2"]');
-  await page.selectOption('#al-sid', 'ST20'); await page.fill('#al-n', '33'); await page.fill('#al-m', '80'); await page.click('[data-a="alscale"]');
+  await page.selectOption('#al-sid', 'ST20'); await page.fill('#al-cl', '3'); await page.click('[data-a="alscale"]');
   await page.click('[data-a="alsrc"][data-v="manual"]'); await page.fill('#al-kcin', '999');
   await go(page, 'home'); await go(page, 'alchemy');
-  assert.equal(await page.inputValue('#al-n'), '', 'leaving the page clears the exploring state');
+  assert.equal(await page.inputValue('#al-cl'), '1', 'leaving the page clears the exploring state');
   assert.deepEqual(await snap(page), before);
   assert.deepEqual(errors, []); await ctx.close();
 });
@@ -136,7 +141,7 @@ test('exploring leaves every record unchanged', async () => {
 test('small phone screens: two cards stack, no sideways scroll, controls 44 px', async () => {
   for (const vp of [{ width: 320, height: 568 }, { width: 360, height: 640 }]) {
     const { page, ctx, errors } = await boot(RETURNING, vp);
-    await pick(page, 'Nasi Beriyani'); await page.selectOption('#al-sid', 'ST19'); await page.fill('#al-n', '45'); await page.click('[data-a="alscale"]');
+    await pick(page, 'Nasi Beriyani'); await page.selectOption('#al-sid', 'ST19'); await page.fill('#al-cl', '5'); await page.click('[data-a="alscale"]');
     const m = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, iw: innerWidth,
       over: [...document.querySelectorAll('#main *')].filter(e => !e.closest('.tscroll') && e.getBoundingClientRect().width && e.getBoundingClientRect().right > innerWidth + 1).map(e => e.className || e.tagName).slice(0, 5),
       small: [...document.querySelectorAll('#al-food button:not(.hwh), #al-food select, #al-food input, #al-climb select, #al-climb input, .alshow, .alscale button')].filter(e => e.offsetParent && e.getBoundingClientRect().height < 43).map(e => e.id || e.dataset.a),

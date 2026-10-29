@@ -49,6 +49,8 @@ js/v6-arcana.js            the Arcana upgrades (2026-10-29 blueprint): Home's El
                            supabase/migrations/20261029000000_hw_guild.sql); a staircase's Details: Enchanted Tower, Spectral Pacer, Cadence Echo (mic), Luna's
                            Wind Spell and the Gravity Anomaly; Alchemy's Metabolic Forge and Caloric Ledger; the Laboratory's Royal Surveyors (Truth-Seeker badge)
 js/v6-arcana-css.js        the Arcana upgrades' styles
+js/v6-stairsight.js        Stair Sight: finds step edges in the live camera picture (2D) and stairs in WebXR depth/hit points (3D, profile3d)
+observatory/xrstairs.js    3D Stair Sight (WebXR immersive-ar, Android Chrome with ARCore): measures rise and tread, builds the stairway in 3D, the ghost climbs it
 js/v6-arcane.js            the magical, modern look: Arcane Night default theme, glowing rounded panels and controls (docs/PIXEL_STYLE.md)
 js/v6-emoji.js             every emoji the app shows drawn as pixel art (hand-drawn icon or the emoji pixelated)
 js/v6-provisions.js        Nutrition & Hydration as one page (the Provisions Hall): 'food' and 'water' are its two halves
