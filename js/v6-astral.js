@@ -202,30 +202,45 @@ function hudBtn(){const{rec,p}=hudPlace();if(!p)return '';const s=solar({latitud
   return '<button type="button" class="asthud'+(hz==='below'?' night':'')+(hz==='above'&&fx()&&!reduced()?' glow':'')+'" id="asthud" data-a="asthud" aria-expanded="'+hudOpen+'" aria-controls="asthudp" aria-label="'+esc(lab)+'" title="Sun compass">'
     +'<span class="asthr" aria-hidden="true"><i class="astcard n">N</i>'+(az==null?'':'<i class="astneedle" data-az="'+az.toFixed(2)+'" style="transform:rotate('+az.toFixed(2)+'deg)"><b class="astsun"></b></i>')+'<i class="asthub"></i></span>'
     +(s.ok?'<span class="asthe" aria-hidden="true">'+Math.round(s.elevation)+'°</span>':'')+'</button>'}
-function hudPop(){const{rec,p}=hudPlace();if(!p)return '';const now=new Date(),s=solar({latitude:p.lat,longitude:p.lng,date:now});
-  if(!s.ok)return '<div class="asthudp" id="asthudp" role="dialog" aria-label="Sun position"><p>Sun position unavailable: '+esc(s.reason)+'.</p><button type="button" class="cmpsx" data-a="asthud" aria-label="Close">×</button></div>';
-  const a=assess(rec,s),hz=horizon(s),stt=hz==='above'?['good','Sun above horizon']:hz==='low'?['watch','Sun low on the horizon']:['watch','Sun below horizon'];
-  return '<div class="asthudp" id="asthudp" role="dialog" aria-labelledby="asthudp-t"><b id="asthudp-t" class="asthpt">NAVIGATOR’S COMPASS</b><button type="button" class="cmpsx asthpx" data-a="asthud" aria-label="Close the sun compass">×</button>'
-    +'<div class="asthpv"><span><small>Bearing</small><b>'+(fin(s.azimuth)?Math.round(s.azimuth)+'°':'overhead')+'</b><small>'+(fin(s.azimuth)?esc(NAMES[point(s.azimuth)]):'')+'</small></span>'
-    +'<span><small>Height</small><b>'+f1(s.elevation,1)+'°</b><small>above the horizon (geometric)</small></span></div>'
-    +'<p class="astst"><span class="stt stt-'+stt[0]+'">'+stt[1]+'</span> <small>'+esc(a.title)+' · level '+a.level+' of 4</small></p>'
-    +(hz==='above'&&s.elevation>=60&&a.kind!=='indoor'?'<p class="astsmall">The Sun is high. In the open, direct sun may feel hotter; shade, temperature and UV are not measured here.</p>':'')
-    +'<p class="astsrc">'+esc(clockTxt(now))+' · '+esc(p.txt)+'. The dial turns with the map: its N is the map’s north.</p>'
-    +(rec?'<button type="button" class="g sm" data-a="astfull">FULL COMPASS FOR '+esc(rec.id)+'</button>':'<p class="astsmall">Pick a staircase on the map for its own compass and what can be said about sunlight there.</p>')+'</div>'}
-function hud(){setTimeout(()=>{bind();arm()},0);return hudBtn()+(hudOpen?hudPop():'')}
+/* The readout is the HealthWiz menu's own layout and mechanics (js/v6-campus-hud.js): a mint layer over the whole map that slides in,
+   scrolls inside itself, round tiles under their names in the same grid, the round x at the bottom middle, Escape closes it and the
+   focus goes back to the button. Opening either menu closes the other. */
+const SVG={ref:'<svg viewBox="0 0 24 24" class="cmpsv2" aria-hidden="true"><path d="M19 12a7 7 0 1 1-2.1-5"/><path d="M19 4v4h-4"/></svg>',
+  fx:'<svg viewBox="0 0 24 24" class="cmpsv2" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18"/></svg>',
+  full:'<svg viewBox="0 0 24 24" class="cmpsv2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 6l2.5 6-2.5 6-2.5-6z"/></svg>'};
+const tile=(l,v,sub)=>'<li><span class="hudl" aria-hidden="true">'+l+'</span><span class="hudi asthv" role="img" aria-label="'+esc(l+': '+v+(sub?', '+sub:''))+'">'+esc(v)+'</span>'+(sub?'<small class="asths">'+esc(sub)+'</small>':'')+'</li>';
+const act=(a,l,i,x)=>'<li><span class="hudl" aria-hidden="true">'+l+'</span><button type="button" class="hudi" data-a="'+a+'" aria-label="'+esc(l)+'" title="'+esc(l)+'"'+(x||'')+'>'+i+'</button></li>';
+function hudPop(still){const{rec,p}=hudPlace();if(!p)return '';const now=new Date(),s=solar({latitude:p.lat,longitude:p.lng,date:now});
+  const shell=b=>'<div class="hudmenu asthm'+(still?' still':'')+'" id="asthudp" role="dialog" aria-modal="false" aria-labelledby="asthudp-t"><div class="hudscr">'+b+'</div>'
+    +'<button type="button" class="hudx" data-a="asthud" aria-label="Close the sun compass">×</button></div>';
+  if(!s.ok)return shell('<b id="asthudp-t" class="asthmt">NAVIGATOR’S COMPASS</b><p>Sun position unavailable: '+esc(s.reason)+'.</p>');
+  const a=assess(rec,s),hz=horizon(s),az=fin(s.azimuth);
+  return shell('<div class="asthmh">'+dial(s,1)+'<div><b id="asthudp-t" class="asthmt">NAVIGATOR’S COMPASS</b><p class="asthmp">Where the Sun is now'+(rec?', seen from '+esc(rec.id):'')+'. Not a weather, UV or shade measurement.</p></div></div>'
+    +'<ul class="hudgrid">'+tile('Bearing',az?Math.round(s.azimuth)+'°':'up',az?NAMES[point(s.azimuth)]:'overhead')+tile('Height',Math.round(s.elevation)+'°',hz==='below'?'below the horizon':'above the horizon')
+      +tile('Solar noon',minClock(s.solarNoonUTC),'on your clock')+tile('Sky',hz==='above'?'Up':hz==='low'?'Low':'Set',hz==='above'?'Sun above horizon':hz==='low'?'Sun low on the horizon':'Sun below horizon')
+      +act('astnow','Refresh',SVG.ref)+act('astfx','Effects',SVG.fx,' aria-pressed="'+(fx()?'true':'false')+'"')+(rec?act('astfull','Full compass',SVG.full):'')+'</ul>'
+    +'<div class="asthmc"><p><b>'+esc(a.title)+'</b> <small>level '+a.level+' of 4</small></p><p>'+esc(a.text)+'</p>'
+    +(hz==='above'&&s.elevation>=60&&a.kind!=='indoor'?'<p class="asthmw">The Sun is high. In the open, direct sun may feel hotter; shade, temperature and UV are not measured here.</p>':'')
+    +(rec?'':'<p>Pick a staircase on the map for its own compass and what can be said about sunlight there.</p>')
+    +'<p class="asthms">'+esc(clockTxt(now))+' · '+esc(p.txt)+'. The dial turns with the map: its N is the map’s north.</p></div>')}
+function hud(){setTimeout(()=>{bind();arm()},0);return hudBtn()+(hudOpen?hudPop(true):'')} // a page redraw while open: no second slide-in
 /** Turn the dial with the map: --b = −bearing, set on rotate (MapLibre), once per map instance. */
 function bind(){const m=typeof HWCampus!=='undefined'&&HWCampus.map&&HWCampus.map.map;const set=()=>{const n=$i('asthud');if(n&&m)n.style.setProperty('--b',(-m.getBearing())+'deg')};
   if(m&&typeof m.on==='function'&&!bound.has(m)){bound.add(m);m.on('rotate',set)}set()}
-function hudRedraw(){const b=$i('asthud');if(!b)return;const f=D.activeElement===b,o=$i('asthudp');if(o)o.remove();
-  b.insertAdjacentHTML('afterend',hudOpen?hudPop():'');b.outerHTML=hudBtn();bind();if(f){const n=$i('asthud');if(n)n.focus({preventScroll:true})}}
-acts.asthud=()=>{hudOpen=!hudOpen;hudRedraw()};
+/** Redraw the button and the menu in place; still = it was open already (no second slide-in). focus: 'menu' | 'btn' | keep */
+function hudRedraw(focus){const b=$i('asthud');if(!b)return;const o=$i('asthudp'),was=!!o,f=D.activeElement===b;if(o)o.remove();
+  b.insertAdjacentHTML('afterend',hudOpen?hudPop(was):'');b.outerHTML=hudBtn();bind();
+  const n=focus==='menu'?D.querySelector('#asthudp .hudi[data-a]'):focus==='btn'||f?$i('asthud'):null;if(n)n.focus({preventScroll:true})}
+const hudMenuOpen=()=>typeof HWCampusHud!=='undefined'&&HWCampusHud.state&&HWCampusHud.state.menu;
+acts.asthud=()=>{hudOpen=!hudOpen;if(hudOpen&&hudMenuOpen())acts.hudmenu();hudRedraw(hudOpen?'menu':'btn')};
+{const o=acts.hudmenu;if(typeof o==='function')acts.hudmenu=function(){if(!hudMenuOpen()&&hudOpen){hudOpen=false;hudRedraw()}return o.apply(this,arguments)}}
 acts.astfull=()=>{hudOpen=false;const id=typeof HWCampus!=='undefined'?HWCampus.selected:null;if(!id)return hudRedraw();pref.open=1;keep();
   if(typeof HWCampus.openSheet==='function')HWCampus.openSheet('det','half');else hudRedraw();
   setTimeout(()=>{const n=$i('astral');if(n){n.open=true;n.scrollIntoView({block:'start',behavior:reduced()?'auto':'smooth'});const s=n.querySelector('summary');if(s)s.focus({preventScroll:true})}},150)};
-D.addEventListener('keydown',e=>{if(e.key==='Escape'&&hudOpen&&$i('asthudp')){e.stopPropagation();hudOpen=false;hudRedraw()}},true);
+D.addEventListener('keydown',e=>{if(e.key==='Escape'&&hudOpen&&$i('asthudp')){e.stopPropagation();hudOpen=false;hudRedraw('btn')}},true);
 if(typeof HWCampusHud!=='undefined'){const h=HWCampusHud.html;HWCampusHud.html=function(){return h.apply(this,arguments)+hud()}}
 acts.astnow=()=>repaint();
-acts.astfx=()=>{pref.fx=fx()?0:1;keep();repaint()};
+acts.astfx=()=>{pref.fx=fx()?0:1;keep();repaint();const n=D.querySelector('#asthudp [data-a="astfx"]');if(n)n.focus({preventScroll:true})};
 D.addEventListener('toggle',e=>{const t=e.target;if(t&&t.id==='astral'){pref.open=t.open?1:0;keep()}},true);
 D.addEventListener('visibilitychange',()=>{if(D.hidden)arm(0);else if(on$()){repaint();arm()}});
 HWEvents.on('page:viewed',e=>{if(e.view!=='campus'){arm(0);hudOpen=false}});
@@ -274,17 +289,18 @@ HWUI.css('astral',`
 #hudsheet~.asthud{z-index:9;bottom:calc(max(140px,20%,20vh) + 24px)}#hudsheet[data-size="half"]~.asthud{bottom:calc(max(260px,50%) + 24px)}
 @media(max-width:400px){.asthud:not(#x){left:auto;right:10px;width:50px;height:50px;bottom:calc(max(18px,env(safe-area-inset-bottom)) + 76px)}.asthud .astneedle{height:18px}
   #hudsheet~.asthud:not(#x){bottom:calc(max(140px,20%,20vh) + 90px)}#hudsheet[data-size="half"]~.asthud:not(#x){bottom:calc(max(260px,50%) + 90px)}}
-#hudsheet[data-size="full"]~.asthud,#hudsheet[data-size="full"]~.asthudp{display:none}#hudsheet.drag~.asthud{visibility:hidden}
-.asthudp{position:absolute;z-index:10;left:12px;right:12px;max-width:360px;margin:0 auto;bottom:calc(max(18px,env(safe-area-inset-bottom)) + 140px);max-height:60%;overflow:auto;
-  padding:12px;border-radius:14px;border:2px solid #f2c14e;background:linear-gradient(180deg,#1f2a5c,#2a1f52);color:#f3ecd6;box-shadow:0 8px 24px rgba(0,0,0,.45);animation:asthin .2s ease-out}
-#hudsheet~.asthudp{bottom:calc(max(140px,20%,20vh) + 90px)}#hudsheet[data-size="half"]~.asthudp{bottom:calc(max(260px,50%) + 90px);max-height:40%}
-@keyframes asthin{from{opacity:0;transform:translateY(8px)}}
-.asthpt{display:block;font:700 14px var(--fn,system-ui,sans-serif);color:#ffd36a;letter-spacing:.04em;margin-right:36px}.asthpx{position:absolute;right:8px;top:8px}
-.asthpv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.asthpv span{display:grid;background:#ffffff12;border-radius:10px;padding:6px 8px}
-.asthpv b{font:700 22px var(--fn,system-ui,sans-serif);font-variant-numeric:tabular-nums}.asthpv small,.asthudp small{font-size:12px;color:#c8c2e8}
-.asthudp .astsrc{color:#c8c2e8}.asthudp button.sm{width:100%;min-height:44px}
+#hudsheet[data-size="full"]~.asthud{display:none}#hudsheet.drag~.asthud{visibility:hidden}
+.asthm .hudscr{gap:10px}
+.asthmh{display:flex;gap:12px;align-items:center;padding:10px;border-radius:16px;background:#fff;box-shadow:0 1px 4px rgba(30,90,80,.2)}
+.asthmh .astdial{--d:96px;flex:0 0 auto}.asthmt{display:block;font:800 15px var(--font,system-ui,sans-serif);letter-spacing:.06em;color:#2d5a5f}
+.asthmp{margin:4px 0 0;font-size:13px;color:#4e7b7c}
+.asthv{font:800 14px/1 var(--font,system-ui,sans-serif);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.asths{font-size:11px;line-height:1.2;color:#4e7b7c;text-align:center;max-width:84px}
+.asthmc{padding:10px 12px;border-radius:14px;background:#f2fbf5;color:#22424a;box-shadow:0 1px 4px rgba(30,90,80,.15);font-size:13px}.asthmc p{margin:0 0 6px}
+.asthmc small,.asthms{color:#4e7b7c;font-size:12px}.asthmw{border-left:4px solid #c98a0b;padding-left:8px}
+#hudsheet[data-size="full"]~#asthudp{display:none}
 @media(max-width:420px){.astgrid{grid-template-columns:1fr;justify-items:center}.astv{width:100%}}
-@media(prefers-reduced-motion:reduce){.astneedle,.asthr{transition:none}.astdial.glow,.asthud.glow,.asthudp{animation:none}}
-.hw-rm .astneedle,.hw-still .astneedle,.hw-rm .asthr,.hw-still .asthr{transition:none}.hw-rm .astdial.glow,.hw-still .astdial.glow,.hw-rm .asthud.glow,.hw-still .asthud.glow,.hw-rm .asthudp,.hw-still .asthudp{animation:none}
+@media(prefers-reduced-motion:reduce){.astneedle,.asthr{transition:none}.astdial.glow,.asthud.glow{animation:none}}
+.hw-rm .astneedle,.hw-still .astneedle,.hw-rm .asthr,.hw-still .asthr{transition:none}.hw-rm .astdial.glow,.hw-still .astdial.glow,.hw-rm .asthud.glow,.hw-still .asthud.glow{animation:none}
 `);
 return{hud,get hudOpen(){return hudOpen},solar,refraction,bearing,distance,relative,shadowLength,point,horizon,headingOf,placeOf,assess,panel,repaint,get timer(){return tick}}})();

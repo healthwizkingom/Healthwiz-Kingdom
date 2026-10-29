@@ -242,7 +242,15 @@ test('map: the sun compass sits beside the HealthWiz button, overlaps nothing, a
   const pop = await page.$eval('#asthudp', e => e.textContent.replace(/\s+/g, ' '));
   assert.match(pop, /NAVIGATOR’S COMPASS/); assert.match(pop, /Bearing/); assert.match(pop, /Height/); assert.match(pop, /its N is the map’s north/); assert.match(pop, /Pick a staircase/);
   assert.equal(await page.$eval('#asthud', e => e.getAttribute('aria-expanded')), 'true');
+  // the same layout and mechanics as the HealthWiz menu: a layer over the whole map, scrolling inside, round tiles, the x at the bottom
+  const m = await page.evaluate(() => { const p = document.getElementById('asthudp'), r = p.getBoundingClientRect(), s = document.getElementById('cmpstage').getBoundingClientRect(), x = p.querySelector('.hudx').getBoundingClientRect();
+    return { cls: p.className, scr: !!p.querySelector('.hudscr .hudgrid li .hudl + .hudi'), full: Math.abs(r.top - s.top) < 2 && Math.abs(r.bottom - s.bottom) < 2 && Math.abs(r.left - s.left) < 2, xMid: Math.abs((x.left + x.right) / 2 - (s.left + s.right) / 2) < 2, focus: document.activeElement.dataset.a }; });
+  assert.match(m.cls, /\bhudmenu\b/); assert.equal(m.scr, true); assert.equal(m.full, true, 'covers the map like the HealthWiz menu'); assert.equal(m.xMid, true); assert.equal(m.focus, 'astnow', 'focus moves into the menu');
   await page.keyboard.press('Escape'); assert.equal(await page.$('#asthudp'), null);
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'asthud', 'Escape returns the focus to the compass');
+  await page.click('#asthud'); await page.evaluate(() => acts.hudmenu());
+  assert.deepEqual(await page.evaluate(() => [!!document.getElementById('hudmenu'), !!document.getElementById('asthudp')]), [true, false], 'one menu at a time');
+  await page.evaluate(() => acts.hudmenu());
   await page.evaluate(() => HWCampus.focus('ST14')); await page.waitForTimeout(600);
   await page.click('#asthud'); await page.click('[data-a="astfull"]'); await page.waitForSelector('#astral[open]');
   assert.deepEqual(errors.filter(e => !/\.glb|404/.test(e)), []); await ctx.close();
