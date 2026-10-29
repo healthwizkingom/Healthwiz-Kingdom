@@ -210,7 +210,7 @@ acts.arcgwr=()=>guildSync();
 /* =====================================================================================================================
    3 + 5 + 6. THE STAIR CHAMBER (a staircase's Details in the Observatory)
    ===================================================================================================================== */
-const Z={sid:null,P:'',pace:{on:0},mic:null,peaks:[],cad:null,breath:null,match:0,cam:null,sight:null,you:0};
+const Z={sid:null,P:'',pace:{on:0},mic:null,peaks:[],cad:null,breath:null,match:0,cam:null,sight:null,xr:null,you:0};
 function stopMic(){const m=Z.mic;Z.mic=null;if(!m)return;cancelAnimationFrame(m.raf);clearTimeout(m.tm);try{m.stream.getTracks().forEach(t=>t.stop())}catch(e){}try{m.ctx.close()}catch(e){}}
 async function openMic(){
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('This browser has no microphone access.');
@@ -326,6 +326,32 @@ async function scry(){
   catch(e){stopCam();oops(e&&e.name==='NotAllowedError'?'The camera was not allowed, so the tower stays in its night sky.':String(e&&e.message||'The camera could not start.')+' The tower stays in its night sky.');paint()}}
 function halt(){Z.pace.on=0;Z.you=0;stopCam();paint()}
 
+/* ---------- 3D Stair Sight (WebXR, Android Chrome with ARCore): observatory/xrstairs.js ----------
+   Offered only when navigator.xr says 'immersive-ar' is supported (secure page). The session is requested inside the tap with hit-test
+   (required) and depth-sensing and dom-overlay (optional); the module is loaded after. A panel over the AR view (dom-overlay) shows the
+   search, the measured rise, tread and angle (an AR estimate) and the ghost's step, with RESCAN and HALT. Ending, leaving the page or
+   hiding the app ends the session. Without support, the 2D Scrying Glass stays. */
+const XR={sup:null};
+function xrCheck(){if(XR.sup!==null)return;XR.sup=false;try{if(window.isSecureContext&&navigator.xr&&navigator.xr.isSessionSupported)
+  navigator.xr.isSessionSupported('immersive-ar').then(ok=>{XR.sup=!!ok;if(ok){const b=$i('start-xr-btn');if(b)b.hidden=false}}).catch(()=>{})}catch(e){}}
+function xrUI(){let u=$i('arc-xr-ui');if(!u){u=D.createElement('div');u.id='arc-xr-ui';u.className='arc-xr-ui';u.hidden=true;
+    u.innerHTML='<p id="arc-xr-st" role="status" aria-live="polite"></p><p id="arc-xr-m" class="arc-xr-m"></p><div class="arc-xr-b"><button type="button" class="g" data-a="arcxrscan">RESCAN</button><button type="button" data-a="arcxrend">HALT</button></div>';
+    D.body.appendChild(u)}return u}
+function xrState(S){const st=$i('arc-xr-st'),m=$i('arc-xr-m'),q=STAIRS.find(x=>x.id===Z.sid),n=q?stepsOf(q):0;
+  if(S.phase==='ended'){Z.xr=null;const u=$i('arc-xr-ui');if(u)u.hidden=true;paint();return}
+  if(st)st.textContent=S.phase==='locked'?'Stairs found. The ghost '+(pacer()?'climbs all '+n+' steps'+(S.step?': step '+S.step+' of '+n:''):'waits at the foot (no target power was typed)')+'.':S.why;
+  if(m)m.textContent=S.phase==='locked'?'AR estimate: rise ≈ '+fx(S.riser*100,1)+' cm, tread ≈ '+fx(S.tread*100,1)+' cm, angle ≈ '+fx(S.angle,1)+'°'+(q?' (survey: '+q.angle.toFixed(2)+'°)':'')+'.':(S.depth?'Using the phone\u2019s depth sensing and surface hits.':'Using surface hits (this phone gives no depth map).')}
+async function xr(){
+  if(Z.xr||!navigator.xr)return;stopCam();const q=STAIRS.find(x=>x.id===Z.sid);if(!q)return;const ui=xrUI();
+  let session;
+  try{session=await navigator.xr.requestSession('immersive-ar',{requiredFeatures:['local-floor','hit-test'],optionalFeatures:['dom-overlay','depth-sensing'],domOverlay:{root:ui},
+      depthSensing:{usagePreference:['cpu-optimized'],dataFormatPreference:['luminance-alpha','float32']}})}
+  catch(e){oops('3D Scrying could not start on this phone ('+(e&&e.name||'error')+'). The 2D Scrying Glass still works.');return}
+  try{const mod=await import(new URL('observatory/xrstairs.js',D.baseURI).href);ui.hidden=false;
+    const ctl=await mod.start(session,{n:stepsOf(q),rate:pacer()||0,analyse:HWStairSight.profile3d,onState:xrState});Z.xr={ctl,session}}
+  catch(e){try{session.end()}catch(x){}ui.hidden=true;oops('3D Scrying could not load ('+String(e&&e.message||e).slice(0,80)+'). The 2D Scrying Glass still works.')}}
+acts.arcxr=()=>xr();acts.arcxrend=()=>{if(Z.xr)Z.xr.ctl.stop()};acts.arcxrscan=()=>{if(Z.xr)Z.xr.ctl.rescan()};
+
 function chamber(id){
   const q=STAIRS.find(s=>s.id===id);if(!q)return'';if(Z.sid!==id){stopMic();stopCam();Z.sid=id;Z.pace.on=0;Z.cad=null;Z.peaks=[];Z.match=0;Z.P='';Z.you=0}
   const n=stepsOf(q),r=riseOf(id),mi=massInfo(),rate=pacer(),on=!!Z.pace.on,cam=!!Z.cam,lis=!!(Z.mic&&Z.mic.kind==='echo');
@@ -341,6 +367,7 @@ function chamber(id){
     +row('Riser',r?fx(r*100,1)+' cm':'–',r?(HWGravity.riseKind(id)==='study'?'measured (Group 14)':'estimated from the angle'):'not known for this stairway')
     +row('Angle',q.angle.toFixed(2)+'°',(counted(q)?n+' steps counted'+(q.steps.length>1?' in '+q.steps.length+' flights ('+q.steps.join(' + ')+')':''):'steps not counted yet: '+n+' drawn as a picture only'))
     +'</dl><div class="arc-btns"><button type="button" class="btn-primary" id="start-ar-btn" data-a="arcar" '+(cam?'disabled':'')+'>'+(cam?'SCRYING…':'CAST SCRYING GLASS (AR)')+'</button>'
+    +'<button type="button" class="btn-primary arc-xr-btn" id="start-xr-btn" data-a="arcxr"'+(XR.sup?'':' hidden')+'>CAST 3D SCRYING (WebXR)</button>'
     +'<button type="button" class="btn-secondary g sm" id="stop-btn" data-a="'+(on||cam?'archalt':'arcpace')+'" '+(on||cam||rate?'':'disabled ')+'>'+(on||cam?'HALT PACER':'SUMMON PACER')+'</button></div>'
     +(cam?'<small class="mut" id="arc-seen" aria-live="polite">'+(Z.sight?'Stair Sight is looking for steps. Stand at the foot and point the camera up the stairs.':'')+'</small>':'')
     +'<small class="mut arc-sight-note">Stair Sight finds the edges of steps in the camera picture (a simple 2D estimate, on this device only). It can miss steps in dim light and mistake stripes or shelves for stairs; without a lock the ghost climbs the drawn stairs.</small>'
@@ -354,7 +381,7 @@ function chamber(id){
 function breathTxt(){const b=breathOn();if(!b)return'';
   return '<p class="arc-warn" role="status">'+(b.loud?stt('watch')+' Luna’s Wind Spell hears heavy breathing (loudness '+fx(b.rms,2)+'). The Metabolic Forge now uses the RER 1.0 value for the next 10 minutes.':stt('good')+' Calm breathing (loudness '+fx(b.rms,2)+'). The forge keeps the value from your meal.')+'</p>'
     +'<small class="mut">Loudness is a rough cue, not a gas measurement: the microphone cannot see which fuel your muscles use. Hard breathing does go with harder efforts.</small>'}
-function paint(){const s=$i('stair-sense-modal');if(s&&Z.sid){const f=D.activeElement&&D.activeElement.id;s.outerHTML=chamber(Z.sid);attachCam();out();pace();if(f){const e=$i(f);if(e&&!e.disabled)e.focus()}}}
+function paint(){xrCheck();const s=$i('stair-sense-modal');if(s&&Z.sid){const f=D.activeElement&&D.activeElement.id;s.outerHTML=chamber(Z.sid);attachCam();out();pace();if(f){const e=$i(f);if(e&&!e.disabled)e.focus()}}}
 INP.arcp=el=>{Z.P=el.value;const r=pacer();if(Z.pace.on&&!r)Z.pace.on=0;const t=$i('arc-rate');if(t)t.textContent=r?fx(r,2)+' steps/s':'–';
   const b=$i('stop-btn');if(b&&!Z.pace.on&&!Z.cam)b.disabled=!r;const l=$i('arc-pst');if(l&&!Z.pace.on)l.textContent=r?'Ready: summon the pacer or cast the Scrying Glass.':'Type a target power to summon the ghost.';pace()};
 acts.arcpace=()=>{if(!pacer())return;Z.pace.on=1;Z.you=0;paint()};
@@ -379,8 +406,8 @@ function gravityCard(q){
     +(mi?'<p class="arc-cmp num" title="Gravity is slightly weaker up here!"><span>Scale reading at sea level: <b>'+fx(sea,3)+' kg</b></span><span>Same scale at the stair top: <b>'+fx(top,3)+' kg</b></span></p>'
       +'<small class="mut">Gravity is slightly weaker up here! Your mass does not change; a spring scale set at sea level reads '+fx((1-gT/g0)*1e6,1)+' parts per million less, because it measures your weight m g. ('+esc(mi.src)+'.)</small>'
       :'<small class="mut">Add your weight to see what a scale would read.</small>')}
-if(typeof HWStairs!=='undefined'){const p=HWStairs.logPanel;HWStairs.logPanel=function(id){const h=p.apply(this,arguments);try{return id?h+chamber(id):h}catch(e){console.warn('[HWArcana]',e);return h}}}
-HWEvents.on('page:viewed',e=>{if(e.view!=='campus'){stopMic();stopCam();towerStop();Z.pace.on=0}});
+if(typeof HWStairs!=='undefined'){const p=HWStairs.logPanel;HWStairs.logPanel=function(id){if(id)setTimeout(xrCheck,0);const h=p.apply(this,arguments);try{return id?h+chamber(id):h}catch(e){console.warn('[HWArcana]',e);return h}}}
+HWEvents.on('page:viewed',e=>{if(e.view!=='campus'){stopMic();stopCam();towerStop();Z.pace.on=0;if(Z.xr)Z.xr.ctl.stop()}});
 HWEvents.on('stairs:closed',()=>{stopCam();towerStop();Z.pace.on=0});
 D.addEventListener('visibilitychange',()=>{if(D.hidden){stopMic();if(Z.cam){stopCam();Z.pace.on=0;paint()}}});
 

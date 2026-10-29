@@ -51,6 +51,29 @@ function chain(L){
 /** The next step up overlaps the one below it side to side (at least 60 % of the narrower) and is no more than 15 % wider. */
 function fits(lo,hi){const ov=Math.min(lo.x1,hi.x1)-Math.max(lo.x0,hi.x0),wl=lo.x1-lo.x0,wh=hi.x1-hi.x0;return ov>=.6*Math.min(wl,wh)&&wh<=wl*1.15+1}
 
+/* ---------- 3D: steps from depth (the WebXR mode, observatory/xrstairs.js) ----------
+   Input: points {d, h} in metres, d = horizontal distance forward from the phone, h = height (any zero). Sorted by d, they are grouped
+   into flat PLATEAUS (heights within 3 cm, at least 8 cm long); neighbouring plateaus at the same height merge. A stairway is a run of plateaus each 8–25 cm
+   above the one before and starting within 12 cm of its end (a riser is nearly vertical; a ramp is not). Locked when there are at least 3 plateaus (floor + 2 treads). → {ok, riser, tread, angle, base, plateaus}
+   riser = median height step; tread = median forward distance between the fronts of the middle plateaus (the floor and the last one
+   seen may be cut off); base = the d of the first riser; angle = atan(riser ÷ tread). All in metres and degrees: an AR estimate. */
+function profile3d(pts){
+  const P=pts.filter(p=>p&&isFinite(p.d)&&isFinite(p.h)&&p.d>.15&&p.d<8).sort((a,b)=>a.d-b.d);if(P.length<8)return{ok:false,why:'too few depth points'};
+  const med=a=>{const b=a.slice().sort((x,y)=>x-y),m=b.length>>1;return b.length%2?b[m]:(b[m-1]+b[m])/2};
+  let G=[];P.forEach(p=>{const g=G[G.length-1];if(g&&Math.abs(p.h-g.hm)<.03){g.pts.push(p);g.hm=med(g.pts.map(q=>q.h));g.d1=p.d}else G.push({pts:[p],hm:p.h,d0:p.d,d1:p.d})});
+  G=G.filter(g=>g.pts.length>=2||g.d1-g.d0>=.05);
+  const M=[];G.forEach(g=>{const l=M[M.length-1];if(l&&Math.abs(l.hm-g.hm)<.03){l.pts.push(...g.pts);l.hm=med(l.pts.map(q=>q.h));l.d1=g.d1}else M.push(g)});
+  const F=M.filter(g=>g.d1-g.d0>=.08);                                                         // a tread is flat for at least 8 cm (a ramp is not)
+  let best=[];
+  for(let i=0;i<F.length;i++){const run=[F[i]];for(let j=i+1;j<F.length;j++){const l=run[run.length-1],dh=F[j].hm-l.hm;
+      if(dh>=.08&&dh<=.25&&F[j].d0-l.d1<=.12)run.push(F[j]);else if(dh<.08&&dh>-.03)continue;else break}
+    if(run.length>best.length)best=run}
+  if(best.length<3)return{ok:false,why:'no stack of 3 levels a step apart',plateaus:best.length};
+  const rises=best.slice(1).map((g,i)=>g.hm-best[i].hm),fronts=best.map(g=>g.d0),runs=fronts.slice(2).map((f,i)=>f-fronts[i+1]);
+  const riser=med(rises),tread=runs.length?runs.reduce((a,b)=>a+b,0)/runs.length:best[1].d1-best[1].d0;
+  if(!(tread>=.18&&tread<=.5))return{ok:false,why:'tread out of range ('+tread.toFixed(2)+' m)'};
+  return{ok:true,riser,tread,angle:Math.atan(riser/tread)*180/Math.PI,base:best[1].d0,floor:best[0].hm,plateaus:best.length,why:''}}
+
 /** Reads a video into the grid, cropped like a 4 : 5 stage (object-fit: cover). → Float32Array or null (not ready, or not readable). */
 function sampler(){
   const c=document.createElement('canvas');c.width=DW;c.height=DH;const x=c.getContext('2d',{willReadFrequently:true}),g=new Float32Array(DW*DH);
@@ -68,4 +91,4 @@ function tracker(){
       return this.state},
     get state(){return{locked,edges:locked?last:[],why}}}}
 
-return{DW,DH,rows,edges,chain,sampler,tracker}})();
+return{DW,DH,rows,edges,chain,sampler,tracker,profile3d}})();

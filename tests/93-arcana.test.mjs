@@ -256,3 +256,45 @@ test('Scrying Glass + Stair Sight: pointed at stairs it locks and the ghost clim
   assert.equal(await page.evaluate(() => HWArcana.z.sight), null, 'halting the glass stops Stair Sight');
   assert.deepEqual(errors, []); await ctx.close();
 });
+
+test('3D Stair Sight (pure): flat treads a riser apart give the rise, tread and angle; a flat floor or a ramp is not stairs', async () => {
+  const { page, ctx, errors } = await openApp(); await page.waitForSelector('.wl');
+  const r = await page.evaluate(() => {
+    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647 - .5;
+    const stairs = []; for (let d = .3; d < 3.2; d += .04) { const k = Math.max(0, Math.floor((d - 1) / .3) + 1); stairs.push({ d, h: k * .17 + rnd() * .012 }); }
+    for (let k = 1; k < 6; k++) for (let h = 0; h < .17; h += .03) stairs.push({ d: 1 + (k - 1) * .3 + rnd() * .01, h: (k - 1) * .17 + h });   // the risers
+    const flat = []; for (let d = .3; d < 3; d += .04) flat.push({ d, h: rnd() * .01 });
+    const ramp = []; for (let d = .3; d < 3; d += .04) ramp.push({ d, h: d * .4 });
+    const f = HWStairSight.profile3d; return { s: f(stairs), flat: f(flat).ok, ramp: f(ramp).ok, few: f(stairs.slice(0, 5)).ok };
+  });
+  assert.equal(r.s.ok, true);
+  assert.ok(Math.abs(r.s.riser - .17) < .01, 'riser ' + r.s.riser); assert.ok(Math.abs(r.s.tread - .30) < .02, 'tread ' + r.s.tread);
+  assert.ok(Math.abs(r.s.angle - Math.atan(.17 / .30) * 180 / Math.PI) < 2.5, 'angle ' + r.s.angle);   // 29.5°
+  assert.ok(Math.abs(r.s.base - 1) < .05, 'the first riser at 1 m: ' + r.s.base);
+  assert.deepEqual([r.flat, r.ramp, r.few], [false, false, false]);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('3D Scrying (WebXR): offered only when immersive AR is supported; asks for hit-test and optional depth; a refusal leaves the 2D glass', async () => {
+  // without WebXR: no button
+  let { page, ctx, errors } = await openApp({ seed: SEED }); await page.waitForSelector('.wl');
+  await page.evaluate(() => { delete Navigator.prototype.xr; Object.defineProperty(navigator, 'xr', { value: undefined, configurable: true });
+    const d = document.createElement('div'); d.id = 'arc-test'; d.innerHTML = HWStairs.logPanel('ST20', 'workout'); document.getElementById('main').appendChild(d); });
+  await page.waitForTimeout(200);
+  assert.equal(await page.locator('#start-xr-btn').isHidden(), true);
+  await ctx.close();
+  // with a phone that supports it (here a stand-in that refuses the session)
+  ({ page, ctx, errors } = await openApp({ seed: SEED, before: p => p.addInitScript(() => {
+    window.__xrAsk = null;
+    Object.defineProperty(navigator, 'xr', { configurable: true, value: { isSessionSupported: async m => m === 'immersive-ar',
+      requestSession: async (m, o) => { window.__xrAsk = { m, req: o.requiredFeatures, opt: o.optionalFeatures, root: o.domOverlay && o.domOverlay.root && o.domOverlay.root.id, depth: o.depthSensing && o.depthSensing.usagePreference }; throw Object.assign(new Error('no'), { name: 'NotSupportedError' }); } } });
+  }) }));
+  await page.waitForSelector('.wl');
+  await page.evaluate(() => { const d = document.createElement('div'); d.id = 'arc-test'; d.innerHTML = HWStairs.logPanel('ST20', 'workout'); document.getElementById('main').appendChild(d); });
+  await page.waitForFunction(() => { const b = document.getElementById('start-xr-btn'); return b && !b.hidden; });
+  await page.click('#start-xr-btn');
+  await page.waitForFunction(() => /3D Scrying could not start on this phone \(NotSupportedError\)/.test(document.body.textContent));
+  assert.deepEqual(await page.evaluate(() => window.__xrAsk), { m: 'immersive-ar', req: ['local-floor', 'hit-test'], opt: ['dom-overlay', 'depth-sensing'], root: 'arc-xr-ui', depth: ['cpu-optimized'] });
+  assert.deepEqual(await page.evaluate(() => [HWArcana.z.xr, document.getElementById('arc-xr-ui').hidden, !!document.getElementById('start-ar-btn')]), [null, true, true]);
+  assert.deepEqual(errors, []); await ctx.close();
+});

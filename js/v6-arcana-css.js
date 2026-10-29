@@ -204,5 +204,10 @@ HWUI.css('arcana-tower',`
 @keyframes arcListen{0%,100%{box-shadow:0 0 0 2px #9ff,0 0 0 0 rgba(159,255,255,.6)}50%{box-shadow:0 0 0 2px #9ff,0 0 0 10px rgba(159,255,255,0)}}
 @keyframes arcStage{to{box-shadow:0 0 0 2px color-mix(in srgb,var(--vio) 80%,transparent),0 0 34px 6px color-mix(in srgb,var(--vio) 60%,transparent)}}
 .arc-scry-tag.seen{background:#ffd86b;box-shadow:0 0 10px #ffd86b}
+.arc-btns .arc-xr-btn{flex:1 1 220px;min-height:48px;background:linear-gradient(#7ff3ff,#3fb6d0);background-color:#5ff6ff;color:#04121a}
+.arc-btns .arc-xr-btn[hidden]{display:none}
+.arc-xr-ui{position:fixed;left:0;right:0;bottom:0;z-index:99;padding:12px 16px calc(16px + env(safe-area-inset-bottom,0px));background:rgba(8,6,30,.82);color:#f6edcf;font:15px var(--fn);border-top:2px solid #5ff6ff}
+.arc-xr-ui[hidden]{display:none}.arc-xr-ui p{margin:4px 0}.arc-xr-m{font-variant-numeric:tabular-nums;color:#bfefff}
+.arc-xr-b{display:flex;gap:8px;margin-top:8px}.arc-xr-b button{flex:1;min-height:48px}
 .arc-sight-note{display:block;margin:4px 0}
 `);
