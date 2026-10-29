@@ -7,7 +7,8 @@
 //     HWStairSight.profile3d (js/v6-stairsight.js): flat treads at rising heights → riser, tread, angle, where the first riser is;
 //   * locks after 3 agreeing results (riser within 3 cm) and builds the WHOLE stairway in 3D from them: n steps (the stairway's
 //     counted steps), each with a glowing nosing 1 m wide (the width is not measured), a rune at each end, and the pixel ghost climbing
-//     at the pacer's rate. Steps beyond what the camera saw are extrapolated from the measured riser and tread.
+//     at the pace of the target power (each step m g r ÷ P, landings 2 step-times), flight by flight with its landings and U-turns.
+//     Steps beyond what the camera saw are extrapolated from the measured riser and tread.
 // Nothing is saved or sent. What is shown is an AR estimate: drift, glare, dark or shiny steps and people in the way all affect it.
 import * as THREE from '../vendor/three/three.module.min.js';
 
@@ -25,7 +26,7 @@ function glowTexture() {
   return new THREE.CanvasTexture(c);
 }
 
-/** start(session, {n, rate, analyse, onState}) → {stop, rescan}. n: steps to build; rate: steps/s (0: the ghost waits); analyse: HWStairSight.profile3d;
+/** start(session, {n, flights, P, m, analyse, onState}) → {stop, rescan}. flights: the stairway's flights [{n, turn, land}] (counts and turns; riser and tread are measured here); P: target power (W), m: mass (kg): each step takes m g r ÷ P (0: the ghost waits); analyse: HWStairSight.profile3d;
     onState({phase:'searching'|'locked'|'ended', why, riser, tread, angle, depth, step}) for the page's text. */
 export async function start(session, o) {
   const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -61,20 +62,50 @@ export async function start(session, o) {
   tell();
 
   const up = new THREE.Vector3(0, 1, 0);
+  /* The stairway in the world, flight by flight, at the MEASURED riser and tread: a straight flight continues forward after its landing;
+     after a 'reverse' turn (a U-stair) the next flight starts beside the end of the last one, 1.1 m to the right, and climbs back (the side
+     is not surveyed). Landings without a surveyed length are 1.2 m deep (assumed). */
   function build(res, camPos, fwd) {
     stairs.clear();
-    const right = new THREE.Vector3().crossVectors(fwd, up).normalize(), base = camPos.clone().setY(res.floor).addScaledVector(fwd, res.base);
-    const runes = [], n = Math.max(1, o.n | 0), W = .5;
-    const lines = [];
-    for (let k = 0; k < n; k++) {
-      const nose = base.clone().addScaledVector(fwd, k * res.tread).addScaledVector(up, (k + 1) * res.riser), foot = base.clone().addScaledVector(fwd, k * res.tread).addScaledVector(up, k * res.riser);
-      const L = nose.clone().addScaledVector(right, -W), R = nose.clone().addScaledVector(right, W);
-      lines.push(L, R, L, foot.clone().addScaledVector(right, -W), R, foot.clone().addScaledVector(right, W));
-      [L, R].forEach(p => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glow, color: DIM, transparent: true, depthTest: false, blending: THREE.AdditiveBlending })); s.position.copy(p); s.scale.set(.07, .07, 1); stairs.add(s); runes.push({ s, k }); });
-    }
-    const geo = new THREE.BufferGeometry().setFromPoints(lines);
-    stairs.add(new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ color: NEON, transparent: true, opacity: .95 })));
-    model = { base, fwd, right, res, runes, n }; ghost.visible = true; t0 = performance.now(); lastStep = -1;
+    const SS = window.HWStairSight, right = new THREE.Vector3().crossVectors(fwd, up).normalize(), W = .5, LANE = 1.1;
+    const flights = (o.flights && o.flights.length ? o.flights : [{ n: Math.max(1, o.n | 0) }]).map(f => ({ n: f.n, turn: f.turn, land: f.land, riser: res.riser, tread: res.tread }));
+    const L = SS.layout(flights), frames = [], runes = [], lines = [];
+    let O = camPos.clone().setY(res.floor).addScaledVector(fwd, res.base), D = fwd.clone(), k = 0;
+    flights.forEach((f, fi) => {
+      frames.push({ O: O.clone(), D: D.clone() });
+      for (let i = 0; i < f.n; i++, k++) {
+        const nose = O.clone().addScaledVector(D, i * f.tread).addScaledVector(up, (i + 1) * f.riser), foot = O.clone().addScaledVector(D, i * f.tread).addScaledVector(up, i * f.riser);
+        const Rg = new THREE.Vector3().crossVectors(D, up).normalize(), Lp = nose.clone().addScaledVector(Rg, -W), Rp = nose.clone().addScaledVector(Rg, W);
+        lines.push(Lp, Rp, Lp, foot.clone().addScaledVector(Rg, -W), Rp, foot.clone().addScaledVector(Rg, W));
+        [Lp, Rp].forEach(p => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: glow, color: DIM, transparent: true, depthTest: false, blending: THREE.AdditiveBlending })); sp.position.copy(p); sp.scale.set(.07, .07, 1); stairs.add(sp); runes.push({ s: sp, k }); });
+      }
+      const E = O.clone().addScaledVector(D, f.n * f.tread).addScaledVector(up, f.n * f.riser), land = L[fi].land;
+      frames[fi].E = E;
+      if (fi < flights.length - 1) {
+        const Rg = new THREE.Vector3().crossVectors(D, up).normalize();
+        if (f.turn === 'reverse') {
+          const depth = Math.min(land, 1.2), c = [E.clone().addScaledVector(Rg, -W), E.clone().addScaledVector(D, depth).addScaledVector(Rg, -W), E.clone().addScaledVector(D, depth).addScaledVector(Rg, LANE + W), E.clone().addScaledVector(Rg, LANE + W)];
+          lines.push(c[0], c[1], c[1], c[2], c[2], c[3]); frames[fi].land = { type: 'U', depth, lane: LANE, Rg };
+          O = E.clone().addScaledVector(Rg, LANE); D = D.clone().negate();
+        } else {
+          const a1 = E.clone().addScaledVector(Rg, -W), b1 = E.clone().addScaledVector(Rg, W), a2 = a1.clone().addScaledVector(D, land), b2 = b1.clone().addScaledVector(D, land);
+          lines.push(a1, a2, b1, b2, a2, b2); frames[fi].land = { type: 'straight', depth: land };
+          O = E.clone().addScaledVector(D, land);
+        }
+      }
+    });
+    stairs.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(lines), new THREE.LineBasicMaterial({ color: NEON, transparent: true, opacity: .95 })));
+    const T = o.P > 0 && o.m > 0 ? SS.timeline(flights, o.P, o.m) : null;
+    model = { flights, L, frames, runes, T, n: k }; ghost.visible = true; t0 = performance.now(); lastStep = -1; trailPos.length = 0;
+  }
+  // the ghost's world point from its place on the unfolded profile (HWStairSight.place)
+  function worldOf(pl) {
+    const F = model.frames, f = model.flights[pl.fi], fr = F[pl.fi], o0 = model.L[pl.fi];
+    if (!pl.landing) return fr.O.clone().addScaledVector(fr.D, pl.d - o0.d0).addScaledVector(up, pl.h - o0.h0);
+    const e = pl.lu, E = fr.E, ld = fr.land;
+    if (ld.type === 'straight') return E.clone().addScaledVector(fr.D, -f.tread / 2 + e * (ld.depth + f.tread / 2));
+    const p1 = E.clone().addScaledVector(fr.D, -f.tread / 2), p2 = E.clone().addScaledVector(fr.D, ld.depth / 2), p3 = p2.clone().addScaledVector(ld.Rg, ld.lane), p4 = E.clone().addScaledVector(ld.Rg, ld.lane).addScaledVector(fr.D, f.tread / 2);
+    const P4 = [p1, p2, p3, p4], seg = Math.min(2, Math.floor(e * 3)), u = e * 3 - seg; return P4[seg].clone().lerp(P4[seg + 1], u);
   }
 
   function sample(frame, ref, pose) {
@@ -113,14 +144,16 @@ export async function start(session, o) {
     const ref = renderer.xr.getReferenceSpace(), pose = frame.getViewerPose(ref);
     if (pose) sample(frame, ref, pose);
     if (model) {
-      // the ghost stands on the middle of tread k (k = 0 is the first step) and hops to the next; with no target power it waits on the floor
-      const n = model.n, rate = +o.rate || 0, R = model.res, s = rate > 0 ? ((performance.now() - t0) / 1000 * rate) % n : -1, k = Math.floor(s), f = s - k, e = Math.min(1, f * 1.4);
-      const d = rate > 0 ? (k + .5 + e) * R.tread : -R.tread / 2, h = rate > 0 ? (k + 1 + e) * R.riser + Math.sin(e * Math.PI) * .08 : 0;
-      ghost.position.copy(model.base).addScaledVector(model.fwd, d).addScaledVector(up, h + .16);
-      if (rate > 0) { trailPos.unshift(ghost.position.clone()); if (trailPos.length > trail.length) trailPos.pop(); }
-      trail.forEach((t, i) => { const p = trailPos[i]; t.material.opacity = p ? .5 * (1 - i / trail.length) : 0; if (p) t.position.copy(p); });
-      model.runes.forEach(r => r.s.material.color.setHex(rate > 0 && r.k <= k ? (o.gold ? GOLD : NEON) : DIM));
-      if (rate > 0 && k !== lastStep) { lastStep = k; S.step = k + 1; tell(); }
+      // the ghost's pace: each step takes m g r ÷ P (HWStairSight.timeline), each landing 2 step-times; with no power it waits at the foot
+      const SS = window.HWStairSight, p = model.T ? SS.at(model.T, (performance.now() - t0) / 1000) : null, pl = SS.place(model.flights, model.L, p);
+      const pos = p ? worldOf(pl) : model.frames[0].O.clone().addScaledVector(model.frames[0].D, -model.flights[0].tread / 2);
+      ghost.position.copy(pos).addScaledVector(up, .16 + (p && !pl.landing ? Math.sin(Math.min(1, pl.u / .55) * Math.PI) * .05 : 0));
+      const k = !p ? -1 : pl.landing ? model.flights.slice(0, pl.fi + 1).reduce((a, f) => a + f.n, 0) - 1 : pl.k;
+      if (p) { trailPos.unshift(ghost.position.clone()); if (trailPos.length > trail.length) trailPos.pop(); }
+      trail.forEach((t, i) => { const q = trailPos[i]; t.material.opacity = q ? .5 * (1 - i / trail.length) : 0; if (q) t.position.copy(q); });
+      model.runes.forEach(r => r.s.material.color.setHex(r.k <= k ? (o.gold ? GOLD : NEON) : DIM));
+      const key = !p ? 'w' : pl.landing ? 'L' + pl.fi : k;
+      if (key !== lastStep) { lastStep = key; S.step = k + 1; S.landing = !!(p && pl.landing); S.flight = pl.fi + 1; tell(); }
     }
     renderer.render(scene, camera);
   });
@@ -135,7 +168,6 @@ export async function start(session, o) {
   return {
     stop() { if (!ended) session.end().catch(() => end()); },
     rescan() { model = null; stairs.clear(); ghost.visible = false; lockN = 0; prev = null; fwdLock = null; pts = []; Object.assign(S, { phase: 'searching', why: 'Point the phone up the stairs from the bottom and move it slowly.' }); tell(); },
-    set rate(v) { o.rate = v; },
   };
 }
 window.HWXRStairs = { start };

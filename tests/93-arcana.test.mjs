@@ -298,3 +298,39 @@ test('3D Scrying (WebXR): offered only when immersive AR is supported; asks for 
   assert.deepEqual(await page.evaluate(() => [HWArcana.z.xr, document.getElementById('arc-xr-ui').hidden, !!document.getElementById('start-ar-btn')]), [null, true, true]);
   assert.deepEqual(errors, []); await ctx.close();
 });
+
+test('pace along the real shape: each step takes m g r ÷ P; the ghost lifts over the riser, then crosses the tread; landings are flat', async () => {
+  const { page, ctx, errors } = await openApp(); await page.waitForSelector('.wl');
+  const r = await page.evaluate(() => {
+    const S = HWStairSight, F = [{ n: 10, riser: .1795, tread: .318, turn: 'reverse' }, { n: 10, riser: .1795, tread: .318 }];
+    const T = S.timeline(F, 100, 60), L = S.layout(F), d = T.segs[0].dur, at = t => S.place(F, L, S.at(T, t));
+    const mixed = S.timeline([{ n: 2, riser: .15, tread: .3 }, { n: 2, riser: .2, tread: .3 }], 120, 50);
+    return { d, total: T.total, n: T.n, segs: T.segs.length,
+      start: at(0), lift: at(d * .3), stepEnd: at(d * .999), land: at(T.segs[10].t0 + T.segs[10].dur / 2), next: at(T.segs[11].t0 + .001), loop: at(T.total + d * .5).k,
+      mixed: mixed.segs.filter(g => g.type === 'step').map(g => +g.dur.toFixed(4)) };
+  });
+  // 60 kg x 9.80665 m/s² x 0.1795 m ÷ 100 W = 1.0562 s a step; 20 steps + one landing (2 step-times) = 23.24 s
+  assert.ok(Math.abs(r.d - 60 * 9.80665 * .1795 / 100) < 1e-9); assert.ok(Math.abs(r.total - 22 * r.d) < 1e-9);
+  assert.deepEqual([r.n, r.segs], [20, 21]);
+  assert.ok(r.start.h === 0 && Math.abs(r.start.d + .159) < 1e-9, 'starts on the floor, half a tread before the first riser');
+  assert.ok(r.lift.h > .09 && r.lift.d < 0, 'early in the step it has risen most of the riser but not yet crossed the nosing');
+  assert.ok(Math.abs(r.stepEnd.h - .1795) < 1e-3 && Math.abs(r.stepEnd.d - .159) < 1e-3, 'ends on the middle of the first tread');
+  assert.ok(r.land.landing && Math.abs(r.land.h - 1.795) < 1e-9, 'the landing is flat at the top of flight 1 (10 x 17.95 cm)');
+  assert.equal(r.next.k, 10, 'then step 11 starts flight 2'); assert.equal(r.loop, 0, 'at the top it starts again');
+  // a taller riser takes longer at the same power: 50 x 9.80665 x 0.15 ÷ 120 = 0.6129 s, x 0.20 = 0.8172 s
+  assert.deepEqual(r.mixed, [.6129, .6129, .8172, .8172]);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('the Spellbook gives the whole climb in seconds from the step time m g r ÷ P', async () => {
+  const { page, ctx, errors } = await openApp({ seed: SEED }); await page.waitForSelector('.wl');
+  await page.evaluate(() => { const d = document.createElement('div'); d.id = 'arc-test'; d.innerHTML = HWStairs.logPanel('ST20', 'workout'); document.getElementById('main').appendChild(d); });
+  assert.match(await txt(page, '#arc-climb-n'), /type a target power/);
+  await page.fill('#arc-p', '100');
+  // ST20: 28 steps of the Group 14 measured rise; one step 60 x 9.80665 x rise ÷ 100
+  const want = await page.evaluate(() => { const r = HWGravity.verifiedRise('ST20'); return [(28 * 60 * 9.80665 * r / 100).toFixed(1) + ' s', (60 * 9.80665 * r / 100).toFixed(2) + ' s']; });
+  assert.equal(await txt(page, '#arc-climb'), want[0]);
+  assert.match(await txt(page, '#arc-climb-n'), new RegExp('= ' + want[1].replace('.', '\\.') + '$'));
+  assert.match(await txt(page, '.arc-book'), /measured \(Group 14\)/);
+  assert.deepEqual(errors, []); await ctx.close();
+});

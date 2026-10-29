@@ -74,6 +74,31 @@ function profile3d(pts){
   if(!(tread>=.18&&tread<=.5))return{ok:false,why:'tread out of range ('+tread.toFixed(2)+' m)'};
   return{ok:true,riser,tread,angle:Math.atan(riser/tread)*180/Math.PI,base:best[1].d0,floor:best[0].hm,plateaus:best.length,why:''}}
 
+/* ---------- the ghost's pace along the real shape (2D views, the Scrying Glass and the 3D mode) ----------
+   flights: [{n, riser, tread, turn}] in metres (one entry per flight, bottom first). At a constant power P (W), lifting a mass m (kg) up one
+   riser r takes t = m g r ÷ P seconds (W = m g h, P = W ÷ t), so a taller step takes longer. Between flights a LANDING takes 2 step-times of
+   the flight below and is LAND metres long when the survey gives no length (both assumptions, said on screen).
+   place() gives the ghost's point on the unfolded profile: d forward and h up from the foot of the first riser. Within one step the body
+   lifts over the riser during the first 55 % of the step (eased) while it moves forward the whole step, so the path follows each riser and
+   tread rather than a straight slope. */
+const LAND=1.2,G0=9.80665;
+const ease=u=>u<=0?0:u>=1?1:u*u*(3-2*u);
+function timeline(flights,P,m){
+  const segs=[];let t=0,k=0;if(!(P>0&&m>0))return{segs,total:0,n:flights.reduce((a,f)=>a+f.n,0)};
+  flights.forEach((f,fi)=>{const dur=m*G0*f.riser/P;for(let i=0;i<f.n;i++){segs.push({type:'step',k,fi,i,t0:t,dur});t+=dur;k++}
+    if(fi<flights.length-1){const d=2*dur;segs.push({type:'landing',fi,t0:t,dur:d});t+=d}});
+  return{segs,total:t,n:k}}
+/** Where on the timeline time t (s) falls, looping at the top. → {seg, u (0–1 within it)} */
+function at(T,t){if(!T.total)return null;const x=((t%T.total)+T.total)%T.total;let lo=0,hi=T.segs.length-1;
+  while(lo<hi){const mid=(lo+hi+1)>>1;if(T.segs[mid].t0<=x)lo=mid;else hi=mid-1}const g=T.segs[lo];return{seg:g,u:Math.min(1,(x-g.t0)/g.dur)}}
+/** Start of each flight on the unfolded profile (d0, h0) and its landing length. */
+function layout(flights){let d=0,h=0;return flights.map((f,i)=>{const o={d0:d,h0:h,land:f.land>0?f.land:LAND};d+=f.n*f.tread+(i<flights.length-1?o.land:0);h+=f.n*f.riser;return o})}
+function place(flights,L,p){
+  if(!p)return{d:-.3,h:0,fi:0,k:-1,landing:false};
+  const g=p.seg,f=flights[g.fi],o=L[g.fi];
+  if(g.type==='landing'){const e=ease(p.u);return{d:o.d0+f.n*f.tread-f.tread/2+e*(o.land+f.tread/2),h:o.h0+f.n*f.riser,fi:g.fi,k:-1,landing:true,lu:e}}
+  return{d:o.d0+(g.i-.5+ease(p.u))*f.tread,h:o.h0+(g.i+ease(p.u/.55))*f.riser,fi:g.fi,k:g.k,i:g.i,landing:false,u:p.u}}
+
 /** Reads a video into the grid, cropped like a 4 : 5 stage (object-fit: cover). → Float32Array or null (not ready, or not readable). */
 function sampler(){
   const c=document.createElement('canvas');c.width=DW;c.height=DH;const x=c.getContext('2d',{willReadFrequently:true}),g=new Float32Array(DW*DH);
@@ -91,4 +116,4 @@ function tracker(){
       return this.state},
     get state(){return{locked,edges:locked?last:[],why}}}}
 
-return{DW,DH,rows,edges,chain,sampler,tracker,profile3d}})();
+return{DW,DH,rows,edges,chain,sampler,tracker,profile3d,timeline,at,layout,place,ease,LAND}})();
