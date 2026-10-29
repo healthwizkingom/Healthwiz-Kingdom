@@ -141,8 +141,15 @@ test('Observatory Details: the tower and spellbook, the gravity card reads a sca
   await page.click('#stop-btn');                                         // SUMMON PACER
   await page.waitForFunction(() => /Ghost on step [1-9]/.test(document.getElementById('arc-pst').textContent));
   assert.equal(await page.textContent('#stop-btn'), 'HALT PACER');
+  assert.match(await txt(page, '#arc-pst'), /of 28$/, 'ST20: its 28 counted steps');
   await page.click('#stop-btn');
   assert.equal(await page.evaluate(() => HWArcana.z.pace.on), 0);
+  // a stairway of five flights: the ghost climbs all 55 counted steps, not one flight
+  await page.evaluate(() => { document.getElementById('arc-test').innerHTML = HWStairs.logPanel('ST03', 'workout'); });
+  assert.match(await txt(page, '.arc-book'), /55 steps counted in 5 flights \(11 \+ 11 \+ 11 \+ 11 \+ 11\)/);
+  await page.fill('#arc-p', '100'); await page.click('#stop-btn');
+  await page.waitForFunction(() => /Ghost on step \d+ of 55/.test(document.getElementById('arc-pst').textContent));
+  await page.click('#stop-btn');
   await page.evaluate(() => { navigator.mediaDevices.getUserMedia = () => Promise.reject(Object.assign(new Error('no'), { name: 'NotAllowedError' })); });
   await page.click('[data-a="arcecho"]');
   await page.waitForFunction(() => /microphone was not allowed/.test(document.body.textContent));

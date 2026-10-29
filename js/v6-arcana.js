@@ -238,7 +238,8 @@ function out(){const o=$i('arc-cad');if(!o)return;const c=Z.cad,gr=pacer();
   const m=!!(c&&gr&&Math.abs(c.f-gr)/gr<=.1);if(m!==!!Z.match){Z.match=m;const t=$i('arc-tower');if(t)t.classList.toggle('arc-rune',m)}}
 function pacer(){const mi=massInfo(),r=riseOf(Z.sid);return r&&mi?math.pacerRate(+Z.P,mi.kg,r):null}
 const allSteps=q=>Array.isArray(q.steps)?q.steps.reduce((a,b)=>a+(+b||0),0):0;                 // every flight (js/v6-stairs-data.js)
-const stepsOf=q=>clamp(Math.round(Array.isArray(q.steps)&&+q.steps[0]>0?+q.steps[0]:12),4,30);  // the tower draws one flight
+const counted=q=>allSteps(q)>0;
+const stepsOf=q=>counted(q)?allSteps(q):12;                      // the ghost climbs every counted step of the stairway (12 drawn as a picture if never counted)
 
 /* ---------- the tower: one pixel canvas (120 × 150, scaled with image-rendering: pixelated) ----------
    The flight is drawn in profile at the stairway's real angle (rise ÷ run = tan θ), one rune on each riser. With the pacer on, a
@@ -265,21 +266,22 @@ function towerFrame(c,q,s){
   const ghost=(cx,by,ps)=>{const w=7*ps,h=7*ps,gx=cx-w/2,gy=by-h;                                                  // centred on cx, feet at by
     x.fillStyle='rgba(127,243,255,.22)';x.fillRect(r(gx)-2*ps,r(gy)-2*ps,w+4*ps,h+4*ps);x.fillStyle='rgba(127,243,255,.3)';x.fillRect(r(gx)-ps,r(gy)-ps,w+2*ps,h+2*ps);
     GHOST.forEach((row,yy)=>[...row].forEach((ch,xx)=>{if(ch!=='.')px(gx+xx*ps,gy+yy*ps,ps,ps,ch==='b'?'#1b1340':'#e9fbff')}))};
-  const rune=(X,Y,on)=>{if(on){x.fillStyle=sync?'rgba(255,216,107,.35)':'rgba(95,246,255,.35)';x.fillRect(r(X)-2,r(Y)-2,6,6)}px(X,Y,2,2,on?'#ffffff':dim);if(on){px(X-1,Y+.5,1,1,neon);px(X+2,Y+.5,1,1,neon)}};
+  const rune=(X,Y,on,z)=>{z=z||2;if(on){x.fillStyle=sync?'rgba(255,216,107,.35)':'rgba(95,246,255,.35)';x.fillRect(r(X)-z,r(Y)-z,z*3,z*3)}px(X,Y,z,z,on?'#ffffff':dim);if(on&&z>1){px(X-1,Y+.5,1,1,neon);px(X+2,Y+.5,1,1,neon)}};   // z: 1 px on a long stairway, so 55 runes still fit
   const bob=Z.pace.on?Math.sin(T*6)*1.2:0,you=Z.pace.on&&Z.you>0?(Z.you-1)%G.n:-1,sg=s==null?0:s;
   if(ar){
     /* the climber's view: the camera looks up the stairway, so the flight recedes UP the screen to a vanishing point near the top.
        Depth d (in steps) maps to y = top + (foot − top) ÷ (1 + a d); width and the ghost shrink by the same factor. */
-    const cx=TW/2,top=12,foot=TH-8,w0=50,a=((foot-top)/9-1)/G.n,k=d=>1/(1+a*d),Y=d=>top+(foot-top)*k(d),HW=d=>w0*k(d);
+    const cx=TW/2,top=12,foot=TH-8,w0=50,a=.25,                                                     // the same recession per step for every stairway: 5 steps stop low, 55 reach the top
+      k=d=>1/(1+a*d),Y=d=>top+(foot-top)*k(d),HW=d=>w0*k(d);
     for(let i=0;i<=G.n;i++){const y=Y(i),hw=HW(i);px(cx-hw,y,hw*2,1,neon)}                                             // each step's nosing
     for(let i=0;i<G.n;i++){const y0=Y(i),y1=Y(i+1),h0=HW(i),h1=HW(i+1);for(let t=0;t<=1;t+=.25){px(cx-h0+(h0-h1)*t,y0+(y1-y0)*t,1,1,dim);px(cx+h0-(h0-h1)*t,y0+(y1-y0)*t,1,1,dim)}}   // rails
-    for(let i=0;i<G.n;i++){const y=Y(i+1)-1,hw=HW(i+1);rune(cx-hw-1,y,i<=lit);rune(cx+hw-1,y,i<=lit)}                // a rune at each end of each step
+    for(let i=0;i<G.n;i++){const y=Y(i+1)-1,hw=HW(i+1),z=k(i+1)>.35?2:1;rune(cx-hw-1,y,i<=lit,z);rune(cx+hw-1,y,i<=lit,z)}                // a rune at each end of each step
     if(you>=0){const y=Y(you+1)-3;px(cx-1,y-2,3,1,'#ffd86b');px(cx-2,y-1,5,1,'#ffd86b');px(cx-1,y,3,1,'#ffd86b')}
     const d=sg+.5,ps=Math.max(1,Math.round(3*k(d))),by=Y(d)+bob*k(d);
     trail(cx,by-2*ps,ps);ghost(cx,by,ps);return}
   for(let i=0;i<G.n;i++){const X=G.x(i),Yy=G.y(i+1),w=G.tk,h=G.y(0)-Yy;px(X,Yy,w+1,h,i%2?'#3b3466':'#443c75');px(X,Yy,w+1,1,'#d9b45a')}   // stone and gilded tread edge
   px(G.L-2,G.B,TW-G.L,2,'#1a1440');
-  for(let i=0;i<G.n;i++)rune(G.x(i)+1,G.y(i)-G.rk/2-1,i<=lit);
+  const rz=G.tk>=4?2:1;for(let i=0;i<G.n;i++)rune(G.x(i)+(rz>1?1:0),G.y(i)-G.rk/2-(rz>1?1:0),i<=lit,rz);
   if(you>=0){const X=G.x(you)+G.tk/2,Yy=G.y(you+1)-4;px(X-1,Yy-2,3,1,'#ffd86b');px(X-2,Yy-1,5,1,'#ffd86b');px(X-1,Yy,3,1,'#ffd86b')}
   const i=Math.floor(sg),f=sg-i,gx=G.x(Math.min(i,G.n-1))+G.tk*Math.min(1,f*1.6),by=G.y(Math.min(G.n,i+(f>.6?1:0)))-3+bob;
   trail(gx+7,by-6,2);ghost(gx+7,by,2)}
@@ -318,7 +320,7 @@ function chamber(id){
     +'<div class="arc-bk"><dt><label for="arc-p">Target power</label></dt><dd><input type="number" min="10" max="1500" step="1" inputmode="numeric" data-in="arcp" id="arc-p" value="'+esc(Z.P)+'" placeholder="'+(best?'best '+Math.round(best):'e.g. 120')+'" aria-describedby="arc-p-u"> <span id="arc-p-u">W</span></dd></div>'
     +row('Rate','<b id="arc-rate">'+(rate?fx(rate,2)+' steps/s':'–')+'</b>',mi?'P ÷ (m g r), with '+esc(mi.src):'needs your weight: log it on the BMI page or in your profile')
     +row('Riser',r?fx(r*100,1)+' cm':'–',r?(HWGravity.riseKind(id)==='study'?'measured (Group 14)':'estimated from the angle'):'not known for this stairway')
-    +row('Angle',q.angle.toFixed(2)+'°',(Array.isArray(q.steps)&&q.steps.length?'first flight '+n+' steps':'step count not surveyed: '+n+' drawn'))
+    +row('Angle',q.angle.toFixed(2)+'°',(counted(q)?n+' steps counted'+(q.steps.length>1?' in '+q.steps.length+' flights ('+q.steps.join(' + ')+')':''):'steps not counted yet: '+n+' drawn as a picture only'))
     +'</dl><div class="arc-btns"><button type="button" class="btn-primary" id="start-ar-btn" data-a="arcar" '+(cam?'disabled':'')+'>'+(cam?'SCRYING…':'CAST SCRYING GLASS (AR)')+'</button>'
     +'<button type="button" class="btn-secondary g sm" id="stop-btn" data-a="'+(on||cam?'archalt':'arcpace')+'" '+(on||cam||rate?'':'disabled ')+'>'+(on||cam?'HALT PACER':'SUMMON PACER')+'</button></div>'
     +'<small class="mut" id="arc-pst" aria-live="polite">'+(rate?'':'Type a target power to summon the ghost.')+'</small></div></div>'
