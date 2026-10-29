@@ -122,20 +122,60 @@ test('Training Hall: the Guild War table ranks work in joules, with the player\'
   assert.deepEqual(errors, []); await ctx.close();
 });
 
-test('Observatory Details: the tower is raised to 90° − angle, the gravity card reads a scale, the mic fails gracefully', async () => {
+test('Observatory Details: the tower and spellbook, the gravity card reads a scale, the mic fails gracefully', async () => {
   const { page, ctx, errors } = await openApp({ seed: SEED, context: { permissions: [] } }); await page.waitForSelector('.wl');
   await page.evaluate(() => { const d = document.createElement('div'); d.id = 'arc-test'; d.innerHTML = HWStairs.logPanel('ST20', 'workout'); document.getElementById('main').appendChild(d); });
-  assert.equal(await page.$eval('#arc-tower .arc-flight', e => e.style.transform), 'rotateX(61.48deg)');
+  assert.equal(await page.locator('#arc-tower canvas#arc-canvas').count(), 1);
+  assert.equal(await page.$eval('#camera-feed', v => [v.autoplay, v.playsInline, v.style.display].join()), 'true,true,none');
+  assert.match(await txt(page, '.arc-book'), /Angle28\.52°/);
+  assert.match(await txt(page, '.arc-book'), /Body mass60\.0 kg/);
+  assert.equal(await page.$eval('.arc-bk dd', e => getComputedStyle(e).fontVariantNumeric), 'tabular-nums');
   assert.match(await txt(page, '#stair-sense-modal'), /Scale reading at sea level: 60\.000 kg/);
   assert.match(await txt(page, '#stair-sense-modal'), /Same scale at the stair top: 59\.999 kg/);
   assert.match(await txt(page, '#stair-sense-modal'), /Your mass does not change/);
+  assert.equal(await page.locator('#stop-btn').isDisabled(), true, 'no power, no pacer');
   await page.fill('#arc-p', '100');
-  assert.equal(await page.locator('[data-a="arcpace"]').isDisabled(), false);
+  const rate = await page.evaluate(() => 100 / (60 * 9.80665 * HWGravity.verifiedRise('ST20')));
+  assert.equal(await txt(page, '#arc-rate'), rate.toFixed(2) + ' steps/s');
+  await page.click('#stop-btn');                                         // SUMMON PACER
+  await page.waitForFunction(() => /Ghost on step [1-9]/.test(document.getElementById('arc-pst').textContent));
+  assert.equal(await page.textContent('#stop-btn'), 'HALT PACER');
+  await page.click('#stop-btn');
+  assert.equal(await page.evaluate(() => HWArcana.z.pace.on), 0);
   await page.evaluate(() => { navigator.mediaDevices.getUserMedia = () => Promise.reject(Object.assign(new Error('no'), { name: 'NotAllowedError' })); });
   await page.click('[data-a="arcecho"]');
   await page.waitForFunction(() => /microphone was not allowed/.test(document.body.textContent));
   assert.equal(await page.evaluate(() => HWArcana.z.mic), null);
   assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('Scrying Glass: the rear camera shows behind a transparent tower; HALT and leaving stop every track; a refusal keeps the night sky', async () => {
+  const { page, ctx, errors } = await openApp({ seed: SEED }); await page.waitForSelector('.wl');
+  await page.evaluate(() => {
+    window.__asked = null;
+    navigator.mediaDevices.getUserMedia = async c => { window.__asked = c; const cv = document.createElement('canvas'); cv.width = 64; cv.height = 64; cv.getContext('2d').fillRect(0, 0, 64, 64); window.__stream = cv.captureStream(5); return window.__stream; };
+    const d = document.createElement('div'); d.id = 'arc-test'; d.innerHTML = HWStairs.logPanel('ST20', 'workout'); document.getElementById('main').appendChild(d); });
+  await page.fill('#arc-p', '100');
+  await page.click('#start-ar-btn');
+  await page.waitForFunction(() => document.getElementById('arc-tower').classList.contains('ar'));
+  assert.deepEqual(await page.evaluate(() => window.__asked), { video: { facingMode: 'environment' }, audio: false });
+  const v = await page.$eval('#camera-feed', v => ({ shown: v.style.display, src: !!v.srcObject, fit: getComputedStyle(v).objectFit, z: getComputedStyle(v).zIndex, bg: getComputedStyle(v.parentElement).backgroundColor }));
+  assert.deepEqual(v, { shown: 'block', src: true, fit: 'cover', z: '-1', bg: 'rgba(0, 0, 0, 0)' });
+  assert.equal(await page.evaluate(() => HWArcana.z.pace.on), 1, 'casting also summons the pacer');
+  await page.click('#stop-btn');                                         // HALT PACER
+  assert.deepEqual(await page.evaluate(() => [window.__stream.getTracks().every(t => t.readyState === 'ended'), HWArcana.z.cam, document.getElementById('camera-feed').style.display]), [true, null, 'none']);
+  // casting again, then leaving the page, also releases the camera
+  await page.click('#start-ar-btn'); await page.waitForFunction(() => !!HWArcana.z.cam);
+  await go(page, 'home');
+  assert.deepEqual(await page.evaluate(() => [window.__stream.getTracks().every(t => t.readyState === 'ended'), HWArcana.z.cam]), [true, null]);
+  // a refused camera: a message, and the tower keeps its own sky
+  await go(page, 'campus').catch(() => {});
+  await page.evaluate(() => { navigator.mediaDevices.getUserMedia = () => Promise.reject(Object.assign(new Error('no'), { name: 'NotAllowedError' }));
+    const d = document.createElement('div'); d.id = 'arc-test2'; d.innerHTML = HWStairs.logPanel('ST20', 'workout'); document.body.appendChild(d); });
+  await page.click('#arc-test2 #start-ar-btn');
+  await page.waitForFunction(() => /camera was not allowed/.test(document.body.textContent));
+  assert.equal(await page.evaluate(() => document.querySelector('#arc-test2 #arc-tower').classList.contains('ar')), false);
+  assert.deepEqual(errors.filter(e => !/tile|leaflet|maplibre|integrity|Failed to load/i.test(e)), []); await ctx.close();
 });
 
 test('Science Laboratory: a re-survey within 2° earns Truth-Seeker and leaves the database angle alone', async () => {

@@ -32,15 +32,6 @@ HWUI.css('arcana',`
 .arc-crown{display:inline-block;width:2px;height:2px;margin:0 16px 6px 2px;vertical-align:middle;color:var(--gold);
   box-shadow:0 0 0 0,4px 4px 0 0,8px 0 0 0,12px 4px 0 0,16px 0 0 0,0 4px 0 0,0 8px 0 0,4px 8px 0 0,8px 8px 0 0,12px 8px 0 0,16px 8px 0 0,16px 4px 0 0;transform:scale(1.5);transform-origin:left center}
 .arc-ch{margin-top:14px;padding-top:10px;border-top:3px dashed var(--ln)}.arc-ch h4{margin:14px 0 4px;font:700 15px var(--fl)}
-.arc-tower{width:150px;height:150px;perspective:420px;display:flex;align-items:flex-end;justify-content:center;border:3px solid var(--ln);background:radial-gradient(circle at 50% 80%,color-mix(in srgb,var(--vio) 35%,transparent),transparent 70%);background-color:var(--p2);overflow:hidden}
-.arc-flight{position:relative;width:70px;height:130px;transform-origin:50% 100%;transform-style:preserve-3d;display:flex;flex-direction:column-reverse}
-.arc-flight>i{flex:1 1 0;min-height:3px;background-color:var(--pn);border:1px solid var(--ln);border-top:2px solid var(--gold)}
-.arc-flight>i:nth-child(odd){background-color:var(--p2)}
-.ghost-pacer{position:absolute;left:50%;bottom:calc(var(--y,0) * 100%);width:16px;height:22px;margin-left:-8px;background:#e6f6ff;opacity:.8;
-  clip-path:polygon(50% 0,100% 30%,100% 100%,75% 85%,50% 100%,25% 85%,0 100%,0 30%);box-shadow:0 0 10px #9ff}
-.arc-tower.arc-rune{box-shadow:0 0 0 3px var(--gold),0 0 18px 4px var(--gold)}
-.arc-tower.arc-rune::after{content:"RUNES GLOW: IN STEP";position:absolute;margin:4px;font:700 12px var(--fn);color:var(--ink);background:var(--gold);padding:2px 4px}
-.arc-tower{position:relative}
 .arc-cad{font:700 16px var(--fn);font-variant-numeric:tabular-nums;min-height:1.4em}
 .arc-cmp{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.arc-cmp span{padding:6px 8px;border:2px solid var(--ln);background:var(--p2);font:14px var(--fn)}
 @media(max-width:520px){.arc-cmp{grid-template-columns:minmax(0,1fr)}}
@@ -100,15 +91,6 @@ HWUI.css('arcana-fx',`
 .guild-banner-top{position:relative;background-image:linear-gradient(110deg,transparent 30%,color-mix(in srgb,var(--gold) 40%,transparent) 48%,transparent 66%);background-size:250% 100%;background-repeat:no-repeat}
 .guild-banner-top td:nth-child(2){background:linear-gradient(90deg,color-mix(in srgb,var(--gold) 55%,transparent) var(--p),transparent var(--p))}
 .arc-crown{margin-bottom:8px}
-.arc-tower{width:170px;height:170px;background:radial-gradient(ellipse at 50% 110%,color-mix(in srgb,var(--vio) 55%,transparent),transparent 65%),linear-gradient(#070b24,#1a1450);background-color:#0b0f2c}
-.arc-stars{position:absolute;inset:0;background-image:radial-gradient(1px 1px at 12% 18%,#fff 98%,transparent),radial-gradient(1px 1px at 78% 12%,#fff 98%,transparent),radial-gradient(2px 2px at 40% 30%,#cdf 98%,transparent),
-  radial-gradient(1px 1px at 88% 44%,#fff 98%,transparent),radial-gradient(1px 1px at 22% 52%,#fff 98%,transparent),radial-gradient(2px 2px at 62% 8%,#ffd86b 98%,transparent),radial-gradient(1px 1px at 8% 80%,#fff 98%,transparent)}
-.arc-base{position:absolute;left:10%;bottom:4px;width:80%;color:color-mix(in srgb,var(--vio) 80%,#fff);opacity:.6}
-.arc-tower.arc-rune .arc-base{color:var(--gold);opacity:1;filter:drop-shadow(0 0 6px var(--gold))}
-.arc-flight{z-index:1}
-.arc-flight>i{transition:background-color .2s steps(2),box-shadow .2s steps(2)}
-.arc-flight>i.lit{background-color:color-mix(in srgb,#9ff 55%,var(--pn));box-shadow:0 0 8px #9ff}
-.ghost-pacer{background:linear-gradient(#ffffff,#bfefff);box-shadow:0 0 12px 3px #9ff,0 10px 14px -2px rgba(160,255,255,.5)}
 .arc-echo{position:relative;height:56px;margin:4px 0;display:grid;place-items:center;overflow:hidden}
 .arc-echo b{width:14px;height:14px;background:var(--pn);border:3px solid var(--ln);transform:rotate(45deg)}
 .arc-echo.on b{background:#9ff;box-shadow:0 0 10px #9ff}
@@ -163,8 +145,6 @@ HWUI.css('arcana-fx',`
 :root[data-motion="full"]:not(.hw-q-performance) .arc-ring{animation:arcSpin 40s linear infinite}
 :root[data-motion="full"]:not(.hw-q-performance) .guild-banner-top{animation:arcSweep 3.5s ease-in-out infinite}
 :root[data-motion="full"]:not(.hw-q-performance) .arc-crown{animation:arcBob 1.2s steps(2) infinite}
-:root[data-motion="full"]:not(.hw-q-performance) .arc-stars{animation:arcTwinkle 3s steps(3) infinite alternate}
-:root[data-motion="full"]:not(.hw-q-performance) .arc-tower.arc-rune .arc-base{animation:arcSpin2 6s linear infinite}
 :root[data-motion="full"] .arc-rip{animation:arcRip 1.2s ease-out forwards}
 :root[data-motion="full"]:not(.hw-q-performance) .arc-echo.on b{animation:arcBeat .8s steps(2) infinite}
 :root[data-motion="full"] .arc-wind i{animation:arcWind 1.1s linear infinite}
@@ -193,4 +173,34 @@ HWUI.css('arcana-fx',`
 @keyframes arcDraw{from{stroke-dashoffset:600}to{stroke-dashoffset:0}}
 @keyframes arcSettle{0%{transform:rotate(calc(.55 * var(--a)))}100%{transform:rotate(var(--a))}}
 @keyframes arcSettleP{0%{transform:rotate(calc(-.55 * var(--a)))}100%{transform:rotate(calc(-1 * var(--a)))}}
+`);
+
+/* ---------- the Enchanted Tower and the Scrying Glass ---------- */
+HWUI.css('arcana-tower',`
+.arc-tg2{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start}
+@media(min-width:700px){.arc-tg2{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr)}}
+.arc-stage{position:relative;isolation:isolate;width:100%;max-width:380px;aspect-ratio:4/5;margin:0 auto;overflow:hidden;
+  border:3px solid var(--ln);background:#070b24;box-shadow:0 0 0 2px color-mix(in srgb,var(--vio) 60%,transparent),0 0 24px color-mix(in srgb,var(--vio) 45%,transparent)}
+.arc-stage canvas{position:relative;z-index:1;display:block;width:100%;height:100%;image-rendering:pixelated;background:transparent}
+.arc-stage video{position:absolute;inset:0;z-index:-1;width:100%;height:100%;object-fit:cover}
+.arc-stage.ar{background:transparent;box-shadow:0 0 0 2px #5ff6ff,0 0 28px 4px rgba(95,246,255,.55)}
+.arc-stage.ar canvas{filter:drop-shadow(0 0 3px #5ff6ff) drop-shadow(0 0 8px rgba(180,120,255,.8))}
+.arc-stage.arc-rune{box-shadow:0 0 0 3px var(--gold),0 0 26px 6px color-mix(in srgb,var(--gold) 70%,transparent)}
+.arc-scry-tag{position:absolute;z-index:2;left:8px;top:8px;padding:2px 8px;font:700 12px var(--fn);color:#041018;background:#5ff6ff;box-shadow:0 0 10px #5ff6ff}
+.arc-book{padding:12px;border:3px solid var(--ln);background:linear-gradient(color-mix(in srgb,var(--vio) 14%,var(--pn)),var(--pn));background-color:var(--pn);
+  box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--gold) 35%,transparent)}
+.arc-book h4{margin:0 0 8px;font:700 16px var(--fd,var(--fl));color:var(--gold)}
+.arc-book dl{margin:0;display:grid;gap:6px}
+.arc-bk{display:grid;grid-template-columns:minmax(88px,auto) minmax(0,1fr);gap:8px;align-items:baseline;padding:4px 0;border-bottom:1px dashed color-mix(in srgb,var(--ln) 70%,transparent)}
+.arc-bk dt{font:600 13px var(--fn);color:var(--mut)}.arc-bk dd{margin:0;font:700 16px var(--fn);font-variant-numeric:tabular-nums;text-align:right;overflow-wrap:anywhere}
+.arc-bk dd small{display:block;font:400 12px var(--fn);color:var(--mut)}
+.arc-bk dd input{width:7ch;min-height:44px;text-align:right;font:700 16px var(--fn);font-variant-numeric:tabular-nums}
+.arc-btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0 6px}
+.arc-btns .btn-primary{flex:1 1 220px;min-height:48px}
+.arc-btns .btn-secondary{flex:0 0 auto;min-height:44px;padding:0 14px}
+.arc-listen{position:relative;box-shadow:0 0 0 3px #9ff}
+:root[data-motion="full"] .arc-listen{animation:arcListen 1.1s ease-in-out infinite}
+:root[data-motion="full"]:not(.hw-q-performance) .arc-stage.live{animation:arcStage 3s ease-in-out infinite alternate}
+@keyframes arcListen{0%,100%{box-shadow:0 0 0 2px #9ff,0 0 0 0 rgba(159,255,255,.6)}50%{box-shadow:0 0 0 2px #9ff,0 0 0 10px rgba(159,255,255,0)}}
+@keyframes arcStage{to{box-shadow:0 0 0 2px color-mix(in srgb,var(--vio) 80%,transparent),0 0 34px 6px color-mix(in srgb,var(--vio) 60%,transparent)}}
 `);
