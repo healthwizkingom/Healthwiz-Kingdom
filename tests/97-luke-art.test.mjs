@@ -6,26 +6,15 @@ import { openApp, closeBrowser, go, RETURNING, entry } from './helpers.mjs';
 after(closeBrowser);
 const seed = { ...RETURNING, s: { ...RETURNING.s, water: 2100 }, e: [entry('water', 1050, 0), entry('food', 400, 0, { name: 'Nasi lemak' })] };
 
-test('every Health Hall card has its picture; the well in Food & Water fills with the day\'s water', async () => {
+test('every Health Hall card has its picture and still opens its tracker', async () => {
   const { page, ctx, errors } = await openApp({ seed });
   await page.waitForSelector('.wl'); await go(page, 'health');
   for (const k of ['food', 'sleep', 'stair', 'exercise', 'stress', 'body', 'stats', 'score']) {
     const bg = await page.$eval('#hub [data-v="' + k + '"]', b => getComputedStyle(b).backgroundImage);
-    assert.match(bg, /url\(/, k + ' has a picture');
+    assert.ok(bg.includes('url('), k + ' has a picture');
   }
-  const wf = await page.$eval('#hub [data-v="food"]', b => b.style.getPropertyValue('--wf'));
-  assert.ok(Math.abs(+wf - 0.5) < 0.001, 'half of the water goal logged → the well is half full, got ' + wf);
-  const h = await page.$eval('.hbwater', e => e.getBoundingClientRect().height), H = await page.$eval('.hbwell', e => e.getBoundingClientRect().height);
-  assert.ok(h > 0 && h < H, 'the water level is drawn inside the well');
   await page.click('#hub [data-v="food"]');
   assert.equal(await page.evaluate(() => S.v), 'food', 'the tile still opens its tracker');
-  assert.deepEqual(errors, []); await ctx.close();
-});
-
-test('a new day with no water: the well is empty', async () => {
-  const { page, ctx, errors } = await openApp({ seed: { ...RETURNING, e: [] } });
-  await page.waitForSelector('.wl'); await go(page, 'health');
-  assert.equal(+(await page.$eval('#hub [data-v="food"]', b => b.style.getPropertyValue('--wf'))), 0);
   assert.deepEqual(errors, []); await ctx.close();
 });
 

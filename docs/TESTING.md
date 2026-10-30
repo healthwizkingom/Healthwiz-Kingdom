@@ -52,7 +52,7 @@ compatibility tests.
 | Item | Tests |
 |---|---|
 | a new day with only a BMI logged has no score (the orb no longer reads 100) | `96-orb-newday` |
-| Health Hall card pictures, the well filling with the day's water, the five image buttons keep their action and words, the logo, Luke's "?" on every section, his Statistics script | `97-luke-art` |
+| Health Hall card pictures, the five image buttons keep their action and words, the logo, Luke's "?" on every section, his Statistics script | `97-luke-art` |
 | Time Machine: a not-logged cell or the LOG panel opens the usual page set to that day; USE NOW undoes it; live-measured lanes are not offered | `65-time` |
 | One merged Oracle's Table card: Medius's notices stay in `#insh` inside it | `04-insights`, `93-arcana` |
 
