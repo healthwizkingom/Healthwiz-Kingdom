@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HealthWiz Kingdom — Tri-fold pamphlet</title>
+<meta name="viewport" content="width=1056">
+<style>
+@font-face{font-family:'Press Start 2P';src:url(fonts/PressStart2P-Latin.woff2) format('woff2')}
+@font-face{font-family:'Pixelify Sans';src:url(fonts/PixelifySans-Latin.woff2) format('woff2');font-weight:400 700}
+@page{size:11in 8.5in;margin:0}
+:root{
+  --night:#0d0b26;--pn:#1b1745;--p2:#29235f;--ink:#2b2418;--mut:#5f5238;
+  --gold:#f2c14e;--teal:#63e6dc;--vio:#8b5cf0;--parch:#fbf3d6;--parch2:#efe3bd;--line:#d8c68d;
+  --red:#d9453d;--blue:#2f8fd0;--grn:#3f9f4a;--sdg:#4c9f38;
+  --fh:'Press Start 2P',monospace;--fl:'Pixelify Sans',system-ui,sans-serif;--fb:Inter,'Liberation Sans',system-ui,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;background:#555}
+body{font:7.9pt/1.38 var(--fb);color:var(--ink);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.sheet{width:11in;height:8.5in;display:flex;overflow:hidden;break-after:page;page-break-after:always;background:#fff;position:relative}
+.sheet:last-child{break-after:auto;page-break-after:auto}
+.panel{position:relative;height:8.5in;overflow:hidden;padding:.3in .3in .26in}
+.pA,.pF{width:3.6in}.pB,.pC,.pD,.pE{width:3.7in}
+/* preview-only fold guides (?guides) */
+body.guides .sheet:after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(90deg,transparent calc(3.6in - 1px),rgba(255,0,80,.9) calc(3.6in - 1px),rgba(255,0,80,.9) 3.6in,transparent 3.6in,transparent calc(7.3in - 1px),rgba(255,0,80,.9) calc(7.3in - 1px),rgba(255,0,80,.9) 7.3in,transparent 7.3in)}
+body.guides .sheet.in:after{background:linear-gradient(90deg,transparent calc(3.7in - 1px),rgba(255,0,80,.9) calc(3.7in - 1px),rgba(255,0,80,.9) 3.7in,transparent 3.7in,transparent calc(7.4in - 1px),rgba(255,0,80,.9) calc(7.4in - 1px),rgba(255,0,80,.9) 7.4in,transparent 7.4in)}
+
+/* ---------- shared bits ---------- */
+img{display:block}
+.px{image-rendering:pixelated}
+.ttl{font:16px/1.25 var(--fh);letter-spacing:0}
+.kick{font:600 10.5px/1 var(--fl);letter-spacing:.14em;text-transform:uppercase}
+.dia{display:inline-block;width:6px;height:6px;background:var(--gold);transform:rotate(45deg);margin:0 6px 1px 2px}
+b{font-weight:700}
+.chip{display:inline-block;font:600 9.5px/1 var(--fl);letter-spacing:.04em;padding:3px 5px 3px;border:1.5px solid currentColor;margin:0 3px 4px 0;white-space:nowrap}
+
+/* ---------- dark panels (outside) ---------- */
+.dark{color:#e9e5ff;background:
+  radial-gradient(circle at 80% 8%,rgba(139,92,240,.35),transparent 42%),
+  radial-gradient(circle at 10% 92%,rgba(99,230,220,.16),transparent 45%),
+  var(--night)}
+.dark:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.7;
+  background-image:
+   radial-gradient(1.2px 1.2px at 12% 18%,#fff,transparent 60%),radial-gradient(1px 1px at 33% 9%,#cfe,transparent 60%),
+   radial-gradient(1.4px 1.4px at 71% 14%,#fff,transparent 60%),radial-gradient(1px 1px at 88% 31%,#fde7a3,transparent 60%),
+   radial-gradient(1px 1px at 22% 47%,#fff,transparent 60%),radial-gradient(1.2px 1.2px at 58% 38%,#fff,transparent 60%),
+   radial-gradient(1px 1px at 91% 62%,#fff,transparent 60%),radial-gradient(1px 1px at 6% 74%,#cfe,transparent 60%),
+   radial-gradient(1.2px 1.2px at 47% 83%,#fff,transparent 60%),radial-gradient(1px 1px at 79% 91%,#fde7a3,transparent 60%)}
+.dark>*{position:relative}
+.frame{position:absolute!important;inset:.14in;border:2px solid var(--gold);pointer-events:none;opacity:.55}
+.frame:before,.frame:after{content:"";position:absolute;width:11px;height:11px;border:3px solid var(--gold)}
+.frame:before{top:-5px;left:-5px;border-right:0;border-bottom:0}.frame:after{bottom:-5px;right:-5px;border-left:0;border-top:0}
+.dark h3{font:700 11.5px/1.2 var(--fl);letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin:11px 0 5px;display:flex;align-items:center}
+.dark h3:after{content:"";flex:1;height:2px;margin-left:7px;background:repeating-linear-gradient(90deg,var(--gold) 0 4px,transparent 4px 8px);opacity:.5}
+.dark p{margin:0 0 5px}
+.dark .mut{color:#b9b2ec}
+
+/* ---------- COVER (C) ---------- */
+.pC{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:.34in}
+.pC .logo{width:3.05in;filter:drop-shadow(0 3px 0 rgba(0,0,0,.45))}
+.pC .scene{position:relative;width:calc(100% + .6in);margin:.12in -.3in 0;height:3.55in;overflow:hidden;
+  border-top:3px solid var(--gold);border-bottom:3px solid var(--gold);background:#1a1740}
+.pC .scene .bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 60%}
+.pC .scene:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,11,38,.0) 45%,rgba(13,11,38,.55))}
+.pC .scene .wiz{position:absolute;left:.12in;bottom:-.04in;height:3.15in;z-index:2;filter:drop-shadow(3px 4px 0 rgba(0,0,0,.45))}
+.pC .scene .kn{position:absolute;right:.04in;bottom:-.03in;height:2.45in;z-index:2;filter:drop-shadow(3px 4px 0 rgba(0,0,0,.45))}
+.pC h1{font:700 21px/1.12 var(--fl);color:var(--gold);margin:.17in 0 .05in;text-shadow:0 2px 0 rgba(0,0,0,.5)}
+.pC .sub{font-size:9.6pt;line-height:1.38;margin:0 .06in .1in;color:#e9e5ff}
+.pC .chips{margin:.02in 0 0;color:var(--teal)}
+.pC .foot{margin-top:auto;width:100%;border-top:2px dashed rgba(242,193,78,.5);padding-top:.09in;font-size:7.6pt;color:#cfc9f7}
+.pC .foot b{color:#fff;font:700 12px/1.3 var(--fl);letter-spacing:.06em;display:block}
+
+/* ---------- BACK (B) ---------- */
+.pB{padding-top:.34in}
+.pB .ttl{color:var(--gold);text-align:center;margin:0 0 .08in;text-shadow:0 2px 0 rgba(0,0,0,.5)}
+.qrrow{display:flex;gap:.14in;align-items:center;background:rgba(27,23,69,.85);border:2px solid var(--gold);padding:.12in}
+.qrrow .qr{flex:0 0 1.32in;background:#fff;padding:.045in;border:2px solid #000}
+.qrrow .qr img{width:100%}
+.qrrow ol{margin:0;padding:0 0 0 .17in;font-size:7.7pt;line-height:1.32}
+.qrrow li{margin:0 0 3px}.qrrow li::marker{color:var(--gold);font-weight:700}
+.url{font:600 10.8px/1.2 var(--fl);color:var(--teal);text-align:center;margin:.06in 0 0;letter-spacing:.02em;word-break:break-all}
+.pB ul{margin:0;padding:0;list-style:none}
+.pB li.k{position:relative;padding-left:12px;margin:0 0 3.5px}
+.pB li.k:before{content:"";position:absolute;left:1px;top:.5em;width:5px;height:5px;background:var(--teal);transform:rotate(45deg)}
+.pB .tech{margin:2px 0 0;color:var(--teal)}
+.credits{font-size:6.55pt;line-height:1.36;color:#b9b2ec;margin:0 0 6px}
+.disc{border:2px solid var(--gold);background:rgba(242,193,78,.1);padding:.07in .1in;font-size:7.4pt;line-height:1.36;color:#fff}
+.disc b{color:var(--gold)}
+
+/* ---------- FLAP (A) ---------- */
+.pA{padding-top:.34in}
+.pA .ttl{color:var(--gold);text-shadow:0 2px 0 rgba(0,0,0,.5);margin-bottom:.09in}
+.lead{font:600 13.2px/1.32 var(--fl);color:#fff;margin:0 0 .09in}
+.lead em{font-style:normal;color:var(--teal)}
+.steps{display:flex;gap:5px;margin:3px 0 4px}
+.step{flex:1;background:rgba(27,23,69,.9);border:2px solid rgba(242,193,78,.7);padding:6px 5px 6px;text-align:center}
+.step i{font:normal 12px/1 var(--fh);color:var(--gold);display:block;margin-bottom:5px}
+.step b{display:block;font:700 11.2px/1.15 var(--fl);color:#fff;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}
+.step span{font-size:7pt;line-height:1.28;display:block;color:#d6d0f7}
+.why{margin:0 0 6px;padding-left:23px;position:relative}
+.why i{position:absolute;left:0;top:0;width:17px;height:17px;background:var(--gold);color:var(--night);font:normal 9px/17px var(--fh);text-align:center}
+.why b{color:#fff}
+.nums{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:8px 0 0}
+.nums div{background:rgba(27,23,69,.9);border:2px solid rgba(99,230,220,.55);text-align:center;padding:5px 1px 4px}
+.nums strong{display:block;font:normal 14px/1.1 var(--fh);color:var(--teal);margin-bottom:3px}
+.nums span{font:600 8.6px/1.15 var(--fl);letter-spacing:.05em;text-transform:uppercase;color:#d6d0f7;display:block}
+.sdg{display:flex;gap:9px;align-items:center;background:var(--sdg);color:#fff;padding:.07in .1in;margin-top:.1in;border:2px solid #fff}
+.sdg strong{flex:0 0 auto;font:normal 17px/1 var(--fh);background:#fff;color:var(--sdg);padding:7px 6px 5px}
+.sdg span{font-size:7.6pt;line-height:1.3}
+.sdg span b{display:block;font:700 11.5px/1.2 var(--fl);letter-spacing:.04em;text-transform:uppercase}
+
+
+.fig{margin:.08in 0 0;position:relative;border:2px solid var(--gold);height:1.12in;overflow:hidden}
+.fig img{width:100%;height:100%;object-fit:cover;object-position:50% 40%}
+.fig figcaption{position:absolute;left:0;right:0;bottom:0;background:rgba(13,11,38,.85);color:var(--gold);font:700 10px/1 var(--fl);letter-spacing:.1em;text-transform:uppercase;padding:4px 7px 3px}
+/* ---------- INSIDE (parchment) ---------- */
+.in .panel{background:
+  repeating-linear-gradient(0deg,rgba(120,90,30,.035) 0 2px,transparent 2px 5px),
+  var(--parch)}
+.in .pD{background-color:var(--parch)}
+.in .panel{padding:0 0 .22in}
+.hd{position:relative;height:1.42in;overflow:hidden;color:#fff;border-bottom:4px solid var(--gold);background:var(--night)}
+.hd>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hd:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,11,38,.1) 20%,rgba(13,11,38,.9) 100%)}
+.hd .t{position:absolute;left:.3in;right:.26in;bottom:.1in;z-index:2}
+.hd .ttl{color:var(--gold);text-shadow:0 2px 0 #000;display:block}
+.hd .kick{display:block;margin-top:6px;color:#fff;font-size:10.2px;text-shadow:0 1px 0 #000}
+.body{padding:.13in .3in 0}
+.pF .body{padding-right:.26in}
+.f{margin:0 0 5.2px;padding-left:.0in}
+.f>b:first-child{font:700 11.3px/1 var(--fl);letter-spacing:.035em;color:var(--pn);text-transform:uppercase;margin-right:3px}
+.f>b.c1{color:#1c6fb0}.f>b.c2{color:#2f7f3a}.f>b.c3{color:#6a46c4}.f>b.c4{color:#b3342d}.f>b.c5{color:#a4690a}.f>b.c6{color:#0d7f86}
+.f i{font-style:normal;font-weight:600;color:var(--mut)}
+.rule{height:0;border-top:2px dashed var(--line);margin:5px 0 6px}
+.note{font-size:6.9pt;line-height:1.34;color:var(--mut);margin:5px 0 0}
+.card{border:2px solid var(--ink);background:#fff8dd;box-shadow:3px 3px 0 var(--ink);padding:.07in .09in;margin:6px 3px 7px 0}
+.card .kick{color:var(--pn);margin-bottom:4px;display:block}
+.guides3{display:flex;gap:5px;margin:0 0 7px}
+.gd{flex:1;background:var(--pn);color:#fff;border:2px solid var(--ink);text-align:center;padding:5px 3px 5px;position:relative}
+.gd .pic{height:.62in;display:flex;align-items:flex-end;justify-content:center;background:linear-gradient(180deg,#322a7a,#1b1745);margin:-5px -3px 4px;border-bottom:2px solid var(--gold);overflow:hidden}
+.gd .pic img{height:100%;width:auto;max-width:100%;object-fit:contain}
+.gd .pic.face img{height:auto;width:.78in;margin-bottom:0}
+.gd b{display:block;font:700 12px/1.1 var(--fl);color:var(--gold);letter-spacing:.05em;text-transform:uppercase}
+.gd span{font-size:6.7pt;line-height:1.25;display:block;color:#ddd8ff;margin-top:2px}
+.mosaic{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:0 0 7px}
+.mosaic figure{margin:0;position:relative;border:2px solid var(--ink);background:var(--night);overflow:hidden;height:.62in}
+.mosaic img{width:100%;height:100%;object-fit:cover}
+.mosaic figcaption{position:absolute;left:0;right:0;bottom:0;background:rgba(13,11,38,.82);color:#fff;font:700 9.3px/1 var(--fl);letter-spacing:.06em;text-transform:uppercase;text-align:center;padding:3px 0 2px}
+.formula{font:600 8.6px/1.3 var(--fb);background:var(--pn);color:var(--teal);padding:3px 6px;display:inline-block;margin:1px 0 2px;letter-spacing:.01em}
+.src{font-size:6.9pt;line-height:1.36}
+</style>
+</head>
+<body>
+
+<!-- ============================ SHEET 1 · OUTSIDE ============================
+     left → right:  A  inside flap (folds in)  |  B  back cover  |  C  front cover -->
+<div class="sheet out">
+
+  <!-- A · INSIDE FLAP : the quest -->
+  <section class="panel pA dark">
+    <div class="frame"></div>
+    <div class="ttl">THE QUEST</div>
+    <p class="lead">Health tracking is easy to start and hard to keep up. In <em>HealthWiz Kingdom</em> every healthy action has a visible effect.</p>
+    <p>It is a pixel-art fantasy RPG that is also a health tracker. You log <b>water, meals, sleep, stairs</b> (with workout heart rate), <b>runs</b> and <b>stress</b>. <b>Medius, the Wizard King,</b> guides you as your real actions restore the kingdom, with <b>Luna,</b> an apprentice witch, as your everyday companion.</p>
+
+    <figure class="fig"><img class="px" src="img/hall-score.jpg" alt=""><figcaption>Medius reads the Health Orb</figcaption></figure>
+    <h3>How it works</h3>
+    <div class="steps">
+      <div class="step"><i>1</i><b>Log</b><span>a real habit: a glass of water, a meal, a climb</span></div>
+      <div class="step"><i>2</i><b>Restore</b><span>regions of the kingdom heal as you keep going</span></div>
+      <div class="step"><i>3</i><b>Understand</b><span>a “?” shows the formula and sources behind every number</span></div>
+    </div>
+
+    <h3>What sets it apart</h3>
+    <p class="why"><i>1</i><b>Health first, game second.</b> Health numbers and units stay in a plain, readable face. Game values (XP, levels, badges) are tagged “game progress, not a health measurement”.</p>
+    <p class="why"><i>2</i><b>Every number shows its working.</b> Inputs, formula, your own numbers step by step, linked sources and limits.</p>
+    <p class="why"><i>3</i><b>Honest about uncertainty.</b> Each value is labelled <b>measured, calculated, estimated, simulated</b> or <b>missing</b>. No invented readings, no made-up error margins.</p>
+    <p class="why"><i>4</i><b>Private and optional.</b> Works on your device with no account; an account is only for backup and sync.</p>
+
+    <div class="nums">
+      <div><strong>8</strong><span>Kingdom regions</span></div>
+      <div><strong>8</strong><span>Colour themes</span></div>
+      <div><strong>104</strong><span>Code modules</span></div>
+      <div><strong>102</strong><span>Test files</span></div>
+    </div>
+
+    <div class="sdg"><strong>3</strong><span><b>UN Sustainable Development Goal 3</b>Good Health and Well-being</span></div>
+  </section>
+
+  <!-- B · BACK COVER : begin, privacy, credits -->
+  <section class="panel pB dark">
+    <div class="frame"></div>
+    <div class="ttl">BEGIN YOUR QUEST</div>
+    <div class="qrrow">
+      <div class="qr"><img src="img/qr.svg" alt="QR code to open HealthWiz Kingdom"></div>
+      <ol>
+        <li><b>Scan</b> or open the link. It runs in any modern browser; nothing to install.</li>
+        <li>Create your traveller in the <b>Traveller’s Registry</b>.</li>
+        <li>Log one thing today. Medius will take it from there.</li>
+        <li>Tap <b>Install app</b> or <b>Add to Home Screen</b> to play offline.</li>
+      </ol>
+    </div>
+    <p class="url">healthwizkingom.github.io/Healthwiz-Kingdom</p>
+
+    <h3>Your data stays yours</h3>
+    <ul>
+      <li class="k">Saved <b>on your device</b>. Download or restore a backup any time.</li>
+      <li class="k">Free account is <b>optional</b>: cloud backup and sync. Row Level Security means only you can read your row.</li>
+      <li class="k"><b>Delete account and cloud data</b> in two taps.</li>
+      <li class="k">Location is read <b>only when you tap</b>, and is never saved or sent. Camera pulse video is never stored.</li>
+      <li class="k">Medius AI chat is <b>never stored</b>, and there is no AI key inside the app.</li>
+    </ul>
+
+    <h3>Under the hood</h3>
+    <p class="mut" style="margin:0 0 3px">A static web app: plain JavaScript, no build step, no server code of its own. Installable and offline-ready.</p>
+    <div class="tech">
+      <span class="chip">PWA + service worker</span><span class="chip">Supabase</span><span class="chip">Postgres + RLS</span><span class="chip">Edge Functions</span><span class="chip">Google Gemini</span><span class="chip">MapLibre GL</span><span class="chip">Three.js</span><span class="chip">WebXR</span><span class="chip">Web Bluetooth</span><span class="chip">Open-Meteo</span><span class="chip">Blender art</span>
+    </div>
+
+    <h3>Credits and licences</h3>
+    <p class="credits">Fonts: Press Start 2P and Pixelify Sans (SIL OFL 1.1). Map data © OpenStreetMap contributors (ODbL). MapLibre GL JS (BSD-3-Clause). Three.js (MIT). Map avatars: Tom, the anime school boy and girl (CC BY 4.0, suzuart). Campus look follows a drone video by @ikraMRahim, used with the creator’s permission. Knight 3D base: MakeHuman CC0 assets. Every other character and scene is an original HealthWiz design.</p>
+
+    <div class="disc"><b>Wellness tracker, not a medical device.</b> HealthWiz does not diagnose anything and gives no medical advice. If you feel unwell, talk to a parent, teacher or healthcare professional. In an emergency call <b>999</b> (Malaysia).</div>
+  </section>
+
+  <!-- C · FRONT COVER -->
+  <section class="panel pC dark">
+    <div class="frame"></div>
+    <img class="logo px" src="img/logo.png" alt="HealthWiz Kingdom — a journey to better health">
+    <div class="scene">
+      <img class="bg" src="img/hall-stats.jpg" alt="">
+      <img class="wiz px" src="img/wiz.png" alt="Medius, the Wizard King">
+      <img class="kn px" src="img/kn.png" alt="The HealthWiz knight">
+    </div>
+    <h1>Turn your health into an adventure.</h1>
+    <p class="sub">A pixel-art fantasy RPG that is also a health tracker, built on real science and honest numbers.</p>
+    <div class="chips"><span class="chip">Water</span><span class="chip">Food</span><span class="chip">Sleep</span><span class="chip">Stress</span><span class="chip">Stairs</span><span class="chip">Running</span><span class="chip">Heart rate</span></div>
+    <div class="foot"><b>GROUP 14 · KOLEJ MARA KULIM</b>Wellness tracker, not a medical device</div>
+  </section>
+</div>
+
+<!-- ============================ SHEET 2 · INSIDE ============================
+     left → right:  D  |  E  |  F (the back of the flap) -->
+<div class="sheet in">
+
+  <!-- D · TRACK -->
+  <section class="panel pD">
+    <div class="hd"><img class="px" src="img/hall-exercise.jpg" alt=""><div class="t"><span class="ttl">TRACK</span><span class="kick">The Health Hall · eight trackers in one place</span></div></div>
+    <div class="body">
+      <div class="mosaic">
+        <figure><img src="img/hall-food.jpg" alt=""><figcaption>Food &amp; water</figcaption></figure>
+        <figure><img src="img/hall-sleep.jpg" alt=""><figcaption>Sleep</figcaption></figure>
+        <figure><img src="img/hall-stress.jpg" alt=""><figcaption>Stress</figcaption></figure>
+        <figure><img src="img/hall-stair.jpg" alt=""><figcaption>Stairs</figcaption></figure>
+      </div>
+
+      <p class="f"><b class="c1">Water Quest</b>Your daily goal comes from your weight (35 mL/kg: the team’s own rule, and the “?” says so). The knight walks, drinks, carries and pours as you log. Opt in to live weather and the Elemental Thermometer adjusts your water potion.</p>
+      <p class="f"><b class="c2">Nutrition</b>Log from the Kolej MARA Kulim canteen menu with calories. Signed in, <b>Luke</b> searches the web for any food and portion, shows a source for every part and checks the energy with 4·protein + 4·carb + 9·fat. All estimates are labelled.</p>
+      <p class="f"><b class="c3">Sleep</b>Hours against National Sleep Foundation ranges, a Sleep Score (our own game formula, labelled as such), the Dream Battle, Counting Sheep and a wake-up alarm for Android, iPhone and calendar.</p>
+      <p class="f"><b class="c4">Stress Quest</b>The DASS-21 check-in (21 statements, three scales, no severity labels), the Storm Within, Calming Grove breathing and five relief activities. Crisis help numbers are always on screen.</p>
+      <p class="f"><b class="c5">Body &amp; Energy</b>BMI (an adult screening number, not a diagnosis), BMR by Mifflin–St Jeor, daily energy = BMR × FAO/WHO/UNU activity level, plus protein, carb, fat and fibre goals.</p>
+      <p class="f"><b class="c2">Training Hall</b>Goal-based sessions with 22 moves and 19 muscle maps; Calisthenics is bodyweight only. “I feel dizzy” and “Chest pain” stop buttons are always at hand.</p>
+      <p class="f"><b class="c1">Running Road</b>GPS run tracker: distance, moving time, pace and calories (MET × kg × h, 2024 Compendium), with an opt-in Runners’ Board.</p>
+      <p class="f"><b class="c4">Stairs &amp; heart rate</b>Log BPM before, after and one minute after a climb for recovery. Measure pulse with your phone camera (the video is never stored) or pair a smartwatch or chest strap over Web Bluetooth.</p>
+      <div class="rule"></div>
+      <p class="f"><b class="c6">Everywhere</b>Log for yesterday or any earlier date, browse every entry by day with totals, and print a weekly report.</p>
+    </div>
+  </section>
+
+  <!-- E · PLAY & GUIDE -->
+  <section class="panel pE">
+    <div class="hd"><img class="px" src="img/hall-score.jpg" alt=""><div class="t"><span class="ttl">PLAY &amp; GUIDE</span><span class="kick">Your logs restore the kingdom</span></div></div>
+    <div class="body">
+      <div class="guides3">
+        <div class="gd"><div class="pic"><img class="px" src="img/wiz.png" alt=""></div><b>Medius</b><span>The Wizard King. Tutorials, insights and the Wizard’s Counsel.</span></div>
+        <div class="gd"><div class="pic face"><img class="px" src="img/luna-face.png" alt=""></div><b>Luna</b><span>Apprentice witch. Everyday companion with 21 poses.</span></div>
+        <div class="gd"><div class="pic"><img class="px" src="img/luke-pose.png" alt=""></div><b>Luke</b><span>Wannabe wizard. Finds foods and teaches the lab.</span></div>
+      </div>
+
+      <p class="f"><b class="c3">The Living Kingdom</b>Eight regions (Dream Realm, Stair Mountain, Energy Forge, Mind Forest, Heartstone Hall, Water Valley, Nutrition Village, Balance Tower), each in one of five states up to <i>Flourishing</i>, set by the days you logged this week.</p>
+      <p class="f"><b class="c5">Quests &amp; rewards</b>An adaptive daily focus quest and weekly quests. Fair XP with a daily logging allowance, levels, audited badges and gentle streaks. Mini-games (Dream Battle, Storm Within, Calming Grove, Counting Sheep) turn each log into a short scene.</p>
+      <p class="f"><b class="c2">Health Score, 0–100</b>Five weighted indicators plus fruit and veg servings. In the <b>Health Orb</b> Medius reads your score and turns it into ranked quest cards: Start Here, Next Step, Keep Going.</p>
+      <p class="f"><b class="c1">Medius notices</b>Insights from your own baselines, a what-if simulator, week-against-week stats and the <b>Health Time Machine</b> timeline.</p>
+      <p class="f"><b class="c4">Wizard’s Counsel</b>Talk with Medius or Luna (Google Gemini, through a secure server function). Signed-in only; Medius is limited to 30 messages an hour, with safety rules, a gentle fallback and crisis numbers. Nothing is stored. <i>Ask Luna</i> finds any feature without AI.</p>
+      <p class="f"><b class="c6">Arcana upgrades</b>The Oracle’s crystal ball (readiness from sleep, DASS-21 and recovery), the Guild War of Joules and the Dueling Arena: race a replay of your own earlier climb.</p>
+      <p class="f"><b class="c5">Opt-in community</b>The Hall of Heroes shows game progress only; the Runners’ Board shows a nickname and weekly totals only.</p>
+      <p class="f"><b class="c1">Made for everyone</b>Eight themes, performance modes, reduced motion, keyboard and screen-reader friendly charts.</p>
+    </div>
+  </section>
+
+  <!-- F · PROVE IT (reverse of the flap) -->
+  <section class="panel pF">
+    <div class="hd"><img class="px" src="img/lab-scene.jpg" alt=""><div class="t"><span class="ttl">PROVE IT</span><span class="kick">Science you can check</span></div></div>
+    <div class="body">
+      <p class="f"><b class="c1">Campus Health Observatory</b>A 3D map of Kolej MARA Kulim built from OpenStreetMap, in Realistic and Fantasy looks. Every staircase is a spinning heart coloured Mild, Moderate or Vigorous: tap one to log a climb or workout. GPS check-in finds the nearest stairs; your position is never saved or sent.</p>
+      <p class="f"><b class="c3">Stair Sense &amp; Stair Sight</b>Height, work and power from the stairs:<br><span class="formula">h = n × r &nbsp; W = m·g·h &nbsp; P = W ÷ t</span><br>Camera edge-finding, and WebXR on Android, measure a real staircase’s rise and tread.</p>
+      <div class="card">
+        <span class="kick">The Group 14 stair experiment</span>
+        <span class="src">Six participants climbed measured stairways at different intensities. The pulse is modelled as <b>periodic motion</b> (frequency, period, angular frequency) and VO₂ is estimated with the project’s own method. Automated tests <b>recompute the report’s tables from the raw counts</b>. If the pulse after is lower than before, the app shows “not valid” instead of a number.</span>
+      </div>
+      <p class="f"><b class="c2">Evidence Vault</b>Every source on a shelf: source, claim, how HealthWiz uses it and where you see it. Each “?” links straight to its entry.</p>
+      <p class="f"><b class="c4">Science Laboratory</b><i>Be Your Own Experiment</i>, the <i>Evidence Trial</i> (reasoning questions built from real data) and the <i>Uncertainty Engine</i>, which shows how unmeasured assumptions move an estimate.</p>
+      <p class="f"><b class="c5">Ascent Monument</b>Your stair climbing builds an endless Tower of Babel, one stone for every 0.25 m, compared with real landmarks.</p>
+      <p class="f"><b class="c6">Safe data</b>Saved data is versioned and upgraded step by step; a backup copy is made before any upgrade or repair.</p>
+      <div class="rule"></div>
+      <p class="note"><b style="color:var(--pn)">Sources behind the numbers:</b> Mifflin–St Jeor (energy) · FAO/WHO/UNU (activity levels) · 2024 Compendium of Physical Activities (MET) · Keytel (heart-rate energy) · Tanaka (peak heart rate) · Lovibond &amp; Lovibond (DASS-21) · National Sleep Foundation · WHO (fruit and veg, diet) · IOM (macros). Where a rule is the team’s own, the “?” says so.</p>
+    </div>
+  </section>
+</div>
+
+<script>if(location.search.includes('guides'))document.body.classList.add('guides')</script>
+</body>
+</html>
