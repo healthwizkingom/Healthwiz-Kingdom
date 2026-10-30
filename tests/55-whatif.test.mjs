@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { openApp, closeBrowser, go, RETURNING, entry } from './helpers.mjs';
 
 after(closeBrowser);
-const boot = async (seed, viewport) => { const r = await openApp({ seed, viewport }); await r.page.waitForSelector('.wl'); await go(r.page, 'score'); return r; };
+const boot = async (seed, viewport) => { const r = await openApp({ seed, viewport }); await r.page.waitForSelector('.wl'); await go(r.page, 'score'); if (await r.page.locator('#scorelock').count()) await r.page.dispatchEvent('[data-a="orbshow"]', 'click'); return r; };   // the score and What-if show once the orb has been read
 // stress 4 -> sub 66.67; sleep 7 h at age 16 (8-10 h) -> sub 75; real score = (10*66.67 + 15*75) / 25 = 71.67 -> 72
 const two = { ...RETURNING, e: [entry('stress', 4, 0), entry('sleep', 7, 0, { bed: '23:00', wake: '06:00' })] };
 const full = { ...RETURNING, e: [entry('stair', 40, 0, { loc: 'ST', diff: 'MODERATE', angle: 28, steps: 40, climbs: 1, dur: 5, hrB: 70, hrA: 130, kind: 'workout' }),
@@ -155,7 +155,6 @@ test('the simulator closes when the page is left and survives the TODAY / LAST 7
 
 test('the What-if card sits below the orb reading (REPLAY ORB READING) and above Why these weights', async () => {
   const { page, ctx, errors } = await boot(full);
-  await page.click('[data-a="orbshow"]');
   const o = await page.evaluate(() => { const m = document.querySelector('#main').innerHTML; return ['HOW YOUR SCORE ADDS UP', 'REPLAY ORB READING', 'data-a="wifopen"', 'WHY THESE WEIGHTS'].map(k => m.indexOf(k)); });
   assert.ok(o.every((v, i) => v >= 0 && (i === 0 || v > o[i - 1])), 'table → orb reading → What-if → weights: ' + o);
   assert.deepEqual(errors, []); await ctx.close();

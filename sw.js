@@ -10,7 +10,7 @@
    Saved health data is in localStorage and never passes through here.
 
    Keep PRECACHE in sync with index.html and assets/: tests/20-pwa.test.mjs fails when a file is missing. */
-const CACHE = 'hwk-shell-v5', WAIT = 4000;
+const CACHE = 'hwk-shell-v6', WAIT = 4000;
 const PRECACHE = [
   './', 'index.html', 'manifest.webmanifest',
   'js/hw-01-menu-data.js', 'js/v6-schema.js', 'js/hw-02-core.js', 'js/hw-03-part.js', 'js/hw-04-part.js',

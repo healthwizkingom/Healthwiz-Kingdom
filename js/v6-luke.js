@@ -46,6 +46,24 @@ stats:['Statistics',[
   ['determined','#mn-door',"The Ascent Monument. Every metre you climb adds stones to it, and it's built only from climbs you logged. Open it to watch your tower grow."],
   ['nervous','#rptcard',"WEEKLY REPORT makes a one-page summary of a week. Press PRINT OR SAVE AS PDF. It stays on this device, but a printed copy holds private health information, so keep it to yourself."],
   ['happy','',"Timed a climb? Race your own best time in the Dueling Arena, under the Hall of Heroes on the Quest Board. The rival is only your own echo, so it can't be unfair."]]],
+lab:['Science Laboratory',[
+  ['nervous','',"The Science Laboratory! I wear goggles in here. They don't help, but I feel official."],
+  ['determined','',"Be Your Own Experiment: ask a question, make a prediction, plan how you'll measure it, then your own saved logs become the observations. Nothing is copied or changed."],
+  ['surprised','',"With fewer than 3 observations in a group it says 'not enough evidence yet'. That's honest, not a failure. And a result never proves anything. A few days from one person can't."],
+  ['excited','',"The Evidence Trial, the Evidence Vault and the Uncertainty Engine are on this page too. They show where facts come from and how sure each estimate is. Any climbing is optional: stop for dizziness, chest pain or faintness."]]],
+duel:['Dueling Arena',[
+  ['excited','',"The Dueling Arena! You race a replay of your own earlier climb, your Shadow Echo. Only you, never anyone else."],
+  ['determined','#dueling-arena',"Choose a staircase. Two saved climbs on the same stairs with the same number of steps can be compared. The Echo is your previous climb, or your fastest one."],
+  ['nervous','',"Times come from the Stair Sense timer, or from the workout time, which is only kept in half-minutes. Equal within that counts as a tie. There's no XP for speed: slower is fine."],
+  ['happy','',"The live race runs beside Stair Sense in the Observatory. It's just you against you. I lose to my own echo all the time."]]],
+time:['Time Machine',[
+  ['surprised','',"The Time Machine! It shows only what you really saved. No guessing."],
+  ['determined','#tmcard',"Pick Day, Week or Month, then slide back or use EARLIER and LATER. A day with nothing saved says 'not logged', never zero."],
+  ['excited','',"Missed a day? Tap its empty cell, or open the day and press a LOG button. The usual page opens already set to that day, and USE NOW takes you back to today."],
+  ['nervous','',"Heart rate, runs and workouts are measured live, so they can't be added later. COMPARE puts this period beside the one before, but it can't tell you why they differ."]]],
+monument:['Ascent Monument',[
+  ['excited','',"The Ascent Monument! Every metre you climb adds stones to a tower. It's built only from climbs you logged."],
+  ['happy','',"A climb with no known rise is counted on its own line, because I won't make up a height. Log your climbs in the Observatory or Stairs and watch it grow."]]],
 score:['Health Score',[
   ['nervous','',"The Health Score! One number made from lots of habits. Don't panic over it. I certainly don't."],
   ['determined','~HOW YOUR SCORE ADDS UP',"Each area you logged counts by its weight. An area you didn't log is left out, not counted as zero. Your BMI alone never makes a score: you need at least one real log from the day."],
@@ -70,14 +88,16 @@ function start(k){if(root||!T[k])return;topic=k;i=0;opener=document.activeElemen
 acts.lkq=d=>start(d.t);
 
 /* ---------- the button, at the top right of each section ---------- */
-const TOPIC={food:'food',water:'water',sleep:'sleep',exercise:'exercise',stress:'stress',body:'body',stats:'stats',score:'score'};
+const TOPIC={lab:'lab',time:'time',monument:'monument',food:'food',water:'water',sleep:'sleep',exercise:'exercise',stress:'stress',body:'body',stats:'stats',score:'score'};
 const btn=k=>'<button type="button" class="lkq" data-a="lkq" data-t="'+k+'" aria-label="Ask Luke about '+esc(T[k][0])+'"><span class="lkface" aria-hidden="true" style="'+face('confused')+'"></span><i aria-hidden="true">?</i></button>';
 function wrap(k){const p=pages[k];if(!p)return;pages[k]=function(){const h=p.apply(this,arguments);
   if(k==='stress'&&S.sq&&S.sq.ph&&S.sq.ph!=='start')return h;   // inside a stress quest the header stays out of the way
   const m=/<button type="button" class="g sm hwq"[^>]*>\?<\/button>/.exec(h);
   // Luke's button sits above the page's own "?" in the same 44 px column, so the row keeps its height and the title keeps its width
   return m&&h.indexOf('id="hwcr"')>=0?h.replace(m[0],'<span class="lkcol">'+btn(TOPIC[k])+m[0]+'</span>'):'<div class="lkrow">'+btn(TOPIC[k])+'</div>'+h}}
-Object.keys(TOPIC).forEach(wrap);   // Stairs is a section of the Campus page: its button sits in that section's header (js/v6-campus-stairs.js)
+Object.keys(TOPIC).forEach(wrap);
+// the Dueling Arena is a card on the Quest Board: Luke's button sits at the top of the card
+{const p=pages.quests;if(p)pages.quests=function(){const h=p.apply(this,arguments),k='<p class="mut duelintro">';return h.indexOf(k)>=0?h.replace(k,'<div class="lkrow">'+btn('duel')+'</div>'+k):h}}   // Stairs is a section of the Campus page: its button sits in that section's header (js/v6-campus-stairs.js)
 
 HWUI.css('luke',`
 .lkface{display:block;width:100%;aspect-ratio:1;background:url(assets/img/luke-ask.webp) 0 0/700% 100% no-repeat;image-rendering:pixelated}

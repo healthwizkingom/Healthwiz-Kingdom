@@ -142,7 +142,9 @@ function card(c,i,o){
 /* =====================================================================================================================
    SECTION  (what the Health Score page shows in place of the plain list)
    ===================================================================================================================== */
-let phase=(typeof st!=='undefined'&&st&&st.s&&st.s.orb)?'done':'idle',fresh=false;
+/* The reading is per day: the score stays hidden until Medius has read the orb today (st.s.orbd = that date, an optional key like st.s.orb). */
+const readToday=()=>typeof st!=='undefined'&&st&&st.s&&st.s.orbd===today();
+let phase=readToday()?'done':'idle',fresh=false;
 const scene=(title,msg,btns)=>'<div class="card v6os" id="v6orb"><h3>'+HWPixel.icon('wizard')+' '+title+'</h3>'
   +'<div class="v6ocv"><canvas id="v6orbc" width="'+W+'" height="'+H+'" role="img" aria-label="Pixel art: the wizard Medius beside a glowing mana orb in his library"></canvas></div>'
   +'<p class="v6osm" id="v6orbs" role="status" aria-live="polite">'+msg+'</p><div class="v6obt">'+btns+'</div></div>';
@@ -150,8 +152,9 @@ function section(C,plain){
   if(C.score==null)return empty();
   let R;try{R=rank(cards(C.I))}catch(e){return plain+'<div class="card"><small class="mut">The orb could not be read just now. The advice above is the same, in plain form.</small></div>'}
   boot();
+  if(phase==='done'&&!readToday())phase='idle';   // a new day starts unread
   if(phase==='play')return scene('MEDIUS READS THE ORB','Medius is reading your logged habits…','<button type="button" class="g" data-a="orbskip">SKIP ANIMATION</button>');
-  if(phase==='idle')return scene('THE HEALTH ORB','Medius can read your logged habits in the orb and reveal your next steps. Your score and its table are above. This reading adds plain advice for each area.',
+  if(phase==='idle')return scene('THE HEALTH ORB','Medius can read your logged habits in the orb and reveal your next steps. Your score and what it is made of appear after the reading, together with plain advice for each area.',
     '<button type="button" data-a="orbgo">READ MY HEALTH ORB</button><button type="button" class="g" data-a="orbshow">SHOW RECOMMENDATIONS</button>');
   const when=HWScore.K.win()==='day'?'today':'the last 7 days',f=fresh;let i=0;
   const html='<section class="v6o'+(f?' fresh':'')+'" id="v6o" aria-labelledby="v6oh"><div class="v6oh"><h3 id="v6oh" tabindex="-1">'+HWPixel.icon('scroll')+' YOUR HEALTH QUESTS</h3>'
@@ -275,7 +278,7 @@ function boot(){requestAnimationFrame(()=>{
   if(phase==='idle'&&HWUI.reduced()){drawScene();if(!imgOK)IMG.addEventListener('load',()=>{if(D.getElementById('v6orbc')===el)drawScene()});return}
   if(!raf){last=0;raf=requestAnimationFrame(frame)}})}
 function finish(instant){
-  stop(false);phase='done';sim=null;fresh=!instant&&!HWUI.reduced();st.s.orb=1;save();render();
+  stop(false);phase='done';sim=null;fresh=!instant&&!HWUI.reduced();st.s.orb=1;st.s.orbd=today();save();render();
   setTimeout(()=>{const h=D.getElementById('v6oh');if(h){h.focus({preventScroll:true});h.scrollIntoView({block:'start',behavior:HWUI.reduced()?'auto':'smooth'})}},30)}
 acts.orbgo=()=>{if(phase==='play')return;
   if(HWUI.reduced()){finish(true);return}
@@ -335,4 +338,4 @@ HWUI.css('orb',`
 @keyframes v6osw{to{transform:translateX(120%)}}
 @media(prefers-reduced-motion:reduce){.v6oc.fresh,.v6oc.fresh:after{animation:none!important}.v6opb i{transition:none}}
 `);
-return{section,cards,rank,get phase(){return phase}}})();
+return{section,cards,rank,read:()=>readToday()&&phase==='done',get phase(){return phase}}})();

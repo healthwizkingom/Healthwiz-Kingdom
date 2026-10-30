@@ -28,7 +28,8 @@ test('score uses the stated weights; missing indicators are left out, not zero',
   const r = await boot(full); const c = await r.page.evaluate(() => HWScore.compute());
   assert.equal(c.covered, 5); assert.ok(c.score > 0 && c.score <= 100);
   // the recommendations are read out of the Health Orb (js/v6-orb.js, tests/48-orb.test.mjs); SHOW RECOMMENDATIONS skips the scene
-  assert.match(await r.page.textContent('#main'), /HOW YOUR SCORE ADDS UP[\s\S]*THE HEALTH ORB[\s\S]*WHY THESE WEIGHTS/);
+  assert.match(await r.page.textContent('#main'), /YOUR SCORE IS WAITING[\s\S]*THE HEALTH ORB[\s\S]*WHY THESE WEIGHTS/, 'the score waits for the orb reading');
+  assert.doesNotMatch(await r.page.textContent('#main'), /HOW YOUR SCORE ADDS UP/);
   await r.page.click('[data-a="orbshow"]');
   assert.match(await r.page.textContent('#main'), /HOW YOUR SCORE ADDS UP[\s\S]*YOUR HEALTH QUESTS[\s\S]*WHY THESE WEIGHTS/);
   const areas = await r.page.$$eval('.v6oc', a => a.map(x => x.dataset.area));
@@ -83,6 +84,7 @@ test('sleep, calorie intake, macronutrients and calories burned are scored from 
   const sum = I.macro.val.P + I.macro.val.C + I.macro.val.F; assert.ok(Math.abs(sum - 100) < 1e-6, 'macro % add up to 100');
   assert.equal(I.burn.val, 120); assert.equal(I.burn.sub, 80, '120 of 150 kcal a day');
   assert.equal(await page.evaluate(() => HWScore.compute().covered), 4, 'nutrition, activity, heart rate, sleep');
+  await page.click('[data-a="orbshow"]');
   assert.match(await page.textContent('#main'), /Calorie intake[\s\S]*Macronutrients[\s\S]*Calories burned[\s\S]*Sleep/);
   assert.deepEqual(errors, []); await ctx.close();
 });
