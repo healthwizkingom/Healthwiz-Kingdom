@@ -114,3 +114,37 @@ test('phone: no sideways page scroll (the month grid scrolls inside), large cont
   assert.ok(r.cell[0] >= 24 && r.cell[1] >= 24, 'cells are at least 24 px: ' + r.cell);
   assert.deepEqual(errors, []);
 });
+
+test('rewind: a not-logged cell opens the page set to that day; the water is saved under that day, not today', async () => {
+  const { page, ctx, errors } = await open();
+  await page.click('[data-a="tmv"][data-v="m"]');
+  const y = ago(2);   // two days ago: nothing saved on it, in the current month or the one before
+  const cell = page.locator('.tmadd[data-k="water"][data-d="' + y + '"]');
+  if (!(await cell.count())) await page.click('[data-a="tmstep"][data-v="1"]');
+  await cell.first().click();
+  assert.match(await page.textContent('#main'), /LOGGING FOR: /, 'the Log for control shows the chosen day');
+  assert.equal(await page.evaluate(() => HWWhen.date()), y);
+  await page.click('[data-a="wa"][data-v="250"]');
+  const s = await state(page);
+  assert.ok(s.e.some(e => e.c === 'water' && e.d === y && +e.v === 250), 'saved under the chosen day');
+  assert.equal(s.e.filter(e => e.c === 'water' && e.d === ago(0)).length, 2, 'today is unchanged');
+  await page.click('[data-hww="now"]');
+  assert.equal(await page.evaluate(() => HWWhen.custom()), false, 'USE NOW goes back to today');
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('rewind: a date in the week header opens that day with a LOG panel; live-measured lanes are not offered; the future is not tappable', async () => {
+  const { page, ctx, errors } = await open();
+  const y = ago(3);
+  await page.click('[data-a="tmv"][data-v="d"]'); await page.click('[data-a="tmstep"][data-v="1"]');
+  await page.click('[data-a="tmv"][data-v="w"]');
+  const hd = page.locator('.tmdy[data-d="' + y + '"]');
+  if (await hd.count()) { await hd.click(); assert.match(await page.textContent('#tmlbl'), /\d/); }
+  else await page.click('[data-a="tmv"][data-v="d"]');
+  const keys = await page.$$eval('.tmlogp [data-k]', b => b.map(x => x.dataset.k));
+  assert.deepEqual(keys.sort(), ['bmi', 'food', 'sleep', 'stair', 'water']);
+  await page.click('.tmlogp [data-k="sleep"]');
+  assert.equal(await page.evaluate(() => HWWhen.custom()), true);
+  assert.equal(await page.evaluate(() => { HWWhen.setFor('2999-01-01', 'food'); return HWWhen.date() <= today(); }), true, 'a future day is refused');
+  assert.deepEqual(errors, []); await ctx.close();
+});

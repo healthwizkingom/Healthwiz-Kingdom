@@ -476,7 +476,7 @@ pages.campus=()=>page();
 PAR.campus='health';
 BN.campus=['🗺','Campus Health Observatory','The campus staircases, your climbs, the air outside.','rgba(92,192,90,.20)'];
 DIS.campus='Raised ground and building heights on the map are illustrative. Your position is shown on this screen only and is never saved or sent. '+DIS.stair; // the Stairs section: its pacing and heart-rate notice
-const door=()=>'<div class="card cmpdoor" id="cmp-door"><h3>'+ico('map')+' CAMPUS HEALTH OBSERVATORY</h3><p>See the campus staircases on a map, how each one was measured, and check the air before you go.</p><button type="button" data-a="cmpgo">OPEN THE OBSERVATORY</button></div>';
+const door=()=>'<div class="card cmpdoor" id="cmp-door"><h3>'+ico('map')+' CAMPUS HEALTH OBSERVATORY</h3><p>See the campus staircases on a map, how each one was measured, and check the air before you go.</p><button type="button" class="imgbtn ib-obs" data-a="cmpgo">OPEN THE OBSERVATORY</button></div>';
 {const p=pages.health;pages.health=function(){return p.apply(this,arguments)+door()}}
 HWEvents.on('page:viewed',e=>{if(e.view!=='campus'){meStop(true);ME.choose=false;ME.auto=false;unmount();ME.used=false;unmount3d();V.me=null;V.err='';V.gps='';fsClass()}});
 HWEvents.on('data:reset',()=>{meStop(true);unmount();unmount3d();V.sid=V.grp=null;V.cam=null;V.me=null;try{sessionStorage.removeItem(VK)}catch(e){}});

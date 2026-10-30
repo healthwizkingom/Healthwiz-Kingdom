@@ -130,7 +130,7 @@ function wrap(k){const p=pages[k];if(!p)return;pages[k]=function(){let h=p.apply
    where all of them still are. The Hero card and the Kingdom map stay, as one-line rows that open (same cards, same ids). */
 function questCard(d){const n=QD(d).filter(q=>q.p>=1).length;
   return '<div class="card hmq" id="hmq"><h3>'+ico('quest')+' TODAY\'S QUESTS <b class="big">'+n+'/5</b></h3>'+bar(n/5*100,'var(--gold)')
-    +'<button class="g" data-a="go" data-v="quests" style="width:100%;margin-top:8px">OPEN THE QUEST BOARD</button><span class="gtag">🎮 GAME QUESTS · NOT A HEALTH MEASUREMENT</span></div>'}
+    +'<button class="g imgbtn ib-quests" data-a="go" data-v="quests" style="margin-top:8px">OPEN THE QUEST BOARD</button><span class="gtag">🎮 GAME QUESTS · NOT A HEALTH MEASUREMENT</span></div>'}
 function shortHome(h){const t=document.createElement('template');t.innerHTML=h;const C=t.content,q=s=>C.querySelector(s);
   ['#advq','#v6q1','#dsum','h2.sec'].forEach(s=>{const e=q(s);if(e)e.remove()});
   C.querySelectorAll('.card').forEach(c=>{const h3=c.querySelector(':scope>h3');if(h3&&/QUEST PROGRESS/.test(h3.textContent))c.remove()});
@@ -184,4 +184,11 @@ HWUI.css('hallgrid',`
 #hub.hub .hb .bi{display:flex;justify-content:center;width:100%}
 #hub.hub .hb b,#hub.hub .hb small,#hub.hub .hb em,#hub.hub .hb .hwa{text-align:center;width:100%}
 @media(min-width:600px){#hub.hub{grid-template-columns:repeat(4,minmax(0,1fr))}}
+`);
+/* The header's "HEALTHWIZ" text is the game logo (assets/img/logo.webp); the words stay in the page for screen readers and copy. */
+HWUI.css('hwlogo',`
+html header h1.hwlogo,html .hbar h1.hwlogo{margin:0;line-height:0;font-size:0;text-shadow:none;background:none;-webkit-text-fill-color:initial}
+.hwlogo img{display:block;height:30px;width:auto;max-width:100%;image-rendering:auto}
+.hwlogo .sr{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.hbar .hwlogo img{height:44px}
 `);

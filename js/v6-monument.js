@@ -136,7 +136,7 @@ function door(){let stat='';
     :'<p class="mndstat mut">No climbs logged yet: your first one lays the first stone.</p>'}catch(e){}
   return '<div class="card mndoor" id="mn-door">'+doorArt()+'<div class="mndtx"><h3>'+ico('tower')+' THE ASCENT MONUMENT</h3><p class="mntag">Every climb builds your legacy.</p>'
     +'<p>Every staircase you conquer adds to your monument. Watch your accumulated ascent become something extraordinary.</p>'+stat
-    +'<button type="button" data-a="mngo">ENTER MY MONUMENT</button></div></div>'}
+    +'<button type="button" class="imgbtn ib-monument" data-a="mngo">ENTER MY MONUMENT</button></div></div>'}
 
 /* ---------- the to-scale view and the ladder (SVG) ---------- */
 const SIL={house:[[0,0],[0,.62],[.5,1],[1,.62],[1,0]],block:[[0,0],[0,1],[1,1],[1,0]],

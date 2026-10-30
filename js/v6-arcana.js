@@ -161,9 +161,13 @@ function ball(){
     x.putImageData(im,0,0);if(!still&&t-t0<REVEAL)ballRaf=requestAnimationFrame(draw)};
   const t0=performance.now();draw(t0)}
 
+/* Home: ONE card. Medius's notices (HWInsights, js/v6-insights.js: the #insh list keeps its id and rows) sit in a strip above the two
+   columns, and the potion and the crystal ball line up under one heading row, with their "more" panels on the same line at the bottom. */
 {const p=pages.home;pages.home=function(){const h=p.apply(this,arguments);if(!st.e.length)return h;   // a new player's Home stays short: the table appears with the first log
-  const c='<div class="card arc-home" id="arc-home"><h3>'+ico('wizard')+' THE ORACLE’S TABLE</h3><div class="arc-hg">'+elemCard()+oracle()+'</div></div>',k='<div class="card hmq" id="hmq">',i=h.indexOf(k);
-  return i<0?h+c:h.slice(0,i)+c+h.slice(i)}}
+  const t=document.createElement('template');t.innerHTML=h;const n=t.content.querySelector('#insh');let mn='';
+  if(n){mn='<div class="arc-mn" id="insh">'+n.innerHTML.replace('<h3>','<h4>').replace('</h3>','</h4>')+'</div>';n.remove()}
+  const c='<div class="card arc-home" id="arc-home"><h3>'+ico('wizard')+' THE ORACLE’S TABLE</h3>'+mn+'<div class="arc-hg">'+elemCard()+oracle()+'</div></div>',k='<div class="card hmq" id="hmq">',h2=t.innerHTML,i=h2.indexOf(k);
+  return i<0?h2+c:h2.slice(0,i)+c+h2.slice(i)}}
 
 /* =====================================================================================================================
    2. THE GUILD WAR OF JOULES (Training Hall)

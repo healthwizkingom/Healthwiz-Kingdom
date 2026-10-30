@@ -10,7 +10,11 @@
      where the number came from (entered by you, a GPS check-in, a device, a camera estimate, a GPS run).
    * COMPARE puts the period beside the one before it: days logged and the average on logged days, per lane, with the note
      that a difference does not show its cause.
-   * Markers pop in (CSS); nothing moves with reduced motion or the Performance mode. Reads only: nothing is written. */
+   * Markers pop in (CSS); nothing moves with reduced motion or the Performance mode.
+   * Rewind and fill in: a "not logged" cell (and the LOG panel under a day) opens the matching page already set to "logging for"
+     that day (HWWhen.setFor, js/v6-when.js), so the entry is saved under that date by the normal form. Only lanes that can be
+     backdated have it (BK below: water, food, sleep, stairs, BMI); heart rate, runs, workouts and the stress quest are
+     measured live and stay "not logged". The Time Machine itself writes nothing. */
 const HWTime=(()=>{
 const ico=(n,s)=>HWPixel.icon(n,s||1);
 const two=n=>String(n).padStart(2,'0'),DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -47,6 +51,8 @@ function hrs(d){const L=A('pulse',d).filter(e=>e.m&&e.m.when).map(e=>({t:e.t,v:+
   stairOn(d).forEach(s=>{if(s.hrB)L.push({t:s.t,v:s.hrB,w:'before stairs',s:s.dev&&s.dev.b?'from a device':'entered by you'});if(s.hrA)L.push({t:s.t,v:s.hrA,w:'after stairs',s:s.dev&&s.dev.a?'from a device':'entered by you'})});
   return L.filter(x=>x.v>=30&&x.v<=220)}
 
+const BK={water:'water',food:'food',sleep:'sleep',stair:'stair',bmi:'body'};   // lanes that can be logged for an earlier day → the page that logs them
+
 /* ---------- periods ---------- */
 const T=()=>S.tm||(S.tm={v:'w',off:0,sel:null,cmp:0});
 function first(){let f=today();(st.e||[]).forEach(e=>{if(e.d&&e.d<f)f=e.d});Object.keys(st.en||{}).forEach(k=>{if(/^\d{4}-\d\d-\d\d$/.test(k)&&k<f)f=k});
@@ -65,19 +71,23 @@ function label(v,P){if(v==='d')return nice(P[0]);if(v==='w')return nice(P[0])+' 
 
 /* ---------- the views ---------- */
 const pct=t=>{const m=/^(\d\d?):(\d\d)/.exec(t||'');return m?((+m[1]*60+ +m[2])/1440*100).toFixed(2):null};
+/** the "fill this day in" panel under a day: one button per lane that can be logged for an earlier day */
+function logPanel(d){if(d>today())return'';
+  return '<div class="tmlogp" role="group" aria-label="Log for '+esc(nice(d))+'"><b>LOG FOR '+esc(nice(d)).toUpperCase()+'</b><small class="mut">Opens the usual page set to this day. Heart rate, runs and workouts are measured live, so they cannot be added later.</small><div class="row">'
+    +LANES.filter(L=>BK[L.k]).map(L=>'<button type="button" class="g sm" data-a="tmlog" data-d="'+d+'" data-k="'+L.k+'">'+ico(L.i)+' '+L.n.toUpperCase()+'</button>').join('')+'</div></div>'}
 function dayView(d){const has=LANES.filter(L=>L.items(d).length);
-  if(!has.length)return '<div class="tmempty tmnone">'+ico('alarm',3)+'<b>Nothing was saved on '+esc(nice(d))+'</b><span>Log water, food, sleep or a climb and it will appear here.</span></div>';
+  if(!has.length)return '<div class="tmempty tmnone">'+ico('alarm',3)+'<b>Nothing was saved on '+esc(nice(d))+'</b><span>Log water, food, sleep or a climb and it will appear here.</span></div>'+logPanel(d);
   return '<div class="tmaxis" aria-hidden="true"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>'
     +has.map(L=>{const I=L.items(d);let n=0;
       return '<div class="tmlane"><span class="tmln">'+ico(L.i)+' '+L.n+'</span><div class="tmtrack">'
         +I.map(x=>{const p=pct(x.t);return p==null?'':'<button type="button" class="tmk tm-'+L.k+'" style="left:'+p+'%;animation-delay:'+(n++*40)+'ms" data-a="tmsel" data-d="'+d+'" data-k="'+L.k+'" aria-label="'+L.n+' at '+esc(x.t)+': '+esc(x.txt.replace(/<[^>]+>/g,''))+'"></button>'}).join('')
         +'</div></div>'}).join('')
-    +notLogged([d])}
+    +notLogged([d])+logPanel(d)}
 function gridView(P){const t=today(),has=LANES.filter(L=>P.some(d=>L.val(d)!=null));
   if(!has.length)return '<div class="tmempty tmnone">'+ico('alarm',3)+'<b>Nothing was saved in this period</b><span>Slide the time bar back, or log something today and come back.</span></div>';
-  const head='<div class="tmrow tmhead"><span class="tmln"></span>'+P.map(d=>'<span class="tmc'+(d===t?' now':'')+'">'+(P.length>7?D0(d).getDate():DN[D0(d).getDay()].slice(0,2))+'</span>').join('')+'</div>';
+  const head='<div class="tmrow tmhead"><span class="tmln"></span>'+P.map(d=>d>t?'<span class="tmc">'+(P.length>7?D0(d).getDate():DN[D0(d).getDay()].slice(0,2))+'</span>':'<button type="button" class="tmc tmdy'+(d===t?' now':'')+'" data-a="tmday" data-d="'+d+'" aria-label="Open '+esc(nice(d))+'">'+(P.length>7?D0(d).getDate():DN[D0(d).getDay()].slice(0,2))+'</button>').join('')+'</div>';
   return '<div class="tmgrid tm'+(P.length>7?'m':'w')+'" style="--n:'+P.length+'">'+head+has.map(L=>'<div class="tmrow"><span class="tmln">'+ico(L.i)+' '+L.n+'</span>'
-    +P.map((d,i)=>{const v=d>t?null:L.val(d);return v==null?'<span class="tmc tm0" title="'+(d>t?'Not yet':'Not logged')+'"></span>'
+    +P.map((d,i)=>{const v=d>t?null:L.val(d);return v==null?(d<=t&&BK[L.k]?'<button type="button" class="tmc tm0 tmadd" data-a="tmlog" data-d="'+d+'" data-k="'+L.k+'" aria-label="'+L.n+', '+esc(nice(d))+': not logged. Log it for this day">+</button>':'<span class="tmc tm0" title="'+(d>t?'Not yet':'Not logged')+'"></span>')
       :'<button type="button" class="tmc tmk tm-'+L.k+'" style="animation-delay:'+i*25+'ms" data-a="tmsel" data-d="'+d+'" data-k="'+L.k+'" aria-label="'+L.n+', '+esc(nice(d))+': '+esc(L.day(v))+'"></button>'}).join('')+'</div>').join('')+'</div>'
     +notLogged(P)}
 function notLogged(P){const t=today(),no=LANES.filter(L=>!P.some(d=>d<=t&&L.val(d)!=null));
@@ -120,6 +130,10 @@ acts.tmsel=d=>{const o=T();o.sel={d:d.d,k:d.k};const v=$('#tmview');if(v){v.inne
 acts.tmclose=()=>{const o=T();o.sel=null;const v=$('#tmview');if(v)v.innerHTML=view()};
 const PAGE={water:'food',food:'food',sleep:'sleep',stress:'stress',energy:'sleep',pulse:'pulse',stair:'stair',exercise:'exercise',run:'run',bmi:'body'};
 acts.tmgo=d=>go(PAGE[d.k]||'health');
+// rewind: open the page that logs lane k, set to "logging for" day d (the "Log for…" control shows it and USE NOW undoes it)
+acts.tmlog=d=>{const pg=BK[d.k];if(!pg||!/^\d{4}-\d\d-\d\d$/.test(d.d||'')||d.d>today())return;HWWhen.setFor(d.d,pg);go(pg);
+  if(d.d!==today())toast('Logging for '+HWWhen.label(d.d)+'. Tap USE NOW to log for today again.')};
+acts.tmday=d=>keep(()=>{const o=T(),t=today();if(!/^\d{4}-\d\d-\d\d$/.test(d.d||'')||d.d>t)return;o.v='d';o.off=Math.max(0,Math.round((D0(t)-D0(d.d))/864e5));o.sel=null});
 // the slider moves through time live; only the view and its label are redrawn, so the slider keeps focus
 document.addEventListener('input',e=>{const t=e.target;if(!t||t.id!=='tmscrub')return;const o=T(),mx=maxOff(o.v);o.off=Math.max(0,mx-(+t.value||0));o.sel=null;
   const P=period(o.v,o.off),l=$('#tmlbl'),v=$('#tmview');if(l)l.textContent=label(o.v,P);t.setAttribute('aria-valuetext',label(o.v,P));if(v)v.innerHTML=view()});
@@ -130,7 +144,7 @@ pages.time=()=>page();
 PAR.time='health';
 BN.time=['⏰','Health Time Machine','Travel back through what you saved.','rgba(99,230,220,.20)'];
 DIS.time='Only records you saved are shown. A missing day is not logged, not zero. Timing alone does not show cause.';
-const door=()=>'<div class="card tmdoor" id="tm-door"><h3>'+ico('alarm')+' HEALTH TIME MACHINE</h3><p>Slide back through your days, weeks and months, and see everything you saved side by side.</p><button type="button" data-a="tmgo0">OPEN THE TIME MACHINE</button></div>';
+const door=()=>'<div class="card tmdoor" id="tm-door"><h3>'+ico('alarm')+' HEALTH TIME MACHINE</h3><p>Slide back through your days, weeks and months, and see everything you saved side by side.</p><button type="button" class="imgbtn ib-time" data-a="tmgo0">OPEN THE TIME MACHINE</button></div>';
 {const p=pages.stats;pages.stats=function(){return door()+p.apply(this,arguments)}}
 
 HWUI.css('time',`
@@ -156,6 +170,10 @@ html.hw-rm .tmk,html.hw-q-performance .tmk{animation:none}@media(prefers-reduced
 .tm0{border:1px dashed var(--edge,var(--ln));opacity:.5}.tmw .tmc{height:32px;min-height:32px}
 .tmdet{border:1px solid var(--edge,var(--ln));border-radius:12px;padding:10px;margin:8px 0;background:var(--p2)}.tmdet ul{margin:6px 0;padding-left:18px}.tmdet li{margin:3px 0;overflow-wrap:anywhere}
 .tmt{font-variant-numeric:tabular-nums}.tmdet button{min-height:44px}
+.tm0.tmadd{display:block;width:100%;padding:0;font:700 14px/22px var(--fb);color:var(--mut);background:transparent;cursor:pointer;opacity:.8;min-height:24px}
+.tm0.tmadd:hover,.tm0.tmadd:focus-visible{opacity:1;border-style:solid;color:var(--gold)}.tmw .tm0.tmadd{line-height:30px}
+.tmhead .tmdy{background:none;border:0;box-shadow:none;color:inherit;font:inherit;cursor:pointer;text-decoration:underline dotted}
+.tmlogp{margin:10px 0;padding:10px;border:1px dashed var(--edge,var(--ln));border-radius:12px}.tmlogp b{display:block;margin-bottom:2px}.tmlogp small{display:block;margin-bottom:6px}.tmlogp button{min-height:44px}
 .tmcmp{width:100%;border-collapse:collapse;margin-top:8px}.tmcmp th,.tmcmp td{border-top:1px solid var(--edge,var(--ln));padding:6px 4px;text-align:left;vertical-align:top}.tmcmp caption{text-align:left;color:var(--mut);font-size:13px}
 .tmcmp th svg{vertical-align:-3px}
 `);

@@ -47,11 +47,15 @@ HWUI.css('arcana',`
 .arc-srv .row{gap:8px}
 @media(prefers-reduced-motion:reduce){.liquid-fill,.scale-beam{transition:none}.arc-ball{filter:none}}
 
-.arc-hg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
-@media(max-width:340px){.arc-hg{grid-template-columns:minmax(0,1fr)}}
+.arc-hg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:stretch}
+@media(max-width:560px){.arc-hg{grid-template-columns:minmax(0,1fr)}}
 .arc-hg h4{margin:0 0 8px;font:700 14px var(--fl);color:var(--gold)}
-.arc-hg .arc-pot{flex-direction:column;align-items:flex-start;gap:8px}
-.arc-orc{display:flex;flex-direction:column;align-items:center;text-align:center}.arc-orc .arc-more,.arc-orc .arc-warn{text-align:left;align-self:stretch}
+.arc-hg>div{display:flex;flex-direction:column;align-items:flex-start;text-align:left;min-width:0;padding:10px;border:2px solid var(--ln);background:var(--p2)}
+.arc-hg .arc-pot{flex-direction:row;align-items:center;gap:12px;min-height:96px}
+.arc-hg .arc-orbw{align-self:flex-start}
+.arc-hg .arc-more{margin-top:auto;align-self:stretch;background:var(--pn)}.arc-hg .arc-sc,.arc-hg>div>p{margin-bottom:8px}
+.arc-orc .arc-more,.arc-orc .arc-warn{text-align:left;align-self:stretch}
+.arc-mn{margin:0 0 12px}.arc-mn h4{margin:0 0 8px;font:700 14px var(--fl);color:var(--gold)}.arc-mn .aq{margin-bottom:6px}
 .arc-sc{margin:4px 0}.arc-sc .big{font:700 32px var(--fn);font-variant-numeric:tabular-nums}
 .arc-more{margin-top:8px;border:2px solid var(--ln);background:var(--p2)}.arc-more>summary{min-height:44px;display:flex;align-items:center;padding:0 10px;cursor:pointer;font:600 13px var(--fn)}
 .arc-more>*:not(summary){margin-left:10px;margin-right:10px}.arc-more[open]{padding-bottom:8px}

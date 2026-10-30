@@ -218,7 +218,7 @@ PAR.lab='health';
 BN.lab=['🧪','Science Laboratory','Ask a question. Test it with your own data.','rgba(139,92,240,.24)'];
 DIS.lab='The Laboratory uses your own entries and, where shown, the Group 14 study data. Results describe patterns, never causes, diagnoses or medical advice. HealthWiz is a wellness tracker, not a medical device.';
 {const r=render;render=function(){const x=r.apply(this,arguments);if(S.v==='lab')try{startScene()}catch(e){}return x}}
-const door=()=>'<div class="card labdoor" id="lab-door"><h3>'+ico('flask')+' SCIENCE LABORATORY</h3><p>Test your own questions with your logs, try the Evidence Trial, open the Evidence Vault, and see how sure each estimate is.</p><button type="button" data-a="labgo">ENTER THE LABORATORY</button></div>';
+const door=()=>'<div class="card labdoor" id="lab-door"><h3>'+ico('flask')+' SCIENCE LABORATORY</h3><p>Test your own questions with your logs, try the Evidence Trial, open the Evidence Vault, and see how sure each estimate is.</p><button type="button" class="imgbtn ib-lab" data-a="labgo">ENTER THE LABORATORY</button></div>';
 {const p=pages.health;pages.health=function(){return p.apply(this,arguments)+door()}}
 HWEvents.on('data:reset',()=>{Z=Z0()});HWEvents.on('data:imported',()=>{Z.from=null});
 
