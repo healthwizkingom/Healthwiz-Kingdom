@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HealthWiz Kingdom Trailer</title>
+<!-- 30-second looping booth trailer. Every picture is existing app art from ../assets/img/: swap any slot by changing the
+     src / background of the element whose id starts with "asset-". Keys: Space pause, F full screen, M music, R restart,
+     1-7 jump to a scene. URL: ?t=13 starts at 13 s, ?debug shows the timecode. Notes: trailer/README.md -->
+<link rel="stylesheet" href="trailer.css">
+</head>
+<body>
+<div id="stage" aria-label="HealthWiz Kingdom showcase trailer">
+
+  <!-- The camera: TrailerDirector moves only this wrapper (scale + translate); the scenes below never move as a whole. -->
+  <div id="trailer-viewport">
+
+    <!-- [0:00-0:04] SCENE 1: The Awakening -->
+    <section class="scene" id="scene-awakening" data-scene="1">
+      <div id="asset-campus-map" class="map" role="img" aria-label="Campus map (illustrative)">
+        <!-- Placeholder map: replace with <img src="your-campus-map.webp"> of the same size (2400 x 1080) if you have one. -->
+        <svg class="map-roads" viewBox="0 0 2400 1080" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M-20 820 C 400 760, 640 900, 980 780 S 1600 560, 2420 640"/>
+          <path d="M420 -20 C 520 300, 380 520, 560 1100"/>
+          <path d="M1220 -20 C 1180 260, 1340 420, 1300 1100"/>
+          <path d="M1700 1100 C 1760 800, 1960 600, 2420 420"/>
+          <path class="river" d="M-20 300 C 300 360, 700 200, 1100 300 S 1800 180, 2420 260"/>
+        </svg>
+        <!-- Pins: real staircase IDs from data/stair-survey.json; positions on this placeholder map are illustrative. -->
+        <div class="pin" style="--x:520px;--y:610px;--d:0"><i></i><b>ST03</b></div>
+        <div class="pin" style="--x:860px;--y:420px;--d:1"><i></i><b>ST14</b></div>
+        <div class="pin" style="--x:1180px;--y:690px;--d:2"><i></i><b>ST19</b></div>
+        <div class="pin" id="pin-hero" style="--x:1500px;--y:470px;--d:3"><i></i><b>ST20</b></div>
+        <div class="pin" style="--x:1820px;--y:740px;--d:4"><i></i><b>ST22</b></div>
+        <div class="pin" style="--x:2060px;--y:380px;--d:5"><i></i><b>ST27</b></div>
+      </div>
+      <div class="orb-wrap">
+        <div id="asset-health-orb" class="orb"><span></span></div>
+        <div class="shards" aria-hidden="true">
+          <i style="--r:-140deg;--dx:-520px;--dy:-300px"></i><i style="--r:90deg;--dx:-120px;--dy:-460px"></i>
+          <i style="--r:210deg;--dx:380px;--dy:-380px"></i><i style="--r:-60deg;--dx:560px;--dy:40px"></i>
+          <i style="--r:160deg;--dx:300px;--dy:420px"></i><i style="--r:-200deg;--dx:-260px;--dy:460px"></i>
+          <i style="--r:40deg;--dx:-600px;--dy:120px"></i><i style="--r:-110deg;--dx:40px;--dy:520px"></i>
+        </div>
+      </div>
+      <h2 class="title-card" style="--tx:1200px;--ty:150px">THE KINGDOM AWAKENS</h2>
+    </section>
+
+    <!-- [0:04-0:08] SCENE 2: The Council of Guides -->
+    <section class="scene" id="scene-council" data-scene="2">
+      <div class="council-sky"></div>
+      <article class="scroll" style="--d:0">
+        <div class="rod"></div>
+        <div class="paper">
+          <div id="asset-medius" class="guide guide-medius" role="img" aria-label="Medius the Wizard"></div>
+          <h3>MEDIUS</h3><p class="role">The Wizard</p>
+          <p class="dialogue" data-type="Every step you climb is a spell cast for your heart."></p>
+        </div>
+        <div class="rod rod-b"></div>
+      </article>
+      <article class="scroll" style="--d:1">
+        <div class="rod"></div>
+        <div class="paper">
+          <div id="asset-luna" class="guide guide-luna" role="img" aria-label="Luna the Apprentice"></div>
+          <h3>LUNA</h3><p class="role">The Apprentice</p>
+          <p class="dialogue" data-type="I measured the stairs. Shall we test them together?"></p>
+        </div>
+        <div class="rod rod-b"></div>
+      </article>
+      <article class="scroll" style="--d:2">
+        <div class="rod"></div>
+        <div class="paper">
+          <div id="asset-luke" class="guide guide-luke" role="img" aria-label="Luke the Food Guide"></div>
+          <h3>LUKE</h3><p class="role">The Food Guide</p>
+          <p class="dialogue" data-type="Tell me what you ate. I will count the kcal for you."></p>
+        </div>
+        <div class="rod rod-b"></div>
+      </article>
+      <h2 class="title-card" style="--tx:960px;--ty:86px">THE COUNCIL OF GUIDES</h2>
+    </section>
+
+    <!-- [0:08-0:13] SCENE 3: The Ascent -->
+    <section class="scene" id="scene-ascent" data-scene="3">
+      <div id="asset-staircase" class="stair-bg" role="img" aria-label="Staircase"></div>
+      <div id="asset-ghost-pacer" class="pacer" aria-hidden="true"><i></i></div>
+      <div id="asset-stair-panel" class="panel panel-left">
+        <h4>STAIR DETAILS</h4>
+        <p class="pname">Staircase A (Generator Stairs) &middot; ST20</p>
+        <dl>
+          <dt>Step rise</dt><dd>0.169 m</dd>
+          <dt>Step run</dt><dd>0.311 m</dd>
+          <dt>Angle</dt><dd class="big">28.52&deg;</dd>
+        </dl>
+        <p class="method">&theta; = atan(rise &divide; run) = atan(0.169 &divide; 0.311). Measured with a tape, mean of 5 steps (F21 report).</p>
+      </div>
+      <div id="asset-pace-breath" class="pace" aria-label="Pace and breath">
+        <span>PACE &amp; BREATH</span>
+        <div class="breath"><i></i></div>
+        <em>step in &middot; 2 &middot; breathe out &middot; 2</em>
+      </div>
+      <div id="asset-workout-panel" class="panel panel-right">
+        <h4>WORKOUT</h4>
+        <svg class="hr-chart" viewBox="0 0 520 220" aria-label="Heart-rate line (illustrative)">
+          <g class="grid"><path d="M0 55H520M0 110H520M0 165H520"/></g>
+          <polyline class="hr-line" pathLength="1" points="0,170 40,168 80,160 110,150 140,128 170,112 200,92 230,80 260,64 290,56 320,52 350,60 380,84 410,110 440,130 470,144 520,152"/>
+        </svg>
+        <p class="method">Heart-rate line: illustrative shape, not a recording.</p>
+      </div>
+      <h2 class="title-card" style="--tx:960px;--ty:86px">THE ASCENT</h2>
+    </section>
+
+    <!-- [0:13-0:17] SCENE 4: The Elixir & The Feast -->
+    <section class="scene" id="scene-feast" data-scene="4">
+      <div class="feast-left">
+        <div id="asset-water-well" class="well" role="img" aria-label="Water well"></div>
+        <div class="vial" aria-label="Water vial"><div class="liquid"></div><b>WATER</b></div>
+      </div>
+      <div id="asset-food-menu" class="menu">
+        <h4>THE FEAST</h4>
+        <div class="menu-window">
+          <!-- Items, portions and kcal from the app's food list (js/hw-01-menu-data.js); kJ = kcal x 4.184. -->
+          <ul class="menu-list">
+            <li><span>Nasi Putih</span><small>200 g</small><b>260 kcal</b></li>
+            <li><span>Ayam Masak Kari</span><small>145 g</small><b>225 kcal</b></li>
+            <li><span>Ikan Kembung Goreng</span><small>100 g</small><b>190 kcal</b></li>
+            <li><span>Air Kosong</span><small>250 ml</small><b>0 kcal</b></li>
+            <li><span>Telur Dadar</span><small>70 g</small><b>150 kcal</b></li>
+            <li><span>Epal Merah</span><small>130 g</small><b>70 kcal</b></li>
+            <li><span>Nasi Putih</span><small>200 g</small><b>260 kcal</b></li>
+            <li><span>Ayam Masak Kari</span><small>145 g</small><b>225 kcal</b></li>
+            <li><span>Ikan Kembung Goreng</span><small>100 g</small><b>190 kcal</b></li>
+            <li><span>Air Kosong</span><small>250 ml</small><b>0 kcal</b></li>
+          </ul>
+        </div>
+        <div class="macro-float" aria-hidden="true">
+          <i style="--x:40px;--d:0">1088 kJ</i><i style="--x:220px;--d:1">260 kcal</i><i style="--x:400px;--d:2">941 kJ</i>
+          <i style="--x:120px;--d:3">225 kcal</i><i style="--x:330px;--d:4">795 kJ</i><i style="--x:470px;--d:5">0 kcal</i>
+        </div>
+      </div>
+      <h2 class="title-card" style="--tx:960px;--ty:86px">THE ELIXIR &amp; THE FEAST</h2>
+    </section>
+
+    <!-- [0:17-0:23] SCENE 5: The Duel -->
+    <section class="scene" id="scene-duel" data-scene="5">
+      <div class="arena"><div class="arena-moon"></div><div class="arena-ground"></div></div>
+      <div id="asset-knight" class="knight" role="img" aria-label="The Knight"></div>
+      <div id="asset-ogre" class="ogre" role="img" aria-label="The Ogre"></div>
+      <div class="impact" aria-hidden="true"></div>
+      <div class="loot" aria-hidden="true"></div>
+      <div class="battle-text">
+        <p class="bt bt-xp">+50 XP <small>game reward</small></p>
+        <p class="bt bt-work">Physical work: W = mgh<small>e.g. 60 kg &times; 9.81 m/s&sup2; &times; 3.0 m = 1766 J</small></p>
+        <p class="bt bt-win">VICTORY!</p>
+      </div>
+      <h2 class="title-card" style="--tx:960px;--ty:86px">THE DUEL</h2>
+    </section>
+
+    <!-- [0:23-0:27] SCENE 6: The Final Score -->
+    <section class="scene" id="scene-score" data-scene="6">
+      <div class="galaxy" aria-hidden="true"></div>
+      <div id="asset-health-score" class="gauge">
+        <svg viewBox="0 0 400 400" aria-hidden="true">
+          <defs>
+            <linearGradient id="fire" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4ef0ff"/><stop offset="1" stop-color="#5cff9a"/></linearGradient>
+          </defs>
+          <circle class="ring-bg" cx="200" cy="200" r="160"/>
+          <circle class="ring" cx="200" cy="200" r="160" pathLength="100"/>
+        </svg>
+        <div class="gauge-read">
+          <span class="score-label">HEALTH SCORE</span>
+          <b class="score-num">0</b>
+          <span class="score-tag">Excellent</span>
+          <span class="demo-tag">Demo profile</span>
+        </div>
+      </div>
+      <div id="asset-medius-nod" class="medius-nod" role="img" aria-label="Medius nodding"></div>
+    </section>
+
+    <!-- [0:27-0:30] SCENE 7: The Loop -->
+    <section class="scene" id="scene-outro" data-scene="7">
+      <img id="asset-logo" class="logo" src="../assets/img/logo.webp" alt="HealthWiz Kingdom">
+      <p class="tagline">Your Health, Your Quest.</p>
+      <div class="outro-orb orb"><span></span></div>
+    </section>
+  </div>
+
+  <!-- Screen-space effects: never moved by the camera. -->
+  <div id="fx">
+    <div class="embers" aria-hidden="true"></div>
+    <div class="fx-wind"></div>
+    <div class="fx-rune"></div>
+    <div class="fx-splash"></div>
+    <div class="fx-slash"></div>
+    <div class="fx-flash"></div>
+    <div class="fx-gold"></div>
+    <div class="fx-black"></div>
+    <div class="vignette"></div>
+  </div>
+  <div id="timecode" hidden></div>
+</div>
+<audio id="music" src="../assets/audio/home-theme.mp3" loop preload="none"></audio>
+<script src="trailer.js"></script>
+</body>
+</html>
