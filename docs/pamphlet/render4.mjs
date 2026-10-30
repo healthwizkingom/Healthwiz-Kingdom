@@ -5,7 +5,7 @@ const { chromium } = createRequire(import.meta.url)('playwright');
 import { fileURLToPath } from 'url'; import path from 'path';
 const here = path.dirname(fileURLToPath(import.meta.url)); const out = process.argv[2] || here;
 const url = 'file://' + path.join(here, 'pamphlet4.html');
-const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1123, height: 794 }, deviceScaleFactor: 2 });
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1123, height: 794 }, deviceScaleFactor: 3 });
 await p.goto(url); await p.evaluate(() => document.fonts.ready); await p.waitForTimeout(500);
 console.table(await p.evaluate(() => [...document.querySelectorAll('.panel')].map((el, i) => { const top = el.getBoundingClientRect().top; let bottom = 0;
   el.querySelectorAll('*').forEach(c => { if (getComputedStyle(c).position === 'absolute' && !c.closest('.hd')) return; bottom = Math.max(bottom, c.getBoundingClientRect().bottom - top); });
