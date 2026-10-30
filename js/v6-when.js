@@ -113,4 +113,6 @@ HWUI.css('when',`
 .hwwn{min-height:1.3em;margin:0 0 6px;font-size:12px;color:var(--red)}.hwwh{margin:0 0 8px;font-size:12px;color:var(--mut)}
 .hwwe{margin:0 0 8px}.hwwe>b{display:block;font:12px/1.6 var(--fl);margin-bottom:4px}
 `);
-return{html,stamp,saved,custom,date,time,reset,label:lab,future}})();
+/** Start "logging for" a past day on page v (used by the Time Machine): same state the "Log for…" panel makes, so USE NOW undoes it. */
+function setFor(d,v){X.grp=grpOf(v);X.open='';X.t=null;X.tm=0;setDate(d)}
+return{html,stamp,saved,custom,date,time,reset,label:lab,future,setFor}})();
