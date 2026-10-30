@@ -85,7 +85,12 @@
   const del = (sel, cls) => $$(sel).forEach(el => el.classList.remove(cls));
   const scene = n => {
     $$('.scene').forEach(s => s.classList.toggle('scene-active', s.dataset.scene === String(n)));
+    del('.thread path', 'animate-in');
   };
+  const PUNCH = 'cubic-bezier(.2,.9,.3,1)';   // quick camera punch-in, the inner beats between scene cuts
+  const thread = n => { const p = $('.thread-' + n); p.classList.remove('animate-in'); void p.getBoundingClientRect(); p.classList.add('animate-in'); };
+  const focusScroll = (i, x) => { $$('.scroll').forEach((s, k) => s.classList.toggle('is-focus', k === i)); camera(x, 560, 1.06, 0.45, PUNCH); };
+  const word = i => $$('.tagline span')[i].classList.add('animate-in');
   const fx = (sel, d, ms) => { const el = $(sel); el.classList.remove('animate-in'); void el.offsetWidth; el.classList.add('animate-in'); d.after(ms || 1200, () => el.classList.remove('animate-in')); };
   function typewrite(d, el, cps) {
     const text = el.dataset.type; let i = 0;
@@ -101,72 +106,88 @@
     // [0:00-0:04] SCENE 1: The Awakening. Orb drops, shatters, the camera pulls back and pans across the map, then dives into a pin.
     { t: 0.00, fn: d => { scene(1); camera(960, 540, 2.2, 0); add('#asset-health-orb'); } },
     { t: 0.85, fn: d => { add('#asset-health-orb', 'is-shatter'); add('.shards', 'is-shatter'); fx('.fx-flash', d, 700); add('#asset-campus-map'); camera(1000, 540, 1, 1.5, 'cubic-bezier(.2,.8,.2,1)'); } },
-    { t: 1.10, fn: () => add('.pin') },
+    { t: 1.10, fn: () => { add('.pin'); thread(1); } },
     { t: 1.40, fn: () => add('#scene-awakening .title-card') },
     { t: 2.30, fn: () => camera(1360, 540, 1, 1.0) },               // pan right
     { t: 2.70, fn: () => add('#pin-hero', 'is-glow') },
-    { t: 3.20, fn: () => camera(1500, 440, 5, 0.75, 'cubic-bezier(.6,0,.9,.4)') },   // magical glide into the pin
+    { t: 3.20, fn: () => camera(1500, 440, 5, 0.75, 'cubic-bezier(.6,0,.9,.4)') },   // the pin carries the cut
     { t: 3.70, fn: d => fx('.fx-rune', d, 800) },
 
-    // [0:04-0:08] SCENE 2: The Council of Guides. Three scrolls unfurl, dialogue types out together, Luna's green wind wipes.
+    // [0:04-0:08] SCENE 2: The Council of Guides. Scrolls unfurl, guides squash in, dialogue types together; a beat on each guide.
     { t: 4.00, fn: () => { scene(2); camera(960, 560, 1.12, 0); add('.scroll'); } },
-    { t: 4.05, fn: () => camera(960, 540, 1, 3.6, 'ease-out') },
-    { t: 4.30, fn: () => add('#scene-council .title-card') },
+    { t: 4.05, fn: () => camera(960, 540, 1, 0.9, 'ease-out') },
+    { t: 4.30, fn: () => { add('#scene-council .title-card'); thread(2); } },
     { t: 4.90, fn: d => $$('.dialogue').forEach(el => typewrite(d, el, 26)) },
+    { t: 5.10, fn: () => focusScroll(0, 830) },
+    { t: 5.90, fn: () => focusScroll(1, 960) },
+    { t: 6.70, fn: () => focusScroll(2, 1090) },
+    { t: 7.20, fn: () => { del('.scroll', 'is-focus'); camera(960, 540, 1, 0.4); } },
     { t: 7.40, fn: d => fx('.fx-wind', d, 1100) },
 
-    // [0:08-0:13] SCENE 3: The Ascent. Stair Details slides in, the ghost pacer climbs, the Workout chart draws; heartbeat into a splash.
-    { t: 8.00, fn: () => { scene(3); camera(960, 600, 1.12, 0); add('#asset-staircase'); } },
-    { t: 8.05, fn: () => camera(960, 470, 1.12, 4.6, 'linear') },    // slow tilt upward with the pacer
-    { t: 8.20, fn: () => add('#scene-ascent .title-card') },
-    { t: 8.40, fn: () => add('#asset-stair-panel') },
+    // [0:08-0:13] SCENE 3: The Ascent. The staircase tilts past; glass panels; punch-ins on the angle and the chart.
+    { t: 8.00, fn: () => { scene(3); camera(960, 540, 1.05, 0); add('#asset-staircase'); } },
+    { t: 8.20, fn: () => { add('#scene-ascent .title-card'); thread(3); } },
+    { t: 8.40, fn: () => { add('#asset-stair-panel'); add('.ghost-left'); } },
     { t: 8.80, fn: () => { add('#asset-ghost-pacer'); add('#asset-pace-breath'); } },
-    { t: 9.40, fn: () => add('#asset-workout-panel') },
+    { t: 9.40, fn: () => { add('#asset-workout-panel'); add('.ghost-right'); } },
+    { t: 10.50, fn: () => camera(450, 430, 1.4, 0.5, PUNCH) },        // the 28.52 degree angle
+    { t: 11.30, fn: () => camera(1420, 700, 1.3, 0.5, PUNCH) },       // the heart-rate line
+    { t: 12.00, fn: () => camera(960, 540, 1.05, 0.3) },
     { t: 12.10, fn: d => { stage.classList.add('is-heartbeat'); d.after(820, () => stage.classList.remove('is-heartbeat')); } },
     { t: 12.50, fn: d => fx('.fx-splash', d, 1000) },
 
-    // [0:13-0:17] SCENE 4: The Elixir & The Feast. Water fills, the menu scrolls, kcal/kJ float off; a sword slash.
+    // [0:13-0:17] SCENE 4: The Elixir & The Feast. Pan well to menu, punch on the kcal; the menu divider charges and becomes the slash.
     { t: 13.00, fn: () => { scene(4); camera(780, 560, 1.25, 0); add('.vial'); } },
-    { t: 13.20, fn: () => camera(1150, 560, 1.25, 3.0) },          // horizontal pan, well to menu
+    { t: 13.20, fn: () => camera(1150, 560, 1.25, 2.0) },
     { t: 13.30, fn: () => add('#asset-food-menu') },
-    { t: 13.50, fn: () => add('#scene-feast .title-card') },
+    { t: 13.50, fn: () => { add('#scene-feast .title-card'); thread(4); } },
+    { t: 15.30, fn: () => camera(1560, 520, 1.5, 0.4, PUNCH) },
+    { t: 16.05, fn: () => { camera(1150, 560, 1.25, 0.3); add('.menu-divider', 'is-charge'); } },
     { t: 16.45, fn: d => fx('.fx-slash', d, 600) },
     { t: 16.70, fn: d => fx('.fx-flash', d, 700) },
 
-    // [0:17-0:23] SCENE 5: The Duel. Charge, jump, strike; the Ogre bursts into XP coins and runes that swirl into a golden galaxy.
+    // [0:17-0:23] SCENE 5: The Duel. Speed lines on the charge, a dutch tilt on the strike, a squash on landing; coins swirl to gold.
     { t: 17.00, fn: () => { scene(5); camera(960, 560, 1.1, 0); } },
-    { t: 17.20, fn: () => add('#scene-duel .title-card') },
-    { t: 17.60, fn: () => add('#asset-knight', 'is-charge') },
+    { t: 17.20, fn: () => { add('#scene-duel .title-card'); thread(5); } },
+    { t: 17.60, fn: () => { add('#asset-knight', 'is-charge'); add('.speedlines', 'is-on'); } },
     { t: 18.30, fn: () => add('#asset-knight', 'is-jump') },
-    { t: 18.85, fn: () => { add('.impact'); add('#asset-ogre', 'is-hit'); camera(1380, 520, 1.35, 0.25, 'ease-out'); } },
-    { t: 19.40, fn: () => { add('#asset-ogre', 'is-explode'); add('.loot', 'is-burst'); add('.bt-xp'); camera(960, 540, 1, 0.9, 'ease-out'); } },
+    { t: 18.85, fn: () => { add('.impact'); add('#asset-ogre', 'is-hit'); add('#scene-duel', 'is-tilt'); camera(1380, 520, 1.35, 0.25, 'ease-out'); } },
+    { t: 18.90, fn: () => add('#asset-knight', 'is-land') },
+    { t: 19.30, fn: () => del('.speedlines', 'is-on') },
+    { t: 19.40, fn: () => { del('#scene-duel', 'is-tilt'); add('#asset-ogre', 'is-explode'); add('.loot', 'is-burst'); add('.bt-xp'); camera(960, 540, 1, 0.9, 'ease-out'); } },
     { t: 19.90, fn: () => add('.bt-work') },
-    { t: 20.10, fn: () => { del('#asset-knight', 'is-jump'); add('#asset-knight', 'is-return'); } },
+    { t: 20.10, fn: () => { del('#asset-knight', 'is-jump'); del('#asset-knight', 'is-land'); add('#asset-knight', 'is-return'); } },
     { t: 20.50, fn: () => add('.bt-win') },
     { t: 21.80, fn: () => { add('.loot', 'is-swirl'); camera(960, 540, 1.6, 1.2, 'ease-in'); } },
     { t: 22.40, fn: d => fx('.fx-gold', d, 1100) },
 
-    // [0:23-0:27] SCENE 6: The Final Score. Zoom out of the galaxy to the gauge; 0 to 87; Medius nods; embers rise.
-    { t: 23.00, fn: () => { scene(6); camera(960, 540, 3, 0); } },
+    // [0:23-0:27] SCENE 6: The Final Score. The coin galaxy collapses into the gold score digits, which count 0 to 87.
+    { t: 23.00, fn: () => { scene(6); camera(960, 540, 3, 0); add('.score-num', 'is-gold'); } },
     { t: 23.05, fn: () => camera(960, 540, 1, 2, 'cubic-bezier(.2,.8,.2,1)') },
-    { t: 23.30, fn: () => add('#asset-health-score') },
+    { t: 23.30, fn: () => { add('#asset-health-score'); add('.galaxy', 'is-collapse'); thread(6); } },
     { t: 23.50, fn: () => add('.embers') },
     { t: 23.60, fn: d => {
         add('#asset-health-score', 'is-fill');
         const num = $('.score-num');
         d.tween(2.2, p => { num.textContent = String(Math.round(p * SCORE)); }, p => 1 - Math.pow(1 - p, 4));
       } },
-    { t: 24.60, fn: () => add('#asset-medius-nod') },
-    { t: 25.80, fn: () => { add('#asset-health-score', 'is-done'); add('#asset-medius-nod', 'is-nod'); } },
+    { t: 24.60, fn: () => { add('#asset-medius-nod'); del('.score-num', 'is-gold'); } },
+    { t: 25.00, fn: () => camera(960, 500, 1.12, 0.35, PUNCH) },
+    { t: 25.80, fn: () => { add('#asset-health-score', 'is-done'); add('#asset-medius-nod', 'is-nod'); camera(960, 540, 1, 0.6); } },
 
-    // [0:27-0:30] SCENE 7: The Loop. Fade to black, logo, tagline; the logo glows into the orb, which leaves the top of the
-    // frame, so the orb dropping in at 0:00 closes the loop.
+    // [0:27-0:30] SCENE 7: The Loop. Fade to black, logo; the logo glows into the orb, the tagline lands word by word beside it,
+    // then the orb leaves the top of the frame, so the orb dropping in at 0:00 closes the loop.
     { t: 27.00, fn: () => add('.fx-black') },
     { t: 27.80, fn: () => { scene(7); del('.embers', 'animate-in'); camera(960, 540, 1, 0); add('.fx-black', 'is-cut'); del('.fx-black', 'animate-in'); } },
-    { t: 27.85, fn: () => { del('.fx-black', 'is-cut'); add('#asset-logo'); add('.tagline'); } },
-    { t: 29.00, fn: () => add('#asset-logo', 'is-glow') },
-    { t: 29.30, fn: () => { add('.tagline', 'animate-out'); add('#asset-logo', 'is-morph'); add('.outro-orb'); } },
-    { t: 29.70, fn: () => add('.outro-orb', 'is-rise') },
+    { t: 27.85, fn: () => { del('.fx-black', 'is-cut'); add('#asset-logo'); thread(7); } },
+    { t: 28.50, fn: () => add('#asset-logo', 'is-glow') },
+    { t: 28.75, fn: () => { add('#asset-logo', 'is-morph'); add('.outro-orb'); } },
+    { t: 28.95, fn: () => add('.outro-orb', 'is-side') },
+    { t: 29.05, fn: () => word(0) },
+    { t: 29.20, fn: () => word(1) },
+    { t: 29.35, fn: () => word(2) },
+    { t: 29.50, fn: () => word(3) },
+    { t: 29.75, fn: () => { add('.tagline', 'animate-out'); del('.outro-orb', 'is-side'); add('.outro-orb', 'is-rise'); } },
   ];
   const SCORE = 87;   // demo profile value shown in the gauge; labelled "Demo profile" on screen
   const SCENES = [0, 4, 8, 13, 17, 23, 27].map((t, i) => ({ n: i + 1, t }));
@@ -185,6 +206,7 @@
     for (let k = 0; k < 70; k++) {
       const i = document.createElement('i');
       i.textContent = glyphs[k % glyphs.length];
+      if (k % 3 === 0) i.className = 'coin';   // the XP coins from the duel, orbiting with the digits
       i.style.cssText = `--a:${r() * 360}deg;--r:${120 + r() * 820}px;animation-duration:${4 + r() * 6}s`;
       galaxy.appendChild(i);
     }

@@ -83,6 +83,8 @@
     <section class="scene" id="scene-ascent" data-scene="3">
       <div id="asset-staircase" class="stair-bg" role="img" aria-label="Staircase"></div>
       <div id="asset-ghost-pacer" class="pacer" aria-hidden="true"><i></i></div>
+      <div class="panel-ghost ghost-left" aria-hidden="true"></div>
+      <div class="panel-ghost ghost-right" aria-hidden="true"></div>
       <div id="asset-stair-panel" class="panel panel-left">
         <h4>STAIR DETAILS</h4>
         <p class="pname">Staircase A (Generator Stairs) &middot; ST20</p>
@@ -117,6 +119,7 @@
       </div>
       <div id="asset-food-menu" class="menu">
         <h4>THE FEAST</h4>
+        <div class="menu-divider" aria-hidden="true"></div>
         <div class="menu-window">
           <!-- Items, portions and kcal from the app's food list (js/hw-01-menu-data.js); kJ = kcal x 4.184. -->
           <ul class="menu-list">
@@ -152,6 +155,8 @@
         <p class="bt bt-work">Physical work: W = mgh<small>e.g. 60 kg &times; 9.81 m/s&sup2; &times; 3.0 m = 1766 J</small></p>
         <p class="bt bt-win">VICTORY!</p>
       </div>
+      <div class="speedlines" aria-hidden="true"></div>
+      <div class="grain" aria-hidden="true"></div>
       <h2 class="title-card" style="--tx:960px;--ty:86px">THE DUEL</h2>
     </section>
 
@@ -179,13 +184,23 @@
     <!-- [0:27-0:30] SCENE 7: The Loop -->
     <section class="scene" id="scene-outro" data-scene="7">
       <img id="asset-logo" class="logo" src="../assets/img/logo.webp" alt="HealthWiz Kingdom">
-      <p class="tagline">Your Health, Your Quest.</p>
+      <p class="tagline"><span>Your</span> <span>Health,</span> <span>Your</span> <span>Quest.</span></p>
       <div class="outro-orb orb"><span></span></div>
     </section>
   </div>
 
   <!-- Screen-space effects: never moved by the camera. -->
   <div id="fx">
+    <!-- Luna's thread: one glowing line that runs through every scene (the recurring motif) -->
+    <svg class="thread" viewBox="0 0 1920 1080" aria-hidden="true">
+      <path class="thread-1" pathLength="1" d="M-40 980 C 300 900, 500 1040, 820 930 S 1000 640, 1100 470"/>
+      <path class="thread-2" pathLength="1" d="M-40 120 C 400 60, 700 160, 960 110 S 1500 60, 1960 130"/>
+      <path class="thread-3" pathLength="1" d="M200 1100 C 500 900, 700 800, 900 600 S 1200 200, 1400 -40"/>
+      <path class="thread-4" pathLength="1" d="M-40 1040 C 500 980, 800 1060, 1100 1000 S 1600 920, 1960 980"/>
+      <path class="thread-5" pathLength="1" d="M-40 860 C 400 820, 900 900, 1300 840 S 1700 800, 1960 850"/>
+      <path class="thread-6" pathLength="1" d="M1960 200 C 1500 100, 1100 160, 1250 400 S 1100 700, 960 540"/>
+      <path class="thread-7" pathLength="1" d="M-40 760 C 200 600, 380 820, 470 640 S 560 470, 580 487"/>
+    </svg>
     <div class="embers" aria-hidden="true"></div>
     <div class="fx-wind"></div>
     <div class="fx-rune"></div>

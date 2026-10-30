@@ -27,6 +27,17 @@ Open it from a web server at the repository root (it loads `../assets/`), for ex
 | 0:23-0:27 | The Final Score: the gauge counts 0 to 87, Medius nods, embers rise | `wiz.webp` |
 | 0:27-0:30 | The Loop: logo and tagline; the logo turns into the orb, which leaves the top of the frame so 0:00 picks it up | `logo.webp` |
 
+## Style notes (from the reference videos)
+
+- Every cut is carried by an object: the map pin (dive), the menu divider (it charges and becomes the sword slash), the XP
+  coins (they orbit with the digits and collapse into the gold score), the logo (it turns into the orb).
+- Glass panels in depth: Stair Details, Workout and the food menu are frosted, glow-edged and tilted, with a second panel behind.
+- One recurring motif: Luna's green thread (`.thread` in `#fx`) is drawn again at the start of every scene.
+- Squash and stretch: the three guides bounce in as their scrolls open; the knight squashes on landing.
+- Inner beats every 1.5-2 s: camera punch-ins on each guide, the 28.52 deg angle, the heart-rate line, the kcal column and the score.
+- The duel is the action peak: speed lines on the charge, film grain, a dutch tilt on the strike.
+- Outro: the tagline lands word by word beside the orb, then the orb leaves the frame.
+
 ## Data shown, and where it comes from
 
 - Staircase A (ST20): rise 0.169 m, run 0.311 m, angle 28.52 deg = atan(0.169 / 0.311), from the F21 report values the app
