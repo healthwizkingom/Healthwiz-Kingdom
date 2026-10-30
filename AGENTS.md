@@ -39,10 +39,11 @@ treating a failure as real.
 
 - No new runtime or npm dependencies. No emoji in the UI (`tests/30-emoji.test.mjs`).
 - Images: lossless WebP, no image over 100 KB (the Training Hall's `moves.webp`: 180 KB), all of `assets/img/`
-  (subfolders included) at most 1.125 MB, 1,179,648 bytes (`tests/24-performance.test.mjs`; the owner raised it from 680 KB to 740 KB for Luna's and the
+  (subfolders included) at most 1.5 MB, 1,572,864 bytes (`tests/24-performance.test.mjs`; the owner raised it from 680 KB to 740 KB for Luna's and the
   Science Laboratory's art, then to 880 KB for Luke (the Wannabe Wizard) and the room scenes, then to 1 MB for Luna's new
   21-figure design sheets, her things and the painted room that is now the Laboratory's background, then to 1.125 MB for
-  Luke's 22-figure design sheets and his painted room). Keep file names: they are listed in `sw.js` PRECACHE and embedded by the build.
+  Luke's 22-figure design sheets and his painted room, then to 1.5 MB for the game logo, the Health Hall card pictures, the image buttons
+  and Luke's tutorial faces: `tools/art/make_hall_art.py`). Keep file names: they are listed in `sw.js` PRECACHE and embedded by the build.
 - Visual style: modern pixel-art RPG, see `docs/PIXEL_STYLE.md`.
 - Never skip or weaken a test to get green.
 

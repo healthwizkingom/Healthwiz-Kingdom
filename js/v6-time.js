@@ -144,7 +144,7 @@ pages.time=()=>page();
 PAR.time='health';
 BN.time=['⏰','Health Time Machine','Travel back through what you saved.','rgba(99,230,220,.20)'];
 DIS.time='Only records you saved are shown. A missing day is not logged, not zero. Timing alone does not show cause.';
-const door=()=>'<div class="card tmdoor" id="tm-door"><h3>'+ico('alarm')+' HEALTH TIME MACHINE</h3><p>Slide back through your days, weeks and months, and see everything you saved side by side.</p><button type="button" data-a="tmgo0">OPEN THE TIME MACHINE</button></div>';
+const door=()=>'<div class="card tmdoor" id="tm-door"><h3>'+ico('alarm')+' HEALTH TIME MACHINE</h3><p>Slide back through your days, weeks and months, and see everything you saved side by side.</p><button type="button" class="imgbtn ib-time" data-a="tmgo0">OPEN THE TIME MACHINE</button></div>';
 {const p=pages.stats;pages.stats=function(){return door()+p.apply(this,arguments)}}
 
 HWUI.css('time',`
