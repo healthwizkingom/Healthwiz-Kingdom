@@ -1748,3 +1748,18 @@ The system and the evidence for the font choice are in `docs/PIXEL_STYLE.md` ("D
   continues a running animation; over http the scene waits (at most 10 s) for the survey sheet so the stones match it.
 * **Tests:** `tests/92-monument.test.mjs`.
 
+## Modules 9 and 10: the Dueling Arena and the Astral Navigator, 2026-10-29
+
+* **Dueling Arena** (`js/v6-duel.js`): on the Quests page, directly below the Hall of Heroes (owner's correction of the brief,
+  which named the Health Hall). Race a time-based replay of your own earlier climb on the same staircase and step count;
+  the live race runs beside Stair Sense in the Observatory, which exposes a read-only `HWGravity.live` (phase, staircase,
+  timer ms, sensor steps) for it. Lanes are original pixel art painted in code on canvas once per size (rampart, brick stairs
+  with runes, torches that light as each racer passes, a lit copy uncovered by transforms), a 3-2-1 countdown, a lead crown;
+  reduced motion shows the end at once. No XP; nothing in the save (the armed Echo is in sessionStorage `hw_duel`).
+* **Astral Navigator** (`js/v6-astral.js`): a sun compass beside the HealthWiz button on the map (owner's request) and the
+  Navigator's Compass group in a staircase's Details; see `docs/CALCULATIONS.md`. Device preference `hw_astral` {fx, open}.
+* **Observatory fixes asked for in the same session:** the map stage is its own stacking context (`isolation:isolate`) so the
+  map's loading screen and HUD stay inside the map square and under the bottom tabs on phones; the All staircases list is
+  sorted easiest first (Mild, Moderate, Vigorous, then angle; ST34 and ST36, added later, had been listed after the
+  Vigorous stairs) and each row shows only its ST code and angle.
+* **Tests:** `tests/94-duel.test.mjs`, `tests/95-astral.test.mjs`.

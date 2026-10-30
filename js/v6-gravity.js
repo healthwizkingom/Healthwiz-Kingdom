@@ -297,4 +297,6 @@ HWUI.css('gravity',`
 .gvvar summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-size:13px}.gvvar dl{margin:4px 0;display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:13px}.gvvar dt{font-weight:700}.gvvar dd{margin:0}
 @media(max-width:380px){.gvhud{gap:4px}.gvst b{font-size:14px}.gvt td:nth-child(2){font-size:12px}.gvt td:nth-child(4){font-size:12px}}
 `);
-return{counter,physics,verifiedRise,riseKind,RUN_EST,massInfo,G0,get state(){return G.ph},get sensor(){return G.sensor},get listening(){return listening},get gid(){return G.gid}}})();
+return{counter,physics,verifiedRise,riseKind,RUN_EST,massInfo,G0,get state(){return G.ph},get sensor(){return G.sensor},get listening(){return listening},get gid(){return G.gid},
+  /** read-only view of the climb for the Dueling Arena (js/v6-duel.js): phase, staircase, timer ms (pauses excluded), sensor steps or null */
+  get live(){return{ph:G.ph,sid:G.sid,ms:activeMs(),steps:G.sensor==='on'?G.est:null,sensor:G.sensor}}}})();

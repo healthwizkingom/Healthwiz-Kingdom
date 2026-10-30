@@ -49,6 +49,8 @@ js/v6-arcana.js            the Arcana upgrades (2026-10-29 blueprint): Home's El
                            supabase/migrations/20261029000000_hw_guild.sql); a staircase's Details: Enchanted Tower, Spectral Pacer, Cadence Echo (mic), Luna's
                            Wind Spell and the Gravity Anomaly; Alchemy's Metabolic Forge and Caloric Ledger; the Laboratory's Royal Surveyors (Truth-Seeker badge)
 js/v6-arcana-css.js        the Arcana upgrades' styles
+js/v6-duel.js              Module 9, the Dueling Arena (Quests page, under the Hall of Heroes): race a replay of your own earlier climb; live beside Stair Sense; no XP
+js/v6-astral.js            Module 10, the Astral Navigator: the Sun's position (NOAA method) in a compass beside the map's HealthWiz button and in a staircase's Details
 js/v6-stairsight.js        Stair Sight: finds step edges in the live camera picture (2D) and stairs in WebXR depth/hit points (3D, profile3d)
 observatory/xrstairs.js    3D Stair Sight (WebXR immersive-ar, Android Chrome with ARCore): measures rise and tread, builds the stairway in 3D, the ghost climbs it
 js/v6-arcane.js            the magical, modern look: Arcane Night default theme, glowing rounded panels and controls (docs/PIXEL_STYLE.md)

@@ -105,6 +105,47 @@ the order of the creatures are game choices, not part of the DASS.
   Kinabalu 4,095.2 m (Sabah Parks), Mount Everest 8,848.86 m (2020 Nepal and China survey, news report), ISS ≈ 400 km
   (NASA). These are reference data shown in each landmark's own "Why this number?" panel, not `HWSources` records.
 
+**Added 2026-10-29: Module 9, the Dueling Arena** (`js/v6-duel.js`, Quests page, under the Hall of Heroes). Your own saved
+stair entries only, read-only. Formulas in `HWDuel.math` (pure; `tests/94-duel.test.mjs`).
+* Records that can race: a staircase from `STAIRS`, a whole step count, and a time of 10 s to 24 h: `m.gv.secs` (the Stair
+  Sense timer, compared to 1 s) or `m.dur` × 60 (workout time; the timer keeps half-minutes, so compared to 30 s). Compatible =
+  the same staircase and the same total steps, logged earlier. Direction and completion are not stored: every stair entry is an
+  upward climb ("steps climbed, up only") and only finished climbs are saved. Echo = the latest ("previous") or the fastest
+  ("personal best") compatible earlier climb. Faster / slower / tie: equal within the coarser record's resolution. A personal
+  best only when faster, beyond that resolution, than every compatible earlier climb.
+* Vertical gain h, one function (`gain`), first that applies: the h saved with a Stair Sense climb; steps × the F21 report's
+  measured rise; steps × (survey vertical rise ÷ counted steps); steps × the angle-estimated rise of `js/v6-gravity.js`; else
+  unavailable. A per-step rise outside 5–30 cm is rejected. Never a stair's total height × steps.
+* W = m × 9.80665 × h (J), "estimated mechanical work against gravity"; m = the mass saved with the climb, else the latest
+  weight record or the confirmed profile weight (kg; the app stores no other unit). P = W ÷ t (W), "estimated average mechanical
+  power", rests included. Vertical ascent rate = h ÷ t (m/s). Speed along the steps = steps × measured step hypotenuse ÷ t,
+  only for ST14, ST19 and ST20 (F21); 0.169 m is ST20's measured rise, never used as a distance walked.
+  Worked example (tests/94): 28 steps × 0.169 m = 4.732 m; 60 kg × 9.80665 × 4.732 = 2,784.4 J; in 90 s, P = 30.9 W,
+  h ÷ t = 0.053 m/s, 28 × 0.354 ÷ 90 = 0.11 m/s.
+* Replay: each racer's progress = replay time ÷ its own duration, clamped to [0, 1]; a time-based picture, not real cadence.
+  Live: the Echo by Stair Sense's own timer ÷ its time; the Champion by Stair Sense's sensor steps ÷ the Echo's steps (an
+  estimate), or held at the start when only the timer runs.
+* No XP for a result (the app gives none for speed or rank; the climb earned its normal stair XP when saved).
+
+**Added 2026-10-29: Module 10, the Astral Navigator** (`js/v6-astral.js`): the sun compass beside the HealthWiz button on the
+Observatory map and the Navigator's Compass in a staircase's Details. Sources `noaasol`, `noaaeq` (opened 2026-10-29).
+* Solar position: the NOAA solar calculator equations (Meeus): Julian day from the instant (`Date.getTime()`, UTC), Julian
+  century T, mean longitude, mean anomaly, equation of centre, apparent longitude, obliquity, declination, equation of time,
+  true solar time = UTC minutes + EoT + 4 × longitude, hour angle, zenith, elevation (geometric) and azimuth (clockwise from
+  true north). Apparent elevation adds NOAA's refraction table. Valid 1800–2100; inputs outside range return
+  `{ok:false, status:'invalid', reason}`, never NaN.
+* Checked against NREL SPA (pvlib 0.16.1 `spa_python`) at 15 instants: elevation within 0.014°, azimuth within 0.035°
+  (largest near the zenith); against `observatory/sky.js` within 0.05°. Solar noon at Kulim: 13:01 (early November) to 13:32
+  (mid-February) Malaysia time; at 12:00 MYT on 29 Oct 2026 the azimuth is 141°, not 180°.
+* Place: the picked staircase's stored coordinate, else `HWLive.KMK` (labelled approximate). The map compass turns with the
+  map (−bearing) so its N is the map's north.
+* Sunlight on a staircase, strongest level the data supports: Level 1 (position only) for every staircase today, because
+  `data/stair-survey.json` has no flight heading and no indoor/outdoor entry. Level 2 (direction relative to the climb) turns
+  on by itself when a heading is surveyed, or when surveyed bottom and top points have GPS accuracies with
+  atan((acc1 + acc2) ÷ distance) ≤ 15°; it never says "in shade". Levels 3–4 (shadow length, occlusion) need obstacle heights
+  and a verified 3D model, which the app does not have; `shadowLength = h ÷ tan(elevation)` is implemented and tested but not
+  shown. Indoors: "Indoor shade not assessed". A high-sun note (elevation ≥ 60°) is qualified and measures nothing.
+
 ## Rules for adding a "?"
 
 1. Read the code that computes the number; the formula in the panel must be the one that runs.

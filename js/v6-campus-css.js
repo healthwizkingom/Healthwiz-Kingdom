@@ -3,7 +3,7 @@
    observatory/observatory.css. The map stage takes the mode's colour tokens; the panel keeps the app's theme. */
 HWUI.css('campus',`
 .cmpwrap{display:grid;gap:12px;margin:10px 0}/* one column on every screen: the map across the page's width, Staircases and Details below it */
-.cmpstage{position:relative;height:clamp(380px,62vh,620px);border-radius:14px;overflow:hidden;border:1px solid var(--edge,var(--ln));
+.cmpstage{position:relative;isolation:isolate;height:clamp(380px,62vh,620px);border-radius:14px;overflow:hidden;border:1px solid var(--edge,var(--ln));
   --panel:#ffffff;--panel2:#f4f5f2;--ink:#1d232b;--mut:#5a6470;--line:#d7dbe0;--acc:#2864d8;--acc-ink:#fff;--gold:#c99a2e;--cyan:#0f8f96;--font:var(--fn,system-ui,sans-serif);--head:var(--font);
   --shadow:0 6px 24px rgba(20,30,50,.14),0 1px 3px rgba(20,30,50,.12);--m1:#2f9a5f;--m2:#c98a0b;--m3:#cc3f35;--est:#b26b00;--part:#0f7f86;--osm:#3f6fb5;--miss:#7a828c;--ter:#8a6d3b;background:#e6e9e2;color:var(--ink)}
 .cmpcard[data-mode="fantasy"] .cmpstage{--panel:rgba(14,22,54,.95);--panel2:#16224f;--ink:#eef1ff;--mut:#a9b3d9;--line:rgba(140,160,230,.26);--acc:#f2c14e;--acc-ink:#1a1430;--gold:#f2c14e;--cyan:#5fe1e6;--head:var(--fl,var(--font));
