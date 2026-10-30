@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HealthWiz Kingdom — See it running</title>
+<style>
+@font-face{font-family:'Press Start 2P';src:url(fonts/PressStart2P-Latin.woff2) format('woff2')}
+@font-face{font-family:'Pixelify Sans';src:url(fonts/PixelifySans-Latin.woff2) format('woff2');font-weight:400 700}
+@page{size:11in 8.5in;margin:0}
+:root{--night:#0d0b26;--pn:#1b1745;--gold:#f2c14e;--teal:#63e6dc;--fh:'Press Start 2P',monospace;--fl:'Pixelify Sans',system-ui,sans-serif;--fb:Inter,'Liberation Sans',system-ui,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;background:#555}
+body{font:8pt/1.36 var(--fb);color:#e9e5ff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.sheet{width:11in;height:8.5in;overflow:hidden;position:relative;display:flex;flex-direction:column;
+ background:radial-gradient(circle at 85% 0,rgba(139,92,240,.35),transparent 45%),radial-gradient(circle at 5% 100%,rgba(99,230,220,.14),transparent 45%),var(--night)}
+.top{flex:0 0 auto;height:.98in;display:flex;align-items:center;gap:.22in;padding:0 .35in;border-bottom:4px solid var(--gold);background:rgba(13,11,38,.6)}
+.top .logo{height:.74in;image-rendering:pixelated}
+.top h1{font:16px/1.3 var(--fh);color:var(--gold);margin:0 0 5px;text-shadow:0 2px 0 #000}
+.top p{margin:0;font:600 11px/1.3 var(--fl);letter-spacing:.1em;text-transform:uppercase;color:#d6d0f7}
+.emb{margin-left:auto;display:flex;gap:.12in;align-items:center}
+.emb span{width:.66in;height:.66in;border-radius:50%;background:#fff;border:2px solid var(--gold);display:grid;place-items:center;overflow:hidden}
+.emb img{width:86%;height:86%;object-fit:contain}
+.grid{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:.12in .22in;padding:.14in .35in 0}
+figure{margin:0;display:flex;flex-direction:column;min-height:0}
+.ph{border:3px solid #000;border-radius:15px;background:#000;box-shadow:0 0 0 2px var(--gold),4px 5px 0 rgba(0,0,0,.55);overflow:hidden;aspect-ratio:780/860;width:100%}
+.ph img{width:100%;height:100%;object-fit:cover;object-position:50% 0;display:block}
+figcaption{margin-top:.09in;line-height:1.3}
+figcaption b{display:block;font:700 11.5px/1.15 var(--fl);color:var(--gold);letter-spacing:.07em;text-transform:uppercase;margin-bottom:2px}
+figcaption span{font-size:7.6pt;color:#d6d0f7}
+.foot{flex:0 0 auto;margin:0 .35in .16in;border-top:2px dashed rgba(242,193,78,.5);padding-top:6px;display:flex;justify-content:space-between;gap:.25in;font-size:6.9pt;color:#b9b2ec;align-items:flex-start}
+.foot b{color:#fff}
+.crew{text-align:right;color:#fff;font:600 10px/1.35 var(--fl);letter-spacing:.06em}
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="top">
+    <img class="logo" src="img/logo.png" alt="HealthWiz Kingdom">
+    <div><h1>SEE IT RUNNING</h1><p>Real screens from the live app</p></div>
+    <div class="emb"><span><img src="img/mara-emblem.png" alt="MARA"></span><span><img src="img/kmku-emblem.jpg" alt="Kolej MARA Kulim"></span></div>
+  </div>
+  <div class="grid">
+    <figure><div class="ph"><img src="img/demo-home.jpg" alt=""></div><figcaption><b>Home</b><span>Water, calories, stairs, heart rate, sleep and stress at a glance, plus a one-tap energy check-in.</span></figcaption></figure>
+    <figure><div class="ph"><img src="img/demo-health.jpg" alt=""></div><figcaption><b>Health Hall</b><span>Every tracker is a road into the realm, with a clear “next step” and today’s value on each tile.</span></figcaption></figure>
+    <figure><div class="ph"><img src="img/demo-kingdom.jpg" alt=""></div><figcaption><b>The Kingdom</b><span>Eight regions light up as you log. Here all eight are restored and five are flourishing.</span></figcaption></figure>
+    <figure><div class="ph"><img src="img/demo-campus.jpg" alt=""></div><figcaption><b>Campus Observatory</b><span>A 3D map of Kolej MARA Kulim in the Fantasy look: every staircase is a heart you can climb and log.</span></figcaption></figure>
+    <figure><div class="ph"><img src="img/demo-food.jpg" alt=""></div><figcaption><b>Nutrition &amp; Hydration</b><span>Calories and millilitres against your goal, then pick a meal from the canteen menu.</span></figcaption></figure>
+    <figure><div class="ph"><img src="img/demo-stress.jpg" alt=""></div><figcaption><b>Stress Quest</b><span>The Storm Within: the knight’s face and the weather follow your stress rating.</span></figcaption></figure>
+    <figure><div class="ph"><img src="img/demo-exercise.jpg" alt=""></div><figcaption><b>Training Hall</b><span>Choose a goal, then a muscle and a move, with Medius as your trainer.</span></figcaption></figure>
+    <figure><div class="ph"><img src="img/demo-lab.jpg" alt=""></div><figcaption><b>Science Laboratory</b><span>Test a guess against your own logs, or spot weak evidence in the Evidence Trial.</span></figcaption></figure>
+  </div>
+  <div class="foot">
+    <span><b>Screens are demo data.</b> Captured from the running app on a phone-sized screen with 30 days of sample entries. The numbers are samples, not real health measurements.<br><b>Try it:</b> healthwizkingom.github.io/Healthwiz-Kingdom · Wellness tracker, not a medical device.</span>
+    <span class="crew">GROUP 14 · KOLEJ MARA KULIM<br>RAYYAN RAFIQIN · QAYYUM · NAUFAL<br>AMIR · MUI’ZZUDDIN · MUIZ ZIKRI</span>
+  </div>
+</div>
+</body>
+</html>
