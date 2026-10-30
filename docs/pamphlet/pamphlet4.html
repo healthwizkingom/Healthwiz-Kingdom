@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HealthWiz Kingdom — 4-panel pamphlet (A4, 3 folds)</title>
+<style>
+
+@font-face{font-family:'Press Start 2P';src:url(fonts/PressStart2P-Latin.woff2) format('woff2')}
+@font-face{font-family:'Pixelify Sans';src:url(fonts/PixelifySans-Latin.woff2) format('woff2');font-weight:400 700}
+@page{size:297mm 210mm;margin:0}
+:root{
+  --night:#0d0b26;--pn:#1b1745;--p2:#29235f;--ink:#2b2418;--mut:#5f5238;
+  --gold:#f2c14e;--teal:#63e6dc;--vio:#8b5cf0;--parch:#fbf3d6;--parch2:#efe3bd;--line:#d8c68d;
+  --red:#d9453d;--blue:#2f8fd0;--grn:#3f9f4a;--sdg:#4c9f38;
+  --fh:'Press Start 2P',monospace;--fl:'Pixelify Sans',system-ui,sans-serif;--fb:Inter,'Liberation Sans',system-ui,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;background:#555}
+body{font:7.9pt/1.38 var(--fb);color:var(--ink);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.sheet{width:297mm;height:210mm;display:flex;overflow:hidden;break-after:page;page-break-after:always;background:#fff;position:relative}
+.sheet:last-child{break-after:auto;page-break-after:auto}
+.panel{position:relative;width:74.25mm;height:210mm;overflow:hidden;padding:.26in .22in .22in}
+/* preview-only fold guides (?guides) */
+body.guides .sheet:after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(90deg,transparent 0 calc(74.25mm - 1px),rgba(255,0,80,.9) calc(74.25mm - 1px) 74.25mm)}
+
+/* ---------- shared bits ---------- */
+img{display:block}
+.px{image-rendering:pixelated}
+.ttl{font:16px/1.25 var(--fh);letter-spacing:0}
+.kick{font:600 10.5px/1 var(--fl);letter-spacing:.14em;text-transform:uppercase}
+.dia{display:inline-block;width:6px;height:6px;background:var(--gold);transform:rotate(45deg);margin:0 6px 1px 2px}
+b{font-weight:700}
+.chip{display:inline-block;font:600 9.5px/1 var(--fl);letter-spacing:.04em;padding:3px 5px 3px;border:1.5px solid currentColor;margin:0 3px 4px 0;white-space:nowrap}
+
+/* ---------- dark panels (outside) ---------- */
+.dark{color:#e9e5ff;background:
+  radial-gradient(circle at 80% 8%,rgba(139,92,240,.35),transparent 42%),
+  radial-gradient(circle at 10% 92%,rgba(99,230,220,.16),transparent 45%),
+  var(--night)}
+.dark:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.7;
+  background-image:
+   radial-gradient(1.2px 1.2px at 12% 18%,#fff,transparent 60%),radial-gradient(1px 1px at 33% 9%,#cfe,transparent 60%),
+   radial-gradient(1.4px 1.4px at 71% 14%,#fff,transparent 60%),radial-gradient(1px 1px at 88% 31%,#fde7a3,transparent 60%),
+   radial-gradient(1px 1px at 22% 47%,#fff,transparent 60%),radial-gradient(1.2px 1.2px at 58% 38%,#fff,transparent 60%),
+   radial-gradient(1px 1px at 91% 62%,#fff,transparent 60%),radial-gradient(1px 1px at 6% 74%,#cfe,transparent 60%),
+   radial-gradient(1.2px 1.2px at 47% 83%,#fff,transparent 60%),radial-gradient(1px 1px at 79% 91%,#fde7a3,transparent 60%)}
+.dark>*{position:relative}
+.frame{position:absolute!important;inset:.14in;border:2px solid var(--gold);pointer-events:none;opacity:.55}
+.frame:before,.frame:after{content:"";position:absolute;width:11px;height:11px;border:3px solid var(--gold)}
+.frame:before{top:-5px;left:-5px;border-right:0;border-bottom:0}.frame:after{bottom:-5px;right:-5px;border-left:0;border-top:0}
+.dark h3{font:700 11.5px/1.2 var(--fl);letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin:11px 0 5px;display:flex;align-items:center}
+.dark h3:after{content:"";flex:1;height:2px;margin-left:7px;background:repeating-linear-gradient(90deg,var(--gold) 0 4px,transparent 4px 8px);opacity:.5}
+.dark p{margin:0 0 5px}
+.dark .mut{color:#b9b2ec}
+
+/* ---------- COVER (C) ---------- */
+.pC{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:0}
+.pC .art{width:calc(100% + .6in);margin:0 -.3in;height:auto;display:block;border-bottom:3px solid var(--gold)}
+.pC .logo{width:3.05in;filter:drop-shadow(0 3px 0 rgba(0,0,0,.45))}
+.pC .scene{position:relative;width:calc(100% + .6in);margin:.1in -.3in 0;height:2.7in;overflow:hidden;
+  border-top:3px solid var(--gold);border-bottom:3px solid var(--gold);background:#1a1740}
+.pC .scene .bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 60%}
+.pC .scene:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,11,38,.0) 45%,rgba(13,11,38,.55))}
+.pC .scene .wiz{position:absolute;left:.03in;bottom:-.04in;height:2.15in;z-index:2;filter:drop-shadow(3px 4px 0 rgba(0,0,0,.45))}
+.pC .scene .kn{position:absolute;right:.03in;bottom:-.03in;height:1.55in;z-index:2;filter:drop-shadow(3px 4px 0 rgba(0,0,0,.45))}
+.pC h1{font:700 20px/1.12 var(--fl);color:var(--gold);margin:.13in 0 .04in;text-shadow:0 2px 0 rgba(0,0,0,.5)}
+.pC .sub{font-size:9pt;line-height:1.36;margin:0 .04in .07in;color:#e9e5ff}
+.pC .chips{margin:.1in 0 0;color:var(--teal)}
+.pC .foot{margin-top:auto;width:100%;border-top:2px dashed rgba(242,193,78,.5);padding-top:.09in;font-size:7.6pt;color:#cfc9f7}
+.pC .foot b{color:#fff;font:700 12px/1.3 var(--fl);letter-spacing:.06em;display:block}
+.pC .emb{display:flex;align-items:center;justify-content:center;gap:.14in;margin:0 0 .05in}
+.pC .emb span{width:.74in;height:.74in;border-radius:50%;background:#fff;border:2px solid var(--gold);display:grid;place-items:center;overflow:hidden;flex:0 0 auto}
+.pC .emb img{width:88%;height:88%;object-fit:contain}
+.pC .emb b{font-size:13px;letter-spacing:.1em}.pC .emb em{display:block;font:normal 7pt/1.2 var(--fb);color:#cfc9f7;letter-spacing:0}
+.pC .crew{display:grid;grid-template-columns:repeat(3,1fr);gap:2px 4px;margin:.05in 0 .05in;font:700 10.5px/1.25 var(--fl);color:#fff;letter-spacing:.05em}
+.pC .crew span{background:rgba(27,23,69,.9);border:1.5px solid rgba(242,193,78,.55);padding:2px 1px 1px;white-space:nowrap}
+
+/* ---------- BACK (B) ---------- */
+.pB{padding-top:.34in}
+.pB .ttl{color:var(--gold);text-align:center;margin:0 0 .08in;text-shadow:0 2px 0 rgba(0,0,0,.5)}
+.qrrow{display:flex;gap:.14in;align-items:center;background:rgba(27,23,69,.85);border:2px solid var(--gold);padding:.12in}
+.qrrow .qr{flex:0 0 1.32in;background:#fff;padding:.045in;border:2px solid #000}
+.qrrow .qr img{width:100%}
+.qrrow ol{margin:0;padding:0 0 0 .17in;font-size:7.7pt;line-height:1.32}
+.qrrow li{margin:0 0 3px}.qrrow li::marker{color:var(--gold);font-weight:700}
+.url{font:600 10.8px/1.2 var(--fl);color:var(--teal);text-align:center;margin:.06in 0 0;letter-spacing:.02em;word-break:break-all}
+.pB ul{margin:0;padding:0;list-style:none}
+.pB li.k{position:relative;padding-left:12px;margin:0 0 3.5px}
+.pB li.k:before{content:"";position:absolute;left:1px;top:.5em;width:5px;height:5px;background:var(--teal);transform:rotate(45deg)}
+.pB .tech{margin:2px 0 0;color:var(--teal)}
+.credits{font-size:6.55pt;line-height:1.36;color:#b9b2ec;margin:0 0 6px}
+.disc{border:2px solid var(--gold);background:rgba(242,193,78,.1);padding:.07in .1in;font-size:7.4pt;line-height:1.36;color:#fff}
+.disc b{color:var(--gold)}
+
+/* ---------- FLAP (A) ---------- */
+.pA{padding-top:.34in}
+.pA .ttl{color:var(--gold);text-shadow:0 2px 0 rgba(0,0,0,.5);margin-bottom:.09in}
+.lead{font:600 13.2px/1.32 var(--fl);color:#fff;margin:0 0 .09in}
+.lead em{font-style:normal;color:var(--teal)}
+.steps{display:flex;gap:5px;margin:3px 0 4px}
+.step{flex:1;background:rgba(27,23,69,.9);border:2px solid rgba(242,193,78,.7);padding:6px 5px 6px;text-align:center}
+.step i{font:normal 12px/1 var(--fh);color:var(--gold);display:block;margin-bottom:5px}
+.step b{display:block;font:700 11.2px/1.15 var(--fl);color:#fff;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}
+.step span{font-size:7pt;line-height:1.28;display:block;color:#d6d0f7}
+.why{margin:0 0 6px;padding-left:23px;position:relative}
+.why i{position:absolute;left:0;top:0;width:17px;height:17px;background:var(--gold);color:var(--night);font:normal 9px/17px var(--fh);text-align:center}
+.why b{color:#fff}
+.nums{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:8px 0 0}
+.nums div{background:rgba(27,23,69,.9);border:2px solid rgba(99,230,220,.55);text-align:center;padding:5px 1px 4px}
+.nums strong{display:block;font:normal 14px/1.1 var(--fh);color:var(--teal);margin-bottom:3px}
+.nums span{font:600 8.6px/1.15 var(--fl);letter-spacing:.05em;text-transform:uppercase;color:#d6d0f7;display:block}
+.sdg{display:flex;gap:9px;align-items:center;background:var(--sdg);color:#fff;padding:.07in .1in;margin-top:.1in;border:2px solid #fff}
+.sdg strong{flex:0 0 auto;font:normal 17px/1 var(--fh);background:#fff;color:var(--sdg);padding:7px 6px 5px}
+.sdg span{font-size:7.6pt;line-height:1.3}
+.sdg span b{display:block;font:700 11.5px/1.2 var(--fl);letter-spacing:.04em;text-transform:uppercase}
+
+
+.shots{margin:.08in 0 0;display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.shots div{border:2px solid var(--gold);border-radius:9px;overflow:hidden;height:1.4in;background:#000}
+.shots img{width:100%;height:100%;object-fit:cover;object-position:50% 0}
+.shots figcaption{grid-column:1/-1;font:700 9.6px/1 var(--fl);letter-spacing:.1em;text-transform:uppercase;color:var(--gold);text-align:center}
+.fig{margin:.08in 0 0;position:relative;border:2px solid var(--gold);height:1.12in;overflow:hidden}
+.fig img{width:100%;height:100%;object-fit:cover;object-position:50% 40%}
+.fig figcaption{position:absolute;left:0;right:0;bottom:0;background:rgba(13,11,38,.85);color:var(--gold);font:700 10px/1 var(--fl);letter-spacing:.1em;text-transform:uppercase;padding:4px 7px 3px}
+/* ---------- INSIDE (parchment) ---------- */
+.in .panel{background:
+  repeating-linear-gradient(0deg,rgba(120,90,30,.035) 0 2px,transparent 2px 5px),
+  var(--parch)}
+.in .pD{background-color:var(--parch)}
+.in .panel{padding:0 0 .22in}
+.hd{position:relative;height:1.42in;overflow:hidden;color:#fff;border-bottom:4px solid var(--gold);background:var(--night)}
+.hd>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hd:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,11,38,.1) 20%,rgba(13,11,38,.9) 100%)}
+.hd .t{position:absolute;left:.3in;right:.26in;bottom:.1in;z-index:2}
+.hd .ttl{color:var(--gold);text-shadow:0 2px 0 #000;display:block}
+.hd .kick{display:block;margin-top:6px;color:#fff;font-size:10.2px;text-shadow:0 1px 0 #000}
+.body{padding:.13in .3in 0}
+.pF .body{padding-right:.26in}
+.f{margin:0 0 5.2px;padding-left:.0in}
+.f>b:first-child{font:700 11.3px/1 var(--fl);letter-spacing:.035em;color:var(--pn);text-transform:uppercase;margin-right:3px}
+.f>b.c1{color:#1c6fb0}.f>b.c2{color:#2f7f3a}.f>b.c3{color:#6a46c4}.f>b.c4{color:#b3342d}.f>b.c5{color:#a4690a}.f>b.c6{color:#0d7f86}
+.f i{font-style:normal;font-weight:600;color:var(--mut)}
+.rule{height:0;border-top:2px dashed var(--line);margin:5px 0 6px}
+.note{font-size:6.9pt;line-height:1.34;color:var(--mut);margin:5px 0 0}
+.card{border:2px solid var(--ink);background:#fff8dd;box-shadow:3px 3px 0 var(--ink);padding:.07in .09in;margin:6px 3px 7px 0}
+.card .kick{color:var(--pn);margin-bottom:4px;display:block}
+.guides3{display:flex;gap:5px;margin:0 0 7px}
+.gd{flex:1;background:var(--pn);color:#fff;border:2px solid var(--ink);text-align:center;padding:5px 3px 5px;position:relative}
+.gd .pic{height:.62in;display:flex;align-items:flex-end;justify-content:center;background:linear-gradient(180deg,#322a7a,#1b1745);margin:-5px -3px 4px;border-bottom:2px solid var(--gold);overflow:hidden}
+.gd .pic img{height:100%;width:auto;max-width:100%;object-fit:contain}
+.gd .pic.face img{height:auto;width:.78in;margin-bottom:0}
+.gd b{display:block;font:700 12px/1.1 var(--fl);color:var(--gold);letter-spacing:.05em;text-transform:uppercase}
+.gd span{font-size:6.7pt;line-height:1.25;display:block;color:#ddd8ff;margin-top:2px}
+.mosaic{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:0 0 7px}
+.mosaic figure{margin:0;position:relative;border:2px solid var(--ink);background:var(--night);overflow:hidden;height:.62in}
+.mosaic img{width:100%;height:100%;object-fit:cover}
+.mosaic figcaption{position:absolute;left:0;right:0;bottom:0;background:rgba(13,11,38,.82);color:#fff;font:700 9.3px/1 var(--fl);letter-spacing:.06em;text-transform:uppercase;text-align:center;padding:3px 0 2px}
+.formula{font:600 8.6px/1.3 var(--fb);background:var(--pn);color:var(--teal);padding:3px 6px;display:inline-block;margin:1px 0 2px;letter-spacing:.01em}
+.src{font-size:6.9pt;line-height:1.36}
+body{font:7.4pt/1.36 var(--fb)}
+.panel{position:relative}
+/* outside / dark panels */
+.dark .frame{inset:.1in}
+.q1{display:flex;flex-direction:column;align-items:center;text-align:center;padding:0}
+.q1 .art{width:100%;height:auto;display:block;border-bottom:3px solid var(--gold)}
+.q1 .in{padding:.1in .22in 0;width:100%}
+.q1 h1{font:700 17px/1.12 var(--fl);color:var(--gold);margin:.06in 0 .04in;text-shadow:0 2px 0 rgba(0,0,0,.5)}
+.q1 .sub{font-size:8pt;line-height:1.36;margin:0 0 .08in;color:#e9e5ff}
+.q1 .emb,.q4 .emb{display:flex;align-items:center;justify-content:center;gap:.1in;margin:.06in 0 .05in}
+.emb span{width:.68in;height:.68in;border-radius:50%;background:#fff;border:2px solid var(--gold);display:grid;place-items:center;overflow:hidden;flex:0 0 auto}
+.emb img{width:88%;height:88%;object-fit:contain}
+.emb b{font:700 12px/1.3 var(--fl);letter-spacing:.1em;color:#fff;text-align:center}.emb em{display:block;font:normal 6.6pt/1.2 var(--fb);color:#cfc9f7;letter-spacing:0}
+.q1 .chips{margin:.04in 0 .05in;color:var(--teal)}
+.q1 .foot{position:absolute;left:.22in;right:.22in;bottom:.2in;border-top:2px dashed rgba(242,193,78,.5);padding-top:.06in;font-size:7pt;color:#cfc9f7}
+.ttl{font-size:13px}
+.q2 .ttl,.q4 .ttl{color:var(--gold);text-shadow:0 2px 0 rgba(0,0,0,.5);margin-bottom:.08in}
+.lead{font:600 11.5px/1.3 var(--fl);color:#fff;margin:0 0 .07in}
+.dark h3{font-size:10.5px;margin:9px 0 4px}
+.stepsv .st{display:flex;gap:7px;align-items:flex-start;margin:0 0 5px}
+.stepsv .st i{flex:0 0 auto;font:normal 10px/1 var(--fh);background:var(--gold);color:var(--night);width:20px;height:20px;display:grid;place-items:center;padding-top:2px}
+.stepsv .st b{color:#fff}
+.why{margin:0 0 5px;padding-left:21px;position:relative}
+.why i{position:absolute;left:0;top:0;width:15px;height:15px;background:var(--gold);color:var(--night);font:normal 8px/15px var(--fh);text-align:center}
+.why b{color:#fff}
+.nums{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin:7px 0 0}
+.nums div{background:rgba(27,23,69,.9);border:2px solid rgba(99,230,220,.55);text-align:center;padding:4px 0 3px}
+.nums strong{display:block;font:normal 11px/1.1 var(--fh);color:var(--teal);margin-bottom:3px}
+.nums span{font:600 7.4px/1.15 var(--fl);letter-spacing:.03em;text-transform:uppercase;color:#d6d0f7;display:block}
+.sdg{display:flex;gap:8px;align-items:center;background:var(--sdg);color:#fff;padding:.06in .08in;margin-top:.09in;border:2px solid #fff}
+.sdg strong{font:normal 14px/1 var(--fh);background:#fff;color:var(--sdg);padding:6px 5px 4px}
+.sdg span{font-size:6.9pt;line-height:1.28}.sdg span b{display:block;font:700 10px/1.2 var(--fl);letter-spacing:.03em;text-transform:uppercase}
+/* screens panel */
+.q3{background:var(--night)}
+.q3 .ttl{color:var(--gold);margin-bottom:.05in}
+.q3 .kick{color:#d6d0f7;display:block;margin-bottom:.1in;font-size:9.5px}
+.scr{display:grid;grid-template-columns:1fr 1fr;gap:.09in .1in}
+.scr figure{margin:0}
+.scr .ph{border:2px solid #000;border-radius:9px;box-shadow:0 0 0 1.5px var(--gold),2px 3px 0 rgba(0,0,0,.5);overflow:hidden;aspect-ratio:780/860;background:#000}
+.scr img{width:100%;height:100%;object-fit:cover;object-position:50% 0}
+.scr figcaption{margin-top:3px;font:700 9.4px/1.15 var(--fl);letter-spacing:.05em;text-transform:uppercase;color:var(--gold)}
+.scr figcaption span{display:block;font:normal 6.3pt/1.25 var(--fb);letter-spacing:0;text-transform:none;color:#cfc9f7;margin-top:1px}
+.q3 .note3{font-size:6.2pt;line-height:1.3;color:#b9b2ec;margin:.08in 0 0}
+/* back cover */
+.q4 .qr{width:1.5in;margin:.04in auto .05in;background:#fff;padding:.05in;border:2px solid #000}.q4 .qr img{width:100%}
+.url{font:600 9.6px/1.2 var(--fl);color:var(--teal);text-align:center;margin:0 0 .06in;word-break:break-all}
+.q4 ol{margin:0;padding:0 0 0 .17in;font-size:7.3pt;line-height:1.32}.q4 li{margin:0 0 2px}.q4 li::marker{color:var(--gold);font-weight:700}
+.q4 .crew{display:grid;grid-template-columns:1fr 1fr;gap:2px 4px;margin:.05in 0;font:700 9.6px/1.25 var(--fl);color:#fff;letter-spacing:.05em;text-align:center}
+.q4 .crew span{background:rgba(27,23,69,.9);border:1.5px solid rgba(242,193,78,.55);padding:2px 1px 1px;white-space:nowrap}
+.disc{border:2px solid var(--gold);background:rgba(242,193,78,.1);padding:.06in .08in;font-size:6.9pt;line-height:1.34;color:#fff;margin-top:.07in}.disc b{color:var(--gold)}
+/* inside */
+.in .panel{padding:0 0 .2in}
+.hd{height:1.12in}
+.hd .t{left:.22in;right:.18in;bottom:.08in}
+.hd .ttl{font-size:13px}.hd .kick{font-size:9px;margin-top:5px}
+.body{padding:.1in .22in 0}
+.f{margin:0 0 4px}.f>b:first-child{font-size:10.2px;margin-right:2px}
+.mosaic{gap:3px;margin:0 0 5px}.mosaic figure{height:.5in}.mosaic figcaption{font-size:7.8px}
+.guides3{gap:3px;margin:0 0 5px}.gd .pic{height:.52in}.gd b{font-size:10px}.gd span{font-size:5.9pt}
+.gd .pic.face img{width:.5in}
+.card{margin:5px 2px 6px 0;padding:.05in .07in}.card .kick{font-size:9px}.src{font-size:6.6pt}
+.formula{font-size:7.6px}
+.note{font-size:6.2pt}
+.tr b{display:block}
+.credits{font-size:6.1pt;line-height:1.34;color:#b9b2ec;margin:0 0 5px}
+.q8{background:var(--night);color:#e9e5ff}
+.q8 .hd{background:var(--night)}
+.q8 .body{color:#e9e5ff}
+.q8 ul{margin:0;padding:0;list-style:none}
+.q8 li.k{position:relative;padding-left:11px;margin:0 0 3px}
+.q8 li.k:before{content:"";position:absolute;left:1px;top:.5em;width:5px;height:5px;background:var(--teal);transform:rotate(45deg)}
+.q8 h3{font:700 10.5px/1.2 var(--fl);letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin:8px 0 4px;display:flex;align-items:center}
+.q8 h3:after{content:"";flex:1;height:2px;margin-left:6px;background:repeating-linear-gradient(90deg,var(--gold) 0 4px,transparent 4px 8px);opacity:.5}
+.q8 .chip{font-size:8.6px;color:var(--teal);margin:0 2px 3px 0}
+/* ---- scale-up pass: use the A4 height ---- */
+body{font:8.5pt/1.38 var(--fb)}
+.in .q8{background:var(--night)!important}
+.in .q8 .body{color:#e9e5ff}
+.hd{height:1.3in}.hd .ttl{font-size:15px}.hd .kick{font-size:10px}
+.body{padding:.13in .22in 0}
+.f{margin:0 0 5.5px}.f>b:first-child{font-size:11.6px}
+.guides3{margin:0 0 7px}.gd .pic{height:.62in}.gd b{font-size:11px}.gd span{font-size:6.6pt}.gd .pic.face img{width:.6in}
+.card .kick{font-size:10px}.src{font-size:7.5pt}.card{padding:.07in .09in}
+.formula{font-size:8.4px}.note{font-size:7pt}
+.credits{font-size:7pt}
+.q8 .chip{font-size:9.6px}.q8 h3{font-size:11.6px}
+.q1 h1{font-size:20px;margin:.1in 0 .05in}.q1 .sub{font-size:9pt}.q1 .emb span,.q4 .emb span{width:.78in;height:.78in}.q1 .emb b,.q4 .emb b{font-size:13px}
+.q1 .chips{margin:.08in 0 .1in}.q1 .emb{margin-top:.12in}
+.q1 .foot{font-size:7.6pt}
+.q2 .ttl{font-size:15px}.lead{font-size:13.4px}.q2 p,.stepsv{font-size:8.6pt}
+.dark h3{font-size:11.6px;margin:11px 0 5px}
+.stepsv .st{margin:0 0 7px}.stepsv .st i{width:22px;height:22px;font-size:11px}
+.why{margin:0 0 7px;padding-left:24px}.why i{width:17px;height:17px;font-size:9px;line-height:17px}
+.nums{margin:10px 0 0}.nums strong{font-size:13px}.nums span{font-size:8.2px}
+.sdg{margin-top:.12in;padding:.08in .1in}.sdg strong{font-size:17px}.sdg span{font-size:7.8pt}.sdg span b{font-size:11.4px}
+.q3 .ttl{font-size:14px}.q3 .kick{font-size:10px}
+.q4 .qr{width:1.9in;margin:.08in auto .08in}.url{white-space:nowrap;font-size:9.1px;letter-spacing:0}
+.q4 ol{font-size:8.4pt;margin:.04in 0 .08in}.q4 li{margin:0 0 4px}
+.q4 .crew{font-size:10.8px;gap:3px 5px;margin:.08in 0}.q4 .crew span{padding:3px 1px 2px}
+.disc{font-size:7.9pt;padding:.08in .1in;margin-top:.1in}
+
+</style>
+</head>
+<body>
+<!-- SIDE 1 · OUTSIDE — left → right: 1 front cover | 2 The Quest | 3 See it running | 4 back cover -->
+<div class="sheet out">
+
+  <section class="panel q1 dark">
+    <img class="art" src="img/cover.jpg" alt="HealthWiz Kingdom — a journey to better health">
+    <div class="in">
+      <h1>Turn your health into an adventure.</h1>
+      <p class="sub">A pixel-art fantasy RPG that is also a health tracker, built on real science and honest numbers.</p>
+      <div class="chips"><span class="chip">Water</span><span class="chip">Food</span><span class="chip">Sleep</span><span class="chip">Stress</span><span class="chip">Stairs</span><span class="chip">Running</span><span class="chip">Heart rate</span></div>
+      <div class="emb"><span><img src="img/mara-emblem.png" alt="MARA"></span><b>GROUP 14<em>MARA · Kolej MARA Kulim</em></b><span><img src="img/kmku-emblem.jpg" alt="Kolej MARA Kulim"></span></div>
+    </div>
+    <div class="in" style="position:absolute;left:0;right:0;bottom:.5in"><div class="sdg"><strong>3</strong><span><b>UN SDG 3</b>Good Health and Well-being</span></div></div>
+    <div class="foot">Wellness tracker, not a medical device</div>
+  </section>
+
+  <section class="panel q2 dark">
+    <div class="frame"></div>
+    <div class="ttl">THE QUEST</div>
+    <p class="lead">Health tracking is easy to start and hard to keep up. In <em style="font-style:normal;color:var(--teal)">HealthWiz Kingdom</em> every healthy action has a visible effect.</p>
+    <p>You log <b>water, meals, sleep, stairs</b> (with workout heart rate), <b>runs</b> and <b>stress</b>. <b>Medius, the Wizard King,</b> guides you as your real actions restore the kingdom, with <b>Luna,</b> an apprentice witch, as your everyday companion.</p>
+    <h3>How it works</h3>
+    <div class="stepsv">
+      <div class="st"><i>1</i><span><b>Log</b> a real habit: a glass of water, a meal, a climb.</span></div>
+      <div class="st"><i>2</i><span><b>Restore</b> the kingdom: its regions heal as you keep going.</span></div>
+      <div class="st"><i>3</i><span><b>Understand:</b> a “?” shows the formula and sources behind every number.</span></div>
+    </div>
+    <h3>What sets it apart</h3>
+    <p class="why"><i>1</i><b>Health first, game second.</b> Game values (XP, levels, badges) are tagged “game progress, not a health measurement”.</p>
+    <p class="why"><i>2</i><b>Every number shows its working:</b> inputs, formula, your numbers, sources, limits.</p>
+    <p class="why"><i>3</i><b>Honest about uncertainty.</b> Values are labelled <b>measured, calculated, estimated, simulated</b> or <b>missing</b>. No invented readings.</p>
+    <p class="why"><i>4</i><b>Private and optional.</b> Works on your device with no account; an account is only for backup and sync.</p>
+    <div class="nums"><div><strong>8</strong><span>Regions</span></div><div><strong>8</strong><span>Themes</span></div><div><strong>104</strong><span>Modules</span></div><div><strong>102</strong><span>Tests</span></div></div>
+  </section>
+
+  <section class="panel q3">
+    <div class="ttl" style="padding-top:.0in">SEE IT RUNNING</div>
+    <span class="kick">Real screens from the live app</span>
+    <div class="scr">
+      <figure><div class="ph"><img src="img/demo-home.jpg" alt=""></div><figcaption>Home<span>Today’s health at a glance</span></figcaption></figure>
+      <figure><div class="ph"><img src="img/demo-health.jpg" alt=""></div><figcaption>Health Hall<span>Every tracker, one next step</span></figcaption></figure>
+      <figure><div class="ph"><img src="img/demo-kingdom.jpg" alt=""></div><figcaption>The Kingdom<span>Eight regions, all restored</span></figcaption></figure>
+      <figure><div class="ph"><img src="img/demo-campus.jpg" alt=""></div><figcaption>Campus map<span>3D, with a heart on each staircase</span></figcaption></figure>
+      <figure><div class="ph"><img src="img/demo-food.jpg" alt=""></div><figcaption>Nutrition<span>kcal and mL against your goal</span></figcaption></figure>
+      <figure><div class="ph"><img src="img/demo-stress.jpg" alt=""></div><figcaption>Stress Quest<span>The Storm Within</span></figcaption></figure>
+      <figure><div class="ph"><img src="img/demo-exercise.jpg" alt=""></div><figcaption>Training Hall<span>Pick a goal, muscle and move</span></figcaption></figure>
+      <figure><div class="ph"><img src="img/demo-lab.jpg" alt=""></div><figcaption>Science Lab<span>Test a guess with your own logs</span></figcaption></figure>
+    </div>
+    <p class="note3">Captured from the running app on a phone-sized screen with 30 days of sample entries. The numbers are demo data, not real health measurements.</p>
+  </section>
+
+  <section class="panel q4 dark">
+    <div class="frame"></div>
+    <div class="ttl" style="text-align:center;font-size:12px">BEGIN YOUR QUEST</div>
+    <div class="qr"><img src="img/qr.svg" alt="QR code to open HealthWiz Kingdom"></div>
+    <p class="url">healthwizkingom.github.io/Healthwiz-Kingdom</p>
+    <ol>
+      <li><b>Scan</b> or open the link: any modern browser, nothing to install.</li>
+      <li>Create your traveller in the <b>Traveller’s Registry</b>, then log one thing.</li>
+      <li>Tap <b>Install app</b> or <b>Add to Home Screen</b> to play offline.</li>
+    </ol>
+    <div class="emb"><span><img src="img/mara-emblem.png" alt="MARA"></span><b>GROUP 14<em>Kolej MARA Kulim</em></b><span><img src="img/kmku-emblem.jpg" alt="Kolej MARA Kulim"></span></div>
+    <div class="crew"><span>RAYYAN RAFIQIN</span><span>QAYYUM</span><span>NAUFAL</span><span>AMIR</span><span>MUI’ZZUDDIN</span><span>MUIZ ZIKRI</span></div>
+    <p style="margin:.08in 0 0;font-size:8pt;color:#d6d0f7"><b style="color:var(--gold)">Your data stays on your device.</b> A free account is optional, for backup and sync only.</p>
+    <div class="disc"><b>Wellness tracker, not a medical device.</b> HealthWiz does not diagnose anything and gives no medical advice. If you feel unwell, talk to a parent, teacher or healthcare professional. In an emergency call <b>999</b> (Malaysia).</div>
+  </section>
+</div>
+
+<!-- SIDE 2 · INSIDE — left → right: 5 Track | 6 Play & Guide | 7 Prove It | 8 Trust -->
+<div class="sheet in">
+
+  <section class="panel q5">
+    <div class="hd"><img class="px" src="img/hall-exercise.jpg" alt=""><div class="t"><span class="ttl">TRACK</span><span class="kick">The Health Hall · eight trackers</span></div></div>
+    <div class="body">
+      <p class="f"><b class="c1">Water Quest</b>Daily goal from your weight (35 mL/kg, the team’s own rule). The knight walks, drinks and pours as you log; opt-in live weather adjusts your water potion.</p>
+      <p class="f"><b class="c2">Nutrition</b>Log from the Kolej MARA Kulim canteen menu. Signed in, <b>Luke</b> searches the web for any food, with a source for every part and an energy check (4·protein + 4·carb + 9·fat). Estimates are labelled.</p>
+      <p class="f"><b class="c3">Sleep</b>Hours against National Sleep Foundation ranges, a Sleep Score (our own game formula), Dream Battle, Counting Sheep and a wake-up alarm.</p>
+      <p class="f"><b class="c4">Stress Quest</b>DASS-21 check-in (no severity labels), the Storm Within, Calming Grove breathing, five relief activities. Crisis numbers are always on screen.</p>
+      <p class="f"><b class="c5">Body &amp; Energy</b>BMI (a screening number, not a diagnosis), BMR by Mifflin–St Jeor, daily energy = BMR × FAO/WHO/UNU activity level, macro and fibre goals.</p>
+      <p class="f"><b class="c2">Training Hall</b>22 moves, 19 muscle maps; Calisthenics is bodyweight only. “I feel dizzy” and “Chest pain” stop buttons always at hand.</p>
+      <p class="f"><b class="c1">Running Road</b>GPS runs: distance, pace, calories (MET × kg × h, 2024 Compendium), opt-in Runners’ Board.</p>
+      <p class="f"><b class="c4">Stairs &amp; heart rate</b>BPM before, after and 1 minute after a climb for recovery. Camera pulse (video never stored) or a smartwatch / chest strap over Web Bluetooth.</p>
+      <div class="rule"></div>
+      <p class="f"><b class="c6">Everywhere</b>Log for yesterday or any earlier date, browse every entry by day, print a weekly report.</p>
+    </div>
+  </section>
+
+  <section class="panel q6">
+    <div class="hd"><img class="px" src="img/hall-score.jpg" alt=""><div class="t"><span class="ttl">PLAY &amp; GUIDE</span><span class="kick">Your logs restore the kingdom</span></div></div>
+    <div class="body">
+      <div class="guides3">
+        <div class="gd"><div class="pic"><img class="px" src="img/wiz.png" alt=""></div><b>Medius</b><span>The Wizard King</span></div>
+        <div class="gd"><div class="pic face"><img class="px" src="img/luna-face.png" alt=""></div><b>Luna</b><span>Apprentice witch</span></div>
+        <div class="gd"><div class="pic"><img class="px" src="img/luke-pose.png" alt=""></div><b>Luke</b><span>Wannabe wizard</span></div>
+      </div>
+      <p class="f"><b class="c3">The Living Kingdom</b>Eight regions (Dream Realm, Stair Mountain, Energy Forge, Mind Forest, Heartstone Hall, Water Valley, Nutrition Village, Balance Tower), each in one of five states up to <i>Flourishing</i>.</p>
+      <p class="f"><b class="c5">Quests &amp; rewards</b>Adaptive daily and weekly quests, fair XP with a daily logging allowance, audited badges, gentle streaks, and mini-games for each log.</p>
+      <p class="f"><b class="c2">Health Score, 0–100</b>Five weighted indicators. The <b>Health Orb</b> turns it into ranked quest cards: Start Here, Next Step, Keep Going.</p>
+      <p class="f"><b class="c1">Medius notices</b>Insights from your own baselines, a what-if simulator, week-on-week stats and the <b>Health Time Machine</b>.</p>
+      <p class="f"><b class="c4">Wizard’s Counsel</b>Talk with Medius or Luna (Gemini, through a secure server function). Signed-in only, rate-limited, with safety rules; nothing is stored. <i>Ask Luna</i> finds any feature without AI.</p>
+      <p class="f"><b class="c6">Arcana</b>The Oracle’s crystal ball, Guild War of Joules and Dueling Arena: race a replay of your own earlier climb.</p>
+      <p class="f"><b class="c5">Opt-in community</b>Hall of Heroes (game progress only) and Runners’ Board (nickname and weekly totals only).</p>
+      <p class="f"><b class="c1">For everyone</b>8 themes, performance modes, reduced motion, keyboard and screen-reader friendly charts.</p>
+    </div>
+  </section>
+
+  <section class="panel q7">
+    <div class="hd"><img class="px" src="img/lab-scene.jpg" alt=""><div class="t"><span class="ttl">PROVE IT</span><span class="kick">Science you can check</span></div></div>
+    <div class="body">
+      <p class="f"><b class="c1">Campus Observatory</b>A 3D map of Kolej MARA Kulim from OpenStreetMap, in Realistic and Fantasy looks. Each staircase is a heart coloured Mild, Moderate or Vigorous: tap to log a climb or workout. GPS position is never saved or sent.</p>
+      <p class="f"><b class="c3">Stair Sense &amp; Sight</b><span class="formula">h = n × r &nbsp; W = m·g·h &nbsp; P = W ÷ t</span><br>Camera and WebXR measure a real staircase’s rise and tread.</p>
+      <div class="card"><span class="kick">The Group 14 stair experiment</span><span class="src">Six participants climbed measured stairways. The pulse is modelled as <b>periodic motion</b> (f, T, ω) and VO₂ estimated with the project’s method. Automated tests <b>recompute the report’s tables from the raw counts</b>. If the pulse after is lower than before, the app says “not valid” instead of showing a number.</span></div>
+      <p class="f"><b class="c2">Evidence Vault</b>Every source on a shelf: claim, how HealthWiz uses it, where you see it. Every “?” links to its entry.</p>
+      <p class="f"><b class="c4">Science Laboratory</b>Be Your Own Experiment, the Evidence Trial, and the <i>Uncertainty Engine</i> showing how unmeasured assumptions move an estimate.</p>
+      <p class="f"><b class="c5">Ascent Monument</b>Your climbing builds an endless Tower of Babel, one stone per 0.25 m.</p>
+      <p class="f"><b class="c6">Alchemist’s Workshop</b>Food energy, work against gravity and metabolic use are three different quantities; it shows why.</p>
+      <div class="rule"></div>
+      <p class="note"><b style="color:var(--pn)">Sources:</b> Mifflin–St Jeor · FAO/WHO/UNU · 2024 Compendium of Physical Activities · Keytel · Tanaka · Lovibond &amp; Lovibond (DASS-21) · National Sleep Foundation · WHO · IOM. Where a rule is the team’s own, the “?” says so.</p>
+    </div>
+  </section>
+
+  <section class="panel q8 dark">
+    <div class="hd"><img class="px" src="img/hall-stair.jpg" alt=""><div class="t"><span class="ttl">TRUST</span><span class="kick">Private, honest, open</span></div></div>
+    <div class="body">
+      <h3 style="margin-top:0">Your data stays yours</h3>
+      <ul>
+        <li class="k">Saved <b>on your device</b>; download or restore a backup any time.</li>
+        <li class="k">A free account is <b>optional</b>: cloud backup and sync. Row Level Security means only you can read your row.</li>
+        <li class="k"><b>Delete account and cloud data</b> in two taps.</li>
+        <li class="k">Location only <b>when you tap</b>, never saved or sent. Camera pulse video never stored.</li>
+        <li class="k">AI chat is <b>never stored</b>; no AI key inside the app.</li>
+      </ul>
+      <h3>Under the hood</h3>
+      <p style="margin:0 0 3px;color:#b9b2ec">A static web app: plain JavaScript, no build step. Installable and offline-ready.</p>
+      <div><span class="chip">PWA</span><span class="chip">Supabase</span><span class="chip">Postgres + RLS</span><span class="chip">Edge Functions</span><span class="chip">Gemini</span><span class="chip">MapLibre</span><span class="chip">Three.js</span><span class="chip">WebXR</span><span class="chip">Web Bluetooth</span><span class="chip">Open-Meteo</span><span class="chip">Blender</span></div>
+      <h3>Credits and licences</h3>
+      <p class="credits">Fonts: Press Start 2P and Pixelify Sans (SIL OFL 1.1). Map data © OpenStreetMap contributors (ODbL). MapLibre GL JS (BSD-3-Clause). Three.js (MIT). Map avatars: Tom, the anime school boy and girl (CC BY 4.0, suzuart). Campus look follows a drone video by @ikraMRahim, used with the creator’s permission. Knight 3D base: MakeHuman CC0 assets. Emblems: MARA and Kolej MARA Kulim. All other characters and scenes are original HealthWiz designs.</p>
+      <h3>Safe and tested</h3>
+      <p style="margin:0;color:#d6d0f7">Saved data is versioned and upgraded step by step, with a backup copy made before any upgrade or repair. <b style="color:#fff">102</b> browser test files check every feature, with performance budgets and a device matrix. The <b style="color:#fff">Complete Feature Atlas</b> lists every module.</p>
+    </div>
+  </section>
+</div>
+
+<script>if(location.search.includes('guides'))document.body.classList.add('guides')</script>
+</body>
+</html>
