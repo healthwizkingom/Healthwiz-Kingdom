@@ -47,7 +47,15 @@ compatibility tests.
 | broken references | `26-journey` (handlers, page links, images, asset paths), `20-pwa` (the offline file list) |
 | existing data compatibility | `02-schema`, `26-journey` (an old v5.4.3 save on every page), `28-foundation` (every storage key and entry unchanged through every page and a reload), `33-stairs` (old stair and pulse entries kept untouched, read through the session model) |
 
-### §94 Mobile
+### Owner's request of 2026-10-30 (Hall pictures, image buttons, Luke, Time Machine rewind, orb reset)
+
+| Item | Tests |
+|---|---|
+| a new day with only a BMI logged has no score (the orb no longer reads 100) | `96-orb-newday` |
+| Health Hall card pictures, the well filling with the day's water, the five image buttons keep their action and words, the logo, Luke's "?" on every section, his Statistics script | `97-luke-art` |
+| Time Machine: a not-logged cell or the LOG panel opens the usual page set to that day; USE NOW undoes it; live-measured lanes are not offered | `65-time` |
+| One merged Oracle's Table card: Medius's notices stay in `#insh` inside it | `04-insights`, `93-arcana` |
+
 
 | Item | Tests |
 |---|---|

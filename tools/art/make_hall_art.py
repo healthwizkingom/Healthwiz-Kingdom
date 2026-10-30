@@ -2,7 +2,7 @@
 """Health Hall card backgrounds, the image buttons and Luke's tutorial faces, composed from art already in assets/img/.
 Run from the repo root:  python3 tools/art/make_hall_art.py
 Writes lossless WebP (each under 100 KB; the whole folder is capped in tests/24-performance.test.mjs):
-  hall-{food,sleep,stair,exercise,stress,body,stats,score}.webp   144 x 108 card pictures (shown pixelated, cover)
+  hall-{food,sleep,stair,exercise,stress,body,stats,score}.webp   192 x 108 card pictures (shown pixelated, cover)
   btn-{quests,lab,obs,time,monument}.webp                          240 x 48 button pictures (shown pixelated, left, height 100%)
   luke-ask.webp                                                    7 expression faces, 80 x 80 each
 Sources: tools/art/src/luke-expressions.png (the owner's expression sheet) and tools/art/src/stair-fantasy.png (assets/models/stairs/
@@ -50,15 +50,17 @@ def bits(rows, pal):   # tiny hand-drawn sprite from text rows
     return im
 def up(im, k): return im.resize((im.width * k, im.height * k), Image.NEAREST)
 
-LUKE = lambda i=0: frame(I + 'luke-poses.webp', i, 120)
+LUKE = lambda i=0: frame(I + 'luke-hires-1.webp', i, 167)   # the sharper design sheet: 6 poses of 167 x 192; 0 = smiling, arms open
 LUNA = lambda i=0: frame(I + 'luna-poses.webp', i, 120)
-W, H = 144, 108
+W, H = 192, 108
 
 # ---------- Luke's expression faces (the owner's sheet), 7 x 80 ----------
 def luke_ask():
     s = load(SRC + 'luke-expressions.png'); xs = [46, 354, 666, 968, 1272, 1571, 1864]; out = Image.new('RGBA', (80 * 7, 80), (0, 0, 0, 0))
-    for i, x in enumerate(xs):   # the left 205 px of each card: the head, hat and glasses without the symbol beside it
-        out.alpha_composite(s.crop((x + 6, 172, x + 6 + 205, 172 + 205)).resize((80, 80), Image.LANCZOS), (i * 80, 0))
+    for i, x in enumerate(xs):   # one 280 px square per card: the whole hat and face centred; the symbol beside the head is painted over with the card colour
+        c = s.crop((x + 2, 160, x + 2 + 284, 160 + 284)); bg = c.getpixel((60, 6)); d = ImageDraw.Draw(c)
+        d.rectangle((236, 176, 284, 250), fill=bg); d.rectangle((246, 14, 284, 56), fill=bg)
+        out.alpha_composite(c.resize((80, 80), Image.LANCZOS), (i * 80, 0))
     save(out, 'luke-ask.webp')
 
 # ---------- card pictures ----------
@@ -72,15 +74,12 @@ FOODS = {
 }
 def card_food():
     im = grad(W, H, (58, 38, 26), (30, 22, 18))
-    d = ImageDraw.Draw(im); d.rectangle((W // 2, 0, W, H), fill=(26, 34, 58, 255)); d.rectangle((W // 2 - 1, 0, W // 2, H), fill=(14, 10, 24, 255))
-    r = random.Random(3)
-    for k in ('apple', 'bread', 'leg', 'fish', 'carrot'):   # the left half: a feast table behind Luke
-        put(im, up(FOODS[k], 2), r.randrange(4, W // 2 - 20), r.randrange(70, 92))
-    d.rectangle((0, 94, W // 2 - 1, H), fill=(110, 70, 36, 255)); d.rectangle((0, 94, W // 2 - 1, 95), fill=(150, 100, 50, 255))
-    lk = fit_h(LUKE(0), 74, Image.LANCZOS); put(im, lk, W // 4 - lk.width // 2 + 2, 22)
-    stars(im, 14, 5, (W // 2 + 2, 0, W, 40))
+    d = ImageDraw.Draw(im); d.rectangle((W // 2 + 8, 0, W, H), fill=(26, 34, 58, 255)); d.rectangle((W // 2 + 6, 0, W // 2 + 8, H), fill=(14, 10, 24, 255))
+    stars(im, 20, 5, (W // 2 + 10, 0, W, 70))
+    d.rectangle((0, 94, W // 2 + 5, H), fill=(110, 70, 36, 255)); d.rectangle((0, 94, W // 2 + 5, 95), fill=(150, 100, 50, 255))
+    for k, x in (('apple', 6), ('bread', 78), ('leg', 100), ('fish', 54), ('carrot', 24)): put(im, up(FOODS[k], 2), x, 84)
+    lk = fit_h(LUKE(0), 90, Image.LANCZOS); put(im, lk, 14, 10)
     put(im, up(FOODS['drop'], 2), W - 18, 8)
-    stars(im, 14, 5, (W // 2 + 2, 0, W, 60))
     save(im, 'hall-food.webp')
 def well():   # 40 x 44, transparent: roof, posts, stone ring. Shaft inside: x 9-31, y 28-40 (the app draws the water there, see js/v6-art.js)
     im = Image.new('RGBA', (40, 44), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
@@ -92,46 +91,65 @@ def well():   # 40 x 44, transparent: roof, posts, stone ring. Shaft inside: x 9
     d.rectangle((9, 28, 30, 39), fill=(18, 20, 40, 255)); d.rectangle((2, 22, 37, 25), fill=(160, 164, 180, 255))
     save(im, 'hall-well.webp')
 def card_sleep():
-    im = grad(W, H, (22, 18, 56), (54, 30, 72)); stars(im, 40, 9, (0, 0, W, 60)); d = ImageDraw.Draw(im)
-    d.ellipse((W - 34, 8, W - 14, 28), fill=(250, 240, 200, 255)); d.ellipse((W - 28, 6, W - 10, 24), fill=(34, 24, 66, 255))
-    d.rectangle((0, 88, W, H), fill=(36, 28, 52, 255)); d.rectangle((0, 88, W, 89), fill=(70, 54, 90, 255))
-    kn = fit_h(load(I + 'kn.webp'), 70); oc = fit_h(load(I + 'orc.webp'), 62)
-    put(im, kn, 4, 90 - kn.height + 4); put(im, oc, W - oc.width - 4, 90 - oc.height + 6, flip=True)
+    im = grad(W, H, (22, 18, 56), (54, 30, 72)); stars(im, 50, 9, (0, 0, W, 60)); d = ImageDraw.Draw(im)
+    d.ellipse((W - 40, 8, W - 20, 28), fill=(250, 240, 200, 255)); d.ellipse((W - 34, 6, W - 16, 24), fill=(34, 24, 66, 255))
+    d.rectangle((0, 90, W, H), fill=(36, 28, 52, 255)); d.rectangle((0, 90, W, 91), fill=(70, 54, 90, 255))
+    kn = fit_h(load(I + 'kn.webp'), 76); oc = fit_h(load(I + 'orc.webp'), 66)
+    put(im, kn, 34, 92 - kn.height + 4); put(im, oc, 162 - oc.width, 92 - oc.height + 6, flip=True)
     save(im, 'hall-sleep.webp')
 def card_stair():
-    im = grad(W, H, (26, 20, 64), (52, 34, 84)); stars(im, 26, 12, (0, 0, W, 50))
-    s = keyout(load(SRC + 'stair-fantasy.png'), (26, 20, 64)); bb = s.getbbox(); s = s.crop(bb)
-    s = s.resize((round(s.width * 96 / s.height), 96), Image.LANCZOS); put(im, s, (W - s.width) // 2, 8)
+    im = grad(W, H, (26, 20, 64), (52, 34, 84)); stars(im, 30, 12, (0, 0, W, 50))
+    s = keyout(load(SRC + 'stair-fantasy.png'), (26, 20, 64)); s = s.crop(s.getbbox())
+    s = s.resize((round(s.width * 88 / s.height), 88), Image.LANCZOS); put(im, s, 24, 10)
     save(im, 'hall-stair.webp')
 def card_exercise():
     im = grad(W, H, (40, 30, 56), (22, 18, 34)); d = ImageDraw.Draw(im)
-    d.rectangle((0, 86, W, H), fill=(64, 46, 40, 255)); d.rectangle((0, 86, W, 87), fill=(104, 78, 60, 255))
-    for x in range(0, W, 24): d.line([(x, 86), (x - 10, H)], fill=(52, 38, 34, 255))
-    for x in (14, W - 22): d.rectangle((x, 24, x + 8, 86), fill=(70, 70, 92, 255)); d.rectangle((x - 3, 22, x + 11, 26), fill=(110, 110, 140, 255))   # racks
-    d.rectangle((16, 34, W - 18, 37), fill=(140, 140, 168, 255))
-    kn = load(I + 'exercise/moves.webp').crop((0, 0, 384, 384)); kn = fit_h(kn, 76, Image.LANCZOS); put(im, kn, (W - kn.width) // 2, 14)
+    d.rectangle((0, 88, W, H), fill=(64, 46, 40, 255)); d.rectangle((0, 88, W, 89), fill=(104, 78, 60, 255))
+    for x in range(0, W, 24): d.line([(x, 88), (x - 10, H)], fill=(52, 38, 34, 255))
+    for x in (22, W - 30): d.rectangle((x, 26, x + 8, 88), fill=(70, 70, 92, 255)); d.rectangle((x - 3, 24, x + 11, 28), fill=(110, 110, 140, 255))   # racks
+    d.rectangle((24, 36, W - 24, 39), fill=(140, 140, 168, 255))
+    kn = load(I + 'exercise/moves.webp').crop((0, 0, 384, 384)); kn = fit_h(kn, 80, Image.LANCZOS); put(im, kn, 40, 14)
     save(im, 'hall-exercise.webp')
 def card_stress():
-    s = load(I + 'study.jpg').crop((130, 20, 130 + 700, 20 + 525)).resize((W, H), Image.LANCZOS); save(s, 'hall-stress.webp')
+    s = load(I + 'study.jpg').resize((W, H), Image.LANCZOS); save(s, 'hall-stress.webp')
+def bolt(d, p0, p1, seed):
+    r = random.Random(seed); n = 9; pts = [p0]
+    for k in range(1, n):
+        t = k / n; pts.append((p0[0] + (p1[0] - p0[0]) * t + r.randint(-6, 6), p0[1] + (p1[1] - p0[1]) * t + r.randint(-9, 9)))
+    pts.append(p1); d.line(pts, fill=(255, 190, 40, 255), width=4); d.line(pts, fill=(255, 245, 160, 255), width=2); d.line(pts, fill=(255, 255, 255, 255), width=1)
 def card_body():
-    r = random.Random(21); im = grad(W, H, (36, 30, 74), (24, 20, 52)); d = ImageDraw.Draw(im)
-    hat = bits(['...w..', '..www.', '..www.', '.wwwww', 'wwwwwww'], {'w': (170, 150, 240, 255)}); bolt = bits(['..yy', '.yy.', 'yyyy', '..y.', '.y..'], {'y': (255, 214, 80, 255)})
-    star = bits(['..w..', '.www.', 'wwwww', '.www.', '..w..'], {'w': (255, 240, 170, 255)}); flame = bits(['..o..', '.ooo.', 'oorro', 'orrro', '.rrr.'], {'o': (255, 150, 50, 255), 'r': (230, 70, 50, 255)})
-    pot = bits(['.cc.', '.bb.', 'bbbb', 'bwbb', 'bbbb'], {'c': (180, 130, 80, 255), 'b': (90, 190, 240, 255), 'w': (210, 245, 255, 255)})
-    cells = [(x, y) for x in range(4, W - 18, 26) for y in range(4, H - 18, 26)]; r.shuffle(cells)
-    for i, (x, y) in enumerate(cells):
-        sp = [hat, bolt, star, flame, pot][i % 5]; k = r.choice([2, 2, 3]); put(im, up(sp, k), x + r.randrange(-3, 4), y + r.randrange(-3, 4))
-    for _ in range(26):   # little doodle scribbles
-        x, y = r.randrange(W), r.randrange(H); d.line([(x, y), (x + r.randrange(-6, 7), y + r.randrange(-6, 7))], fill=(120, 110, 200, 255))
+    im = grad(W, H, (30, 22, 70), (70, 34, 90)); d = ImageDraw.Draw(im); cx, cy = 150, 54
+    for y in range(H):   # a glow around the orb, in stepped rings (pixel look)
+        for x in range(W):
+            dist = math.hypot(x - cx, (y - cy) * 1.1); k = int(dist // 9)
+            if dist < 62 and k % 2 == 0: r0, g0, b0, _ = im.getpixel((x, y)); t = (62 - dist) / 62 * .28; im.putpixel((x, y), (int(r0 + (140 - r0) * t), int(g0 + (120 - g0) * t), int(b0 + (255 - b0) * t), 255))
+    stars(im, 46, 7, (0, 0, W, H))
+    wz = load(I + 'avatar-wz.webp'); wb = wz.getbbox(); wz = wz.crop(wb); sc = 86 / wz.height; wz = wz.resize((round(wz.width * sc), 86), Image.LANCZOS)
+    px = wz.load(); tips = [(x, y) for y in range(wz.height // 3) for x in range(wz.width) if px[x, y][3] > 200 and px[x, y][2] > 200 and px[x, y][1] > 170 and px[x, y][0] < 170]
+    tx, ty = (sum(t[0] for t in tips) // len(tips), sum(t[1] for t in tips) // len(tips)) if tips else (wz.width * 3 // 4, 6)
+    ox, oy = 14, 12; put(im, wz, ox, oy); p0 = (ox + tx, oy + ty)
+    for rr, c in ((14, (60, 40, 140, 255)), (11, (110, 80, 220, 255)), (8, (190, 150, 255, 255))): d.ellipse((cx - rr - 4, cy - rr - 4, cx + rr + 4, cy + rr + 4), outline=c, width=2)   # the orb of energy
+    d.ellipse((cx - 14, cy - 14, cx + 14, cy + 14), fill=(120, 230, 255, 255)); d.ellipse((cx - 10, cy - 10, cx + 10, cy + 10), fill=(190, 250, 255, 255)); d.ellipse((cx - 6, cy - 7, cx - 1, cy - 2), fill=(255, 255, 255, 255))
+    bolt(d, p0, (cx - 14, cy - 3), 11); bolt(d, p0, (cx - 12, cy + 8), 23)
+    r = random.Random(5)
+    for _ in range(22):   # sparks flying off the bolt
+        x, y = r.randint(p0[0], cx + 20), r.randint(p0[1] - 22, cy + 30); c = r.choice([(255, 230, 90, 255), (255, 255, 255, 255), (130, 220, 255, 255)])
+        d.rectangle((x, y, x + 1, y + 1), fill=c)
+    for (x, y) in ((cx + 24, cy - 28), (cx - 26, cy + 28), (cx + 30, cy + 20), (12, 12)):   # four-point twinkles
+        d.line([(x - 3, y), (x + 3, y)], fill=(255, 245, 170, 255)); d.line([(x, y - 3), (x, y + 3)], fill=(255, 245, 170, 255))
     save(im, 'hall-body.webp')
 def tower_card():
     t = load(I + 'monument-card.webp'); return t
 def card_stats():
-    t = tower_card().resize((96, 112), Image.NEAREST); im = grad(W, H, (16, 14, 52), (40, 28, 84)); stars(im, 40, 31, (0, 0, W, 70))
-    put(im, t.crop((0, 4, 96, 112)).resize((96, 104), Image.NEAREST), (W - 96) // 2, 4)
+    t = tower_card().crop((0, 0, 96, 112)); fade = Image.new('L', t.size, 255); fp = fade.load()
+    for y in range(t.height):
+        for x in range(t.width):
+            e = min(x, t.width - 1 - x, y, t.height - 1 - y); fp[x, y] = 255 if e >= 12 else int(255 * e / 12)
+    t.putalpha(Image.composite(t.getchannel('A'), Image.new('L', t.size, 0), fade)); t = t.resize((round(96 * 92 / 112), 92), Image.NEAREST)
+    im = grad(W, H, (16, 14, 52), (40, 28, 84)); stars(im, 60, 31, (0, 0, W, H)); put(im, t, 34, 8)
     save(im, 'hall-stats.webp')
 def card_score():
-    o = load(I + 'orb-scene.webp').crop((269, 568, 269 + 320, 568 + 240)).resize((W, H), Image.LANCZOS); save(o, 'hall-score.webp')
+    o = load(I + 'orb-scene.webp').crop((269 - 40, 568 - 12, 269 + 360, 568 + 238)).resize((W, H), Image.LANCZOS); save(o, 'hall-score.webp')
 
 # ---------- image buttons, 240 x 48 ----------
 BW, BH = 240, 48
@@ -140,7 +158,7 @@ def btn_quests():
     for y in range(0, BH, 8): d.line([(0, y), (BW, y)], fill=(54, 34, 18, 255))
     d.rectangle((2, 3, 70, 44), outline=(150, 100, 48, 255), width=2); d.rectangle((4, 5, 68, 42), fill=(96, 62, 32, 255))   # the guild notice board
     sc = fit_h(frame(I + 'luke-props.webp', 1, 40), 30); put(im, sc, 8, 9); put(im, fit_h(frame(I + 'luke-props.webp', 4, 40), 26), 42, 12)
-    lk = fit_h(LUKE(0), 46); put(im, lk, 74, 1)
+    lk = fit_h(LUKE(0), 46, Image.LANCZOS); put(im, lk, 74, 1)
     r = random.Random(4)
     for i, k in enumerate(('apple', 'bread', 'leg', 'fish', 'carrot', 'apple')): put(im, up(FOODS[k], 2), 108 + i * 17, 20 + (i % 2) * 8)
     save(im, 'btn-quests.webp')

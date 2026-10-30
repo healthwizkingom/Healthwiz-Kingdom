@@ -54,11 +54,11 @@ score:['Health Score',[
 let root,sp,tx,pg,fc,cn,i=0,ty=0,full='',topic='',opener=null;
 const face=n=>'background-position:'+(FACE[n]*100/6)+'% 0';
 const find=t=>!t?null:t[0]==='~'?[...document.querySelectorAll('main .card,main .snap,main .wq,main .hub,main header,main .pxp')].find(e=>e.textContent.toUpperCase().includes(t.slice(1).toUpperCase())):document.querySelector(t);
-function place(){const s=T[topic][1][i],el=find(s[1]);let r=null;if(el){el.scrollIntoView({block:'center'});r=el.getBoundingClientRect()}
+function place(){if(!root)return;const s=T[topic][1][i],el=find(s[1]);let r=null;if(el){el.scrollIntoView({block:'center'});r=el.getBoundingClientRect()}
   if(r&&r.width&&r.height){sp.style.cssText='display:block;left:'+(r.left-6)+'px;top:'+(r.top-6)+'px;width:'+(r.width+12)+'px;height:'+(r.height+12)+'px'}else sp.style.display='none';
   root.style.background=r&&r.width?'':'rgba(8,12,30,.6)';cn.className='twc '+(r&&r.top>innerHeight-r.bottom?'top':'bot')+(r&&r.left+r.width/2<innerWidth*.3?' rt':'')}
 function show(){const L=T[topic][1],s=L[i];fc.style.cssText=face(s[0]);setTimeout(place,60);clearInterval(ty);full=s[2];
-  if(typeof HWMotion!=='undefined'&&HWMotion.reduced())tx.textContent=full;else{let n=0;tx.textContent='';ty=setInterval(()=>{n+=2;tx.textContent=full.slice(0,n);if(n>=full.length)clearInterval(ty)},16)}
+  if(typeof HWMotion!=='undefined'&&HWMotion.reduced())tx.textContent=full;else{let n=0;tx.textContent='';ty=setInterval(()=>{if(!root){clearInterval(ty);return}n+=2;tx.textContent=full.slice(0,n);if(n>=full.length)clearInterval(ty)},16)}
   pg.textContent=(i+1)+' / '+L.length+' · tap anywhere ▶'}
 function end(){clearInterval(ty);if(root)root.remove();root=null;removeEventListener('resize',place);removeEventListener('keydown',key);if(opener&&document.contains(opener))opener.focus({preventScroll:true});opener=null}
 function next(){if(tx.textContent.length<full.length){clearInterval(ty);tx.textContent=full;return}if(++i>=T[topic][1].length){end();return}show()}
@@ -70,13 +70,14 @@ function start(k){if(root||!T[k])return;topic=k;i=0;opener=document.activeElemen
 acts.lkq=d=>start(d.t);
 
 /* ---------- the button, at the top right of each section ---------- */
-const TOPIC={food:'food',water:'water',sleep:'sleep',stair:'stair',exercise:'exercise',stress:'stress',body:'body',stats:'stats',score:'score'};
+const TOPIC={food:'food',water:'water',sleep:'sleep',exercise:'exercise',stress:'stress',body:'body',stats:'stats',score:'score'};
 const btn=k=>'<button type="button" class="lkq" data-a="lkq" data-t="'+k+'" aria-label="Ask Luke about '+esc(T[k][0])+'"><span class="lkface" aria-hidden="true" style="'+face('confused')+'"></span><i aria-hidden="true">?</i></button>';
 function wrap(k){const p=pages[k];if(!p)return;pages[k]=function(){const h=p.apply(this,arguments);
   if(k==='stress'&&S.sq&&S.sq.ph&&S.sq.ph!=='start')return h;   // inside a stress quest the header stays out of the way
-  const m='<button type="button" class="g sm hwq"';
-  return h.indexOf(m)>=0&&h.indexOf('id="hwcr"')>=0?h.replace(m,btn(TOPIC[k])+m):'<div class="lkrow">'+btn(TOPIC[k])+'</div>'+h}}
-Object.keys(TOPIC).forEach(wrap);
+  const m=/<button type="button" class="g sm hwq"[^>]*>\?<\/button>/.exec(h);
+  // Luke's button sits above the page's own "?" in the same 44 px column, so the row keeps its height and the title keeps its width
+  return m&&h.indexOf('id="hwcr"')>=0?h.replace(m[0],'<span class="lkcol">'+btn(TOPIC[k])+m[0]+'</span>'):'<div class="lkrow">'+btn(TOPIC[k])+'</div>'+h}}
+Object.keys(TOPIC).forEach(wrap);   // Stairs is a section of the Campus page: its button sits in that section's header (js/v6-campus-stairs.js)
 
 HWUI.css('luke',`
 .lkface{display:block;width:100%;aspect-ratio:1;background:url(assets/img/luke-ask.webp) 0 0/700% 100% no-repeat;image-rendering:pixelated}
@@ -86,8 +87,8 @@ HWUI.css('luke',`
 .lkq i{position:absolute;right:-8px;top:-8px;width:22px;height:22px;display:grid;place-items:center;border:2px solid #fff;border-radius:50%;background:#d8262f;color:#fff;font:700 14px/1 var(--fb);font-style:normal;box-shadow:0 1px 3px rgba(0,0,0,.5)}
 .lkq:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 .lkrow{display:flex;justify-content:flex-end;margin:0 0 6px;padding-right:8px}
-.hwcr .lkq{margin-right:8px}
+.lkcol{display:flex;flex-direction:column;gap:0;flex:0 0 auto;margin:-12px 0}.lkcol .lkq,.lkcol .hwq{margin:0}.lkcol .lkq{width:40px;height:40px;min-width:40px;min-height:40px;align-self:center}
 .lktut .tbx b{color:var(--vio)}
 @media(max-width:480px){.lkz{flex-basis:72px}}
 `);
-return{topics:Object.keys(T),start,find}})();
+return{topics:Object.keys(T),start,find,btn}})();

@@ -21,7 +21,7 @@ function summary(){const d=today(),R=rng(7),n=sp(d),k=(typeof HWStairs!=='undefi
 function html(){
   const body=open?pages.stair():'',help=open&&typeof HWHall!=='undefined'?HWHall.panel('stair'):'',q=open&&typeof HWHall!=='undefined'?'<button type="button" class="g sm hwq stsecq" data-a="hwq" data-k="stair" aria-expanded="false" aria-controls="hwh3" aria-label="What is this section for?">?</button>':'';
   return '<section class="stsec" id="stairs" aria-labelledby="stsec-t"><div class="pxp pxn stsech"><h2 class="pxh" id="stsec-t"><button type="button" class="stsecb" id="stsec-btn" data-a="stsec" aria-expanded="'+open+'" aria-controls="stsec-body">'
-    +ico('stairs',2)+'<span class="stsect"><b>Stairs</b><small>'+(typeof HWHall!=='undefined'?'ENTERED BY YOU · ':'')+summary()+'</small></span><span class="stsecv" aria-hidden="true"></span></button>'+q+'</h2></div>'
+    +ico('stairs',2)+'<span class="stsect"><b>Stairs</b><small>'+(typeof HWHall!=='undefined'?'ENTERED BY YOU · ':'')+summary()+'</small></span><span class="stsecv" aria-hidden="true"></span></button>'+(typeof HWLuke!=='undefined'?HWLuke.btn('stair'):'')+q+'</h2></div>'
     +'<div id="stsec-body"'+(open?'':' hidden')+'>'+help+body+'</div></section>'}
 
 const redraw=()=>{const y=window.scrollY;render();window.scrollTo(0,y)};

@@ -14,11 +14,11 @@ function wf(){try{const t=+st.s.water||0;return t>0?Math.max(0,Math.min(1,wt(tod
 {const p=pages.health;pages.health=function(){const h=p.apply(this,arguments);return h.replace('<button class="hb" data-a="go" data-v="food">','<button class="hb" data-a="go" data-v="food" style="--wf:'+wf().toFixed(3)+'"><i class="hbwell" aria-hidden="true"><i class="hbwater"></i></i>')}}
 const card=k=>'#hub.hub .hb[data-v="'+k+'"]{background-image:linear-gradient(180deg,rgba(8,6,26,.34),rgba(8,6,26,.78)),url(assets/img/hall-'+k+'.webp);background-size:100% 100%,cover;background-repeat:no-repeat;background-position:center,center 45%}';
 HWUI.css('art',`
-#hub.hub .hb{position:relative;overflow:hidden;min-height:150px;color:#fff;background-color:#14102c;image-rendering:pixelated;isolation:isolate}
-@media(min-width:700px){#hub.hub .hb{min-height:210px}}
+html #hub.hub .hb{position:relative;overflow:hidden;min-height:150px;color:#fff;background-color:#14102c;image-rendering:pixelated;isolation:isolate}
+@media(min-width:700px){html #hub.hub .hb{min-height:200px}}
 ${KEYS.map(card).join('\n')}
 #hub.hub .hb[data-v="food"]{background-position:center,left 45%}
-#hub.hub .hb[data-v="stats"]{background-position:center,center 90%}#hub.hub .hb[data-v="exercise"]{background-position:center,center 35%}
+
 #hub.hub .hb b,#hub.hub .hb small,#hub.hub .hb em,#hub.hub .hb .hwa{color:#fff;text-shadow:0 1px 0 #000,0 0 4px rgba(0,0,0,.9)}
 #hub.hub .hb .bi{filter:drop-shadow(0 2px 2px rgba(0,0,0,.8))}
 /* Food & Water: the well stands at the right of the card; the water inside it rises with the day's water (--wf, 0 to 1) */
@@ -28,7 +28,7 @@ ${KEYS.map(card).join('\n')}
   text-shadow:0 2px 0 #000,0 0 6px rgba(0,0,0,.9);border:3px solid var(--ln);background-color:var(--ibc,#241a30);
   background-image:linear-gradient(90deg,transparent 0,transparent 24%,rgba(8,6,26,.9) 52%),var(--ibg);background-position:left center,left center;background-size:100% 100%,auto 100%;background-repeat:no-repeat;image-rendering:pixelated}
 .imgbtn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
-.ib-quests{--ibg:url(assets/img/btn-quests.webp);--ibc:#2a1c12}.ib-lab{--ibg:url(assets/img/btn-lab.webp);--ibc:#1a1440}.ib-obs{--ibg:url(assets/img/btn-obs.webp);--ibc:#18304a}
+.ib-quests{--ibg:url(assets/img/btn-quests.webp);--ibc:#2a1c12;height:48px;min-height:48px;padding-left:44%}   /* Home: the picture at its own size (1×) keeps the screen as short as the plain button was */.ib-lab{--ibg:url(assets/img/btn-lab.webp);--ibc:#1a1440}.ib-obs{--ibg:url(assets/img/btn-obs.webp);--ibc:#18304a}
 .ib-time{--ibg:url(assets/img/btn-time.webp);--ibc:#183a44}.ib-monument{--ibg:url(assets/img/btn-monument.webp);--ibc:#2c1e56}
 @media(max-width:380px){.imgbtn{padding-left:40%;font-size:14px}}
 `);
