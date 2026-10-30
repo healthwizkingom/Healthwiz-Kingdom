@@ -43,7 +43,7 @@ test('the header shows the game logo, and the words stay for screen readers', as
 test('Luke: a "?" button on every Health Hall section opens his tutorial; tap goes on, Esc leaves', async () => {
   const { page, ctx, errors } = await openApp({ seed, viewport: { width: 390, height: 844 } });
   await page.waitForSelector('.wl');
-  for (const v of ['food', 'water', 'sleep', 'stair', 'exercise', 'stress', 'body', 'stats', 'score']) {
+  for (const v of ['food', 'water', 'sleep', 'stair', 'exercise', 'stress', 'body', 'stats', 'score', 'lab', 'time', 'monument']) {
     await go(page, v);
     const b = page.locator('#main .lkq[data-t="' + v + '"]'); assert.equal(await b.count(), 1, v + ' has Luke\'s button');
     const r = await b.boundingBox(); assert.ok(r.width >= 40 && r.height >= 40, v + ' button is at least 40 px');
@@ -61,4 +61,14 @@ test('Luke\'s Statistics tutorial covers the Time Machine, the Ascent Monument, 
   const stats = src.slice(src.indexOf('stats:['), src.indexOf('score:['));
   for (const re of [/Time Machine/, /Ascent Monument/, /PDF/, /Dueling Arena/]) assert.match(stats, re);
   assert.doesNotMatch(src, /\b(thou|thee|thy|hath|doth|wilt)\b/i, 'plain words, not Shakespearean');
+});
+
+test('the status bar colour follows the page background, in light and dark', async () => {
+  for (const scheme of ['light', 'dark']) {
+    const { page, ctx, errors } = await openApp({ seed, context: { colorScheme: scheme } });
+    await page.waitForSelector('.wl');
+    const r = await page.evaluate(() => { HWArt.bar(); return [document.querySelector('meta[name="theme-color"]').content, getComputedStyle(document.body).backgroundColor]; });
+    assert.equal(r[0], r[1], scheme + ': theme-color matches the page background');
+    assert.deepEqual(errors, []); await ctx.close();
+  }
 });

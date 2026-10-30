@@ -14,11 +14,12 @@ const boot = async (seed, opts = {}) => { const r = await openApp({ seed, ...opt
 const tap = (page, sel) => page.dispatchEvent(sel, 'click');
 const overflow = page => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 
-test('before the reading: the orb scene, the score and its table stay visible, no quest cards yet', async () => {
+test('before the reading: the orb scene shows and the score and its table wait for it, no quest cards yet', async () => {
   const { page, ctx, errors } = await boot(full);
   assert.equal(await page.locator('#v6orbc').count(), 1);
   assert.equal(await page.locator('.v6oc').count(), 0);
-  assert.match(await page.textContent('#main'), /HOW YOUR SCORE ADDS UP/);
+  assert.equal(await page.locator('#scorelock').count(), 1, 'the score is hidden until the orb is read');
+  assert.doesNotMatch(await page.textContent('#main'), /HOW YOUR SCORE ADDS UP/);
   assert.equal(await page.locator('[data-a="orbgo"]').isEnabled(), true);
   assert.equal(await page.locator('[data-a="orbshow"]').count(), 1);
   assert.deepEqual(errors, []); await ctx.close();
@@ -57,7 +58,8 @@ test('SKIP and Esc reveal the quests at once; reopening shows them without repla
   assert.ok(await page.locator('.v6oc').count() >= 7, 'Esc skips');
   assert.deepEqual(errors, []); await ctx.close();
   // the saved choice survives a reload
-  const r = await boot({ ...full, s: { ...full.s, orb: 1 } });
+  const day = await (async () => { const t = new Date(); const p = n => String(n).padStart(2, '0'); return t.getFullYear() + '-' + p(t.getMonth() + 1) + '-' + p(t.getDate()); })();
+  const r = await boot({ ...full, s: { ...full.s, orb: 1, orbd: day } });
   assert.ok(await r.page.locator('.v6oc').count() >= 7);
   assert.deepEqual(r.errors, []); await r.ctx.close();
 });
@@ -128,5 +130,19 @@ test('if the cards cannot be built, the plain recommendation list is shown inste
   const html = await page.evaluate(() => { const C = HWScore.compute(), I = { ...C.I }; Object.defineProperty(I, 'fv', { get() { throw new Error('broken'); } });
     return HWOrb.section({ ...C, I }, '<div id="plain">plain list</div>'); });
   assert.match(html, /plain list/); assert.match(html, /could not be read just now/);
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('the reading is for today: a new day starts unread, the score is hidden again, and reading it shows the score', async () => {
+  const { page, ctx, errors } = await boot(full);
+  assert.equal(await page.locator('#scorelock').count(), 1);
+  await tap(page, '[data-a="orbshow"]');
+  assert.equal(await page.locator('#scorelock').count(), 0);
+  assert.match(await page.textContent('#main'), /HOW YOUR SCORE ADDS UP/);
+  assert.equal((await state(page)).s.orbd, await page.evaluate(() => today()));
+  await page.evaluate(() => { st.s.orbd = '2020-01-01'; }); await go(page, 'home'); await go(page, 'score');
+  assert.equal(await page.locator('#scorelock').count(), 1, 'yesterday\'s reading does not carry over');
+  await go(page, 'health');
+  assert.match(await page.textContent('#hub [data-v="score"]'), /read your orb/);
   assert.deepEqual(errors, []); await ctx.close();
 });

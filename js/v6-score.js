@@ -185,9 +185,11 @@ function whyCard(){
   +'</div>'}
 
 const whatIf=C=>{if(typeof HWWhatIf==='undefined')return '';try{return HWWhatIf.section(C)}catch(e){console.error('[HealthWiz] what-if failed:',e);return ''}}; // js/v6-whatif.js: a simulation only
+// the score is revealed by the orb reading (js/v6-orb.js), once a day: until then the page shows the orb and says so
+const locked=C=>C.score!=null&&typeof HWOrb!=='undefined'&&!HWOrb.read();
 pages.score=()=>{
-  const C=compute();
-  return '<h2>🏆 HEALTH SCORE</h2><p class="mut">Your logged habits, weighed into one score, with advice for each area.</p>'+head(C)+table(C)+recCard(C)+whatIf(C)+whyCard()   // the What-if card sits below the orb reading (owner's order)
+  const C=compute(),L=locked(C);
+  return '<h2>🏆 HEALTH SCORE</h2><p class="mut">Your logged habits, weighed into one score, with advice for each area.</p>'+(L?'<div class="card" id="scorelock"><h3>🔮 YOUR SCORE IS WAITING</h3><p>Press READ MY HEALTH ORB below. Medius reads your logged habits in the orb and then shows your score for today.</p></div>':head(C)+table(C))+recCard(C)+(L?'':whatIf(C))+whyCard()   // the What-if card sits below the orb reading (owner's order)
    +'<div class="card"><small class="mut">Supports UN Sustainable Development Goal 3: Good Health and Well-being.'+HWHelp.btn('sdgnote','About HealthWiz','<p>HealthWiz is a wellness tracker, not a medical device.</p>')+'</small></div>'};
 
 acts.scw=d=>{W=d.w==='week'?'week':'day';render()};
@@ -195,7 +197,7 @@ acts.scw=d=>{W=d.w==='week'?'week':'day';render()};
 PAR.score='health';
 BN.score=['🏆','Health Score','Every habit, weighed into one number.','rgba(242,193,78,.3)'];
 DIS.score='A habit score from the numbers you logged, not a diagnosis. Weights are a team judgement from public guidance. Not a medical device.';
-HUB.push(['score','🏆','Health Score','Hall of Balance',()=>{const c=compute();return c.score==null?'log to see your score':c.score+' / 100 today'}]);
+HUB.push(['score','🏆','Health Score','Hall of Balance',()=>{const c=compute();return c.score==null?'log to see your score':locked(c)?'read your orb to see it':c.score+' / 100 today'}]);
 HWUI.css('score',`
 .v6sc{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:10px 0 6px}.v6scn{font:700 48px/1 var(--fn);font-variant-numeric:tabular-nums}.v6scd{opacity:.7}
 .v6sc div{display:flex;flex-direction:column;margin-left:8px}.v6fv{align-items:center;gap:12px}.v6why{margin:6px 0 8px 18px}.v6why li{margin:4px 0}.v6fvl{margin:6px 0 8px 18px}.v6fvl li{margin:2px 0}

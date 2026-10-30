@@ -92,7 +92,7 @@ test('served over http://localhost: installable links, offline copy, works with 
   assert.equal(await page.locator('link[rel="apple-touch-icon"]').count(), 1);
   await page.waitForFunction(() => HWPwa.status().sw === 'ready', null, { timeout: 15000 });
   assert.equal(await page.evaluate(() => HWEvents.recent('app:offline-ready').at(-1).first), true);
-  const cached = await page.evaluate(async () => (await (await caches.open('hwk-shell-v5')).keys()).length);
+  const cached = await page.evaluate(async () => (await (await caches.open('hwk-shell-v6')).keys()).length);
   assert.ok(cached >= 50, 'whole shell cached: ' + cached);
   await page.reload();
   await page.waitForSelector('.wl');

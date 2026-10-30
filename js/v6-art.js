@@ -23,4 +23,9 @@ ${KEYS.map(card).join('\n')}
 .ib-time{--ibg:url(assets/img/btn-time.webp);--ibc:#183a44}.ib-monument{--ibg:url(assets/img/btn-monument.webp);--ibc:#2c1e56}
 @media(max-width:380px){.imgbtn{padding-left:40%;font-size:14px}}
 `);
-return{KEYS}})();
+/* The phone's status bar (clock, signal, battery) takes the colour of <meta name="theme-color">. A browser cannot make it transparent, so it is kept the
+   same colour as the page's own background and follows the theme and the day/night look: the bar then melts into the app instead of showing as a band. */
+const bar=()=>{try{const m=document.querySelector('meta[name="theme-color"]'),c=getComputedStyle(document.body).backgroundColor;if(m&&c&&c!=='rgba(0, 0, 0, 0)'&&m.getAttribute('content')!==c)m.setAttribute('content',c)}catch(e){}};
+bar();new MutationObserver(bar).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','data-skin','class','style']});
+try{const q=matchMedia('(prefers-color-scheme: dark)');q.addListener?q.addListener(bar):0}catch(e){}
+return{KEYS,bar}})();
