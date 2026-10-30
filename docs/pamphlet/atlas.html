@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HealthWiz Kingdom — Complete Feature Atlas</title>
+<style>
+@font-face{font-family:'Press Start 2P';src:url(fonts/PressStart2P-Latin.woff2) format('woff2')}
+@font-face{font-family:'Pixelify Sans';src:url(fonts/PixelifySans-Latin.woff2) format('woff2');font-weight:400 700}
+@page{size:11in 8.5in;margin:0}
+:root{--night:#0d0b26;--pn:#1b1745;--ink:#2b2418;--mut:#5f5238;--gold:#f2c14e;--teal:#63e6dc;--parch:#fbf3d6;--line:#d8c68d;
+--fh:'Press Start 2P',monospace;--fl:'Pixelify Sans',system-ui,sans-serif;--fb:Inter,'Liberation Sans',system-ui,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;background:#555}
+body{font:8pt/1.38 var(--fb);color:var(--ink);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.sheet{width:11in;height:8.5in;overflow:hidden;position:relative;display:flex;flex-direction:column;
+ background:repeating-linear-gradient(0deg,rgba(120,90,30,.035) 0 2px,transparent 2px 5px),var(--parch)}
+.top.slim{height:.62in}.top.slim img{height:.46in}.top.slim h1{margin:0}
+.top{height:1.02in;flex:0 0 auto;display:flex;align-items:center;gap:.22in;padding:0 .35in;color:#fff;border-bottom:4px solid var(--gold);
+ background:radial-gradient(circle at 85% 0,rgba(139,92,240,.4),transparent 45%),var(--night)}
+.top img{height:.78in;image-rendering:pixelated}
+.top h1{font:16px/1.3 var(--fh);color:var(--gold);margin:0 0 5px;text-shadow:0 2px 0 #000}
+.top p{margin:0;font:600 11px/1.3 var(--fl);letter-spacing:.1em;text-transform:uppercase;color:#d6d0f7}
+.top .r{margin-left:auto;text-align:right;font-size:7pt;line-height:1.35;font-family:var(--fb);color:#d6d0f7;letter-spacing:0;text-transform:none;max-width:2.5in}
+.cols{flex:1;columns:4;column-gap:.2in;padding:.15in .35in 0;column-fill:balance}
+section{break-inside:avoid;margin:0 0 .09in;border:2px solid var(--ink);background:#fff8dd;box-shadow:2px 2px 0 var(--ink)}
+section h2{margin:0;font:700 10.5px/1.1 var(--fl);letter-spacing:.05em;gap:6px;text-transform:uppercase;color:var(--gold);background:var(--pn);padding:4px 7px 3px;display:flex;justify-content:space-between}
+section h2 i{font-style:normal;color:var(--teal);font-size:9.5px;text-align:right;letter-spacing:.03em}
+ul{margin:0;padding:4px 7px 3px 15px}
+li{margin:0 0 2.6px;padding-left:1px}
+li::marker{color:#a4690a;content:"◆ ";font-size:.7em}
+li b{color:var(--pn)}
+.foot{flex:0 0 auto;margin:0 .35in .16in;border-top:2px dashed var(--line);padding-top:5px;display:flex;justify-content:space-between;gap:.3in;font-size:6.6pt;color:var(--mut)}
+.foot b{color:var(--pn)}
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="top">
+    <img src="img/logo.png" alt="HealthWiz Kingdom">
+    <div><h1>COMPLETE FEATURE ATLAS</h1><p>Every part of the kingdom, module by module</p></div>
+    <p class="r">Companion to the tri-fold pamphlet. Wellness tracker, not a medical device: estimates are labelled and nothing here diagnoses.</p>
+  </div>
+
+  <div class="cols">
+    <section><h2>Water &amp; nutrition <i>Provisions Hall</i></h2><ul>
+      <li><b>Water Quest:</b> a layered valley scene that follows the time of day; the knight walks, drinks, carries and pours; well stages and earlier discoveries.</li>
+      <li><b>Water goal</b> from body weight (35 mL/kg, the team’s own rule), with extras at higher activity levels.</li>
+      <li><b>Elemental Thermometer:</b> the water potion adjusts to opt-in live weather (Open-Meteo).</li>
+      <li><b>Nutrition and hydration on one page;</b> the Kolej MARA Kulim canteen menu with calories; pick several foods and <b>LOG SELECTED</b> once.</li>
+      <li><b>Add More Food:</b> Luke searches the web (Gemini with Google Search) for any food, portion and change, with a source for each part and an Atwater energy check. Signed out, the canteen menu.</li>
+      <li><b>Caloric Ledger</b> and <b>Metabolic Forge</b> in Alchemy.</li>
+      <li><b>Alchemist’s Energy Workshop:</b> food energy, work against gravity and metabolic use are three different quantities; it shows why.</li>
+      <li><b>Fruit &amp; veg servings</b> (80 g portions, WHO).</li>
+    </ul></section>
+
+    <section><h2>Sleep <i>Dream Realm</i></h2><ul>
+      <li>Sleep duration against recommended ranges (National Sleep Foundation); <b>Sleep Score</b> (the team’s own game formula, labelled).</li>
+      <li><b>Log last night’s sleep</b> in one tap, or for any earlier date.</li>
+      <li><b>Dream Battle:</b> continuous sleep becomes strength in a torch-lit dungeon with a princess and a deterministic battle.</li>
+      <li><b>Counting Sheep:</b> a full-screen animated pixel dream.</li>
+      <li><b>Wake-up alarm:</b> in-app alarm with sounds, snooze and a bedside clock; Android Clock intent; iPhone steps; .ics reminder.</li>
+      <li>A sleep track of its own in the music.</li>
+    </ul></section>
+
+    <section><h2>Stress &amp; calm <i>Mind Forest</i></h2><ul>
+      <li><b>DASS-21 check-in:</b> 21 statements (0–3, past week), three scale scores (× 2, 0–42), shown without severity labels.</li>
+      <li><b>Storm level</b> from the total; <b>Storm Within:</b> the knight’s face, posture and surroundings follow your rating.</li>
+      <li><b>Calming Grove:</b> follow a light over the pond as it grows and shrinks with your breath.</li>
+      <li><b>Relief collection:</b> Shake It Off, Empower Yourself, Arrow Focus, Reaction Focus, Calming Sounds and the original tools.</li>
+      <li><b>Wizard’s Counsel</b> scene and breathing work signed out; <b>crisis help numbers</b> are shown to everyone.</li>
+    </ul></section>
+
+    <section><h2>Body &amp; training <i>Energy Forge</i></h2><ul>
+      <li><b>BMI</b> (adult screening), healthy weight range, <b>BMR</b> (Mifflin–St Jeor), <b>TDEE</b> (FAO/WHO/UNU activity levels), protein, carbohydrate, fat and fibre goals.</li>
+      <li><b>“Anything that affects your activity?”</b> question: quest order, stair goals behind a doctor’s note and pace notes follow your answers.</li>
+      <li><b>Training Hall:</b> goal choice, 22 moves, 19 muscle maps, tutorial, session; Calisthenics is bodyweight only; dizzy and chest-pain stop buttons.</li>
+      <li><b>Running Road:</b> GPS tracker for distance, moving time, pace and calories; <b>Runners’ Board</b> (opt-in).</li>
+      <li><b>Haze and heat:</b> live Kulim weather and haze (jerebu) check and a heat tip above Running.</li>
+    </ul></section>
+
+    <section><h2>Stairs &amp; heart <i>Stair Mountain · Heartstone Hall</i></h2><ul>
+      <li><b>Casual stairs</b> (GPS check-in first, then by hand) and <b>workout with heart rate</b> (BPM before, after and 1 minute after).</li>
+      <li><b>Pulse as periodic motion:</b> f, T and ω; energy and VO₂ by the Group 14 method, behind a “?”; shown as not valid when the pulse after is below the pulse before.</li>
+      <li><b>Pulse Wave Lab:</b> camera pulse (photoplethysmography) with live wave and BPM; video never stored.</li>
+      <li><b>Smartwatch or chest strap</b> over Web Bluetooth, plus a “Will my watch work?” sheet.</li>
+      <li><b>Recovery</b> (1-minute drop), resting-pulse hint, peak heart rate (% of 220 − age, with Tanaka beside it).</li>
+      <li><b>Stair Prescription:</b> a weekly stair plan you choose (goal, days, minutes); not a prescription.</li>
+      <li><b>Group 14 measured stairways</b> table (rise, run, hypotenuse, angle).</li>
+    </ul></section>
+
+    <section><h2>Stair science <i>Details of a staircase</i></h2><ul>
+      <li><b>Stair Sense (Gravity Trial):</b> START, PAUSE, FINISH; steps and cadence from the phone’s motion sensor; h = n × r, W = mgh, P = W ÷ t.</li>
+      <li><b>Stair Sight:</b> 2D step-edge finding in the live camera picture; 3D WebXR (Android Chrome with ARCore) measures rise and tread and builds the stairway; the ghost climbs it.</li>
+      <li><b>Enchanted Tower, Spectral Pacer, Cadence Echo</b> (microphone), <b>Luna’s Wind Spell</b> and <b>Gravity Anomaly.</b></li>
+      <li><b>Dueling Arena:</b> race a replay of your own earlier climb (no XP).</li>
+      <li><b>Ascent Monument:</b> an endless Tower of Babel from your climbs, one stone per 0.25 m, landmark comparisons, fun facts and a ledger.</li>
+    </ul></section>
+
+      </div>
+  <div class="foot"><span><b>Where to try it:</b> healthwizkingom.github.io/Healthwiz-Kingdom</span><span>Group 14 · Kolej MARA Kulim</span><span>Page 1 of 2 · continued overleaf</span></div>
+</div>
+<div class="sheet">
+  <div class="top slim"><img src="img/logo.png" alt=""><div><h1>COMPLETE FEATURE ATLAS</h1></div><p class="r">Continued: the map, the game, the guides, the evidence and the platform</p></div>
+  <div class="cols">
+    <section><h2>Campus Health Observatory <i>the map</i></h2><ul>
+      <li>3D <b>MapLibre</b> map of Kolej MARA Kulim from OpenStreetMap, in <b>Realistic</b> and <b>Fantasy</b> looks, with clustering markers, search and filters.</li>
+      <li><b>Staircase stops:</b> a spinning heart on a post in its difficulty colour (Mild, Moderate, Vigorous); solid 3D stops with depth and glow.</li>
+      <li><b>Game-style HUD:</b> the HealthWiz button menu, search, Legend, a draggable Details sheet (Stairs and Workout tabs), <b>NEAREST STAIRS</b> wave with GPS check-in.</li>
+      <li><b>Avatars</b> (Tom, anime school boy and girl); a labelled demo walk away from campus; position never saved or sent.</li>
+      <li><b>Terrain and ground:</b> illustrative three-level terrain with contours; Blender buildings coloured from the drone video; roads, kerbs, pitches and car parks.</li>
+      <li><b>Sky</b> from live weather, haze and the clock, with a preview button.</li>
+      <li><b>17 landmarks</b> with discovery animation, <b>Map journal</b>, <b>Layers</b> panel, sigils for recorded sessions (no XP).</li>
+      <li><b>Astral Navigator:</b> the Sun’s position (NOAA method) in a compass.</li>
+      <li><b>3D stair preview</b> (Three.js) built from survey measurements, labelled illustrative when not surveyed.</li>
+      <li><b>Survey importer:</b> fill a Word sheet, run one command, refresh.</li>
+    </ul></section>
+
+    <section><h2>Kingdom &amp; game <i>Balance Tower</i></h2><ul>
+      <li><b>Title screen:</b> time of day, live weather, returning-player ribbon and tap reactions; a loading screen fills the HealthWiz heart pixel by pixel.</li>
+      <li><b>Kingdom map</b> of eight regions in five states up to Flourishing, world progression, a chronicle and the Shadow Keep.</li>
+      <li><b>Quests:</b> adaptive daily focus quest, weekly quests, Quest Board; <b>Hall of Heroes</b> leaderboard (opt-in, game progress only).</li>
+      <li><b>Fair XP</b> with a daily allowance and exploration reward; levels with a flowing mana bar; <b>audited badges;</b> <b>gentle streaks</b> with rest days and a week view.</li>
+      <li><b>Arcana:</b> the Oracle’s crystal ball and the <b>Guild War of Joules</b> (opt-in).</li>
+      <li><b>Music:</b> a recorded home theme plus tracks for Sleep, Water, Stress, Counsel and the Registry; one switch and volume.</li>
+      <li><b>Traveller’s Registry</b> onboarding; particle effects for level-ups and badges.</li>
+    </ul></section>
+
+    <section><h2>Guides <i>Medius · Luna · Luke</i></h2><ul>
+      <li><b>Medius</b> keeps the app-wide tour and the Wizard’s Counsel; he reacts to events through speech bubbles with cooldowns.</li>
+      <li><b>Luna:</b> 12 expression portraits and 21 poses, <b>Meet Luna</b> in Settings, <b>Talk with Luna</b> (AI) and <b>Ask Luna</b> (finds a feature or opens a “?”, no AI).</li>
+      <li><b>Luke:</b> a small round help button on every Health Hall section opens a spotlight walk-through; he also runs Add More Food.</li>
+      <li><b>Medius notices:</b> insights from your own baselines and trends, worded as observations, never diagnoses.</li>
+    </ul></section>
+
+    <section><h2>Insight &amp; reports <i>Health Hall</i></h2><ul>
+      <li><b>Health Score</b> (five weighted indicators into 0–100) and the <b>Health Orb</b> with ranked quest cards.</li>
+      <li><b>Healer’s What-if:</b> try a gentle change; nothing is saved.</li>
+      <li><b>Health Time Machine:</b> day, week or month timeline of what was really saved.</li>
+      <li><b>Statistics:</b> touch, keyboard and screen-reader charts; week against week.</li>
+      <li><b>Weekly Chronicle:</b> a printable report that goes nowhere unless you save it.</li>
+      <li><b>Log for…:</b> yesterday or any earlier date, never the future; <b>All entries</b> grouped by day with totals and filters.</li>
+    </ul></section>
+
+    <section><h2>Science &amp; evidence</h2><ul>
+      <li><b>“?” explanations:</b> inputs, formula, your own numbers step by step, sources and limits.</li>
+      <li><b>Evidence Vault:</b> every source on shelves, with where you see it; calculation cards open from a “?”.</li>
+      <li><b>Science Laboratory:</b> Be Your Own Experiment, the <b>Evidence Trial</b> and <b>Royal Surveyors</b> (Truth-Seeker badge).</li>
+      <li><b>Uncertainty Engine:</b> how unmeasured assumptions move an estimate; no made-up error margins.</li>
+      <li><b>Group 14 F21 study:</b> raw measurements with every report table worked out from them and tested.</li>
+    </ul></section>
+
+    <section><h2>Account, data &amp; platform</h2><ul>
+      <li><b>Install and offline:</b> installable app with a service worker; also a single shareable HTML file.</li>
+      <li><b>Backup and restore;</b> versioned data with step-by-step upgrades, damaged-data recovery and automatic safety copies.</li>
+      <li><b>Optional account:</b> email magic link or code, Google sign-in; cloud sync with offline queue, and a choice on first sign-in: keep device, keep cloud or merge.</li>
+      <li><b>Privacy:</b> Row Level Security, delete account and cloud data, AI keys only on the server.</li>
+      <li><b>Look and comfort:</b> 8 themes plus custom palettes, High/Balanced/Performance modes, reduced motion, pixel-art emoji, keyboard-friendly dialogs and an error card instead of a blank screen.</li>
+      <li><b>Quality:</b> 102 browser test files, performance budgets and a device matrix.</li>
+    </ul></section>
+  </div>
+  <div class="foot"><span><b>Where to try it:</b> healthwizkingom.github.io/Healthwiz-Kingdom</span><span>Group 14 · Kolej MARA Kulim</span><span>Supports UN SDG 3: Good Health and Well-being</span></div>
+</div>
+</body>
+</html>
