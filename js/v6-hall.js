@@ -185,3 +185,10 @@ HWUI.css('hallgrid',`
 #hub.hub .hb b,#hub.hub .hb small,#hub.hub .hb em,#hub.hub .hb .hwa{text-align:center;width:100%}
 @media(min-width:600px){#hub.hub{grid-template-columns:repeat(4,minmax(0,1fr))}}
 `);
+/* The header's "HEALTHWIZ" text is the game logo (assets/img/logo.webp); the words stay in the page for screen readers and copy. */
+HWUI.css('hwlogo',`
+html header h1.hwlogo,html .hbar h1.hwlogo{margin:0;line-height:0;font-size:0;text-shadow:none;background:none;-webkit-text-fill-color:initial}
+.hwlogo img{display:block;height:56px;width:auto;max-width:100%;image-rendering:auto}
+.hwlogo .sr{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.hbar .hwlogo img{height:48px}
+`);

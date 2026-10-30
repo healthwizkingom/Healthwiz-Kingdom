@@ -69,10 +69,12 @@ function indicators(D0,opts){
   I.stress=ss.length?{val:mean(ss),txt:r1(mean(ss))+' / 10',sub:SUBF.stress(mean(ss))}:null;
   return I}
 // the weighted score of any set of indicators {key: {sub}}: Σ weight × sub-score ÷ Σ weight of the indicators that have data
+// BMI is the latest log whatever the day, so on its own it must not make a day's (or week's) score: a new day with nothing logged reads "no score", not 100
 function combine(I){let w=0,p=0,n=0;
   for(const k in WT)if(I[k]){w+=WT[k];p+=WT[k]*I[k].sub/100}
   GROUP.forEach(g=>{if(g[2].some(k=>I[k]))n++});
-  return{I,score:w?Math.round(p/w*100):null,covered:n,w}}
+  const logged=Object.keys(WT).some(k=>k!=='bmi'&&I[k]);
+  return{I,score:w&&logged?Math.round(p/w*100):null,covered:n,w}}
 function compute(){return combine(indicators())}
 // the same score for a chosen list of days (the weekly report, js/v6-report.js); nothing on the page changes
 const computeFor=(D0,asOf)=>combine(indicators(D0,{asOf}));
