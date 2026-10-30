@@ -122,11 +122,11 @@ b{font-weight:700}
 .fig img{width:100%;height:100%;object-fit:cover;object-position:50% 40%}
 .fig figcaption{position:absolute;left:0;right:0;bottom:0;background:rgba(13,11,38,.85);color:var(--gold);font:700 10px/1 var(--fl);letter-spacing:.1em;text-transform:uppercase;padding:4px 7px 3px}
 /* ---------- INSIDE (parchment) ---------- */
-.in .panel{background:
+.inpanel{background:
   repeating-linear-gradient(0deg,rgba(120,90,30,.035) 0 2px,transparent 2px 5px),
   var(--parch)}
-.in .pD{background-color:var(--parch)}
-.in .panel{padding:0 0 .22in}
+
+.inpanel{padding:0 0 .22in}
 .hd{position:relative;height:1.42in;overflow:hidden;color:#fff;border-bottom:4px solid var(--gold);background:var(--night)}
 .hd>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .hd:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,11,38,.1) 20%,rgba(13,11,38,.9) 100%)}
@@ -207,7 +207,7 @@ body{font:7.4pt/1.36 var(--fb)}
 .q4 .crew span{background:rgba(27,23,69,.9);border:1.5px solid rgba(242,193,78,.55);padding:2px 1px 1px;white-space:nowrap}
 .disc{border:2px solid var(--gold);background:rgba(242,193,78,.1);padding:.06in .08in;font-size:6.9pt;line-height:1.34;color:#fff;margin-top:.07in}.disc b{color:var(--gold)}
 /* inside */
-.in .panel{padding:0 0 .2in}
+.inpanel{padding:0 0 .2in!important}
 .hd{height:1.12in}
 .hd .t{left:.22in;right:.18in;bottom:.08in}
 .hd .ttl{font-size:13px}.hd .kick{font-size:9px;margin-top:5px}
@@ -232,8 +232,8 @@ body{font:7.4pt/1.36 var(--fb)}
 .q8 .chip{font-size:8.6px;color:var(--teal);margin:0 2px 3px 0}
 /* ---- scale-up pass: use the A4 height ---- */
 body{font:8.5pt/1.38 var(--fb)}
-.in .q8{background:var(--night)!important}
-.in .q8 .body{color:#e9e5ff}
+.inpanel.q8{background:var(--night)!important}
+.inpanel.q8 .body{color:#e9e5ff}
 .hd{height:1.3in}.hd .ttl{font-size:15px}.hd .kick{font-size:10px}
 .body{padding:.13in .22in 0}
 .f{margin:0 0 5.5px}.f>b:first-child{font-size:11.6px}
@@ -260,57 +260,9 @@ body{font:8.5pt/1.38 var(--fb)}
 </style>
 </head>
 <body>
-<!-- SIDE 1 · OUTSIDE — left → right: 1 front cover | 2 The Quest | 3 See it running | 4 back cover -->
+<!-- SIDE 1 · OUTSIDE (print page 1) — left → right: back cover | Track | Play &amp; Guide | FRONT COVER -->
 <div class="sheet out">
-
-  <section class="panel q1 dark">
-    <img class="art" src="img/cover.jpg" alt="HealthWiz Kingdom — a journey to better health">
-    <div class="in">
-      <h1>Turn your health into an adventure.</h1>
-      <p class="sub">A pixel-art fantasy RPG that is also a health tracker, built on real science and honest numbers.</p>
-      <div class="chips"><span class="chip">Water</span><span class="chip">Food</span><span class="chip">Sleep</span><span class="chip">Stress</span><span class="chip">Stairs</span><span class="chip">Running</span><span class="chip">Heart rate</span></div>
-      <div class="emb"><span><img src="img/mara-emblem.png" alt="MARA"></span><b>GROUP 14<em>MARA · Kolej MARA Kulim</em></b><span><img src="img/kmku-emblem.jpg" alt="Kolej MARA Kulim"></span></div>
-    </div>
-    <div class="in" style="position:absolute;left:0;right:0;bottom:.5in"><div class="sdg"><strong>3</strong><span><b>UN SDG 3</b>Good Health and Well-being</span></div></div>
-    <div class="foot">Wellness tracker, not a medical device</div>
-  </section>
-
-  <section class="panel q2 dark">
-    <div class="frame"></div>
-    <div class="ttl">THE QUEST</div>
-    <p class="lead">Health tracking is easy to start and hard to keep up. In <em style="font-style:normal;color:var(--teal)">HealthWiz Kingdom</em> every healthy action has a visible effect.</p>
-    <p>You log <b>water, meals, sleep, stairs</b> (with workout heart rate), <b>runs</b> and <b>stress</b>. <b>Medius, the Wizard King,</b> guides you as your real actions restore the kingdom, with <b>Luna,</b> an apprentice witch, as your everyday companion.</p>
-    <h3>How it works</h3>
-    <div class="stepsv">
-      <div class="st"><i>1</i><span><b>Log</b> a real habit: a glass of water, a meal, a climb.</span></div>
-      <div class="st"><i>2</i><span><b>Restore</b> the kingdom: its regions heal as you keep going.</span></div>
-      <div class="st"><i>3</i><span><b>Understand:</b> a “?” shows the formula and sources behind every number.</span></div>
-    </div>
-    <h3>What sets it apart</h3>
-    <p class="why"><i>1</i><b>Health first, game second.</b> Game values (XP, levels, badges) are tagged “game progress, not a health measurement”.</p>
-    <p class="why"><i>2</i><b>Every number shows its working:</b> inputs, formula, your numbers, sources, limits.</p>
-    <p class="why"><i>3</i><b>Honest about uncertainty.</b> Values are labelled <b>measured, calculated, estimated, simulated</b> or <b>missing</b>. No invented readings.</p>
-    <p class="why"><i>4</i><b>Private and optional.</b> Works on your device with no account; an account is only for backup and sync.</p>
-    <div class="nums"><div><strong>8</strong><span>Regions</span></div><div><strong>8</strong><span>Themes</span></div><div><strong>104</strong><span>Modules</span></div><div><strong>102</strong><span>Tests</span></div></div>
-  </section>
-
-  <section class="panel q3">
-    <div class="ttl" style="padding-top:.0in">SEE IT RUNNING</div>
-    <span class="kick">Real screens from the live app</span>
-    <div class="scr">
-      <figure><div class="ph"><img src="img/demo-home.jpg" alt=""></div><figcaption>Home<span>Today’s health at a glance</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/demo-health.jpg" alt=""></div><figcaption>Health Hall<span>Every tracker, one next step</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/demo-kingdom.jpg" alt=""></div><figcaption>The Kingdom<span>Eight regions, all restored</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/demo-campus.jpg" alt=""></div><figcaption>Campus map<span>3D, with a heart on each staircase</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/demo-food.jpg" alt=""></div><figcaption>Nutrition<span>kcal and mL against your goal</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/demo-stress.jpg" alt=""></div><figcaption>Stress Quest<span>The Storm Within</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/demo-exercise.jpg" alt=""></div><figcaption>Training Hall<span>Pick a goal, muscle and move</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/demo-lab.jpg" alt=""></div><figcaption>Science Lab<span>Test a guess with your own logs</span></figcaption></figure>
-    </div>
-    <p class="note3">Captured from the running app on a phone-sized screen with 30 days of sample entries. The numbers are demo data, not real health measurements.</p>
-  </section>
-
-  <section class="panel q4 dark">
+<section class="panel q4 dark">
     <div class="frame"></div>
     <div class="ttl" style="text-align:center;font-size:12px">BEGIN YOUR QUEST</div>
     <div class="qr"><img src="img/qr.svg" alt="QR code to open HealthWiz Kingdom"></div>
@@ -325,12 +277,8 @@ body{font:8.5pt/1.38 var(--fb)}
     <p style="margin:.08in 0 0;font-size:8pt;color:#d6d0f7"><b style="color:var(--gold)">Your data stays on your device.</b> A free account is optional, for backup and sync only.</p>
     <div class="disc"><b>Wellness tracker, not a medical device.</b> HealthWiz does not diagnose anything and gives no medical advice. If you feel unwell, talk to a parent, teacher or healthcare professional. In an emergency call <b>999</b> (Malaysia).</div>
   </section>
-</div>
 
-<!-- SIDE 2 · INSIDE — left → right: 5 Track | 6 Play & Guide | 7 Prove It | 8 Trust -->
-<div class="sheet in">
-
-  <section class="panel q5">
+<section class="panel inpanel q5">
     <div class="hd"><img class="px" src="img/hall-exercise.jpg" alt=""><div class="t"><span class="ttl">TRACK</span><span class="kick">The Health Hall · eight trackers</span></div></div>
     <div class="body">
       <p class="f"><b class="c1">Water Quest</b>Daily goal from your weight (35 mL/kg, the team’s own rule). The knight walks, drinks and pours as you log; opt-in live weather adjusts your water potion.</p>
@@ -346,7 +294,7 @@ body{font:8.5pt/1.38 var(--fb)}
     </div>
   </section>
 
-  <section class="panel q6">
+<section class="panel inpanel q6">
     <div class="hd"><img class="px" src="img/hall-score.jpg" alt=""><div class="t"><span class="ttl">PLAY &amp; GUIDE</span><span class="kick">Your logs restore the kingdom</span></div></div>
     <div class="body">
       <div class="guides3">
@@ -365,7 +313,57 @@ body{font:8.5pt/1.38 var(--fb)}
     </div>
   </section>
 
-  <section class="panel q7">
+<section class="panel q1 dark">
+    <img class="art" src="img/cover.jpg" alt="HealthWiz Kingdom — a journey to better health">
+    <div class="in">
+      <h1>Turn your health into an adventure.</h1>
+      <p class="sub">A pixel-art fantasy RPG that is also a health tracker, built on real science and honest numbers.</p>
+      <div class="chips"><span class="chip">Water</span><span class="chip">Food</span><span class="chip">Sleep</span><span class="chip">Stress</span><span class="chip">Stairs</span><span class="chip">Running</span><span class="chip">Heart rate</span></div>
+      <div class="emb"><span><img src="img/mara-emblem.png" alt="MARA"></span><b>GROUP 14<em>MARA · Kolej MARA Kulim</em></b><span><img src="img/kmku-emblem.jpg" alt="Kolej MARA Kulim"></span></div>
+    </div>
+    <div class="in" style="position:absolute;left:0;right:0;bottom:.5in"><div class="sdg"><strong>3</strong><span><b>UN SDG 3</b>Good Health and Well-being</span></div></div>
+    <div class="foot">Wellness tracker, not a medical device</div>
+  </section>
+</div>
+
+<!-- SIDE 2 · INSIDE (print page 2) — left → right: The Quest | See it running | Prove It | Trust -->
+<div class="sheet in">
+<section class="panel q2 dark">
+    <div class="frame"></div>
+    <div class="ttl">THE QUEST</div>
+    <p class="lead">Health tracking is easy to start and hard to keep up. In <em style="font-style:normal;color:var(--teal)">HealthWiz Kingdom</em> every healthy action has a visible effect.</p>
+    <p>You log <b>water, meals, sleep, stairs</b> (with workout heart rate), <b>runs</b> and <b>stress</b>. <b>Medius, the Wizard King,</b> guides you as your real actions restore the kingdom, with <b>Luna,</b> an apprentice witch, as your everyday companion.</p>
+    <h3>How it works</h3>
+    <div class="stepsv">
+      <div class="st"><i>1</i><span><b>Log</b> a real habit: a glass of water, a meal, a climb.</span></div>
+      <div class="st"><i>2</i><span><b>Restore</b> the kingdom: its regions heal as you keep going.</span></div>
+      <div class="st"><i>3</i><span><b>Understand:</b> a “?” shows the formula and sources behind every number.</span></div>
+    </div>
+    <h3>What sets it apart</h3>
+    <p class="why"><i>1</i><b>Health first, game second.</b> Game values (XP, levels, badges) are tagged “game progress, not a health measurement”.</p>
+    <p class="why"><i>2</i><b>Every number shows its working:</b> inputs, formula, your numbers, sources, limits.</p>
+    <p class="why"><i>3</i><b>Honest about uncertainty.</b> Values are labelled <b>measured, calculated, estimated, simulated</b> or <b>missing</b>. No invented readings.</p>
+    <p class="why"><i>4</i><b>Private and optional.</b> Works on your device with no account; an account is only for backup and sync.</p>
+    <div class="nums"><div><strong>8</strong><span>Regions</span></div><div><strong>8</strong><span>Themes</span></div><div><strong>104</strong><span>Modules</span></div><div><strong>102</strong><span>Tests</span></div></div>
+  </section>
+
+<section class="panel q3">
+    <div class="ttl" style="padding-top:.0in">SEE IT RUNNING</div>
+    <span class="kick">Real screens from the live app</span>
+    <div class="scr">
+      <figure><div class="ph"><img src="img/demo-home.jpg" alt=""></div><figcaption>Home<span>Today’s health at a glance</span></figcaption></figure>
+      <figure><div class="ph"><img src="img/demo-health.jpg" alt=""></div><figcaption>Health Hall<span>Every tracker, one next step</span></figcaption></figure>
+      <figure><div class="ph"><img src="img/demo-kingdom.jpg" alt=""></div><figcaption>The Kingdom<span>Eight regions, all restored</span></figcaption></figure>
+      <figure><div class="ph"><img src="img/demo-campus.jpg" alt=""></div><figcaption>Campus map<span>3D, with a heart on each staircase</span></figcaption></figure>
+      <figure><div class="ph"><img src="img/demo-food.jpg" alt=""></div><figcaption>Nutrition<span>kcal and mL against your goal</span></figcaption></figure>
+      <figure><div class="ph"><img src="img/demo-stress.jpg" alt=""></div><figcaption>Stress Quest<span>The Storm Within</span></figcaption></figure>
+      <figure><div class="ph"><img src="img/demo-exercise.jpg" alt=""></div><figcaption>Training Hall<span>Pick a goal, muscle and move</span></figcaption></figure>
+      <figure><div class="ph"><img src="img/demo-lab.jpg" alt=""></div><figcaption>Science Lab<span>Test a guess with your own logs</span></figcaption></figure>
+    </div>
+    <p class="note3">Captured from the running app on a phone-sized screen with 30 days of sample entries. The numbers are demo data, not real health measurements.</p>
+  </section>
+
+<section class="panel inpanel q7">
     <div class="hd"><img class="px" src="img/lab-scene.jpg" alt=""><div class="t"><span class="ttl">PROVE IT</span><span class="kick">Science you can check</span></div></div>
     <div class="body">
       <p class="f"><b class="c1">Campus Observatory</b>A 3D map of Kolej MARA Kulim from OpenStreetMap, in Realistic and Fantasy looks. Each staircase is a heart coloured Mild, Moderate or Vigorous: tap to log a climb or workout. GPS position is never saved or sent.</p>
@@ -380,7 +378,7 @@ body{font:8.5pt/1.38 var(--fb)}
     </div>
   </section>
 
-  <section class="panel q8 dark">
+<section class="panel inpanel q8 dark">
     <div class="hd"><img class="px" src="img/hall-stair.jpg" alt=""><div class="t"><span class="ttl">TRUST</span><span class="kick">Private, honest, open</span></div></div>
     <div class="body">
       <h3 style="margin-top:0">Your data stays yours</h3>
