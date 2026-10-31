@@ -151,17 +151,23 @@ async function call(food: string, search: boolean) {
     ...(search ? { tools: [{ google_search: {} }] } : {}), generationConfig: GENERATION });
   return await timed(GEMINI, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': KEY }, body }, 40000).catch(() => null);
 }
+/** Gemini's own short reason for a failed call (never the player's words or the key). */
+async function whyOf(r: Response) {
+  const t = await r.text().catch(() => '');
+  let why = '';
+  try { const e = JSON.parse(t).error || {}; why = String(e.status || '') + ' ' + String(e.message || ''); } catch { why = ''; }
+  return { t, why: (KEY ? why.split(KEY).join('') : why).replace(/\s+/g, ' ').trim().slice(0, 200) };
+}
 async function gemini(b: { food: string }) {
-  let search = true, r = await call(b.food, true);
-  if (r && r.status === 400) { search = false; r = await call(b.food, false); }   // a model without search grounding: answer from its own knowledge, said so
-  if (!r) return { error: 'ai' };
-  if (r.status === 429) return { error: 'busy' };
+  let search = true, r = await call(b.food, true), first = '';
+  // A model or key that cannot use the search tool (400 not supported, or 429 with no quota for it): ask again without it,
+  // and say so on the card ("from its own knowledge"); the reason is logged.
+  if (r && (r.status === 400 || r.status === 429)) { first = r.status + ' ' + (await whyOf(r)).why; search = false; r = await call(b.food, false); }
+  if (!r) return { error: 'ai', why: first };
+  if (r.status === 429) return { error: 'busy', status: 429, why: (await whyOf(r)).why, first };
   if (!r.ok) {
-    const t = await r.text().catch(() => '');
-    let why = '';
-    try { const e = JSON.parse(t).error || {}; why = String(e.status || '') + ' ' + String(e.message || ''); } catch { why = ''; }
-    why = (KEY ? why.split(KEY).join('') : why).replace(/\s+/g, ' ').trim().slice(0, 160);
-    return { error: /API key|API_KEY|PERMISSION/i.test(t) ? 'nokey' : 'ai', status: r.status, why };
+    const { t, why } = await whyOf(r);
+    return { error: /API key|API_KEY|PERMISSION/i.test(t) ? 'nokey' : 'ai', status: r.status, why, first };
   }
   const d = await r.json().catch(() => null);
   const c = d && d.candidates && d.candidates[0];
@@ -171,7 +177,7 @@ async function gemini(b: { food: string }) {
   if ('unknown' in s) return { out: s };
   const w = sources(c), res: any = { ...s, ...w, searched: search };
   if (search && !w.sources.length) res.confidence = 'low';                         // a "search" that found no pages is not a sourced answer
-  return { out: { result: res }, search };
+  return { out: { result: res }, search, first };
 }
 
 Deno.serve(async req => {
@@ -187,7 +193,7 @@ Deno.serve(async req => {
   const wait = allow(me.sub);
   if (wait) { log({ out: 'limit' }); return json(429, { error: 'limit', retry: wait }); }
   const g: any = await gemini(b);
-  log({ out: g.out ? Object.keys(g.out)[0] : g.error, ...(g.out && g.out.result ? { search: g.search, n: g.out.result.sources.length } : {}), ...(g.status ? { status: g.status } : {}), ...(g.why ? { why: g.why } : {}) });
+  log({ out: g.out ? Object.keys(g.out)[0] : g.error, ...(g.out && g.out.result ? { search: g.search, n: g.out.result.sources.length } : {}), ...(g.status ? { status: g.status } : {}), ...(g.why ? { why: g.why } : {}), ...(g.first ? { first: g.first } : {}) });
   if (g.out) return json(200, g.out);
   return json(g.error === 'busy' || g.error === 'nokey' ? 503 : 502, { error: g.error });
 });
