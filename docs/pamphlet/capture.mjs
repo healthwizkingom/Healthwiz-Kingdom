@@ -4,7 +4,7 @@ import { openApp, yearOfLogs, closeBrowser, go, dismissAware } from '../../tests
 const routes = process.argv.slice(2).length ? process.argv.slice(2) : ['home','health','kingdom','water','food','sleep','stress','score','body','exercise','run','stats','quests','badges','lab','time','monument','alchemy','set','campus'];
 const seed = yearOfLogs(30);
 for (const r of routes) {
-  const { page, ctx } = await openApp({ seed, url: r === 'campus' ? process.env.APP_URL : undefined, viewport: { width: 390, height: 844 }, context: { deviceScaleFactor: 2, isMobile: true, hasTouch: true } });
+  const { page, ctx } = await openApp({ seed, url: r === 'campus' ? process.env.APP_URL : undefined, viewport: { width: 390, height: Number(process.env.VH || 844) }, context: { deviceScaleFactor: 2, isMobile: true, hasTouch: true } });
   try {
     await go(page, r); if (r === 'campus') await dismissAware(page);
     await page.waitForTimeout(r === 'campus' ? 4000 : 1800);
@@ -17,7 +17,7 @@ for (const r of routes) {
       while (n && n !== document.body) { const r = n.getBoundingClientRect(); if (/steady stream|quest complete/i.test(n.textContent) || (r.height > 40 && r.height < 120 && r.top < 90 && r.width > 300)) keep.push(n); n = n.parentElement; }
       const t = keep.filter(e => e.getBoundingClientRect().height < 130).pop(); if (t && /steady stream|quest complete|^\s*$/i.test(t.textContent.trim() || ' ')) t.style.visibility = 'hidden'; });
     await page.waitForTimeout(900);
-    await page.screenshot({ path: `shots/${r}.png` }); console.log('ok', r, await page.evaluate(() => S.v));
+    await page.screenshot({ path: `${process.env.OUT || 'shots'}/${r}.png` }); console.log('ok', r, await page.evaluate(() => S.v));
   } catch (e) { console.log('FAIL', r, e.message.slice(0, 120)); }
   await ctx.close();
 }
