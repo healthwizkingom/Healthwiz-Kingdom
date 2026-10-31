@@ -101,6 +101,7 @@ js/v6-runboard.js          Runners' Board: opt-in running leaderboard (nickname 
 js/v6-running.js           GPS run tracker (RUNNING ROAD on the Training Hall page): distance, moving time, pace, calories burned estimate
 js/v6-exercise.js          the Wizard's Training Hall: goal (Calisthenics is bodyweight only), one Muscle & move screen with the tutorial, session, Running Road
 js/v6-sheep.js             the Counting Sheep dream on the Sleep page: one animated pixel-art canvas scene, full screen
+js/v6-trance.js            SLEEP NOW under LOG SLEEP: the Anchoring Rite (4 pages), phone-movement night tracking (5-min epochs, 3-second seal), runegraph, Morning Readout, saved as a normal Sleep entry (m.tr)
 js/v6-map.js               the Kingdom map as a living pixel-art map (layered canvases + CSS-animated details, zoom to a region)
 js/v6-score.js             Health Score page (Health Hall): five indicators weighted into one 0–100 score, fruit & veg servings, recommendations in five areas
 js/v6-orb.js               the Health Orb on the Health Score page: Medius reads the orb in a pixel-art scene (mana particles, charge, burst), then the recommendations appear as ranked quest cards (Start Here / Next Step / Keep Going) built from the same indicators as the score; skip, replay and reduced-motion supported

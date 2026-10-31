@@ -66,7 +66,8 @@ function place(h,k){return head(k)+h}
 /* Input first: on a page whose form sat far down, the form's card moves up in front of the read-only cards. Same cards, same ids,
    only the order changes; the "jump to the form" buttons that used to scroll there are no longer needed. */
 function lift(h,form,before){const t=document.createElement('template');t.innerHTML=h;const f=t.content.querySelector(form),c=f&&(f.closest('.card,.pxp')||f),b=t.content.querySelector(before);
-  if(!c||!b||!b.parentNode||c===b)return h;b.parentNode.insertBefore(c,b);t.content.querySelectorAll('.hwjump').forEach(x=>x.remove());return t.innerHTML}
+  if(!c||!b||!b.parentNode||c===b)return h;const nx=c.nextElementSibling;b.parentNode.insertBefore(c,b);if(nx&&nx.id==='v6trc')b.parentNode.insertBefore(nx,b); // Sleep Now (js/v6-trance.js) stays directly under LOG SLEEP
+  t.content.querySelectorAll('.hwjump').forEach(x=>x.remove());return t.innerHTML}
 const FIRST={food:h=>lift(h,'#fpick','.nsg'),water:h=>lift(h,'#wc','.nshd+*'),sleep:h=>lift(h,'#slb','#dbatc')}; // Stairs: GPS check-in comes first, so its hand-log card is not lifted above it (js/v6-stairs.js)
 
 /* ---------- 4. example lines under empty inputs (replace placeholders) ---------- */
