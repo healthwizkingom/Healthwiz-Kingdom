@@ -368,13 +368,17 @@ function xrState(S){const st=$i('arc-xr-st'),m=$i('arc-xr-m'),q=STAIRS.find(x=>x
   if(S.phase==='ended'){Z.xr=null;const u=$i('arc-xr-ui');if(u)u.hidden=true;paint();return}
   if(st)st.textContent=S.phase==='locked'?'Stairs found. The ghost '+(pacer()?'climbs all '+n+' steps at '+fx(+Z.P,0)+' W'+(S.landing?': on the landing after flight '+S.flight:S.step>0?': step '+S.step+' of '+n:''):'waits at the foot (no target power was typed)')+'.':S.why;
   if(m)m.textContent=S.phase==='locked'?'AR estimate: rise ≈ '+fx(S.riser*100,1)+' cm, tread ≈ '+fx(S.tread*100,1)+' cm, angle ≈ '+fx(S.angle,1)+'°'+(q?' (survey: '+q.angle.toFixed(2)+'°)':'')+'.':(S.depth?'Using the phone\u2019s depth sensing and surface hits.':'Using surface hits (this phone gives no depth map).')}
+/* observatory/xrstairs.js is a module that sets window.HWXRStairs; loaded like the campus map's modules (a module script tag, no import()) */
+function loadXRStairs(){if(window.HWXRStairs)return Promise.resolve(window.HWXRStairs);
+  return new Promise((ok,no)=>{const s=D.createElement('script');s.type='module';s.src='observatory/xrstairs.js';
+    s.onload=()=>window.HWXRStairs?ok(window.HWXRStairs):no(new Error('no HWXRStairs'));s.onerror=()=>no(new Error('load failed'));D.head.appendChild(s)})}
 async function xr(){
   if(Z.xr||!navigator.xr)return;stopCam();const q=STAIRS.find(x=>x.id===Z.sid);if(!q)return;const ui=xrUI();
   let session;
   try{session=await navigator.xr.requestSession('immersive-ar',{requiredFeatures:['local-floor','hit-test'],optionalFeatures:['dom-overlay','depth-sensing'],domOverlay:{root:ui},
       depthSensing:{usagePreference:['cpu-optimized'],dataFormatPreference:['luminance-alpha','float32']}})}
   catch(e){oops('3D Scrying could not start on this phone ('+(e&&e.name||'error')+'). The 2D Scrying Glass still works.');return}
-  try{const mod=await import(new URL('observatory/xrstairs.js',D.baseURI).href);ui.hidden=false;
+  try{const mod=await loadXRStairs();ui.hidden=false;
     const mi=massInfo(),path=Z.path||stairPath(q);const ctl=await mod.start(session,{n:stepsOf(q),flights:path?path.flights.map(f=>({n:f.n,turn:f.turn,land:f.land})):null,P:pacer()?+Z.P:0,m:mi?mi.kg:0,analyse:HWStairSight.profile3d,onState:xrState});Z.xr={ctl,session}}
   catch(e){try{session.end()}catch(x){}ui.hidden=true;oops('3D Scrying could not load ('+String(e&&e.message||e).slice(0,80)+'). The 2D Scrying Glass still works.')}}
 acts.arcxr=()=>xr();acts.arcxrend=()=>{if(Z.xr)Z.xr.ctl.stop()};acts.arcxrscan=()=>{if(Z.xr)Z.xr.ctl.rescan()};
