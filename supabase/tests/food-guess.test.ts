@@ -55,8 +55,8 @@ Deno.test('a search: Google Search grounding is on, the key stays on the server,
   const r = await ask({ food: 'nasi lemak <big plate>, extra ayam goreng, no sambal' }, await good());
   assertEquals(r.status, 200);
   assertEquals(r.json.result.items, [
-    { label: 'Coconut rice', g: 250, kcal: 450, p: 8, c: 70, f: 15, src: 'MyFCD', basis: 'per 100 g: 180 kcal, x 250 g', chk: false },
-    { label: 'Fried chicken (extra)', g: 120, kcal: 330, p: 25, c: 8, f: 22, src: 'KFC Malaysia nutrition guide', basis: 'label: 330 kcal per piece', chk: false }]);
+    { label: 'Coconut rice', g: 250, kcal: 450, p: 8, c: 70, f: 15, na: null, k: null, mg: null, src: 'MyFCD', basis: 'per 100 g: 180 kcal, x 250 g', chk: false },
+    { label: 'Fried chicken (extra)', g: 120, kcal: 330, p: 25, c: 8, f: 22, na: null, k: null, mg: null, src: 'KFC Malaysia nutrition guide', basis: 'label: 330 kcal per piece', chk: false }]);
   assertEquals([r.json.result.name, r.json.result.portion, r.json.result.confidence, r.json.result.searched], ['Nasi lemak', 'one big plate', 'medium', true]);
   assertEquals(r.json.result.sources, [{ title: 'myfcd.moh.gov.my', url: 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/abc' }], 'deduplicated, https only');
   assertEquals(r.json.result.suggest, '<div class="chips">nasi lemak calories</div>');
@@ -77,7 +77,7 @@ Deno.test('the answer is checked: JSON inside a fence is found; bad parts are dr
     { label: 'Roti canai', grams: 99999, kcal: 600, protein: 12, carbs: 80, fat: 25, source: 'estimate', basis: '' }, { label: 'Dal', grams: 50, kcal: -5 }, { label: '', grams: 10, kcal: 10 }] }) + '\n```';
   const r = await ask({ food: 'roti canai 2' }, await good());
   assertEquals(r.status, 200);
-  assertEquals(r.json.result.items, [{ label: 'Roti canai', g: 3000, kcal: 600, p: 12, c: 80, f: 25, src: '', basis: '', chk: false }]);
+  assertEquals(r.json.result.items, [{ label: 'Roti canai', g: 3000, kcal: 600, p: 12, c: 80, f: 25, na: null, k: null, mg: null, src: '', basis: '', chk: false }]);
   assertEquals(r.json.result.confidence, 'low', 'an unsourced answer never reads as sure');
   assertEquals(mod.parse('no json here'), null);
 });
