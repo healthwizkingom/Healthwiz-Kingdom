@@ -179,7 +179,7 @@ test('the vigil: built once with the hero art, rolling clock and pins; dims afte
   await page.click('[data-a="tcnext"]'); await page.click('[data-a="tcnext"]');
   await page.click('[data-a="tcgo"]');
   await page.waitForSelector('.v6vdisc img');
-  assert.match(await page.getAttribute('.v6vdisc img', 'src'), /assets\/img\/bedroom\.webp$/, 'the existing sleeper art, no new image');
+  assert.match(await page.getAttribute('.v6vdisc img', 'src'), /assets\/img\/sleeper-night\.webp$/, 'the owner\'s sleeper picture');
   assert.match(await page.textContent('#v6vclk'), /^\d\d:\d\d$/);
   assert.match(await page.textContent('#v6vcnt'), /^0 h 0\d min$/);
   assert.match(await page.textContent('#v6vp2'), /^Echoes 0$/);

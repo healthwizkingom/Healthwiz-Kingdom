@@ -179,7 +179,7 @@ function track(){const el=layer();
   if(el.dataset.mode!=='vigil'){skin(el,'vigil','v6tnight v6trk');el.removeAttribute('aria-modal');el.setAttribute('role','region');el.setAttribute('aria-label','Trance in progress');LT=Date.now();
     el.innerHTML=fx(12,9)+'<div class="v6vg"><div class="v6vtop"><span>Trance in progress</span></div><div class="v6vclk num" id="v6vclk" role="timer"></div>'
       +'<div class="v6vstage"><div class="v6vpin p1"><span>'+ico('alarm',1)+'</span><small id="v6vp1"></small></div><div class="v6vpin p2"><span>'+ico('sleep',1)+'</span><small id="v6vp2"></small></div><div class="v6vpin p3"><span>'+ico('bell',1)+'</span><small id="v6vp3"></small></div>'
-      +'<div class="v6vdisc"><i class="v6vring"></i><img src="assets/img/bedroom.webp" alt="The hero sleeps"></div><span class="v6vz z1">z</span><span class="v6vz z2">z</span><span class="v6vz z3">Z</span></div>'
+      +'<div class="v6vdisc"><i class="v6vring"></i><img src="assets/img/sleeper-night.webp" alt="The hero, in star pyjamas, sleeps"></div><span class="v6vz z1">z</span><span class="v6vz z2">z</span><span class="v6vz z3">Z</span></div>'
       +'<div class="v6vlbl">Time in trance</div><div class="v6vcnt num" id="v6vcnt"></div><p class="v6vnote" id="v6vnote" role="status"></p>'
       +'<div class="v6trseal"><button type="button" class="v6trsb" data-a="trseal" aria-label="Hold this button for 3 seconds to wake up"><span class="v6trfill"></span><span class="v6vh">'+ico('sleep',2)+'</span><b>HOLD 3 SECONDS TO WAKE</b></button></div></div>'}
   vigil()}
@@ -348,7 +348,7 @@ HWUI.css('trance',`
 .v6vclk{font-size:64px;font-weight:800;line-height:1;color:#fff;text-shadow:0 0 24px rgba(140,190,255,.6)}
 .v6vstage{position:relative;width:100%;height:min(66vw,290px);display:flex;align-items:center;justify-content:center}
 .v6vdisc{position:relative;width:min(56vw,230px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 50% 35%,#a9f0f5,#4fc3de 60%,#2a8fc0);border:6px solid rgba(255,255,255,.4);box-shadow:0 0 0 10px rgba(255,255,255,.08),0 0 70px rgba(120,200,255,.6);overflow:hidden;animation:v6breathe 4.6s ease-in-out infinite}
-.v6vdisc img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:pixelated}
+.v6vdisc img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 40%}
 .v6vdisc:after{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:inset 0 0 30px rgba(0,20,80,.55)}
 .v6vring{position:absolute;inset:-6px;border:3px dashed rgba(255,255,255,.55);border-radius:50%;animation:v6spin 40s linear infinite;z-index:2}
 .v6vpin{position:absolute;display:flex;flex-direction:column;align-items:center;gap:6px;animation:v6bob 3.4s ease-in-out infinite}
