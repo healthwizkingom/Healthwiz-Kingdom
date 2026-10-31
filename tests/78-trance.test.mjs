@@ -245,6 +245,8 @@ test('The Astral Weave: the ultradian model on worked nights (cycle windows 10/1
   assert.match(vt, /Acetylcholine neurons fire at high rates/);
   assert.match(vt, /not in that abstract/, 'the detail the abstracts do not state is marked as such');
   assert.match(vt, /REM sleep paralysis/);
+  assert.match(vt, /sublaterodorsal nucleus \(SLD\) region/, 'the SLD pathway is cited from the Brooks full text');
+  assert.match(vt, /From the full text/);
   assert.deepEqual(errors.filter(e => !/integrity/.test(e)), []);
   await ctx.close();
 });
