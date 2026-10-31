@@ -92,13 +92,24 @@ const setVar=(s,v)=>Object.assign(s,{v,por:s.vars[v].por,kcal:s.vars[v].kcal});
 const NS=[.5,1,1.5,2,3],nt=n=>n===.5?'½':n===1.5?'1½':String(n);
 /** The values for the chosen canteen dish and amount: {kcal, p, c, f, label} or null. */
 function calc(){if(!W.sel)return null;const m=W.sel,k=Math.round(m.kcal*W.n),x=typeof estMac==='function'?estMac(m.name,k):null;
-  return{kcal:k,p:x?x.p:null,c:x?x.c:null,f:x?x.f:null,label:nt(W.n)+' × '+m.por,menu:1}}
-/** One mineral row: the amount in mg, or "not in the sources" when no part gave it (never a made-up number). */
-const mineralRow=(name,v)=>'<tr><th scope="row">'+name+'</th><td>'+(v==null?'<span class="mut">not in the sources</span>':fmt(v)+' mg')+'</td></tr>';
+  const mn=m.mn||{},sc=v=>v==null?null:Math.round(v*W.n);
+  return{kcal:k,p:x?x.p:null,c:x?x.c:null,f:x?x.f:null,na:sc(mn.na),k:sc(mn.k),mg:sc(mn.mg),mnsrc:mn.src||'',mnbusy:!!m.mnbusy,label:nt(W.n)+' × '+m.por,menu:1}}
+/** Luke looks up sodium, potassium and magnesium for one canteen dish with the same search as the macros (food-guess), with the sources he used. Null when he cannot search. */
+async function mineralsFor(name,por){const c=CL();if(!c||!c.who()||navigator.onLine===false)return null;
+  try{const r=await c.api('/functions/v1/food-guess',{method:'POST',body:{food:name+', '+por+' (one serving)'},ms:45000});
+    const items=r&&r.result&&Array.isArray(r.result.items)?r.result.items:[];
+    const sum=k=>{const v=items.filter(i=>i[k]!=null);return v.length?Math.round(v.reduce((a,i)=>a+i[k],0)):null};
+    const src=[...new Set(items.filter(i=>i.src).map(i=>i.src))].join('; ');
+    return{na:sum('na'),k:sum('k'),mg:sum('mg'),src}}
+  catch(e){return null}}
+/** One mineral row: the amount in mg; while Luke is still looking, or when no verified source had the number, it says so (never a made-up number). */
+const mineralRow=(name,v,busy)=>'<tr><th scope="row">'+name+'</th><td>'+(v!=null?fmt(v)+' mg':busy?'<span class="mut">looking up…</span>':'<span class="mut">no verified source found</span>')+'</td></tr>';
 function card(){const c=calc();if(!c)return '<p class="mut">Choose an amount to see the values.</p>';
   const row=(n,v,unit)=>'<tr><th scope="row">'+n+'</th><td>'+(v==null?'<span class="mut">not available</span>':fmt(v)+' '+unit)+'</td></tr>';
-  return '<div class="awcard'+(W.step==='done'?' reveal':'')+'"><b>'+esc(W.name||W.sel.name)+'</b><small>'+esc(c.label)+'</small><table class="awtab"><tbody>'+row('Energy',c.kcal,'kcal')+row('Protein',c.p,'g')+row('Carbohydrate',c.c,'g')+row('Fat',c.f,'g')+MINERALS.map((k,i)=>mineralRow(['Sodium','Potassium','Magnesium'][i],null)).join('')+'</tbody></table>'
-    +'<p class="mut">kcal = '+W.sel.kcal+' kcal per portion × '+nt(W.n)+' = '+c.kcal+' kcal (Kolej MARA Kulim canteen menu, 2022). Protein, carbohydrate and fat are <b>HealthWiz estimates</b> from the dish type, not measured.</p></div>'}
+  const mrows=[['Sodium',c.na],['Potassium',c.k],['Magnesium',c.mg]].map(([n,v])=>mineralRow(n,v,c.mnbusy)).join('');
+  return '<div class="awcard'+(W.step==='done'?' reveal':'')+'"><b>'+esc(W.name||W.sel.name)+'</b><small>'+esc(c.label)+'</small><table class="awtab"><tbody>'+row('Energy',c.kcal,'kcal')+row('Protein',c.p,'g')+row('Carbohydrate',c.c,'g')+row('Fat',c.f,'g')+mrows+'</tbody></table>'
+    +'<p class="mut">kcal = '+W.sel.kcal+' kcal per portion × '+nt(W.n)+' = '+c.kcal+' kcal (Kolej MARA Kulim canteen menu, 2022). Protein, carbohydrate and fat are <b>HealthWiz estimates</b> from the dish type, not measured.</p>'
+    +(c.mnsrc?'<p class="mut">Minerals: AI estimate by Google Gemini from web sources: '+esc(c.mnsrc)+'.</p>':'')+'</div>'}
 function portionStep(){const s=W.sel;
   const opts=s.vars.length>1?'<p>The canteen menu lists this dish '+s.vars.length+' times. Which one was it?</p><div class="awms" role="group" aria-label="Canteen portion">'
       +s.vars.map((x,i)=>'<button type="button" class="chip awm'+(s.v===i?' on':'')+'" data-a="awvar" data-i="'+i+'" aria-pressed="'+(s.v===i)+'"><span>'+esc(x.por)+'<small>'+x.kcal+' kcal</small></span></button>').join('')+'</div>'
@@ -222,12 +233,16 @@ acts.awlog=()=>{keepName();const t=totals(),r=W.res;if(!r||!W.items.some(i=>i.x)
 // the canteen menu
 acts.awsearch=()=>{const i=D.getElementById('awq');W.q=i?i.value:W.q;search()};
 acts.awback=()=>{W.step=W.q?'pick':'ask';W.sel=null;W.err='';if(W.step==='pick')W.menu=menuMatches(W.q);draw();const i=D.getElementById('awq');if(i)i.focus()};
-acts.awpick=d=>{const j=+String(d.k||'').slice(1),src=W.menu[j];if(!src)return;W.sel=menuSel(src.name,src.i);W.name=src.name;W.n=1;W.err='';W.step='portion';draw()};
+acts.awpick=d=>{const j=+String(d.k||'').slice(1),src=W.menu[j];if(!src)return;W.sel=menuSel(src.name,src.i);W.name=src.name;W.n=1;W.err='';W.step='portion';draw();fetchMinerals(W.sel)};
+/** Luke's own search for a dish's minerals, started when the dish is picked: nothing is asked of the player. */
+function fetchMinerals(sel){if(!signed())return;sel.mnbusy=true;draw();
+  const key=sel.name+'|'+sel.por;sel.mnkey=key;
+  mineralsFor(sel.name,sel.por).then(mn=>{if(sel.mnkey!==key)return;sel.mnbusy=false;sel.mn=mn||{};if(W.sel===sel)draw()})}
 acts.awvar=d=>{keepName();if(W.sel&&W.sel.vars&&W.sel.vars[+d.i])setVar(W.sel,+d.i);draw()};
 acts.awn=d=>{keepName();W.n=+d.v;draw()};
 acts.awsave=()=>{keepName();const c=calc();if(!c)return;const name=String(W.name||W.sel.name).trim().slice(0,60)||W.sel.name,meal=W.meal||S.meal;
   const w=HWWhen.stamp({sig:'aw'+name+c.kcal});if(!w)return;
-  const m=W.sel;add('food',c.kcal,{name,por:m.por,qty:W.n,pm:1,meal,src:'KOLEJ MARA KULIM'},'',w.d,w.t,10,'Food logged');
+  const m=W.sel;add('food',c.kcal,{name,por:m.por,qty:W.n,pm:1,meal,src:'KOLEJ MARA KULIM',na:c.na,k:c.k,mg:c.mg,mnsrc:c.mnsrc},'',w.d,w.t,10,'Food logged');
   HWWhen.saved(w,'Food');W.step='done';W.done=c;
   const y=window.scrollY;render();window.scrollTo(0,y)};
 acts.awmore=()=>{reset();draw();const i=D.getElementById('awq');if(i)i.focus()};
