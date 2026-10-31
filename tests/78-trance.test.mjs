@@ -138,7 +138,7 @@ test('a night: the seal needs a 3 s hold; under 90 min asks first and saves noth
   assert.match(txt, /Depths of the Night/);
   assert.match(txt, /Abyssal Slumber/);
   assert.match(txt, /The Astral Weave/);
-  assert.match(txt, /MODEL ESTIMATE FROM TIME OF NIGHT AND STILLNESS, NOT DETECTED REM/);
+  assert.match(txt, /model estimate from the time of night and stillness, not detected REM/);
   // the runegraph canvas has pixels drawn in its tier colours
   assert.ok(await page.evaluate(() => { const c = document.getElementById('v6trhg'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 2] > 200 && d[i] < 160) n++; return n > 200; }));
   await page.click('[data-a="trnext"]');

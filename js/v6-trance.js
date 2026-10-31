@@ -233,7 +233,7 @@ function result(){const el=layer(),r=M.res,pp=r.p,pg=RES.page,aff=r.aff,all=mine
   else if(pg===1){ttl='Depths of the Night';
     body='<canvas id="v6trhg" width="600" height="220" role="img" aria-label="Runegraph of the night: '+KEYS.map(k=>NAME[k]+' '+Math.round(pp[k])+'%').join(', ')+'"></canvas>'
       +'<div class="v6rbars">'+KEYS.map((k,i)=>'<div class="v6rbar"><span><i style="background:'+COLS[k]+'"></i>'+NAME[k]+'</span><em>'+Math.round(pp[k]*(pp.n*EP)/100)+' min · '+Math.round(pp[k])+'%</em><u><s style="--w:'+Math.round(pp[k])+'%;--c:'+COLS[k]+';animation-delay:'+(.15*i)+'s"></s></u></div>').join('')+'</div>'
-      +'<small class="mut">Where the night went, after the veil was crossed. Cycles are 90 min from the moment you fell asleep.</small>'+'<span class="v6trtag v6trtagw">THE ASTRAL WEAVE IS A MODEL ESTIMATE FROM TIME OF NIGHT AND STILLNESS, NOT DETECTED REM</span>'+b('trvaultw','What is the Astral Weave?','v6rlk2')+(r.sev?'<p class="v6trw" role="status">Severed Conduit: the phone barely moved for 6 hours in a row, so counting stopped there (it was probably left on a table).</p>':'')+tag}
+      +'<small class="mut">Where the night went, after the veil was crossed. Cycles are 90 min from the moment you fell asleep. The Astral Weave is a model estimate from the time of night and stillness, not detected REM.</small>'+b('trvaultw','What is the Astral Weave?','v6rlk2')+(r.sev?'<p class="v6trw" role="status">Severed Conduit: the phone barely moved for 6 hours in a row, so counting stopped there (it was probably left on a table).</p>':'')+tag}
   else{ttl='Your Trance';
     body='<div class="v6rtype"><small>Dominant state</small><b>'+(aff?crown(aff.type):dom?NAME[dom]+'*':'–')+'</b></div>'
       +'<div class="v6rgr"><div><small>Time to cross the veil</small><b class="num">'+r.lat+' min</b></div><div><small>Ritual consistency</small><b class="num">'+(gr?gr.g:'–')+'</b></div><div><small>Echoes from the Veil</small><b class="num">'+(M.sp||0)+(Z.mic?'':' (mic off)')+'</b></div><div><small>Logged as</small><b class="num">'+r.h+' h</b></div><div><small>Spell Mastery (game)</small><b class="num">'+r.mastery+' / 100</b></div><div><small>90 min cycles</small><b class="num">'+r.cycles+'</b></div></div>'
@@ -409,11 +409,11 @@ HWUI.css('trance',`
 .v6rtype small{display:block;font:700 12px/1 var(--fn);letter-spacing:.1em;text-transform:uppercase;color:#bcd0ff}.v6rtype b{display:block;margin-top:6px;font:800 24px/1.15 var(--fn);color:#ffe45e}
 .v6rgr{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:left}.v6rgr div{background:#f2f6ff;border-radius:14px;padding:10px 12px;animation:v6tpop .5s cubic-bezier(.2,1.4,.4,1) both}.v6rgr div:nth-child(2){animation-delay:.08s}.v6rgr div:nth-child(3){animation-delay:.16s}.v6rgr div:nth-child(4){animation-delay:.24s}
 .v6rgr small{display:block;font-size:12px;color:#7b8aa8}.v6rgr b{font-size:22px;font-weight:800;color:#2c3040}
-.v6trtagw{background:#f3e8ff;color:#6b2fa8}.v6rlk2{min-height:44px;background:none;border:0;color:#3f8cf0;text-decoration:underline;font-size:14px;font-weight:700}
+.v6tro .v6rlk2,.v6tro .v6rlink,.v6tro .v6trlink{background:none!important;border:0!important;box-shadow:none!important;filter:none!important}.v6tro .v6rlk2{min-height:44px;color:#3f8cf0;text-decoration:underline;font-size:14px;font-weight:700}
 .v6rcard .mut{color:#7b8aa8;font-size:12px;line-height:1.4}.v6rsv{margin:0;font-size:13px;color:#4a5068}
 .v6rft{display:flex;flex-direction:column;align-items:flex-end;gap:10px;width:100%}.v6rdots{align-self:center}
 .v6rnext{min-width:150px;min-height:52px;padding:0 26px;border-radius:26px;background:#4a9eff;color:#fff;border:0;border-bottom:5px solid #2a6dc4;font-size:17px;font-weight:700;animation:v6glowb 2.2s ease-in-out infinite}.v6rnext:active{transform:translateY(3px);border-bottom-width:2px}
-.v6rlink{align-self:center;min-height:44px;background:none;border:0;color:#fff;text-decoration:underline;font-size:14px}
+.v6tro .v6rlink,.v6tro .v6trlink{box-shadow:none}.v6rlink{align-self:center;min-height:44px;background:none;border:0;color:#fff;text-decoration:underline;font-size:14px}
 .v6mr .v6trdots u{background:rgba(255,255,255,.5)}.v6mr .v6trdots u.on{background:#fff}
 .v6mr .v6trw{background:#fff4e5;color:#8a5a00;border-color:#f0c070;text-align:left}
 @keyframes v6float{from{transform:translateY(0)}to{transform:translateY(-120vh)}}
