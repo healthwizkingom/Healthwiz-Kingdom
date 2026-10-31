@@ -69,9 +69,12 @@ async function webSearch(){W.busy=1;W.err='';W.unknown=0;W.note2='';W.step='ask'
     draw()}
   catch(e){W.busy=0;W.note2=(AIERR[e.code]||AIERR.ai)+' I can still look at the canteen menu.';search()}}
 /** One part's values after the player's adjustment (x: 0 to 4 times what he found). */
-function itemVal(it){const v=it.v,x=it.x,m=k=>v[k]==null?null:v[k]*x;return{g:v.g==null?null:v.g*x,kcal:v.kcal*x,p:m('p'),c:m('c'),f:m('f')}}
-function totals(){const t={kcal:0,p:0,c:0,f:0,g:0,miss:0};W.items.forEach(it=>{if(!it.x)return;const v=itemVal(it);t.kcal+=v.kcal;['p','c','f'].forEach(k=>{if(v[k]==null)t.miss=1;else t[k]+=v[k]});if(v.g)t.g+=v.g});
-  t.kcal=Math.round(t.kcal);['p','c','f','g'].forEach(k=>t[k]=r1(t[k]));return t}
+function itemVal(it){const v=it.v,x=it.x,m=k=>v[k]==null?null:v[k]*x;return{g:v.g==null?null:v.g*x,kcal:v.kcal*x,p:m('p'),c:m('c'),f:m('f'),na:m('na'),k:m('k'),mg:m('mg')}}
+// sodium, potassium and magnesium (mg): a total only when a part gave the number; null means no source had it
+const MINERALS=['na','k','mg'];
+function totals(){const t={kcal:0,p:0,c:0,f:0,g:0,miss:0,na:0,k:0,mg:0,seen:{}};W.items.forEach(it=>{if(!it.x)return;const v=itemVal(it);t.kcal+=v.kcal;['p','c','f'].forEach(k=>{if(v[k]==null)t.miss=1;else t[k]+=v[k]});if(v.g)t.g+=v.g;
+  MINERALS.forEach(k=>{if(v[k]!=null){t[k]+=v[k];t.seen[k]=1}})});
+  t.kcal=Math.round(t.kcal);['p','c','f','g'].forEach(k=>t[k]=r1(t[k]));MINERALS.forEach(k=>t[k]=t.seen[k]?Math.round(t[k]):null);return t}
 
 /* ---------- 2. the canteen menu (offline, signed out, or when the web search is unavailable) ---------- */
 // The Kolej MARA Kulim menu already in the app (Dewan Selera 2022): kcal per stated portion; macros are the existing estMac estimate.
@@ -90,9 +93,11 @@ const NS=[.5,1,1.5,2,3],nt=n=>n===.5?'½':n===1.5?'1½':String(n);
 /** The values for the chosen canteen dish and amount: {kcal, p, c, f, label} or null. */
 function calc(){if(!W.sel)return null;const m=W.sel,k=Math.round(m.kcal*W.n),x=typeof estMac==='function'?estMac(m.name,k):null;
   return{kcal:k,p:x?x.p:null,c:x?x.c:null,f:x?x.f:null,label:nt(W.n)+' × '+m.por,menu:1}}
+/** One mineral row: the amount in mg, or "not in the sources" when no part gave it (never a made-up number). */
+const mineralRow=(name,v)=>'<tr><th scope="row">'+name+'</th><td>'+(v==null?'<span class="mut">not in the sources</span>':fmt(v)+' mg')+'</td></tr>';
 function card(){const c=calc();if(!c)return '<p class="mut">Choose an amount to see the values.</p>';
   const row=(n,v,unit)=>'<tr><th scope="row">'+n+'</th><td>'+(v==null?'<span class="mut">not available</span>':fmt(v)+' '+unit)+'</td></tr>';
-  return '<div class="awcard'+(W.step==='done'?' reveal':'')+'"><b>'+esc(W.name||W.sel.name)+'</b><small>'+esc(c.label)+'</small><table class="awtab"><tbody>'+row('Energy',c.kcal,'kcal')+row('Protein',c.p,'g')+row('Carbohydrate',c.c,'g')+row('Fat',c.f,'g')+'</tbody></table>'
+  return '<div class="awcard'+(W.step==='done'?' reveal':'')+'"><b>'+esc(W.name||W.sel.name)+'</b><small>'+esc(c.label)+'</small><table class="awtab"><tbody>'+row('Energy',c.kcal,'kcal')+row('Protein',c.p,'g')+row('Carbohydrate',c.c,'g')+row('Fat',c.f,'g')+MINERALS.map((k,i)=>mineralRow(['Sodium','Potassium','Magnesium'][i],null)).join('')+'</tbody></table>'
     +'<p class="mut">kcal = '+W.sel.kcal+' kcal per portion × '+nt(W.n)+' = '+c.kcal+' kcal (Kolej MARA Kulim canteen menu, 2022). Protein, carbohydrate and fat are <b>HealthWiz estimates</b> from the dish type, not measured.</p></div>'}
 function portionStep(){const s=W.sel;
   const opts=s.vars.length>1?'<p>The canteen menu lists this dish '+s.vars.length+' times. Which one was it?</p><div class="awms" role="group" aria-label="Canteen portion">'
@@ -185,7 +190,7 @@ function guessCard(){const t=totals(),edit=W.step==='guess',r=W.res||{};
   const nosrc=W.items.filter(i=>i.x&&!i.v.src).length;
   const src=(r.sources||[]).map(s=>'<li><a href="'+esc(s.url)+'" target="_blank" rel="noopener noreferrer">'+esc(s.title||host(s.url))+'</a></li>').join('');
   return '<div class="awcard awguessc'+(W.step==='done'?' reveal':'')+'" id="awcard"><small>'+esc(r.name||W.food)+(r.portion?' · '+esc(r.portion):'')+'</small><b class="awbig">about '+t.kcal+' kcal</b>'
-    +'<table class="awtab"><tbody><tr><th scope="row">Protein</th><td>'+fmt(t.p)+' g</td></tr><tr><th scope="row">Carbohydrate</th><td>'+fmt(t.c)+' g</td></tr><tr><th scope="row">Fat</th><td>'+fmt(t.f)+' g</td></tr></tbody></table>'
+    +'<table class="awtab"><tbody><tr><th scope="row">Protein</th><td>'+fmt(t.p)+' g</td></tr><tr><th scope="row">Carbohydrate</th><td>'+fmt(t.c)+' g</td></tr><tr><th scope="row">Fat</th><td>'+fmt(t.f)+' g</td></tr>'+MINERALS.map((k,i)=>mineralRow(['Sodium','Potassium','Magnesium'][i],t[k])).join('')+'</tbody></table>'
     +'<ul class="awparts">'+rows+'</ul>'
     +(r.note?'<p class="mut">'+esc(r.note)+'</p>':'')
     +'<p class="mut awhow"><b>AI estimate</b> by Google Gemini'+(r.searched===false?' from its own knowledge (the web search was not available)':' from web sources')+', not a measurement. How sure: <b>'+esc(r.confidence||'low')+'</b>.'+(nosrc?' '+nosrc+' part'+(nosrc>1?'s have':' has')+' no source and '+(nosrc>1?'are':'is')+' his own estimate.':'')+' It can be wrong: check the sources, and adjust any part with − and +.</p>'
@@ -212,7 +217,7 @@ acts.awlog=()=>{keepName();const t=totals(),r=W.res;if(!r||!W.items.some(i=>i.x)
   const w=HWWhen.stamp({sig:'aw'+name+t.kcal});if(!w)return;
   const parts=W.items.filter(i=>i.x).map(i=>{const v=itemVal(i);return[i.label,v.g==null?null:r1(v.g),Math.round(v.kcal),i.v.src||'']});
   add('food',t.kcal,{name,por:r.portion||'Wizard\'s web estimate',qty:1,meal,src:'Luke web search (Google Gemini)',custom:1,db:'est',how:r.searched===false?'ai':'web',g:t.g,
-    p:t.miss?'':t.p,c:t.miss?'':t.c,f:t.miss?'':t.f,fb:'',parts,refs:(r.sources||[]).slice(0,5).map(s=>s.url)},'',w.d,w.t,10,'Food logged');
+    p:t.miss?'':t.p,c:t.miss?'':t.c,f:t.miss?'':t.f,na:t.na,k:t.k,mg:t.mg,fb:'',parts,refs:(r.sources||[]).slice(0,5).map(s=>s.url)},'',w.d,w.t,10,'Food logged');
   HWWhen.saved(w,'Food');W.step='done';W.done={est:1};const y=window.scrollY;render();window.scrollTo(0,y)};
 // the canteen menu
 acts.awsearch=()=>{const i=D.getElementById('awq');W.q=i?i.value:W.q;search()};
