@@ -15,6 +15,7 @@ It is a static site with no build step and no server code.
 * **GitHub Pages:** serve the repository root.
 * **Install / offline:** on the GitHub Pages site, use the browser's *Install app* / *Add to Home Screen* (or Settings → App & Offline). After the first visit it opens without internet.
 * **One shareable file:** `npm run build` writes `dist/healthwiz-standalone.html`, with all scripts and images inlined.
+* **Campus 3D page (for a QR code):** `campus/` is a separate, light page that shows the remastered campus in 3D (realistic first, fantasy one tap away, free roaming, a tour and the Blok E stair story). It lives at `<site>/campus/`, i.e. `https://healthwizkingom.github.io/Healthwiz-Kingdom/campus/`, needs WebGL, and steps its quality down on its own on weak devices. It reads the app's model and data files and changes nothing in the Observatory map.
 
 Data is stored in the browser's `localStorage` (`healthwiz`). Use **Settings → Backup** to download or restore it.
 

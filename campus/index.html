@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#14204f">
+<meta name="description" content="Explore the Kolej MARA Kulim campus in 3D, in a realistic and a fantasy look.">
+<title>KM Kulim Campus - HealthWiz Kingdom</title>
+<script type="importmap">{"imports":{"three":"../vendor/three/three.module.min.js","three/addons/":"../vendor/three/addons/"}}</script>
+<style>
+:root{--navy:#14204f;--ink:#fff4c2;--gold:#f2c14e;--panel:rgba(20,32,79,.86)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#14204f;color:var(--ink);font:14px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden;overscroll-behavior:none}
+#view{position:fixed;inset:0;touch-action:none}
+#view canvas{display:block;width:100%;height:100%;outline:none}
+#load{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--navy);text-align:center;padding:24px;transition:opacity .5s}
+#load.gone{opacity:0;pointer-events:none}
+#load h1{margin:0;font-size:20px;letter-spacing:.04em}
+#load p{margin:0;max-width:320px;opacity:.85}
+#bar{width:min(280px,70vw);height:8px;border:2px solid var(--gold);border-radius:2px;overflow:hidden}
+#bar i{display:block;height:100%;width:8%;background:var(--gold);transition:width .3s}
+#title{position:fixed;left:max(12px,env(safe-area-inset-left));top:max(10px,env(safe-area-inset-top));z-index:5;padding:6px 10px;background:var(--panel);border:2px solid var(--gold);border-radius:6px;font-weight:700;letter-spacing:.03em;pointer-events:none}
+#title small{display:block;font-weight:400;opacity:.8;font-size:11px}
+#hint{position:fixed;left:50%;transform:translateX(-50%);top:max(64px,calc(env(safe-area-inset-top) + 54px));z-index:5;padding:6px 12px;background:var(--panel);border-radius:14px;font-size:12px;pointer-events:none;transition:opacity .6s;text-align:center;max-width:calc(100vw - 24px)}
+#hint.off{opacity:0}
+#bottom{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:8px max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:6px;align-items:center}
+.row{display:flex;gap:6px;max-width:100%;overflow-x:auto;scrollbar-width:none;padding:2px}
+.row::-webkit-scrollbar{display:none}
+button{font:inherit;color:var(--ink);background:var(--panel);border:2px solid #3c4f92;border-radius:8px;padding:9px 13px;min-height:42px;cursor:pointer;white-space:nowrap;backdrop-filter:blur(4px)}
+button:active{transform:translateY(1px)}
+button.on{background:var(--gold);color:#241c08;border-color:var(--gold);font-weight:700}
+button:focus-visible{outline:3px solid #fff;outline-offset:2px}
+#places{display:none}
+#places.open{display:flex}
+#fade{position:fixed;inset:0;z-index:8;background:#fff;opacity:0;pointer-events:none;transition:opacity .35s}
+#err{position:fixed;inset:0;z-index:30;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:var(--navy);padding:24px;text-align:center}
+#err.show{display:flex}
+</style>
+</head>
+<body>
+<div id="view"></div>
+<div id="title">KM Kulim Campus<small id="lookname">Realistic</small></div>
+<div id="hint">Drag to look around. Pinch or scroll to zoom.</div>
+<div id="fade"></div>
+<div id="bottom">
+  <div class="row" id="places"></div>
+  <div class="row" id="bar1">
+    <button id="bReal" class="on" aria-pressed="true">Realistic</button>
+    <button id="bFan" aria-pressed="false">Fantasy</button>
+    <button id="bTour" aria-pressed="false">Watch tour</button>
+    <button id="bPlaces" aria-expanded="false">Places</button>
+    <button id="bWx">Weather: Clear</button>
+    <button id="bTime">Time: Morning</button>
+    <button id="bLite" aria-pressed="false">Lite mode</button>
+  </div>
+</div>
+<div id="load"><h1>KM KULIM CAMPUS</h1><div id="bar"><i></i></div><p id="loadmsg">Loading the campus...</p></div>
+<div id="err"><h1 style="margin:0;font-size:18px">The 3D map could not start</h1><p id="errmsg" style="max-width:340px;margin:0">This device or browser does not support WebGL.</p><button onclick="location.reload()">Try again</button></div>
+<script type="module" src="./src/live.js"></script>
+</body>
+</html>
