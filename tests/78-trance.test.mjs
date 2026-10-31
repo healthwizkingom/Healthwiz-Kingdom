@@ -70,7 +70,7 @@ test('SLEEP NOW sits right under LOG SLEEP; the rite needs real motion data, nev
 });
 
 test('a night: the seal needs a 3 s hold; under 90 min asks first and saves nothing; a valid night saves a Sleep entry with m.tr and offers the Vault', async () => {
-  const { page, ctx, errors } = await openApp();
+  const { page, ctx, errors } = await openApp({ context: { reducedMotion: 'reduce' } });
   await go(page, 'sleep');
   await page.click('#v6trc [data-a="trnow"]');
   await page.click('[data-a="tcnext"]');
@@ -114,14 +114,14 @@ test('a night: the seal needs a 3 s hold; under 90 min asks first and saves noth
   const b2 = await page.locator('.v6trsb').boundingBox();
   await page.mouse.move(b2.x + b2.width / 2, b2.y + b2.height / 2);
   await page.mouse.down(); await page.waitForTimeout(3400); await page.mouse.up();
-  await page.waitForSelector('#v6trhg', { timeout: 8000 });
+  await page.waitForSelector('.v6rcard', { timeout: 8000 });
   const goal = await page.evaluate(() => (st.g && Array.isArray(st.g.sleep) ? +st.g.sleep[0] : SR(+st.p.age || 16)[0]) || 8);
-  const txt = await page.textContent('#v6trt');
-  assert.match(txt, /Morning Readout/);
+  let txt = await page.textContent('#v6trt');
+  assert.match(txt, /Sleep Duration/);
   assert.match(txt, /GAME ESTIMATE FROM PHONE MOVEMENT, NOT A MEDICAL MEASUREMENT/);
-  assert.match(txt, new RegExp('Restored Mana' + Math.round(Math.min(100, 2.8 / goal * 100)) + '/ 100'));
-  assert.match(txt, /Time slept2\.8 h/);
-  assert.match(txt, /Time to cross the veil10 min/);
+  assert.match(txt, new RegExp(Math.round(Math.min(100, 2.8 / goal * 100)) + 'Restored Mana'));
+  assert.match(txt, /2 hrs 50 mins/, '34 epochs x 5 min = 170 min');
+  assert.match(txt, /Your first Sleep Now night/);
   const saved = (await state(page)).e.filter(e => e.c === 'sleep' && e.m.tr);
   assert.equal(saved.length, 1);
   assert.equal(saved[0].v, 2.8);
@@ -131,8 +131,19 @@ test('a night: the seal needs a 3 s hold; under 90 min asks first and saves noth
   assert.equal(saved[0].m.tr.e, 'DD' + 'SSS' + 'A'.repeat(30) + 'S');
   assert.ok(saved[0].m.score >= 0 && saved[0].m.score <= 100);
   assert.equal(await page.evaluate(() => st.s.trLive), undefined, 'the open night is cleared');
+  await page.click('[data-a="trnext"]');
+  await page.waitForSelector('#v6trhg');
+  txt = await page.textContent('#v6trt');
+  assert.match(txt, /Depths of the Night/);
+  assert.match(txt, /Abyssal Slumber/);
   // the runegraph canvas has pixels drawn in its tier colours
   assert.ok(await page.evaluate(() => { const c = document.getElementById('v6trhg'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 2] > 200 && d[i] < 160) n++; return n > 200; }));
+  await page.click('[data-a="trnext"]');
+  await page.waitForSelector('.v6rtype');
+  txt = await page.textContent('#v6trt');
+  assert.match(txt, /Time to cross the veil10 min/);
+  assert.match(txt, /Logged as2\.8 h/);
+  assert.match(txt, /Dominant state/);
   // Evidence Vault: opens the Trance card and its four sources
   await page.click('[data-a="trvault"]');
   await page.waitForSelector('#vc-trance');
@@ -153,6 +164,36 @@ test('limits: two Trances or 13 h in 24 h hide the button; a night left open is 
   await go(page, 'sleep');
   assert.match(await page.textContent('#v6trc'), /Two Trances have already been logged in the last 24 hours/);
   assert.equal(await page.locator('#v6trc [data-a="trnow"]').count(), 0);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test('the vigil: built once with the hero art, rolling clock and pins; dims after idle, wakes on a touch; face-down goes black', async () => {
+  const { page, ctx, errors } = await openApp();
+  await go(page, 'sleep');
+  await page.click('#v6trc [data-a="trnow"]');
+  await page.click('[data-a="tcnext"]');
+  await page.evaluate(() => { if (typeof DeviceMotionEvent.requestPermission === 'function') DeviceMotionEvent.requestPermission = async () => 'granted'; window.__mv = setInterval(() => window.dispatchEvent(Object.assign(new Event('devicemotion'), { accelerationIncludingGravity: { x: 0.01, y: 0.02, z: 9.8 } })), 100); });
+  await page.click('[data-a="tcarm"]');
+  await page.waitForFunction(() => !document.querySelector('[data-a="tcarm"]'));
+  await page.click('[data-a="tcnext"]'); await page.click('[data-a="tcnext"]');
+  await page.click('[data-a="tcgo"]');
+  await page.waitForSelector('.v6vdisc img');
+  assert.match(await page.getAttribute('.v6vdisc img', 'src'), /assets\/img\/bedroom\.webp$/, 'the existing sleeper art, no new image');
+  assert.match(await page.textContent('#v6vclk'), /^\d\d:\d\d$/);
+  assert.match(await page.textContent('#v6vcnt'), /^0 h 0\d min$/);
+  assert.match(await page.textContent('#v6vp2'), /^Echoes 0$/);
+  const keep = await page.evaluate(() => { window.__disc = document.querySelector('.v6vdisc'); return true; });
+  await page.waitForTimeout(2200);
+  assert.ok(await page.evaluate(() => window.__disc === document.querySelector('.v6vdisc')), 'the scene is not rebuilt every second, so its animations never restart');
+  assert.equal(await page.evaluate(() => document.getElementById('v6trt').classList.contains('v6dim')), false);
+  await page.evaluate(() => HWTrance._idle());
+  assert.equal(await page.evaluate(() => document.getElementById('v6trt').classList.contains('v6dim')), true, 'idle: dark and still');
+  await page.mouse.click(4, 4);
+  assert.equal(await page.evaluate(() => document.getElementById('v6trt').classList.contains('v6dim')), false, 'a touch wakes the vigil');
+  await page.evaluate(() => { clearInterval(window.__mv); window.__mv = setInterval(() => window.dispatchEvent(Object.assign(new Event('devicemotion'), { accelerationIncludingGravity: { x: 0, y: 0, z: -9.8 } })), 100); });
+  await page.waitForFunction(() => document.getElementById('v6trt').classList.contains('down'), null, { timeout: 5000 });
+  assert.equal(await page.evaluate(() => document.getElementById('v6trt').classList.contains('v6dim')), true, 'face-down: black');
   assert.deepEqual(errors, []);
   await ctx.close();
 });

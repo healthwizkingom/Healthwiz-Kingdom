@@ -40,7 +40,7 @@ compatibility tests.
 | leaderboard | `23-board`, `38-hr-runboard`, `39-accounts-medius` (Runners' Board rows follow the account) |
 | location permissions, GPS fallback | `19-gps`, `33-stairs` (GPS check-in writes the unified session) |
 | offline mode | `20-pwa`, `36-live` (weather and haze unavailable, last good copy, nothing sent while Live Data is off) |
-| Sleep Now (Trance) | `78-trance` (engine worked examples: tiers, 15-min onset, trimming, 6 h flat-line, 90-min minimum, 13 h cap, ±3 type, bedtime grade; card under LOG SLEEP; the rite refuses to start without real motion data; 3-second seal; Interrupted Rite saves nothing; saved entry + m.tr; Vault link; 24 h limits; resume) |
+| Sleep Now (Trance) | `78-trance` (engine worked examples: tiers, 15-min onset, trimming, 6 h flat-line, 90-min minimum, 13 h cap, ±3 type, bedtime grade; card under LOG SLEEP; the rite refuses to start without real motion data; 3-second seal; Interrupted Rite saves nothing; saved entry + m.tr; Vault link; 24 h limits; resume; the vigil is built once and dims when idle or face-down, with the existing bedroom art) |
 | wake-up alarm, running calories | `37-alarm-kcal` (suggested wake time, st.s.alarm, ringing after a tap only, snooze/STOP, bedside clock, Android intent + fallback, .ics; MET by speed, kcal on old and new runs, totals, % of goal, Nutrition line, weight prompt, haze above Running) |
 | live weather, haze | `36-live` (Open-Meteo stubbed: WMO → sky, chip, heat tip, haze bands and advice, Settings card) |
 | console errors | every test; `26-journey` runs a whole first day without one |
