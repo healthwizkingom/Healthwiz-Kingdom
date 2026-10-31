@@ -102,3 +102,5 @@ PubMed; their limits are stated in each record. No audio is recorded, only a lou
 efficiency" is shown, because a phone cannot measure them.
 
 The Astral Weave (a REM estimate) is a model of when REM usually happens in a night, kept only where the phone was still. It is not detected REM and is labelled so on the Depths card, in the "?" panel and in the Evidence Vault. Spell Mastery is a game value, not a memory measurement.
+
+The Astral Weave's Vault entry cites Peever and Fuller 2017, Brooks and Peever 2012, Jones 2005 and Buzsaki 2002, each checked against its PubMed record on 2026-10-31. Each mechanism line says what the abstract shows and, separately, which standard detail (the sublaterodorsal nucleus pathway, the PPT/LDT nuclei, theta's 4 to 8 Hz range and medial-septal pacemaker, theta in REM) the abstract read does not state. The Buzsaki abstract does not mention REM, so the link from theta to REM memory consolidation is shown as a possible function.

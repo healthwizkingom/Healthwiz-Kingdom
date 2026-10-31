@@ -238,7 +238,13 @@ test('The Astral Weave: the ultradian model on worked nights (cycle windows 10/1
   assert.match(vt, /The Astral Weave: a modelled REM estimate/);
   assert.match(vt, /does not detect REM/);
   assert.match(vt, /Peever/);
-  assert.equal(await page.evaluate(() => HWVault.CALCS.find(c => c.id === 'astralweave').src.join()), 'peever2017');
+  assert.equal(await page.evaluate(() => HWVault.CALCS.find(c => c.id === 'astralweave').src.join()), 'peever2017,brooks2012,jones2005,buzsaki2002');
+  assert.match(vt, /THE BIOLOGY BEHIND THE NAME/);
+  assert.match(vt, /CHECKED AGAINST PUBMED ABSTRACTS/);
+  assert.match(vt, /GABA and glycine drive/);
+  assert.match(vt, /Acetylcholine neurons fire at high rates/);
+  assert.match(vt, /not in that abstract/, 'the detail the abstracts do not state is marked as such');
+  assert.match(vt, /REM sleep paralysis/);
   assert.deepEqual(errors.filter(e => !/integrity/.test(e)), []);
   await ctx.close();
 });
