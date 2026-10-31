@@ -7,9 +7,12 @@
    own, uncalibrated defaults. If the phone gives no motion data, nothing is tracked or invented.
 
    Names (arcane term = what the code measures):
-     Astral Drift     = restless epoch: high variance of the acceleration size
-     Arcane Stillness = settled epoch: low-to-moderate variance
-     Abyssal Slumber  = still epoch: near-zero variance
+     Awake / Restless = restless epoch: high variance of the acceleration size
+     Astral Drift     = light-sleep epoch: low-to-moderate variance
+     Abyssal Slumber  = deep-sleep epoch: near-zero variance in the early cycles
+     The Astral Weave = a REM ESTIMATE, not a detection: a near-zero-variance epoch (the muscle-atonia proxy) that falls in the late
+                        part of a 90-minute ultradian cycle (the REM window; it grows from 10% of cycle 1 to 50% of cycle 5).
+                        Later in the night (cycle 4 on) stillness outside that window counts as light sleep, not deep.
      Echoes from the Veil = microphone level well above the room's rolling quiet level (a spike). No audio is ever recorded or
                         stored: only the level is read, and only a count of spikes is kept.
      Time to Cross the Veil = minutes from BEGIN until the first 15 min in a row of Stillness or deeper (not counted as sleep)
@@ -17,7 +20,7 @@
      Interrupted Rite = under 90 min asleep: nothing is saved
      Severed Conduit  = 6 h in a row with next to no movement: the phone was probably left on a table, so counting stops there
    Rules: epochs of 5 min; at most 2 sessions and 13 h per 24 h; ending needs the seal held for 3 s; the smart wake rings in
-   Astral Drift inside a 15 / 20 / 30 min window before the wake time, else at the wake time (through the alarm in v6-alarm.js).
+   restlessness inside a 15 / 20 / 30 min window before the wake time, else at the wake time (through the alarm in v6-alarm.js).
    Saved: a normal sleep entry {bed, wake, aw, lat, rest, score} plus m.tr = {v:1, e:'DSA…' one letter per epoch (g = no data),
    o: first sleep epoch, sp: spike count, s/n: start and end in ms}. Older saves simply have no m.tr.
    A night in progress is kept in st.s.trLive so a page reload does not lose it (the gap becomes "no data"). */
@@ -26,11 +29,11 @@ const D=document,N=navigator,TAU=Math.PI*2;
 const EP=5,EPMS=EP*6e4,MINMIN=90,CAPH=13,MAXN=2,FLATEP=72,LATEP=3,SPIKE=12,MINSAMP=300,SEAL=3000;
 // uncalibrated defaults (variance of |a| in (m/s²)²): see the header
 const T_A=6e-4,T_S=6e-3,T_FLAT=2e-4;
-const NAME={D:'Astral Drift',S:'Arcane Stillness',A:'Abyssal Slumber'};
+const NAME={D:'Awake / Restless',S:'Astral Drift',W:'The Astral Weave',A:'Abyssal Slumber'},KEYS=['D','S','W','A'];
 const two=n=>(n<10?'0':'')+n,hhmm=ms=>{const d=new Date(ms);return two(d.getHours())+':'+two(d.getMinutes())};
 const ico=(n,s,l)=>HWPixel.icon(n,l?{s:s||1,label:l}:s||1);
 const isO=x=>!!x&&typeof x==='object'&&!Array.isArray(x);
-const okE=s=>typeof s==='string'&&/^[DSAg]{0,200}$/.test(s);
+const okE=s=>typeof s==='string'&&/^[DSAWg]{0,200}$/.test(s);
 
 /* ---------- pure engine (no browser, no clock): the tests call these ---------- */
 /** One epoch's tier from the variance of the phone's acceleration size. */
@@ -40,24 +43,33 @@ function onset(e){for(let i=0;i+LATEP<=e.length;i++){let ok=1;for(let j=0;j<LATE
 /** Severed Conduit: index where 6 h of flat-line begins (variance values `vs` below T_FLAT in a row), or -1. */
 function flat(vs){let run=0;for(let i=0;i<vs.length;i++){run=vs[i]<T_FLAT?run+1:0;if(run>=FLATEP)return i-FLATEP+1}return -1}
 /** Percent of tiers D/S/A over the epochs from `o`, ignoring no-data epochs. */
-function pct(e,o){const c={D:0,S:0,A:0};let n=0;for(let i=o;i<e.length;i++)if(c[e[i]]!=null){c[e[i]]++;n++}
-  return n?{D:100*c.D/n,S:100*c.S/n,A:100*c.A/n,n}:null}
+function pct(e,o){const c={D:0,S:0,W:0,A:0};let n=0;for(let i=o;i<e.length;i++)if(c[e[i]]!=null){c[e[i]]++;n++}
+  return n?{D:100*c.D/n,S:100*c.S/n,W:100*c.W/n,A:100*c.A/n,n}:null}
 /** Today's type against the wizard's own average of earlier nights (needs 3): the stage furthest above it, or Balanced within ±3. */
-function affinity(p,hist){if(!p||!hist||hist.length<3)return null;const m={D:0,S:0,A:0};hist.forEach(h=>{m.D+=h.D;m.S+=h.S;m.A+=h.A});
-  ['D','S','A'].forEach(k=>m[k]/=hist.length);const dl={D:p.D-m.D,S:p.S-m.S,A:p.A-m.A};
-  const k=['D','S','A'].reduce((a,b)=>dl[b]>dl[a]?b:a,'D');return{type:dl[k]<=3?'B':k,delta:dl,avg:m,n:hist.length}}
+function affinity(p,hist){if(!p||!hist||hist.length<3)return null;const m={D:0,S:0,W:0,A:0};hist.forEach(h=>{m.D+=h.D;m.S+=h.S;m.W+=(h.W||0);m.A+=h.A});
+  KEYS.forEach(k=>m[k]/=hist.length);const dl={D:p.D-m.D,S:p.S-m.S,W:(p.W||0)-m.W,A:p.A-m.A};
+  const k=KEYS.reduce((a,b)=>dl[b]>dl[a]?b:a,'D');return{type:dl[k]<=3?'B':k,delta:dl,avg:m,n:hist.length}}
 /** Bedtime steadiness over the last nights (minutes after noon): grade A ≤ 30 min, B ≤ 60 min, C above; null under 3 nights. */
 function grade(beds){if(beds.length<3)return null;const a=beds.map(m=>m<720?m+1440:m),mu=a.reduce((x,y)=>x+y,0)/a.length,
   sd=Math.sqrt(a.reduce((x,y)=>x+(y-mu)*(y-mu),0)/a.length);return{g:sd<=30?'A':sd<=60?'B':'C',sd}}
+/** The Ultradian Probability Engine (a model, not a detector). Cycles of 90 min (18 epochs) from sleep onset `on`; the last part of each
+    cycle is the REM window: 10% (cycle 1, a 5 to 10 min first REM), 15% (cycle 2), then 20% x (1 + 1.5 x ln(k-2) / ln 3) for cycles 3 to 5
+    (x1.0, x1.95, x2.5), at most 50% (45 min). A near-zero-variance epoch ('A') in the window becomes 'W' (The Astral Weave); outside it,
+    from cycle 4 on, it becomes light sleep ('S') because deep sleep fades in the second half of the night. Other epochs are unchanged.
+    Epochs before `on` are returned as they are. Returns one record per epoch. */
+const CYC=18,remFrac=k=>k<=1?.1:k===2?.15:Math.min(.5,.2*(1+1.5*Math.log(k-2)/Math.log(3)));
+function calculateUltradianREM(e,on){return e.map((raw,i)=>{if(on==null||i<on)return{i,raw,state:raw,cycle:0,inRemWindow:false};
+  const t=i-on,k=Math.floor(t/CYC)+1,inW=t%CYC>=Math.ceil((1-remFrac(k))*CYC-1e-9);let st=raw;if(raw==='A')st=inW?'W':k>=4?'S':'A';
+  return{i,raw,state:st,cycle:k,inRemWindow:inW}})}
 /** The night: e = one letter per epoch, vs = variances, o.capH = hours still allowed in the last 24 h, o.goalH, o.hist. */
 function resolve(e,vs,o){o=o||{};e=e.slice();let sev=false;const f=vs?flat(vs):-1;
   if(f>=0){e=e.slice(0,f+FLATEP);sev=true}
   while(e.length&&(e[e.length-1]==='D'||e[e.length-1]==='g'))e.pop(); // morning cutoff: trailing restlessness or gaps are not sleep
-  const on=onset(e),cap=Math.round((o.capH==null?CAPH:o.capH)*60/EP);let asleep=on==null?[]:e.slice(on);if(asleep.length>cap)asleep=asleep.slice(0,cap);
+  const on=onset(e);if(on!=null)e=calculateUltradianREM(e,on).map(x=>x.state);const cap=Math.round((o.capH==null?CAPH:o.capH)*60/EP);let asleep=on==null?[]:e.slice(on);if(asleep.length>cap)asleep=asleep.slice(0,cap);
   const mins=asleep.filter(x=>x!=='g').length*EP,valid=mins>=MINMIN,h=Math.round(mins/6)/10;
-  let aw=0,inD=0;for(let i=0;i<asleep.length;i++){if(asleep[i]==='D'){inD=1}else if(inD&&(asleep[i]==='S'||asleep[i]==='A')){aw++;inD=0}}
-  const p=on==null?null:pct(asleep,0),goal=o.goalH||8;
-  return{e,o:on,valid,mins,h,lat:on==null?null:on*EP,aw,sev,p,mana:valid?Math.round(Math.min(100,h/goal*100)):0,aff:valid?affinity(p,o.hist):null}}
+  let aw=0,inD=0;for(let i=0;i<asleep.length;i++){if(asleep[i]==='D'){inD=1}else if(inD&&asleep[i]!=='g'){aw++;inD=0}}
+  const p=on==null?null:pct(asleep,0),goal=o.goalH||8,wm=asleep.filter(x=>x==='W').length*EP;
+  return{e,o:on,valid,mins,h,lat:on==null?null:on*EP,aw,sev,p,mana:valid?Math.round(Math.min(100,h/goal*100)):0,weave:wm,mastery:valid?Math.round(Math.min(100,wm/(.22*goal*60)*100)):0,cycles:Math.floor(mins/(CYC*EP)),aff:valid?affinity(p,o.hist):null}}
 
 /* ---------- storage ---------- */
 const live=()=>isO(st.s.trLive)?st.s.trLive:null;
@@ -204,11 +216,11 @@ function bad(){const el=layer(),r=M.res;skin(el,'bad','v6tnight');el.setAttribut
 
 /* The Morning Readout: three cards on a sky-blue, rune-patterned backdrop (Sleep Duration, Depths of the Night, Your Trance). */
 const crown=(k)=>k==='B'?'Balanced (Harmonious Resonance)':NAME[k];
-const COLS={D:'#ffb020',S:'#2f8fff',A:'#8e5cff'};
+const COLS={D:'#ffb020',S:'#2f8fff',W:'#c04cff',A:'#4b55d8'};
 let RES={page:0};
 const hm2=m=>Math.floor(m/60)+' hrs '+(m%60)+' mins';
 function result(){const el=layer(),r=M.res,pp=r.p,pg=RES.page,aff=r.aff,all=mine(),prev=all.slice(-2,-1)[0],cur=all.slice(-1)[0];
-  const gr=grade(all.slice(-7).map(x=>tmin(x.m.bed)).filter(x=>x!=null)),dom=pp?['D','S','A'].reduce((a,c)=>pp[c]>pp[a]?c:a,'D'):null;
+  const gr=grade(all.slice(-7).map(x=>tmin(x.m.bed)).filter(x=>x!=null)),dom=pp?KEYS.reduce((a,c)=>pp[c]>pp[a]?c:a,'D'):null;
   skin(el,'res','v6tsky');el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-labelledby','v6trh');
   const dt=new Date(M.end),days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],mons=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const head=days[dt.getDay()]+', '+mons[dt.getMonth()]+' '+dt.getDate()+', '+dt.getFullYear()+' | Trance '+all.length;
@@ -219,15 +231,15 @@ function result(){const el=layer(),r=M.res,pp=r.p,pg=RES.page,aff=r.aff,all=mine
       +'<div class="v6rcap">Restored Mana</div><div class="v6rbig num" id="v6rdur">'+hm2(r.mins)+'</div><div class="v6rsub">'+hhmm(M.start)+' - '+hhmm(M.end)+'</div>'
       +'<div class="v6rrib"><span class="v6rar">'+(diff==null||diff>=0?'&#9650;':'&#9660;')+'</span><span>'+(diff==null?'Your first Sleep Now night. Welcome to the Trance!':diff===0?'Same as your last Sleep Now.':'Compared to your last Sleep Now, you slept '+Math.abs(diff)+' mins '+(diff>0?'more':'less')+'!')+'</span></div>'+tag}
   else if(pg===1){ttl='Depths of the Night';
-    body='<canvas id="v6trhg" width="600" height="220" role="img" aria-label="Runegraph of the night: '+['D','S','A'].map(k=>NAME[k]+' '+Math.round(pp[k])+'%').join(', ')+'"></canvas>'
-      +'<div class="v6rbars">'+['D','S','A'].map((k,i)=>'<div class="v6rbar"><span><i style="background:'+COLS[k]+'"></i>'+NAME[k]+'</span><em>'+Math.round(pp[k]*(pp.n*EP)/100)+' min · '+Math.round(pp[k])+'%</em><u><s style="--w:'+Math.round(pp[k])+'%;--c:'+COLS[k]+';animation-delay:'+(.15*i)+'s"></s></u></div>').join('')+'</div>'
-      +'<small class="mut">Where the night went, after the veil was crossed.</small>'+(r.sev?'<p class="v6trw" role="status">Severed Conduit: the phone barely moved for 6 hours in a row, so counting stopped there (it was probably left on a table).</p>':'')+tag}
+    body='<canvas id="v6trhg" width="600" height="220" role="img" aria-label="Runegraph of the night: '+KEYS.map(k=>NAME[k]+' '+Math.round(pp[k])+'%').join(', ')+'"></canvas>'
+      +'<div class="v6rbars">'+KEYS.map((k,i)=>'<div class="v6rbar"><span><i style="background:'+COLS[k]+'"></i>'+NAME[k]+'</span><em>'+Math.round(pp[k]*(pp.n*EP)/100)+' min · '+Math.round(pp[k])+'%</em><u><s style="--w:'+Math.round(pp[k])+'%;--c:'+COLS[k]+';animation-delay:'+(.15*i)+'s"></s></u></div>').join('')+'</div>'
+      +'<small class="mut">Where the night went, after the veil was crossed. Cycles are 90 min from the moment you fell asleep.</small>'+'<span class="v6trtag v6trtagw">THE ASTRAL WEAVE IS A MODEL ESTIMATE FROM TIME OF NIGHT AND STILLNESS, NOT DETECTED REM</span>'+b('trvaultw','What is the Astral Weave?','v6rlk2')+(r.sev?'<p class="v6trw" role="status">Severed Conduit: the phone barely moved for 6 hours in a row, so counting stopped there (it was probably left on a table).</p>':'')+tag}
   else{ttl='Your Trance';
     body='<div class="v6rtype"><small>Dominant state</small><b>'+(aff?crown(aff.type):dom?NAME[dom]+'*':'–')+'</b></div>'
-      +'<div class="v6rgr"><div><small>Time to cross the veil</small><b class="num">'+r.lat+' min</b></div><div><small>Ritual consistency</small><b class="num">'+(gr?gr.g:'–')+'</b></div><div><small>Echoes from the Veil</small><b class="num">'+(M.sp||0)+(Z.mic?'':' (mic off)')+'</b></div><div><small>Logged as</small><b class="num">'+r.h+' h</b></div></div>'
+      +'<div class="v6rgr"><div><small>Time to cross the veil</small><b class="num">'+r.lat+' min</b></div><div><small>Ritual consistency</small><b class="num">'+(gr?gr.g:'–')+'</b></div><div><small>Echoes from the Veil</small><b class="num">'+(M.sp||0)+(Z.mic?'':' (mic off)')+'</b></div><div><small>Logged as</small><b class="num">'+r.h+' h</b></div><div><small>Spell Mastery (game)</small><b class="num">'+r.mastery+' / 100</b></div><div><small>90 min cycles</small><b class="num">'+r.cycles+'</b></div></div>'
       +'<small class="mut">'+(aff?'Type: the stage furthest above your own average of '+aff.n+' earlier nights (within ±3 points = Balanced).':'* Most time this night. Your own type needs 3 earlier Sleep Now nights to compare with.')
       +' Consistency: '+(gr?'your bedtime varied about '+Math.round(gr.sd)+' min over the last nights (A ≤ 30, B ≤ 60).':'needs 3 logged bedtimes.')+'</small>'
-      +(M.saved?'<p class="v6rsv">Saved to your Sleep log (Dream Score '+M.score+'/100, the same score as a hand-logged night). Morning restfulness used: '+(S.slrest||3)+'/5; change it above for the next night.</p>':'')+tag}
+      +'<small class="mut">Spell Mastery is a game value: your estimated Astral Weave time ('+r.weave+' min) against about 22% of your sleep goal. It is not a memory test.</small>'+(M.saved?'<p class="v6rsv">Saved to your Sleep log (Dream Score '+M.score+'/100, the same score as a hand-logged night). Morning restfulness used: '+(S.slrest||3)+'/5; change it above for the next night.</p>':'')+tag}
   el.innerHTML=fx(10,10)+'<div class="v6mr"><div class="v6rhd" id="v6trh">'+head+'</div><div class="v6rcard v6tpop"><i class="v6rtab"></i><h3 class="v6rttl">'+ttl+'</h3><div class="v6rbody v6slR">'+body+'</div></div>'
     +'<div class="v6rft"><span class="v6trdots v6rdots" aria-label="Card '+(pg+1)+' of 3">'+[0,1,2].map(i=>'<u class="'+(i===pg?'on':i<pg?'done':'')+'"></u>').join('')+'</span>'
     +(pg<2?b('trnext','Next','v6rnext'):b('trdone','Done','v6rnext'))+(pg===2?b('trvault','Consult the Evidence Vault','v6rlink'):'')+'</div></div>';
@@ -237,16 +249,21 @@ function result(){const el=layer(),r=M.res,pp=r.p,pg=RES.page,aff=r.aff,all=mine
 /* ---------- the Celestial Arcane Runegraph (hypnogram), drawn left to right ---------- */
 function draw(){const c=D.getElementById('v6trhg');if(!c||!M||!M.res)return;
   if(rm()){plot(c,1);return}const t0=performance.now(),f=t=>{if(!c.isConnected)return;const k=Math.min(1,(t-t0)/1500);plot(c,1-Math.pow(1-k,3));if(k<1)requestAnimationFrame(f)};requestAnimationFrame(f)}
-function plot(c,prog){const r=M.res,e=r.e,x=c.getContext('2d'),W=c.width,H=c.height,L=64,T=14,B=44,pw=W-L-4,ph=H-T-B;
-  const ROW={X:0,D:1,S:2,A:3,g:0},LAB=['Awake','Drift','Stillness','Abyssal'],COL=['#8a8fa8','#ffd45e','#6ec8ff','#b58cff'];
+function plot(c,prog){const r=M.res,e=r.e,x=c.getContext('2d'),W=c.width,H=c.height,L=64,T=14,B=44,pw=W-L-4,ph=H-T-B,rh=ph/4;
+  const ROW={X:0,D:0,S:1,W:2,A:3,g:0},LAB=['Awake','Drift','Weave','Abyssal'],COL=['#ffb020','#6ec8ff','#d05cff','#6a7bff'];
   x.clearRect(0,0,W,H);x.fillStyle='#0a0f33';x.fillRect(0,0,W,H);x.font='12px system-ui,sans-serif';x.textBaseline='middle';
-  for(let i=0;i<4;i++){const y=T+ph*(i+.5)/4;x.strokeStyle='#2a3270';x.lineWidth=1;x.beginPath();x.moveTo(L,y);x.lineTo(W-4,y);x.stroke();x.fillStyle=COL[i];x.fillText(LAB[i],4,y)}
-  const n=Math.max(1,e.length),w=pw/n,lim=Math.ceil(e.length*prog);let prev=null;x.lineWidth=3;x.lineJoin='miter';
-  for(let i=0;i<lim;i++){const k=i<(r.o==null?e.length:r.o)?'X':e[i],row=ROW[k],y=T+ph*(row+.5)/4,x0=L+i*w,x1=x0+w;
-    x.strokeStyle=COL[row];x.shadowColor=COL[row];x.shadowBlur=8;x.beginPath();x.moveTo(x0,prev!=null?prev:y);x.lineTo(x0,y);x.lineTo(x1,y);x.stroke();prev=y}
+  for(let i=0;i<4;i++){const y=T+rh*(i+.5);x.strokeStyle='#2a3270';x.lineWidth=1;x.beginPath();x.moveTo(L,y);x.lineTo(W-4,y);x.stroke();x.fillStyle=COL[i];x.fillText(LAB[i],4,y)}
+  const n=Math.max(1,e.length),w=pw/n,lim=Math.ceil(e.length*prog),on=r.o==null?e.length:r.o;
+  x.setLineDash([3,4]);x.strokeStyle='#3b4590';x.lineWidth=1;x.fillStyle='#7f8bd0';x.textBaseline='top';
+  for(let k=1;on+k*CYC<=lim;k++){const px=L+(on+k*CYC)*w;x.beginPath();x.moveTo(px,T);x.lineTo(px,T+ph);x.stroke();x.fillText('C'+(k+1),px+3,T+1)}
+  x.setLineDash([]);
+  for(let i=0;i<lim;i++){if(e[i]!=='W'||i<on)continue;x.save();x.shadowColor='#d05cff';x.shadowBlur=16;x.fillStyle='rgba(208,92,255,.32)';x.fillRect(L+i*w,T+rh*2+3,w+.5,rh-6);x.restore()} // the glowing violet Weave bands
+  let prev=null;x.lineWidth=3;x.lineJoin='miter';
+  for(let i=0;i<lim;i++){const k=i<on?'X':e[i],row=ROW[k],y=T+rh*(row+.5),x0=L+i*w,x1=x0+w;
+    x.strokeStyle=COL[row];x.shadowColor=COL[row];x.shadowBlur=k==='W'?14:8;x.lineWidth=k==='W'?4:3;x.beginPath();x.moveTo(x0,prev!=null?prev:y);x.lineTo(x0,y);x.lineTo(x1,y);x.stroke();prev=y}
   x.shadowBlur=0;x.fillStyle='#9aa6e0';x.textBaseline='top';const hrs=n*EP/60,st0=M.start;
   for(let h=0;h<=hrs;h+=Math.max(1,Math.ceil(hrs/6))){const px=L+h*60/EP*w;x.fillText(hhmm(st0+h*36e5),Math.min(px,W-34),T+ph+6)}
-  x.fillStyle='#7f8bd0';x.fillText('Echoes from the Veil: '+(M.sp||0)+' loud sound'+(M.sp===1?'':'s')+(Z.mic?'':' (mic was off)'),L,T+ph+24)}
+  x.fillStyle='#7f8bd0';x.fillText('Echoes from the Veil: '+(M.sp||0)+' loud sound'+(M.sp===1?'':'s')+(Z.mic?'':' (mic was off)')+' · Weave = model estimate',L,T+ph+24)}
 
 function paint(){if(!M||M.state==='RESOLVED'&&!view)return;
   if(hold&&!view){const f=D.querySelector('#v6trt .v6trfill');if(f){f.style.width=Math.round(Math.min(1,(Date.now()-hold)/SEAL)*100)+'%';return}}
@@ -258,7 +275,7 @@ function close(){hide();view='';M=null;Z.state='IDLE';stopSense();lock(false);cl
 
 /* ---------- the Sleep page card ---------- */
 function card(){const l=live(),now=Date.now(),lim=limits(now),last=mine().slice(-1)[0];
-  return '<h3>'+ico('sleep',1,'Moon')+' SLEEP NOW '+HWHelp.btn('trancewhy','About Sleep Now','<p>Put the phone on the mattress, tap SLEEP NOW, and it reads how much it moves (and how loud the room gets) while you sleep. In the morning the night becomes a game readout and a normal Sleep log entry.</p><p><b>It is an estimate.</b> The three depths come from phone movement only, with thresholds HealthWiz chose itself; a phone cannot see brain waves, so these are not sleep stages and not a medical measurement. The microphone level is read but no sound is recorded.</p><p>A night under 90 minutes of sleep is not saved. At most 2 nights and 13 hours are counted per 24 hours.</p>'+HWSources.cite('xie2013')+HWSources.cite('fernandez2020'),{ev:'sleep'})+'</h3>'
+  return '<h3>'+ico('sleep',1,'Moon')+' SLEEP NOW '+HWHelp.btn('trancewhy','About Sleep Now','<p>Put the phone on the mattress, tap SLEEP NOW, and it reads how much it moves (and how loud the room gets) while you sleep. In the morning the night becomes a game readout and a normal Sleep log entry.</p><p><b>It is an estimate.</b> The four states come from phone movement and the time of night, with thresholds HealthWiz chose itself; a phone cannot see brain waves or eyes, so these are not sleep stages and not a medical measurement. The Astral Weave (a REM guess) is a model of when REM usually happens, not something the phone detects. The microphone level is read but no sound is recorded.</p><p>A night under 90 minutes of sleep is not saved. At most 2 nights and 13 hours are counted per 24 hours.</p>'+HWSources.cite('xie2013')+HWSources.cite('fernandez2020'),{ev:'sleep'})+'</h3>'
     +'<p>The Trance of Restoration: the phone watches over the night and logs it for you. Game estimate, not a medical measurement.</p>'
     +(l?'<p class="v6trw" role="status">A Trance started at '+hhmm(+l.s)+' was still open.</p><div class="row">'+b('trresume','RESUME TRANCE','')+b('trdrop','DISCARD','g')+'</div>'
       :lim.blocked?'<p class="mut">'+esc(lim.blocked)+'</p>':'<button type="button" data-a="trnow" class="v6trnow">'+ico('sleep')+' SLEEP NOW</button>')
@@ -280,6 +297,7 @@ acts.trdrop=()=>{setLive(null);render()};
 acts.trno=()=>{view='';M.warned=0;M.state='IN_TRANCE';hold=0;paint()};
 acts.tryes=()=>{view='';finish(Date.now())};
 acts.trdone=()=>close();
+acts.trvaultw=()=>{hide();view='';M=null;Z.state='IDLE';if(typeof HWVault!=='undefined')HWVault.openCalc('astralweave','sleep');else render()};
 acts.trvault=()=>{hide();view='';M=null;Z.state='IDLE';if(typeof HWVault!=='undefined')HWVault.openCalc('trance','sleep');else render()};
 // the seal: pointer or key held for 3 seconds (a tap does nothing)
 function press(){if(!M||M.state==='RESOLVED')return;M.state='SEAL_BREAKING';hold=Date.now();LT=Date.now();{const e=D.getElementById('v6trt');if(e)e.classList.add('holding')}clearInterval(HT);HT=setInterval(()=>{if(!hold)return;if(Date.now()-hold>=SEAL){hold=0;clearInterval(HT);seal()}else paint()},100);paint()}
@@ -391,6 +409,7 @@ HWUI.css('trance',`
 .v6rtype small{display:block;font:700 12px/1 var(--fn);letter-spacing:.1em;text-transform:uppercase;color:#bcd0ff}.v6rtype b{display:block;margin-top:6px;font:800 24px/1.15 var(--fn);color:#ffe45e}
 .v6rgr{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:left}.v6rgr div{background:#f2f6ff;border-radius:14px;padding:10px 12px;animation:v6tpop .5s cubic-bezier(.2,1.4,.4,1) both}.v6rgr div:nth-child(2){animation-delay:.08s}.v6rgr div:nth-child(3){animation-delay:.16s}.v6rgr div:nth-child(4){animation-delay:.24s}
 .v6rgr small{display:block;font-size:12px;color:#7b8aa8}.v6rgr b{font-size:22px;font-weight:800;color:#2c3040}
+.v6trtagw{background:#f3e8ff;color:#6b2fa8}.v6rlk2{min-height:44px;background:none;border:0;color:#3f8cf0;text-decoration:underline;font-size:14px;font-weight:700}
 .v6rcard .mut{color:#7b8aa8;font-size:12px;line-height:1.4}.v6rsv{margin:0;font-size:13px;color:#4a5068}
 .v6rft{display:flex;flex-direction:column;align-items:flex-end;gap:10px;width:100%}.v6rdots{align-self:center}
 .v6rnext{min-width:150px;min-height:52px;padding:0 26px;border-radius:26px;background:#4a9eff;color:#fff;border:0;border-bottom:5px solid #2a6dc4;font-size:17px;font-weight:700;animation:v6glowb 2.2s ease-in-out infinite}.v6rnext:active{transform:translateY(3px);border-bottom-width:2px}
@@ -427,5 +446,5 @@ HWUI.css('trance',`
 html.hw-rm .v6tro *,html.hw-still .v6tro *,html.hw-rm .v6trnow:after,html.hw-still .v6trnow:after{animation:none!important;transition:none!important}
 `);
 HWEvents.on('app:ready',()=>{const l=live();if(l&&Date.now()-(+l.s||0)>CAPH*36e5+36e5)setLive(null)}); // a night left open for over 14 h is dropped
-return{tier,onset,flat,pct,affinity,grade,resolve,limits,K:{EP,MINMIN,CAPH,MAXN,FLATEP,LATEP,T_A,T_S,T_FLAT,SEAL},
+return{tier,onset,flat,pct,affinity,grade,resolve,calculateUltradianREM,limits,K:{EP,MINMIN,CAPH,MAXN,FLATEP,LATEP,T_A,T_S,T_FLAT,SEAL},
   _idle:()=>{LT=0;vigil()},_sample:sample,_begin:begin,_tick:tick,_state:()=>M,_S:Z}})();

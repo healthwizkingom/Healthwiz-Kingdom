@@ -128,7 +128,8 @@ test('a night: the seal needs a 3 s hold; under 90 min asks first and saves noth
   assert.equal(saved[0].m.lat, 10);
   assert.equal(saved[0].m.tr.v, 1);
   assert.equal(saved[0].m.tr.o, 2);
-  assert.equal(saved[0].m.tr.e, 'DD' + 'SSS' + 'A'.repeat(30) + 'S');
+  // 'A' at minute 85 of cycle 1 is inside the first REM window (the last 10%: epoch 17), so it is saved as 'W' (The Astral Weave)
+  assert.equal(saved[0].m.tr.e, 'DD' + 'SSS' + 'A'.repeat(14) + 'W' + 'A'.repeat(15) + 'S');
   assert.ok(saved[0].m.score >= 0 && saved[0].m.score <= 100);
   assert.equal(await page.evaluate(() => st.s.trLive), undefined, 'the open night is cleared');
   await page.click('[data-a="trnext"]');
@@ -136,6 +137,8 @@ test('a night: the seal needs a 3 s hold; under 90 min asks first and saves noth
   txt = await page.textContent('#v6trt');
   assert.match(txt, /Depths of the Night/);
   assert.match(txt, /Abyssal Slumber/);
+  assert.match(txt, /The Astral Weave/);
+  assert.match(txt, /MODEL ESTIMATE FROM TIME OF NIGHT AND STILLNESS, NOT DETECTED REM/);
   // the runegraph canvas has pixels drawn in its tier colours
   assert.ok(await page.evaluate(() => { const c = document.getElementById('v6trhg'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 2] > 200 && d[i] < 160) n++; return n > 200; }));
   await page.click('[data-a="trnext"]');
@@ -144,10 +147,12 @@ test('a night: the seal needs a 3 s hold; under 90 min asks first and saves noth
   assert.match(txt, /Time to cross the veil10 min/);
   assert.match(txt, /Logged as2\.8 h/);
   assert.match(txt, /Dominant state/);
+  assert.match(txt, /Spell Mastery \(game\)\d+ \/ 100/);
+  assert.match(txt, /90 min cycles1/, '170 min asleep = 1 whole cycle');
   // Evidence Vault: opens the Trance card and its four sources
   await page.click('[data-a="trvault"]');
   await page.waitForSelector('#vc-trance');
-  assert.match(await page.textContent('#vc-trance'), /Sleep Now: movement stages/);
+  assert.match(await page.textContent('#vc-trance'), /Sleep Now: movement states/);
   for (const id of ['xie2013', 'fernandez2020', 'czeisler2007', 'peever2017']) assert.ok(await page.evaluate(i => HWSources.ids().includes(i) && HWVault.CALCS.find(c => c.id === 'trance').src.includes(i), id));
   assert.deepEqual(errors.filter(e => !/integrity/.test(e)), []);
   await ctx.close();
@@ -195,5 +200,45 @@ test('the vigil: built once with the hero art, rolling clock and pins; dims afte
   await page.waitForFunction(() => document.getElementById('v6trt').classList.contains('down'), null, { timeout: 5000 });
   assert.equal(await page.evaluate(() => document.getElementById('v6trt').classList.contains('v6dim')), true, 'face-down: black');
   assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test('The Astral Weave: the ultradian model on worked nights (cycle windows 10/15/20/39/50/50%), the 4-state runegraph and the Vault entry', async () => {
+  const { page, ctx, errors } = await openApp({ context: { reducedMotion: 'reduce' } });
+  const r = await page.evaluate(() => {
+    const T = HWTrance, enc = a => a.map(x => x.state).join('');
+    const night = T.calculateUltradianREM('A'.repeat(108).split(''), 0);
+    const cyc = n => enc(night).slice((n - 1) * 18, n * 18);
+    const mixed = T.calculateUltradianREM('DSA'.repeat(2).split(''), 0);
+    const pre = T.calculateUltradianREM(('DD' + 'SSS' + 'A'.repeat(20)).split(''), 2);
+    return { c: [1, 2, 3, 4, 5, 6].map(cyc), nW: (enc(night).match(/W/g) || []).length, mixed: enc(mixed), pre: enc(pre), cyc: night[40].cycle, win: night[17].inRemWindow, none: T.calculateUltradianREM(['A', 'A'], null).map(x => x.state).join('') };
+  });
+  assert.deepEqual(r.c, [
+    'A'.repeat(17) + 'W',                  // cycle 1: 10% of 90 min = last 1 epoch (5 min), the brief first REM
+    'A'.repeat(16) + 'WW',                 // cycle 2: 15% = 2 epochs
+    'A'.repeat(15) + 'WWW',                // cycle 3: 20% = 3 epochs (15 min), multiplier 1.0
+    'S'.repeat(11) + 'W'.repeat(7),        // cycle 4: 0.2 x 1.95 = 39% = 7 epochs (35 min); deep sleep has faded to light
+    'S'.repeat(9) + 'W'.repeat(9),         // cycle 5: 0.2 x 2.5 = 50% = 9 epochs (45 min)
+    'S'.repeat(9) + 'W'.repeat(9)]);       // later cycles stay capped at 50%
+  assert.equal(r.nW, 1 + 2 + 3 + 7 + 9 + 9, '31 epochs = 155 min');
+  assert.equal(r.mixed, 'DSADSA', 'restless and light epochs are never turned into REM');
+  assert.equal(r.pre, 'DD' + 'SSS' + 'A'.repeat(14) + 'W' + 'A'.repeat(5), 'epochs before sleep onset are untouched; the clock starts at onset');
+  assert.equal(r.cyc, 3);
+  assert.equal(r.win, true);
+  assert.equal(r.none, 'AA', 'no onset, no model');
+  // a long night through resolve: Weave minutes, Spell Mastery = 155 / (0.22 x 480) x 100 = 147 -> capped at 100 for an 8 h goal; and 1.2 h of it = 1.2*60/105.6
+  const v = await page.evaluate(() => { const T = HWTrance, a = T.resolve('A'.repeat(108).split(''), null, { goalH: 8, capH: 13 }), b = T.resolve(('SSS' + 'A'.repeat(33)).split(''), null, { goalH: 8, capH: 13 }); return { aw: a.weave, am: a.mastery, ac: a.cycles, bw: b.weave, bm: b.mastery, p: Math.round(a.p.W * 10) / 10 }; });
+  assert.deepEqual(v, { aw: 155, am: 100, ac: 6, bw: 15, bm: 14, p: 28.7 });
+  // 15 min of Weave in a 3 h night: 15 / (0.22 x 480 = 105.6) = 14.2% -> 14
+  // the Vault has the Weave entry with the Peever and Fuller source, and the Sleep Now entry names the four states
+  await go(page, 'sleep');
+  await page.evaluate(() => HWVault.openCalc('astralweave', 'sleep'));
+  await page.waitForSelector('#vc-astralweave');
+  const vt = await page.textContent('#vc-astralweave');
+  assert.match(vt, /The Astral Weave: a modelled REM estimate/);
+  assert.match(vt, /does not detect REM/);
+  assert.match(vt, /Peever/);
+  assert.equal(await page.evaluate(() => HWVault.CALCS.find(c => c.id === 'astralweave').src.join()), 'peever2017');
+  assert.deepEqual(errors.filter(e => !/integrity/.test(e)), []);
   await ctx.close();
 });
