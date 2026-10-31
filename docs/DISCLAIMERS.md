@@ -92,3 +92,11 @@ Total over 24 pages: 893 -> 144
 Other short estimate caveats that are not "not medical" sentences (for example "estimate" tags on single numbers) were left in
 place: they are the labels the brief says to keep next to a value. A line-by-line check of every `<small class="mut">` for
 more caveats was not done.
+
+## Sleep Now (added 2026-10-31)
+
+`js/v6-trance.js` shows "game estimate from phone movement, not a medical measurement" on the Morning Readout and its "?" panel.
+The three depths are movement estimates with HealthWiz's own uncalibrated thresholds, not sleep stages. The four Evidence Vault
+sources behind the names (Xie 2013, Fernandez and Lüthi 2020, Czeisler and Gooley 2007, Peever and Fuller 2017) were read through
+PubMed; their limits are stated in each record. No audio is recorded, only a loudness number. No "delta percentage" or "glymphatic
+efficiency" is shown, because a phone cannot measure them.

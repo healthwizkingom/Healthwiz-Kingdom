@@ -203,4 +203,6 @@ body.v6wake .shs:before{content:"!";position:absolute;z-index:3;left:40%;top:22%
 body.v6wake .shs:after{content:"";position:absolute;inset:0;background:rgba(255,214,120,.28);pointer-events:none}
 @media(prefers-reduced-motion:reduce){.v6alb{animation:none}}html.hw-rm .v6alb,html.hw-still .v6alb{animation:none}
 `);
-return{cfg,next,suggest,ics,intent,check,get ringing(){return !!ring},get armed(){return !!armed}}})();
+/** Rings now (used by Sleep Now's smart wake, js/v6-trance.js). Does nothing while already ringing. */
+const ringNow=()=>{if(!ring)start('alarm')};
+return{cfg,next,suggest,ics,intent,check,ringNow,get ringing(){return !!ring},get armed(){return !!armed}}})();
