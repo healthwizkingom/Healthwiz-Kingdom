@@ -38,7 +38,15 @@ const TIMES = [['Morning', 8.3], ['Noon', 12.2], ['Golden hour', 17.6], ['Dusk',
 const S = { look: 'realistic', tod: { realistic: 0, fantasy: 3 }, wx: 0, quality: mobile ? 1 : 2, lite: false, tourOn: false, tourT0: 0, stair: { on: false, t0: 0 }, flyT: -1 };
 const worlds = {};
 let R, cam, controls, rt, bloom, uber, black, shared, size = { w: 1, h: 1 };
-const fail = (msg) => { $('errmsg').textContent = msg; $('err').classList.add('show'); };
+const fail = (msg, detail) => { $('errmsg').textContent = msg; $('errdetail').textContent = detail || ''; $('err').classList.add('show'); };
+/** what this browser says about WebGL, for the error screen */
+function probeGL() {
+  const out = { ua: navigator.userAgent };
+  for (const k of ['webgl2', 'webgl']) {
+    try { const g = document.createElement('canvas').getContext(k); out[k] = g ? 'ok' : 'null'; if (g && !out.gpu) { const e = g.getExtension('WEBGL_debug_renderer_info'); out.gpu = e ? g.getParameter(e.UNMASKED_RENDERER_WEBGL) : ''; } } catch (err) { out[k] = 'error: ' + err.message; }
+  }
+  return out;
+}
 const loadMsg = (msg, pct) => { $('loadmsg').textContent = msg; if (pct != null) $('bar').firstElementChild.style.width = pct + '%'; };
 const nextFrame = () => new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
 
@@ -192,9 +200,12 @@ function tick(nowMs) {
 
 // ------------------------------------------------------------------ boot
 async function boot() {
-  try {
-    R = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance', alpha: false });
-  } catch (e) { return fail('This device or browser does not support WebGL.'); }
+  // try the full settings first, then plainer ones: some phones refuse a context with particular attributes
+  let lastErr = null;
+  for (const attrs of [{ antialias: false, powerPreference: 'high-performance', alpha: false }, { antialias: false, alpha: false }, {}]) {
+    try { R = new THREE.WebGLRenderer(attrs); break; } catch (e) { lastErr = e; R = null; }
+  }
+  if (!R) { const g = probeGL(); console.error('[campus] no WebGL context', lastErr, g); return fail('The graphics could not start on this browser. ' + (g.webgl2 === 'ok' ? '' : 'WebGL 2 is not available here. ') + 'Try opening this page in Chrome (not inside another app), with hardware acceleration on.', 'Error: ' + (lastErr && lastErr.message) + '\nWebGL2: ' + g.webgl2 + ', WebGL: ' + g.webgl + (g.gpu ? '\nGPU: ' + g.gpu : '') + '\n' + g.ua); }
   R.toneMapping = THREE.NoToneMapping; R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFSoftShadowMap; R.shadowMap.autoUpdate = false;
   $('view').appendChild(R.domElement);
   R.domElement.addEventListener('webglcontextlost', (e) => { e.preventDefault(); fail('The graphics were reset by the device. Tap Try again.'); });
@@ -221,4 +232,4 @@ async function boot() {
   setTimeout(() => { $('load').classList.add('gone'); hint('Drag to look around. Pinch or scroll to zoom. Tap the heart on the stair.', 8000); }, 400);
   window.campusLive = { S, worlds, cam, controls, setLook, startTour, stopTour, flyTo };
 }
-boot().catch((e) => { console.error(e); fail('Something went wrong while loading: ' + (e && e.message)); });
+boot().catch((e) => { console.error(e); fail('Something went wrong while loading.', String(e && (e.stack || e.message)).slice(0, 700)); });
