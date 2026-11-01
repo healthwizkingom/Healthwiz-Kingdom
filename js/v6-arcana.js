@@ -124,11 +124,11 @@ function oracle(){
   if(I.drop==null)miss.push('a stair workout with the pulse "after" and "1 minute after"');
   let body;
   if(miss.length)body='<p class="arc-sc mut">The crystal is cloudy.</p><details class="arc-more"><summary>What clears it</summary><p class="mut">'+miss.map(esc).join('; ')+'.</p></details>';
-  else{const R=math.readiness(I.sleep,I.dass,I.drop),sc=Math.round(R.score),k=sc>=70?'good':sc>=50?'watch':'caution';
-    body='<p class="arc-sc"><b class="num big">'+sc+'</b> <small>/ 100 readiness index</small> '+stt(k)+'</p>'
+  else{const R=math.readiness(I.sleep,I.dass,I.drop),X=typeof HWReadiness!=='undefined'?HWReadiness.adjust(R.score):null,sc=Math.round(X?X.score:R.score),k=sc>=70?'good':sc>=50?'watch':'caution';
+    body='<p class="arc-sc"><b class="num big">'+sc+'</b> <small>/ 100 readiness index</small> '+stt(k)+'</p>'+(X?'<p class="mut">'+X.pace+'</p>':'')
       +(sc<50?'<p class="arc-warn" role="note">The Oracle suggests a mild path (below 26°) today.</p>':'')
       +'<details class="arc-more"><summary>How the Oracle reads you</summary>'+(sc<50?'<p>Medius: “Your sleep, stress check-in and heart-rate recovery are all pulling the crystal down. A vigorous climb can wait.”</p>':'')+'<ul class="arc-orl"><li>Sleep '+fx(I.sleep,1)+' h → '+Math.round(R.sleep)+' × 0.4</li><li>DASS-21 total '+I.dass+' / 63 → '+Math.round(R.stress)+' × 0.3</li><li>1-minute recovery '+I.drop+' BPM → '+Math.round(clamp(R.rec,0,100))+' × 0.3</li></ul>'
-      +'<small class="mut">Calculated from your own logs with the blueprint’s weights (40 / 30 / 30). It is a game index, not a medical measure of readiness.</small></details>';
+      +(X?X.html:'')+'<small class="mut">Calculated from your own logs with the blueprint’s weights (40 / 30 / 30). It is a game index, not a medical measure of readiness.</small></details>';
     if(sc<50)setTimeout(()=>say('arc-oracle'),0)}
   return '<div class="arc-orc" id="arc-oracle"><h4>Oracle’s crystal ball</h4><div class="arc-orbw'+(miss.length?' dim':'')+'">'+RING+'<canvas class="arc-ball" id="arc-ball" width="48" height="48" role="img" aria-label="'
     +(miss.length?'A cloudy crystal ball: not enough data':'A crystal ball glowing with the readiness index')+'"></canvas></div>'+body+'</div>'}
@@ -362,7 +362,7 @@ const XR={sup:null};
 function xrCheck(){if(XR.sup!==null)return;XR.sup=false;try{if(window.isSecureContext&&navigator.xr&&navigator.xr.isSessionSupported)
   navigator.xr.isSessionSupported('immersive-ar').then(ok=>{XR.sup=!!ok;if(ok){const b=$i('start-xr-btn');if(b)b.hidden=false}}).catch(()=>{})}catch(e){}}
 function xrUI(){let u=$i('arc-xr-ui');if(!u){u=D.createElement('div');u.id='arc-xr-ui';u.className='arc-xr-ui';u.hidden=true;
-    u.innerHTML='<p id="arc-xr-st" role="status" aria-live="polite"></p><p id="arc-xr-m" class="arc-xr-m"></p><div class="arc-xr-b"><button type="button" class="g" data-a="arcxrscan">RESCAN</button><button type="button" data-a="arcxrend">HALT</button></div>';
+    u.innerHTML='<div class="arc-xr-bar"><p id="arc-xr-st" role="status" aria-live="polite"></p><p id="arc-xr-m" class="arc-xr-m"></p><div class="arc-xr-b"><button type="button" class="g" data-a="arcxrscan">RESCAN</button><button type="button" data-a="arcxrend">HALT</button></div></div>';
     D.body.appendChild(u)}return u}
 function xrState(S){const st=$i('arc-xr-st'),m=$i('arc-xr-m'),q=STAIRS.find(x=>x.id===Z.sid),n=q?stepsOf(q):0;
   if(S.phase==='ended'){Z.xr=null;const u=$i('arc-xr-ui');if(u)u.hidden=true;paint();return}

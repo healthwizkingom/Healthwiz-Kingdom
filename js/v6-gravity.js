@@ -264,7 +264,7 @@ acts.gvsave=()=>{
   const gv={gid:G.gid,method:G.sensor==='on'&&G.est>0&&n===G.est?'sensor':G.sensor==='on'&&G.est>0?'sensor+corrected':'manual',sensor:G.sensor==='on'?G.est:null,n,
     rise:c.okR?r:null,riseSrc:c.okR?(vr&&Math.abs(vr-r)<1e-9?riseKind(q.id):'typed'):null,mass:c.okM?+G.inp.mass:null,massSrc:c.okM?(G.ed.mass?'typed':mi&&mi.kg===+G.inp.mass?'record':'typed'):null,
     secs:Math.round(min*60),h:c.h==null?null:Math.round(c.h*1000)/1000,W:c.W==null?null:Math.round(c.W),P:c.P==null?null:Math.round(c.P*10)/10};
-  const rec=HWStairs.record(q,{kind:'workout',src:'manual',steps:n,climbs:1,dur:Math.round(min*100)/100,pace:null,kcal:null});rec.gv=gv;
+  const rec=HWStairs.record(q,{kind:'workout',src:'manual',steps:n,climbs:1,dur:Math.round(min*100)/100,pace:null,kcal:null});rec.gv=gv;if(typeof HWSpire!=='undefined'){const sp=HWSpire.mark(gv,q);if(sp)rec.sp=sp}
   add('stair',n,rec,'',today(),nowT(),25,'Stair session');
   G.saved={loc:q.name,n,min:Math.round(min*10)/10,W:gv.W};G.ph='saved';G.dup=0;render()};
 
