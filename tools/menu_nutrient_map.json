@@ -1,0 +1,28 @@
+{
+  "about": "Hand-chosen map from Kolej MARA Kulim menu items (index into MENU.foods in js/hw-01-menu-data.js) to USDA FoodData Central SR Legacy foods. Only items that correspond to ONE USDA food with a clear edible portion are mapped; mixed dishes, drinks of unknown recipe and anything whose grams are unknown are left out on purpose. match: 'direct' = the same food; 'close' = the same kind of food but a different variety, brand or preparation. Read by tools/build_menu_nutrients.py, which takes every number from the USDA tables.",
+  "items": [
+    {"idx": 35,  "fdc": 173424, "match": "direct", "grams": 30, "gramsNote": "The menu says '1/2 Biji x 30g'; its 45 kcal matches 30 g of hard-boiled egg (155 kcal per 100 g), so 30 g is taken as the whole serving."},
+    {"idx": 23,  "fdc": 172185, "match": "close",  "note": "Omelette: the USDA record is a plain omelette; the canteen's may use more oil."},
+    {"idx": 6,   "fdc": 168878, "match": "direct", "note": "Plain cooked white rice."},
+    {"idx": 10,  "fdc": 171688, "match": "direct", "note": "Red apple, raw, with skin (generic record; the variety is not stated)."},
+    {"idx": 14,  "fdc": 169097, "match": "direct", "note": "Orange, raw, all commercial varieties."},
+    {"idx": 38,  "fdc": 169124, "match": "direct", "note": "Pineapple, raw, all varieties."},
+    {"idx": 41,  "fdc": 167765, "match": "direct", "note": "Watermelon, raw."},
+    {"idx": 25,  "fdc": 169911, "match": "direct", "note": "Honeydew melon, raw ('tembikai susu')."},
+    {"idx": 49,  "fdc": 173044, "match": "direct", "note": "Common guava, raw."},
+    {"idx": 52,  "fdc": 169926, "match": "direct", "note": "Papaya, raw."},
+    {"idx": 60,  "fdc": 173944, "match": "close",  "note": "Banana, raw (generic; Berangan is a local variety)."},
+    {"idx": 3,   "fdc": 168165, "match": "close",  "note": "Dark seedless raisins (the menu does not say dark or golden)."},
+    {"idx": 44,  "fdc": 171726, "match": "close",  "note": "Deglet Noor dates; the variety on the menu is not stated."},
+    {"idx": 56,  "fdc": 169640, "match": "direct", "note": "Honey."},
+    {"idx": 2,   "fdc": 173227, "match": "close",  "note": "Brewed black tea, tap water, no milk. The canteen's tea may be stronger or weaker than the USDA preparation; sugar adds no caffeine or magnesium."},
+    {"idx": 11,  "fdc": 173647, "match": "close",  "note": "Drinking tap water; the real mineral content depends on the local supply."},
+    {"idx": 5,   "fdc": 171265, "match": "close",  "note": "Whole milk (UHT is whole milk heat-treated; ml treated as g)."},
+    {"idx": 19,  "fdc": 171265, "match": "close",  "note": "Whole milk (UHT is whole milk heat-treated; ml treated as g)."},
+    {"idx": 31,  "fdc": 170879, "match": "close",  "note": "Chocolate milk, whole, commercial; the canteen drink may be made differently."},
+    {"idx": 21,  "fdc": 172446, "match": "close",  "note": "Soymilk, original, unfortified; boxed Malaysian soy drinks are often sweeter or fortified."},
+    {"idx": 63,  "fdc": 172446, "match": "close",  "note": "Soymilk, original, unfortified; boxed Malaysian soy drinks are often sweeter or fortified."},
+    {"idx": 16,  "fdc": 174924, "match": "direct", "note": "White bread, commercially prepared."},
+    {"idx": 121, "fdc": 172688, "match": "close",  "note": "Whole-wheat bread; 'bijirin penuh' means whole grain and may not be pure whole wheat."}
+  ]
+}

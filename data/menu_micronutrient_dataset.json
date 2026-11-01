@@ -1,0 +1,2032 @@
+{
+ "meta": {
+  "title": "Kolej MARA Kulim canteen menu: estimated magnesium, tryptophan and caffeine per serving",
+  "generated": "2026-11-01",
+  "label": "Nutritional estimate derived from food composition tables; not chemical assay.",
+  "units": {
+   "magnesiumMg": "mg per serving",
+   "tryptophanMg": "mg per serving",
+   "caffeineMg": "mg per serving",
+   "per100g": "mg per 100 g edible portion"
+  },
+  "source": {
+   "ref": "USDA_FDC_SR_Legacy_2018-04",
+   "name": "USDA FoodData Central, SR Legacy (April 2018), public domain (CC0)",
+   "portal": "https://fdc.nal.usda.gov/download-datasets.html",
+   "file": "https://fdc.nal.usda.gov/fdc-datasets/FoodData_Central_sr_legacy_food_csv_2018-04.zip",
+   "nutrientIds": {
+    "magnesium": 1090,
+    "tryptophan": 1210,
+    "caffeine": 1057
+   }
+  },
+  "policy": "Only items that correspond to one USDA food are mapped. A nutrient with no USDA value, or only an assumed zero, is omitted, never 0. ml is treated as g. The menu has no Kopi, Teh Tarik or Milo, and no \"Lukes\" menu (Luke looks foods up live on the web).",
+  "counts": {
+   "menuRows": 152,
+   "estimated": 23,
+   "unavailable": 129
+  }
+ },
+ "items": [
+  {
+   "menuIndex": 0,
+   "id": "kmk-000",
+   "name": "Roti Canai",
+   "portion": "80g",
+   "energyKcal": 280,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 1,
+   "id": "kmk-001",
+   "name": "Kuah Dal",
+   "portion": "40g",
+   "energyKcal": 30,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 2,
+   "id": "kmk-002",
+   "name": "Teh O",
+   "portion": "200ml",
+   "energyKcal": 20,
+   "status": "estimated",
+   "isEstimated": true,
+   "estimateLabel": "Nutritional estimate derived from food composition tables; not chemical assay.",
+   "servingGrams": 200.0,
+   "servingBasis": "ml treated as g",
+   "match": "close",
+   "note": "Brewed black tea, tap water, no milk. The canteen's tea may be stronger or weaker than the USDA preparation; sugar adds no caffeine or magnesium.",
+   "magnesiumMg": 6.0,
+   "caffeineMg": 40.0,
+   "sourceRef": "USDA_FDC_SR_Legacy_2018-04",
+   "fdcId": 173227,
+   "fdcDescription": "Beverages, tea, black, brewed, prepared with tap water",
+   "per100g": {
+    "magnesium": 3.0,
+    "tryptophan": null,
+    "caffeine": 20.0
+   },
+   "basis": {
+    "magnesium": "analytical, n=2",
+    "tryptophan": "USDA value 0 has no measurements behind it (a table value rounded to 0): left unavailable",
+    "caffeine": "analytical, n=41"
+   },
+   "usdaKcalPer100g": 1.0,
+   "menuKcalOverUsdaKcal": 10.0
+  },
+  {
+   "menuIndex": 3,
+   "id": "kmk-003",
+   "name": "Kismis",
+   "portion": "10g",
+   "energyKcal": 35,
+   "status": "estimated",
+   "isEstimated": true,
+   "estimateLabel": "Nutritional estimate derived from food composition tables; not chemical assay.",
+   "servingGrams": 10.0,
+   "servingBasis": "grams",
+   "match": "close",
+   "note": "Dark seedless raisins (the menu does not say dark or golden).",
+   "magnesiumMg": 3.6,
+   "sourceRef": "USDA_FDC_SR_Legacy_2018-04",
+   "fdcId": 168165,
+   "fdcDescription": "Raisins, dark, seedless (Includes foods for USDA's Food Distribution Program)",
+   "per100g": {
+    "magnesium": 36.0,
+    "tryptophan": null,
+    "caffeine": null
+   },
+   "basis": {
+    "magnesium": "analytical, n=12, USDA code A",
+    "tryptophan": "no value in the USDA record",
+    "caffeine": "USDA value 0 has no measurements behind it (assumed zero, code Z): left unavailable"
+   },
+   "usdaKcalPer100g": 299.0,
+   "menuKcalOverUsdaKcal": 1.17
+  },
+  {
+   "menuIndex": 4,
+   "id": "kmk-004",
+   "name": "Karipap Berinti Ayam",
+   "portion": "2 biji x 40g",
+   "energyKcal": 260,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 5,
+   "id": "kmk-005",
+   "name": "Susu Penuh Krim UHT",
+   "portion": "1 kotak / 200ml",
+   "energyKcal": 126,
+   "status": "estimated",
+   "isEstimated": true,
+   "estimateLabel": "Nutritional estimate derived from food composition tables; not chemical assay.",
+   "servingGrams": 200.0,
+   "servingBasis": "ml treated as g",
+   "match": "close",
+   "note": "Whole milk (UHT is whole milk heat-treated; ml treated as g).",
+   "magnesiumMg": 20.0,
+   "tryptophanMg": 80.0,
+   "sourceRef": "USDA_FDC_SR_Legacy_2018-04",
+   "fdcId": 171265,
+   "fdcDescription": "Milk, whole, 3.25% milkfat, with added vitamin D",
+   "per100g": {
+    "magnesium": 10.0,
+    "tryptophan": 40.0,
+    "caffeine": null
+   },
+   "basis": {
+    "magnesium": "analytical, n=42, USDA code A",
+    "tryptophan": "table value, USDA code A",
+    "caffeine": "USDA value 0 has no measurements behind it (assumed zero, code Z): left unavailable"
+   },
+   "usdaKcalPer100g": 61.0,
+   "menuKcalOverUsdaKcal": 1.03
+  },
+  {
+   "menuIndex": 6,
+   "id": "kmk-006",
+   "name": "Nasi Putih",
+   "portion": "200g",
+   "energyKcal": 260,
+   "status": "estimated",
+   "isEstimated": true,
+   "estimateLabel": "Nutritional estimate derived from food composition tables; not chemical assay.",
+   "servingGrams": 200.0,
+   "servingBasis": "grams",
+   "match": "direct",
+   "note": "Plain cooked white rice.",
+   "magnesiumMg": 24.0,
+   "tryptophanMg": 62.0,
+   "sourceRef": "USDA_FDC_SR_Legacy_2018-04",
+   "fdcId": 168878,
+   "fdcDescription": "Rice, white, long-grain, regular, enriched, cooked",
+   "per100g": {
+    "magnesium": 12.0,
+    "tryptophan": 31.0,
+    "caffeine": null
+   },
+   "basis": {
+    "magnesium": "analytical, n=38",
+    "tryptophan": "table value",
+    "caffeine": "USDA value 0 has no measurements behind it (assumed zero, code Z): left unavailable"
+   },
+   "usdaKcalPer100g": 130.0,
+   "menuKcalOverUsdaKcal": 1.0
+  },
+  {
+   "menuIndex": 7,
+   "id": "kmk-007",
+   "name": "Ikan Kembung Goreng",
+   "portion": "100g",
+   "energyKcal": 190,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 8,
+   "id": "kmk-008",
+   "name": "Udang Sweet Sour",
+   "portion": "60g",
+   "energyKcal": 65,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 9,
+   "id": "kmk-009",
+   "name": "Tom Yam Sayur",
+   "portion": "130g",
+   "energyKcal": 65,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 10,
+   "id": "kmk-010",
+   "name": "Epal Merah",
+   "portion": "130g",
+   "energyKcal": 70,
+   "status": "estimated",
+   "isEstimated": true,
+   "estimateLabel": "Nutritional estimate derived from food composition tables; not chemical assay.",
+   "servingGrams": 130.0,
+   "servingBasis": "grams",
+   "match": "direct",
+   "note": "Red apple, raw, with skin (generic record; the variety is not stated).",
+   "magnesiumMg": 6.5,
+   "tryptophanMg": 1.3,
+   "sourceRef": "USDA_FDC_SR_Legacy_2018-04",
+   "fdcId": 171688,
+   "fdcDescription": "Apples, raw, with skin (Includes foods for USDA's Food Distribution Program)",
+   "per100g": {
+    "magnesium": 5.0,
+    "tryptophan": 1.0,
+    "caffeine": null
+   },
+   "basis": {
+    "magnesium": "analytical, n=26, USDA code A",
+    "tryptophan": "table value, USDA code A",
+    "caffeine": "USDA value 0 has no measurements behind it (assumed zero, code Z): left unavailable"
+   },
+   "usdaKcalPer100g": 52.0,
+   "menuKcalOverUsdaKcal": 1.04
+  },
+  {
+   "menuIndex": 11,
+   "id": "kmk-011",
+   "name": "Air Kosong",
+   "portion": "250ml",
+   "energyKcal": 0,
+   "status": "estimated",
+   "isEstimated": true,
+   "estimateLabel": "Nutritional estimate derived from food composition tables; not chemical assay.",
+   "servingGrams": 250.0,
+   "servingBasis": "ml treated as g",
+   "match": "close",
+   "note": "Drinking tap water; the real mineral content depends on the local supply.",
+   "magnesiumMg": 2.5,
+   "sourceRef": "USDA_FDC_SR_Legacy_2018-04",
+   "fdcId": 173647,
+   "fdcDescription": "Beverages, water, tap, drinking",
+   "per100g": {
+    "magnesium": 1.0,
+    "tryptophan": null,
+    "caffeine": null
+   },
+   "basis": {
+    "magnesium": "analytical, n=287, USDA code A",
+    "tryptophan": "no value in the USDA record",
+    "caffeine": "USDA value 0 has no measurements behind it (assumed zero, code BFZN): left unavailable"
+   },
+   "usdaKcalPer100g": 0.0,
+   "menuKcalOverUsdaKcal": null
+  },
+  {
+   "menuIndex": 12,
+   "id": "kmk-012",
+   "name": "Daging Masak Black Pepper",
+   "portion": "120g",
+   "energyKcal": 240,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 13,
+   "id": "kmk-013",
+   "name": "Kacang Buncis Goreng",
+   "portion": "80g",
+   "energyKcal": 65,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 14,
+   "id": "kmk-014",
+   "name": "Oren",
+   "portion": "130g",
+   "energyKcal": 70,
+   "status": "estimated",
+   "isEstimated": true,
+   "estimateLabel": "Nutritional estimate derived from food composition tables; not chemical assay.",
+   "servingGrams": 130.0,
+   "servingBasis": "grams",
+   "match": "direct",
+   "note": "Orange, raw, all commercial varieties.",
+   "magnesiumMg": 13.0,
+   "tryptophanMg": 11.7,
+   "sourceRef": "USDA_FDC_SR_Legacy_2018-04",
+   "fdcId": 169097,
+   "fdcDescription": "Oranges, raw, all commercial varieties",
+   "per100g": {
+    "magnesium": 10.0,
+    "tryptophan": 9.0,
+    "caffeine": null
+   },
+   "basis": {
+    "magnesium": "analytical, n=212",
+    "tryptophan": "analytical, n=2",
+    "caffeine": "USDA value 0 has no measurements behind it (assumed zero, code Z): left unavailable"
+   },
+   "usdaKcalPer100g": 47.0,
+   "menuKcalOverUsdaKcal": 1.15
+  },
+  {
+   "menuIndex": 15,
+   "id": "kmk-015",
+   "name": "Bubur Kacang Hijau",
+   "portion": "200g",
+   "energyKcal": 200,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 16,
+   "id": "kmk-016",
+   "name": "Roti Putih",
+   "portion": "2 keping x 30g",
+   "energyKcal": 150,
+   "status": "estimated",
+   "isEstimated": true,
+   "estimateLabel": "Nutritional estimate derived from food composition tables; not chemical assay.",
+   "servingGrams": 60.0,
+   "servingBasis": "count x grams",
+   "match": "direct",
+   "note": "White bread, commercially prepared.",
+   "magnesiumMg": 13.8,
+   "sourceRef": "USDA_FDC_SR_Legacy_2018-04",
+   "fdcId": 174924,
+   "fdcDescription": "Bread, white, commercially prepared (includes soft bread crumbs)",
+   "per100g": {
+    "magnesium": 23.0,
+    "tryptophan": null,
+    "caffeine": null
+   },
+   "basis": {
+    "magnesium": "analytical, n=6, USDA code A",
+    "tryptophan": "no value in the USDA record",
+    "caffeine": "USDA value 0 has no measurements behind it (assumed zero, code FLC): left unavailable"
+   },
+   "usdaKcalPer100g": 266.0,
+   "menuKcalOverUsdaKcal": 0.94
+  },
+  {
+   "menuIndex": 17,
+   "id": "kmk-017",
+   "name": "Minuman Bermalta",
+   "portion": "200ml",
+   "energyKcal": 160,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "A sweet or malted drink whose recipe is not known, so no estimate is given."
+  },
+  {
+   "menuIndex": 18,
+   "id": "kmk-018",
+   "name": "Bijirin Sarapan",
+   "portion": "40g",
+   "energyKcal": 125,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 19,
+   "id": "kmk-019",
+   "name": "Susu Penuh Krim UHT",
+   "portion": "250ml",
+   "energyKcal": 130,
+   "status": "estimated",
+   "isEstimated": true,
+   "estimateLabel": "Nutritional estimate derived from food composition tables; not chemical assay.",
+   "servingGrams": 250.0,
+   "servingBasis": "ml treated as g",
+   "match": "close",
+   "note": "Whole milk (UHT is whole milk heat-treated; ml treated as g).",
+   "magnesiumMg": 25.0,
+   "tryptophanMg": 100.0,
+   "sourceRef": "USDA_FDC_SR_Legacy_2018-04",
+   "fdcId": 171265,
+   "fdcDescription": "Milk, whole, 3.25% milkfat, with added vitamin D",
+   "per100g": {
+    "magnesium": 10.0,
+    "tryptophan": 40.0,
+    "caffeine": null
+   },
+   "basis": {
+    "magnesium": "analytical, n=42, USDA code A",
+    "tryptophan": "table value, USDA code A",
+    "caffeine": "USDA value 0 has no measurements behind it (assumed zero, code Z): left unavailable"
+   },
+   "usdaKcalPer100g": 61.0,
+   "menuKcalOverUsdaKcal": 0.85
+  },
+  {
+   "menuIndex": 20,
+   "id": "kmk-020",
+   "name": "Ban Manis",
+   "portion": "1 biji x 40g",
+   "energyKcal": 100,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 21,
+   "id": "kmk-021",
+   "name": "Air Soya",
+   "portion": "1 kotak / 250ml",
+   "energyKcal": 150,
+   "status": "estimated",
+   "isEstimated": true,
+   "estimateLabel": "Nutritional estimate derived from food composition tables; not chemical assay.",
+   "servingGrams": 250.0,
+   "servingBasis": "ml treated as g",
+   "match": "close",
+   "note": "Soymilk, original, unfortified; boxed Malaysian soy drinks are often sweeter or fortified.",
+   "magnesiumMg": 62.5,
+   "tryptophanMg": 95.0,
+   "sourceRef": "USDA_FDC_SR_Legacy_2018-04",
+   "fdcId": 172446,
+   "fdcDescription": "Soymilk, original and vanilla, unfortified",
+   "per100g": {
+    "magnesium": 25.0,
+    "tryptophan": 38.0,
+    "caffeine": null
+   },
+   "basis": {
+    "magnesium": "analytical, n=9, USDA code JA",
+    "tryptophan": "table value, USDA code JA",
+    "caffeine": "USDA value 0 has no measurements behind it (assumed zero, code Z): left unavailable"
+   },
+   "usdaKcalPer100g": 54.0,
+   "menuKcalOverUsdaKcal": 1.11
+  },
+  {
+   "menuIndex": 22,
+   "id": "kmk-022",
+   "name": "Ikan Tenggiri Goreng Masak Kicap",
+   "portion": "100g",
+   "energyKcal": 180,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 23,
+   "id": "kmk-023",
+   "name": "Telur Dadar",
+   "portion": "70g",
+   "energyKcal": 150,
+   "status": "estimated",
+   "isEstimated": true,
+   "estimateLabel": "Nutritional estimate derived from food composition tables; not chemical assay.",
+   "servingGrams": 70.0,
+   "servingBasis": "grams",
+   "match": "close",
+   "note": "Omelette: the USDA record is a plain omelette; the canteen's may use more oil.",
+   "magnesiumMg": 7.7,
+   "tryptophanMg": 98.0,
+   "sourceRef": "USDA_FDC_SR_Legacy_2018-04",
+   "fdcId": 172185,
+   "fdcDescription": "Egg, whole, cooked, omelet",
+   "per100g": {
+    "magnesium": 11.0,
+    "tryptophan": 140.0,
+    "caffeine": null
+   },
+   "basis": {
+    "magnesium": "table value, USDA code RA",
+    "tryptophan": "table value, USDA code RA",
+    "caffeine": "USDA value 0 has no measurements behind it (assumed zero, code RA): left unavailable"
+   },
+   "usdaKcalPer100g": 154.0,
+   "menuKcalOverUsdaKcal": 1.39
+  },
+  {
+   "menuIndex": 24,
+   "id": "kmk-024",
+   "name": "Kacang Panjang Goreng Dan Lobak Merah",
+   "portion": "80g",
+   "energyKcal": 70,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 25,
+   "id": "kmk-025",
+   "name": "Tembikai Susu",
+   "portion": "150g",
+   "energyKcal": 50,
+   "status": "estimated",
+   "isEstimated": true,
+   "estimateLabel": "Nutritional estimate derived from food composition tables; not chemical assay.",
+   "servingGrams": 150.0,
+   "servingBasis": "grams",
+   "match": "direct",
+   "note": "Honeydew melon, raw ('tembikai susu').",
+   "magnesiumMg": 15.0,
+   "tryptophanMg": 7.5,
+   "sourceRef": "USDA_FDC_SR_Legacy_2018-04",
+   "fdcId": 169911,
+   "fdcDescription": "Melons, honeydew, raw",
+   "per100g": {
+    "magnesium": 10.0,
+    "tryptophan": 5.0,
+    "caffeine": null
+   },
+   "basis": {
+    "magnesium": "analytical, n=19, USDA code A",
+    "tryptophan": "table value, USDA code A",
+    "caffeine": "USDA value 0 has no measurements behind it (assumed zero, code Z): left unavailable"
+   },
+   "usdaKcalPer100g": 36.0,
+   "menuKcalOverUsdaKcal": 0.93
+  },
+  {
+   "menuIndex": 26,
+   "id": "kmk-026",
+   "name": "Ayam Masak Kari",
+   "portion": "145g",
+   "energyKcal": 225,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 27,
+   "id": "kmk-027",
+   "name": "Kubis Goreng",
+   "portion": "80g",
+   "energyKcal": 70,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 28,
+   "id": "kmk-028",
+   "name": "Kek Chiffon",
+   "portion": "1 potong x 40g",
+   "energyKcal": 135,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 29,
+   "id": "kmk-029",
+   "name": "Minuman Susu Bermalta",
+   "portion": "200ml",
+   "energyKcal": 180,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "A sweet or malted drink whose recipe is not known, so no estimate is given."
+  },
+  {
+   "menuIndex": 30,
+   "id": "kmk-030",
+   "name": "Nasi Goreng Kampung",
+   "portion": "210g",
+   "energyKcal": 410,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 31,
+   "id": "kmk-031",
+   "name": "Minuman Susu Bercoklat",
+   "portion": "200ml",
+   "energyKcal": 160,
+   "status": "estimated",
+   "isEstimated": true,
+   "estimateLabel": "Nutritional estimate derived from food composition tables; not chemical assay.",
+   "servingGrams": 200.0,
+   "servingBasis": "ml treated as g",
+   "match": "close",
+   "note": "Chocolate milk, whole, commercial; the canteen drink may be made differently.",
+   "magnesiumMg": 26.0,
+   "tryptophanMg": 82.0,
+   "caffeineMg": 2.0,
+   "sourceRef": "USDA_FDC_SR_Legacy_2018-04",
+   "fdcId": 170879,
+   "fdcDescription": "Milk, chocolate, fluid, commercial, whole, with added vitamin A and vitamin D",
+   "per100g": {
+    "magnesium": 13.0,
+    "tryptophan": 41.0,
+    "caffeine": 1.0
+   },
+   "basis": {
+    "magnesium": "analytical, n=5",
+    "tryptophan": "table value, USDA code NR",
+    "caffeine": "table value, USDA code BFZN"
+   },
+   "usdaKcalPer100g": 83.0,
+   "menuKcalOverUsdaKcal": 0.96
+  },
+  {
+   "menuIndex": 32,
+   "id": "kmk-032",
+   "name": "Kek Coklat",
+   "portion": "1 potong x 40g",
+   "energyKcal": 150,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 33,
+   "id": "kmk-033",
+   "name": "Nasi Beriyani",
+   "portion": "200g",
+   "energyKcal": 360,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 34,
+   "id": "kmk-034",
+   "name": "Daging Masak Kurma",
+   "portion": "150g",
+   "energyKcal": 225,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 35,
+   "id": "kmk-035",
+   "name": "Telur Rebus",
+   "portion": "1/2 Biji x 30g",
+   "energyKcal": 45,
+   "status": "estimated",
+   "isEstimated": true,
+   "estimateLabel": "Nutritional estimate derived from food composition tables; not chemical assay.",
+   "servingGrams": 30.0,
+   "servingBasis": "stated in the map: The menu says '1/2 Biji x 30g'; its 45 kcal matches 30 g of hard-boiled egg (155 kcal per 100 g), so 30 g is taken as the whole serving.",
+   "match": "direct",
+   "note": "",
+   "magnesiumMg": 3.0,
+   "tryptophanMg": 45.9,
+   "sourceRef": "USDA_FDC_SR_Legacy_2018-04",
+   "fdcId": 173424,
+   "fdcDescription": "Egg, whole, cooked, hard-boiled",
+   "per100g": {
+    "magnesium": 10.0,
+    "tryptophan": 153.0,
+    "caffeine": null
+   },
+   "basis": {
+    "magnesium": "analytical, n=14",
+    "tryptophan": "table value",
+    "caffeine": "USDA value 0 has no measurements behind it (assumed zero, code Z): left unavailable"
+   },
+   "usdaKcalPer100g": 155.0,
+   "menuKcalOverUsdaKcal": 0.97
+  },
+  {
+   "menuIndex": 36,
+   "id": "kmk-036",
+   "name": "Dalca",
+   "portion": "130g",
+   "energyKcal": 225,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 37,
+   "id": "kmk-037",
+   "name": "Papadom",
+   "portion": "10g",
+   "energyKcal": 20,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 38,
+   "id": "kmk-038",
+   "name": "Nenas",
+   "portion": "130g",
+   "energyKcal": 60,
+   "status": "estimated",
+   "isEstimated": true,
+   "estimateLabel": "Nutritional estimate derived from food composition tables; not chemical assay.",
+   "servingGrams": 130.0,
+   "servingBasis": "grams",
+   "match": "direct",
+   "note": "Pineapple, raw, all varieties.",
+   "magnesiumMg": 15.6,
+   "tryptophanMg": 6.5,
+   "sourceRef": "USDA_FDC_SR_Legacy_2018-04",
+   "fdcId": 169124,
+   "fdcDescription": "Pineapple, raw, all varieties",
+   "per100g": {
+    "magnesium": 12.0,
+    "tryptophan": 5.0,
+    "caffeine": null
+   },
+   "basis": {
+    "magnesium": "analytical, n=22, USDA code A",
+    "tryptophan": "table value, USDA code A",
+    "caffeine": "USDA value 0 has no measurements behind it (assumed zero, code Z): left unavailable"
+   },
+   "usdaKcalPer100g": 50.0,
+   "menuKcalOverUsdaKcal": 0.92
+  },
+  {
+   "menuIndex": 39,
+   "id": "kmk-039",
+   "name": "Ikan Bawal Masam Manis",
+   "portion": "80g",
+   "energyKcal": 170,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 40,
+   "id": "kmk-040",
+   "name": "Bayam Tumis Air",
+   "portion": "60g",
+   "energyKcal": 35,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 41,
+   "id": "kmk-041",
+   "name": "Tembikai Merah",
+   "portion": "150g",
+   "energyKcal": 40,
+   "status": "estimated",
+   "isEstimated": true,
+   "estimateLabel": "Nutritional estimate derived from food composition tables; not chemical assay.",
+   "servingGrams": 150.0,
+   "servingBasis": "grams",
+   "match": "direct",
+   "note": "Watermelon, raw.",
+   "magnesiumMg": 15.0,
+   "tryptophanMg": 10.5,
+   "sourceRef": "USDA_FDC_SR_Legacy_2018-04",
+   "fdcId": 167765,
+   "fdcDescription": "Watermelon, raw",
+   "per100g": {
+    "magnesium": 10.0,
+    "tryptophan": 7.0,
+    "caffeine": null
+   },
+   "basis": {
+    "magnesium": "analytical, n=45, USDA code A",
+    "tryptophan": "analytical, n=1",
+    "caffeine": "USDA value 0 has no measurements behind it (assumed zero, code Z): left unavailable"
+   },
+   "usdaKcalPer100g": 30.0,
+   "menuKcalOverUsdaKcal": 0.89
+  },
+  {
+   "menuIndex": 42,
+   "id": "kmk-042",
+   "name": "Apam Mekar",
+   "portion": "2 biji x 40g",
+   "energyKcal": 160,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 43,
+   "id": "kmk-043",
+   "name": "Mi Goreng",
+   "portion": "180g",
+   "energyKcal": 280,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 44,
+   "id": "kmk-044",
+   "name": "Kurma",
+   "portion": "30g",
+   "energyKcal": 60,
+   "status": "estimated",
+   "isEstimated": true,
+   "estimateLabel": "Nutritional estimate derived from food composition tables; not chemical assay.",
+   "servingGrams": 30.0,
+   "servingBasis": "grams",
+   "match": "close",
+   "note": "Deglet Noor dates; the variety on the menu is not stated.",
+   "magnesiumMg": 12.9,
+   "tryptophanMg": 3.6,
+   "sourceRef": "USDA_FDC_SR_Legacy_2018-04",
+   "fdcId": 171726,
+   "fdcDescription": "Dates, deglet noor",
+   "per100g": {
+    "magnesium": 43.0,
+    "tryptophan": 12.0,
+    "caffeine": null
+   },
+   "basis": {
+    "magnesium": "analytical, n=13, USDA code A",
+    "tryptophan": "table value, USDA code A",
+    "caffeine": "USDA value 0 has no measurements behind it (assumed zero, code Z): left unavailable"
+   },
+   "usdaKcalPer100g": 282.0,
+   "menuKcalOverUsdaKcal": 0.71
+  },
+  {
+   "menuIndex": 45,
+   "id": "kmk-045",
+   "name": "Samosa",
+   "portion": "2 biji x 40g",
+   "energyKcal": 180,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 46,
+   "id": "kmk-046",
+   "name": "Sup Ayam",
+   "portion": "170g",
+   "energyKcal": 105,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 47,
+   "id": "kmk-047",
+   "name": "Sotong Goreng Bercili",
+   "portion": "60g",
+   "energyKcal": 90,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 48,
+   "id": "kmk-048",
+   "name": "Sawi Jepun Goreng Sos Tiram",
+   "portion": "60g",
+   "energyKcal": 65,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 49,
+   "id": "kmk-049",
+   "name": "Jambu Batu",
+   "portion": "150g",
+   "energyKcal": 70,
+   "status": "estimated",
+   "isEstimated": true,
+   "estimateLabel": "Nutritional estimate derived from food composition tables; not chemical assay.",
+   "servingGrams": 150.0,
+   "servingBasis": "grams",
+   "match": "direct",
+   "note": "Common guava, raw.",
+   "magnesiumMg": 33.0,
+   "tryptophanMg": 33.0,
+   "sourceRef": "USDA_FDC_SR_Legacy_2018-04",
+   "fdcId": 173044,
+   "fdcDescription": "Guavas, common, raw",
+   "per100g": {
+    "magnesium": 22.0,
+    "tryptophan": 22.0,
+    "caffeine": null
+   },
+   "basis": {
+    "magnesium": "analytical, n=2, USDA code A",
+    "tryptophan": "table value, USDA code BFPN",
+    "caffeine": "USDA value 0 has no measurements behind it (assumed zero, code Z): left unavailable"
+   },
+   "usdaKcalPer100g": 68.0,
+   "menuKcalOverUsdaKcal": 0.69
+  },
+  {
+   "menuIndex": 50,
+   "id": "kmk-050",
+   "name": "Ikan Kembung Masak Sambal",
+   "portion": "100g",
+   "energyKcal": 270,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 51,
+   "id": "kmk-051",
+   "name": "Sayur Campur",
+   "portion": "60g",
+   "energyKcal": 50,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 52,
+   "id": "kmk-052",
+   "name": "Betik",
+   "portion": "150g",
+   "energyKcal": 50,
+   "status": "estimated",
+   "isEstimated": true,
+   "estimateLabel": "Nutritional estimate derived from food composition tables; not chemical assay.",
+   "servingGrams": 150.0,
+   "servingBasis": "grams",
+   "match": "direct",
+   "note": "Papaya, raw.",
+   "magnesiumMg": 31.5,
+   "tryptophanMg": 12.0,
+   "sourceRef": "USDA_FDC_SR_Legacy_2018-04",
+   "fdcId": 169926,
+   "fdcDescription": "Papayas, raw",
+   "per100g": {
+    "magnesium": 21.0,
+    "tryptophan": 8.0,
+    "caffeine": null
+   },
+   "basis": {
+    "magnesium": "analytical, n=70, USDA code A",
+    "tryptophan": "analytical, n=6",
+    "caffeine": "USDA value 0 has no measurements behind it (assumed zero, code Z): left unavailable"
+   },
+   "usdaKcalPer100g": 43.0,
+   "menuKcalOverUsdaKcal": 0.78
+  },
+  {
+   "menuIndex": 53,
+   "id": "kmk-053",
+   "name": "Mini Pizza",
+   "portion": "90g",
+   "energyKcal": 215,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 54,
+   "id": "kmk-054",
+   "name": "Telur Hancur",
+   "portion": "60g",
+   "energyKcal": 80,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 55,
+   "id": "kmk-055",
+   "name": "Kacang Panggang",
+   "portion": "100g",
+   "energyKcal": 50,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 56,
+   "id": "kmk-056",
+   "name": "Madu",
+   "portion": "10g",
+   "energyKcal": 30,
+   "status": "estimated",
+   "isEstimated": true,
+   "estimateLabel": "Nutritional estimate derived from food composition tables; not chemical assay.",
+   "servingGrams": 10.0,
+   "servingBasis": "grams",
+   "match": "direct",
+   "note": "Honey.",
+   "magnesiumMg": 0.2,
+   "tryptophanMg": 0.4,
+   "sourceRef": "USDA_FDC_SR_Legacy_2018-04",
+   "fdcId": 169640,
+   "fdcDescription": "Honey",
+   "per100g": {
+    "magnesium": 2.0,
+    "tryptophan": 4.0,
+    "caffeine": null
+   },
+   "basis": {
+    "magnesium": "analytical, n=14",
+    "tryptophan": "table value",
+    "caffeine": "USDA value 0 has no measurements behind it (assumed zero, code Z): left unavailable"
+   },
+   "usdaKcalPer100g": 304.0,
+   "menuKcalOverUsdaKcal": 0.99
+  },
+  {
+   "menuIndex": 57,
+   "id": "kmk-057",
+   "name": "Karipap Berinti Kentang",
+   "portion": "2 biji x 40g",
+   "energyKcal": 260,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 58,
+   "id": "kmk-058",
+   "name": "Ayam Goreng Berempah",
+   "portion": "125g",
+   "energyKcal": 260,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 59,
+   "id": "kmk-059",
+   "name": "Tom Yam Campur",
+   "portion": "100g",
+   "energyKcal": 75,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 60,
+   "id": "kmk-060",
+   "name": "Pisang Berangan",
+   "portion": "130g",
+   "energyKcal": 90,
+   "status": "estimated",
+   "isEstimated": true,
+   "estimateLabel": "Nutritional estimate derived from food composition tables; not chemical assay.",
+   "servingGrams": 130.0,
+   "servingBasis": "grams",
+   "match": "close",
+   "note": "Banana, raw (generic; Berangan is a local variety).",
+   "magnesiumMg": 35.1,
+   "tryptophanMg": 11.7,
+   "sourceRef": "USDA_FDC_SR_Legacy_2018-04",
+   "fdcId": 173944,
+   "fdcDescription": "Bananas, raw",
+   "per100g": {
+    "magnesium": 27.0,
+    "tryptophan": 9.0,
+    "caffeine": null
+   },
+   "basis": {
+    "magnesium": "analytical, n=45, USDA code A",
+    "tryptophan": "table value, USDA code A",
+    "caffeine": "USDA value 0 has no measurements behind it (assumed zero, code Z): left unavailable"
+   },
+   "usdaKcalPer100g": 89.0,
+   "menuKcalOverUsdaKcal": 0.78
+  },
+  {
+   "menuIndex": 61,
+   "id": "kmk-061",
+   "name": "Ikan Tenggiri Masak Kari",
+   "portion": "110g",
+   "energyKcal": 190,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 62,
+   "id": "kmk-062",
+   "name": "Pau Ayam",
+   "portion": "2 biji x 50g",
+   "energyKcal": 120,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 63,
+   "id": "kmk-063",
+   "name": "Air Soya",
+   "portion": "1 Kotak / 250ml",
+   "energyKcal": 150,
+   "status": "estimated",
+   "isEstimated": true,
+   "estimateLabel": "Nutritional estimate derived from food composition tables; not chemical assay.",
+   "servingGrams": 250.0,
+   "servingBasis": "ml treated as g",
+   "match": "close",
+   "note": "Soymilk, original, unfortified; boxed Malaysian soy drinks are often sweeter or fortified.",
+   "magnesiumMg": 62.5,
+   "tryptophanMg": 95.0,
+   "sourceRef": "USDA_FDC_SR_Legacy_2018-04",
+   "fdcId": 172446,
+   "fdcDescription": "Soymilk, original and vanilla, unfortified",
+   "per100g": {
+    "magnesium": 25.0,
+    "tryptophan": 38.0,
+    "caffeine": null
+   },
+   "basis": {
+    "magnesium": "analytical, n=9, USDA code JA",
+    "tryptophan": "table value, USDA code JA",
+    "caffeine": "USDA value 0 has no measurements behind it (assumed zero, code Z): left unavailable"
+   },
+   "usdaKcalPer100g": 54.0,
+   "menuKcalOverUsdaKcal": 1.11
+  },
+  {
+   "menuIndex": 64,
+   "id": "kmk-064",
+   "name": "Bihun Goreng",
+   "portion": "180g",
+   "energyKcal": 310,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 65,
+   "id": "kmk-065",
+   "name": "Pulut Panggang",
+   "portion": "2 biji x 40g",
+   "energyKcal": 180,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 66,
+   "id": "kmk-066",
+   "name": "Ikan Selar Goreng",
+   "portion": "100g",
+   "energyKcal": 175,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 67,
+   "id": "kmk-067",
+   "name": "Telur Masak Sambal",
+   "portion": "65g",
+   "energyKcal": 130,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 68,
+   "id": "kmk-068",
+   "name": "Sup Sayur",
+   "portion": "120g",
+   "energyKcal": 50,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 69,
+   "id": "kmk-069",
+   "name": "Ayam Masak Kurma",
+   "portion": "150g",
+   "energyKcal": 215,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 70,
+   "id": "kmk-070",
+   "name": "Muffin",
+   "portion": "2 biji x 35g",
+   "energyKcal": 280,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 71,
+   "id": "kmk-071",
+   "name": "Spaghetti Goreng",
+   "portion": "150g",
+   "energyKcal": 130,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 72,
+   "id": "kmk-072",
+   "name": "Cucur Ikan Bilis",
+   "portion": "4 biji x 40g",
+   "energyKcal": 160,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 73,
+   "id": "kmk-073",
+   "name": "Ikan Talapia Goreng Berlada",
+   "portion": "100g",
+   "energyKcal": 290,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 74,
+   "id": "kmk-074",
+   "name": "Sotong Goreng Kunyit",
+   "portion": "50g",
+   "energyKcal": 70,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 75,
+   "id": "kmk-075",
+   "name": "Pucuk Manis Masak Lemak",
+   "portion": "100g",
+   "energyKcal": 135,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 76,
+   "id": "kmk-076",
+   "name": "Nasi Ayam",
+   "portion": "200g",
+   "energyKcal": 320,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 77,
+   "id": "kmk-077",
+   "name": "Ayam Goreng",
+   "portion": "125g",
+   "energyKcal": 260,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 78,
+   "id": "kmk-078",
+   "name": "Sup Ayam",
+   "portion": "150ml",
+   "energyKcal": 85,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 79,
+   "id": "kmk-079",
+   "name": "Sayur",
+   "portion": "30g",
+   "energyKcal": 5,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 80,
+   "id": "kmk-080",
+   "name": "Kuah Cili Nasi Ayam",
+   "portion": "20g",
+   "energyKcal": 10,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 81,
+   "id": "kmk-081",
+   "name": "Kuah Kicap Nasi Ayam",
+   "portion": "20g",
+   "energyKcal": 10,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 82,
+   "id": "kmk-082",
+   "name": "Donat",
+   "portion": "1 biji x 75g",
+   "energyKcal": 270,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 83,
+   "id": "kmk-083",
+   "name": "Nasi Goreng Cendawan",
+   "portion": "210g",
+   "energyKcal": 360,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 84,
+   "id": "kmk-084",
+   "name": "Cucur Badak",
+   "portion": "2 biji x 30g",
+   "energyKcal": 150,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 85,
+   "id": "kmk-085",
+   "name": "Sup Daging",
+   "portion": "170g",
+   "energyKcal": 125,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 86,
+   "id": "kmk-086",
+   "name": "Tauhu Goreng Berlada",
+   "portion": "40g",
+   "energyKcal": 55,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 87,
+   "id": "kmk-087",
+   "name": "Kailan Goreng Belacan",
+   "portion": "80g",
+   "energyKcal": 80,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 88,
+   "id": "kmk-088",
+   "name": "Ikan Kembung Goreng Kicap",
+   "portion": "100g",
+   "energyKcal": 200,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 89,
+   "id": "kmk-089",
+   "name": "Kek Pisang",
+   "portion": "1 potong x 30g",
+   "energyKcal": 100,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 90,
+   "id": "kmk-090",
+   "name": "Cucur Udang",
+   "portion": "2 biji x 50g",
+   "energyKcal": 280,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 91,
+   "id": "kmk-091",
+   "name": "Ikan Tenggiri Masak Lemak Cili Api",
+   "portion": "100g",
+   "energyKcal": 225,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 92,
+   "id": "kmk-092",
+   "name": "Ayam Masak Paprik",
+   "portion": "125g",
+   "energyKcal": 125,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 93,
+   "id": "kmk-093",
+   "name": "Ban Kacang Merah",
+   "portion": "1 biji x 50g",
+   "energyKcal": 180,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 94,
+   "id": "kmk-094",
+   "name": "Cakoi + Kaya",
+   "portion": "2 biji x 40g",
+   "energyKcal": 160,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 95,
+   "id": "kmk-095",
+   "name": "Sawi Jepun Goreng",
+   "portion": "60g",
+   "energyKcal": 50,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 96,
+   "id": "kmk-096",
+   "name": "Ikan Selar Goreng Berlada",
+   "portion": "100g",
+   "energyKcal": 250,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 97,
+   "id": "kmk-097",
+   "name": "Labu Air Masak Tumis",
+   "portion": "80g",
+   "energyKcal": 45,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 98,
+   "id": "kmk-098",
+   "name": "Kuetiau Goreng",
+   "portion": "160g",
+   "energyKcal": 200,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 99,
+   "id": "kmk-099",
+   "name": "Pau Goreng Sambal",
+   "portion": "2 biji x 40g",
+   "energyKcal": 200,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 100,
+   "id": "kmk-100",
+   "name": "Buncis + Taugeh + Lobak Merah Goreng",
+   "portion": "80g",
+   "energyKcal": 70,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 101,
+   "id": "kmk-101",
+   "name": "Udang Goreng Kunyit",
+   "portion": "100g",
+   "energyKcal": 110,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 102,
+   "id": "kmk-102",
+   "name": "Sawi Putih Goreng",
+   "portion": "70g",
+   "energyKcal": 110,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 103,
+   "id": "kmk-103",
+   "name": "Daging Masak Paprik",
+   "portion": "160g",
+   "energyKcal": 155,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 104,
+   "id": "kmk-104",
+   "name": "Bihun Soto",
+   "portion": "265g",
+   "energyKcal": 215,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 105,
+   "id": "kmk-105",
+   "name": "Sambal Kicap",
+   "portion": "10g",
+   "energyKcal": 20,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 106,
+   "id": "kmk-106",
+   "name": "Ikan Kembung Masak Asam Pedas",
+   "portion": "100g",
+   "energyKcal": 95,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 107,
+   "id": "kmk-107",
+   "name": "Udang Celup Tepung",
+   "portion": "40g",
+   "energyKcal": 115,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 108,
+   "id": "kmk-108",
+   "name": "Kangkung Goreng",
+   "portion": "80g",
+   "energyKcal": 70,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 109,
+   "id": "kmk-109",
+   "name": "Nasi Tomato",
+   "portion": "200g",
+   "energyKcal": 260,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 110,
+   "id": "kmk-110",
+   "name": "Ayam Goreng Masak Merah",
+   "portion": "125g",
+   "energyKcal": 380,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 111,
+   "id": "kmk-111",
+   "name": "Nasi Goreng Cina",
+   "portion": "170g",
+   "energyKcal": 290,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 112,
+   "id": "kmk-112",
+   "name": "Pau Kacang Merah",
+   "portion": "1 biji x 50g",
+   "energyKcal": 140,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 113,
+   "id": "kmk-113",
+   "name": "Ayam Masak Halia",
+   "portion": "125g",
+   "energyKcal": 200,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 114,
+   "id": "kmk-114",
+   "name": "Petola Masak Air",
+   "portion": "60g",
+   "energyKcal": 40,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 115,
+   "id": "kmk-115",
+   "name": "Nasi Lemak",
+   "portion": "200g",
+   "energyKcal": 320,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 116,
+   "id": "kmk-116",
+   "name": "Karipap Sardin",
+   "portion": "2 biji x 40g",
+   "energyKcal": 310,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 117,
+   "id": "kmk-117",
+   "name": "Tempe Goreng Berlada",
+   "portion": "40g",
+   "energyKcal": 100,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 118,
+   "id": "kmk-118",
+   "name": "Ikan Siakap Tiga Rasa",
+   "portion": "130g",
+   "energyKcal": 170,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 119,
+   "id": "kmk-119",
+   "name": "Taugeh Goreng",
+   "portion": "80g",
+   "energyKcal": 150,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 120,
+   "id": "kmk-120",
+   "name": "Sup Cendawan Berkrim",
+   "portion": "150ml",
+   "energyKcal": 60,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 121,
+   "id": "kmk-121",
+   "name": "Roti Bijirin Penuh",
+   "portion": "2 keping x 30g",
+   "energyKcal": 150,
+   "status": "estimated",
+   "isEstimated": true,
+   "estimateLabel": "Nutritional estimate derived from food composition tables; not chemical assay.",
+   "servingGrams": 60.0,
+   "servingBasis": "count x grams",
+   "match": "close",
+   "note": "Whole-wheat bread; 'bijirin penuh' means whole grain and may not be pure whole wheat.",
+   "magnesiumMg": 45.0,
+   "sourceRef": "USDA_FDC_SR_Legacy_2018-04",
+   "fdcId": 172688,
+   "fdcDescription": "Bread, whole-wheat, commercially prepared",
+   "per100g": {
+    "magnesium": 75.0,
+    "tryptophan": null,
+    "caffeine": null
+   },
+   "basis": {
+    "magnesium": "analytical, n=10, USDA code A",
+    "tryptophan": "no value in the USDA record",
+    "caffeine": "USDA value 0 has no measurements behind it (assumed zero, code FLA): left unavailable"
+   },
+   "usdaKcalPer100g": 252.0,
+   "menuKcalOverUsdaKcal": 0.99
+  },
+  {
+   "menuIndex": 122,
+   "id": "kmk-122",
+   "name": "Bihun Goreng Putih",
+   "portion": "180g",
+   "energyKcal": 270,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 123,
+   "id": "kmk-123",
+   "name": "Rendang Daging",
+   "portion": "80g",
+   "energyKcal": 200,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 124,
+   "id": "kmk-124",
+   "name": "Spaghetti Bolognese",
+   "portion": "150g",
+   "energyKcal": 255,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 125,
+   "id": "kmk-125",
+   "name": "Ayam Masak Kicap",
+   "portion": "125g",
+   "energyKcal": 280,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 126,
+   "id": "kmk-126",
+   "name": "Ikan Tenggiri Asam Pedas",
+   "portion": "100g",
+   "energyKcal": 120,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 127,
+   "id": "kmk-127",
+   "name": "Bayam Goreng",
+   "portion": "60g",
+   "energyKcal": 60,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 128,
+   "id": "kmk-128",
+   "name": "Kubis Panjang Tumis Air + Lobak Merah",
+   "portion": "90g",
+   "energyKcal": 60,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 129,
+   "id": "kmk-129",
+   "name": "Makaroni Goreng",
+   "portion": "190g",
+   "energyKcal": 275,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 130,
+   "id": "kmk-130",
+   "name": "Pau Ayam",
+   "portion": "1 biji x 50g",
+   "energyKcal": 120,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 131,
+   "id": "kmk-131",
+   "name": "Daging Masak Kicap",
+   "portion": "100g",
+   "energyKcal": 165,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 132,
+   "id": "kmk-132",
+   "name": "Bayam Tumis Air",
+   "portion": "35g",
+   "energyKcal": 60,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 133,
+   "id": "kmk-133",
+   "name": "Ikan Bawal Masak Taucu",
+   "portion": "90g",
+   "energyKcal": 110,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 134,
+   "id": "kmk-134",
+   "name": "Udang Masak Paprik",
+   "portion": "160g",
+   "energyKcal": 170,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 135,
+   "id": "kmk-135",
+   "name": "Kek Chiffon",
+   "portion": "2 potong x 40g",
+   "energyKcal": 270,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 136,
+   "id": "kmk-136",
+   "name": "Nasi Tomato",
+   "portion": "200g",
+   "energyKcal": 320,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 137,
+   "id": "kmk-137",
+   "name": "Sup Ayam",
+   "portion": "170g",
+   "energyKcal": 150,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 138,
+   "id": "kmk-138",
+   "name": "Ikan Keli Goreng Berlada",
+   "portion": "100g",
+   "energyKcal": 170,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 139,
+   "id": "kmk-139",
+   "name": "Sambal Goreng Jawa",
+   "portion": "60g",
+   "energyKcal": 85,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 140,
+   "id": "kmk-140",
+   "name": "Muffin",
+   "portion": "1 biji x 35g",
+   "energyKcal": 140,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 141,
+   "id": "kmk-141",
+   "name": "Sambal Udang",
+   "portion": "40g",
+   "energyKcal": 60,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 142,
+   "id": "kmk-142",
+   "name": "Kurma",
+   "portion": "3 biji",
+   "energyKcal": null,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "The menu gives no weight for this portion, so no per-serving estimate is possible."
+  },
+  {
+   "menuIndex": 143,
+   "id": "kmk-143",
+   "name": "Air Sirap",
+   "portion": "250ml",
+   "energyKcal": null,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "A sweet or malted drink whose recipe is not known, so no estimate is given."
+  },
+  {
+   "menuIndex": 144,
+   "id": "kmk-144",
+   "name": "Air Anggur",
+   "portion": "250ml",
+   "energyKcal": null,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "A sweet or malted drink whose recipe is not known, so no estimate is given."
+  },
+  {
+   "menuIndex": 145,
+   "id": "kmk-145",
+   "name": "Air Oren",
+   "portion": "250ml",
+   "energyKcal": null,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "A sweet or malted drink whose recipe is not known, so no estimate is given."
+  },
+  {
+   "menuIndex": 146,
+   "id": "kmk-146",
+   "name": "Ais Krim Cup",
+   "portion": "50g",
+   "energyKcal": 100,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  },
+  {
+   "menuIndex": 147,
+   "id": "kmk-147",
+   "name": "Air Jagung",
+   "portion": "250ml",
+   "energyKcal": null,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "A sweet or malted drink whose recipe is not known, so no estimate is given."
+  },
+  {
+   "menuIndex": 148,
+   "id": "kmk-148",
+   "name": "Air Sarsi",
+   "portion": "250ml",
+   "energyKcal": null,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "A sweet or malted drink whose recipe is not known, so no estimate is given."
+  },
+  {
+   "menuIndex": 149,
+   "id": "kmk-149",
+   "name": "Air Sirap Bandung",
+   "portion": "250ml",
+   "energyKcal": null,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "A sweet or malted drink whose recipe is not known, so no estimate is given."
+  },
+  {
+   "menuIndex": 150,
+   "id": "kmk-150",
+   "name": "Air Laici",
+   "portion": "250ml",
+   "energyKcal": null,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "A sweet or malted drink whose recipe is not known, so no estimate is given."
+  },
+  {
+   "menuIndex": 151,
+   "id": "kmk-151",
+   "name": "Pau Goreng Sambal",
+   "portion": "1 biji x 40g",
+   "energyKcal": 200,
+   "status": "unavailable",
+   "isEstimated": false,
+   "reason": "No single USDA SR Legacy food corresponds to this item (a mixed dish, or a food whose recipe or edible portion is not known), so no estimate is given."
+  }
+ ]
+}
