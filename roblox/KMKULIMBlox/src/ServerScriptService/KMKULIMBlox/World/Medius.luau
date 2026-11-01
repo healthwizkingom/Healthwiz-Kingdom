@@ -64,130 +64,104 @@ local function deco(model: Model, name: string, size: Vector3, color: Color3, ma
 	return p
 end
 
---- Build Medius standing at `pos` (ground point) looking along `facing`.
-function Medius.build(parent: Instance, pos: Vector3, facing: Vector3)
-	local model = Instance.new("Model")
-	model.Name = "Medius"
-	local root = limb(model, "HumanoidRootPart", Vector3.new(2, 2, 1), BLUE)
-	root.Transparency = 1
-	root.CFrame = CFrame.lookAt(pos + Vector3.new(0, 3.0, 0), pos + Vector3.new(0, 3.0, 0) + facing)
-	local torso = limb(model, "Torso", Vector3.new(2, 2, 1), BLUE)
-	local head = limb(model, "Head", Vector3.new(2, 1, 1), SKIN)
-	head.Shape = Enum.PartType.Block
-	local armL = limb(model, "Left Arm", Vector3.new(1, 2, 1), BLUE)
-	local armR = limb(model, "Right Arm", Vector3.new(1, 2, 1), BLUE)
-	local legL = limb(model, "Left Leg", Vector3.new(1, 2, 1), BLUE_DEEP)
-	local legR = limb(model, "Right Leg", Vector3.new(1, 2, 1), BLUE_DEEP)
-	-- the same joint layout as the classic R6 character
-	joint("RootJoint", root, torso, C(0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 1, 0), C(0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 1, 0))
-	joint("Neck", torso, head, C(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 1, 0), C(0, -0.5, 0, -1, 0, 0, 0, 0, 1, 0, 1, 0))
-	joint("Right Shoulder", torso, armR, C(1, 0.5, 0, 0, 0, 1, 0, 1, 0, -1, 0, 0), C(-0.5, 0.5, 0, 0, 0, 1, 0, 1, 0, -1, 0, 0))
-	joint("Left Shoulder", torso, armL, C(-1, 0.5, 0, 0, 0, -1, 0, 1, 0, 1, 0, 0), C(0.5, 0.5, 0, 0, 0, -1, 0, 1, 0, 1, 0, 0))
-	joint("Right Hip", torso, legR, C(1, -1, 0, 0, 0, 1, 0, 1, 0, -1, 0, 0), C(0.5, 1, 0, 0, 0, 1, 0, 1, 0, -1, 0, 0))
-	joint("Left Hip", torso, legL, C(-1, -1, 0, 0, 0, -1, 0, 1, 0, 1, 0, 0), C(-0.5, 1, 0, 0, 0, -1, 0, 1, 0, 1, 0, 0))
-	local hum = Instance.new("Humanoid")
-	hum.RigType = Enum.HumanoidRigType.R6
-	hum.DisplayName = "Wizard King Medius"
-	hum.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
-	hum.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
-	hum.WalkSpeed = 0
-	hum.JumpPower = 0
-	hum.Parent = model
-	model.PrimaryPart = root
-	-- every limb is placed by its joint; unanchored limbs follow the anchored root
-	for _, p in ipairs({ head, armL, armR, legL, legR }) do
-		p.Anchored = false
-	end
-	torso.Anchored = false
-	root.Anchored = true
-	model.Parent = parent
+--- Weld `part` to `base` at a world-space CFrame.
+local function weldWorld(base: BasePart, part: BasePart, world: CFrame)
+	part.CFrame = world
+	part.Anchored = false
+	part.CanCollide = false
+	part.CanTouch = false
+	part.Massless = true
+	local w = Instance.new("WeldConstraint")
+	w.Part0, w.Part1 = base, part
+	w.Parent = part
+	part.Parent = base.Parent
+end
 
-	-- face
-	local face = Instance.new("Decal")
-	face.Name = "face"
-	face.Texture = "rbxasset://textures/face.png"
-	face.Face = Enum.NormalId.Front
-	face.Parent = head
+--- The wizard's costume, put on any humanoid rig. `rig` = { model, root, head, upper, hand, arms, headRef }
+local function costume(rig, groundY: number)
+	local model = rig.model :: Model
+	local head, upper, hand = rig.head :: BasePart, rig.upper :: BasePart, rig.hand :: BasePart
+	local look = rig.root.CFrame
+	local yaw = look.Rotation -- the root only ever turns about the vertical, so this is "upright, facing like the root"
+	local function T(dx: number, dy: number, dz: number, rot: CFrame?) -- relative to the chest (1.5 below the head centre)
+		local c = head.CFrame.Position - Vector3.new(0, 1.5, 0)
+		return CFrame.new(c) * yaw * CFrame.new(dx, dy, dz) * (rot or CFrame.new())
+	end
+	local function H(dx: number, dy: number, dz: number, rot: CFrame?) -- relative to the head
+		return CFrame.new(head.CFrame.Position) * yaw * CFrame.new(dx, dy, dz) * (rot or CFrame.new())
+	end
 
-	-- hands (skin), robe skirt, belt
-	local function skinHand(arm: BasePart, name: string)
-		local h = deco(model, name, Vector3.new(0.9, 0.55, 0.9), SKIN)
-		weldTo(arm, h, CFrame.new(0, -0.95, 0))
-	end
-	skinHand(armL, "HandL")
-	skinHand(armR, "HandR")
-	-- gold cuffs
-	for _, arm in ipairs({ armL, armR }) do
-		local cuff = deco(model, "Cuff", Vector3.new(1.1, 0.3, 1.1), GOLD, Enum.Material.Metal)
-		weldTo(arm, cuff, CFrame.new(0, -0.62, 0))
-	end
-	-- robe: stacked discs from the hips to the ground, with a gold hem
+	-- robe: stacked discs from the waist to the ground, gold hem, belt, front trim, stars
 	local discs = { { -0.7, 2.6, 1.0 }, { -1.2, 2.95, 1.0 }, { -1.7, 3.3, 1.0 }, { -2.2, 3.7, 1.0 }, { -2.65, 4.1, 0.9 }, { -2.9, 4.4, 0.5 } }
 	for i, d in ipairs(discs) do
 		local r = deco(model, "Robe" .. i, Vector3.new(d[3], d[2], d[2]), BLUE, Enum.Material.Fabric, Enum.PartType.Cylinder)
-		weldTo(torso, r, CFrame.new(0, d[1], 0) * CFrame.Angles(0, 0, math.rad(90)))
+		weldWorld(upper, r, T(0, d[1], 0, CFrame.Angles(0, 0, math.rad(90))))
 	end
 	local hem = deco(model, "Hem", Vector3.new(0.35, 4.6, 4.6), GOLD, Enum.Material.Metal, Enum.PartType.Cylinder)
-	weldTo(torso, hem, CFrame.new(0, -2.92, 0) * CFrame.Angles(0, 0, math.rad(90)))
+	weldWorld(upper, hem, T(0, -2.92, 0, CFrame.Angles(0, 0, math.rad(90))))
 	local belt = deco(model, "Belt", Vector3.new(2.15, 0.4, 1.15), WOOD, Enum.Material.Leather)
-	weldTo(torso, belt, CFrame.new(0, -0.55, 0))
+	weldWorld(upper, belt, T(0, -0.55, 0))
 	local buckle = deco(model, "Buckle", Vector3.new(0.5, 0.4, 0.2), GOLD, Enum.Material.Metal)
-	weldTo(torso, buckle, CFrame.new(0, -0.55, -0.62))
-	-- gold trim down the front, stars on the robe
+	weldWorld(upper, buckle, T(0, -0.55, -0.62))
 	local trim = deco(model, "FrontTrim", Vector3.new(0.35, 4.2, 0.12), GOLD, Enum.Material.Metal)
-	weldTo(torso, trim, CFrame.new(0, -1.1, -0.56))
+	weldWorld(upper, trim, T(0, -1.1, -0.58))
 	local r = Geo.rng(13)
 	for i = 1, 14 do
 		local s = deco(model, "Star", Vector3.new(0.28, 0.28, 0.28), GOLD, Enum.Material.Neon, Enum.PartType.Ball)
 		local a = r() * math.pi * 2
 		local y = -0.2 - r() * 2.7
 		local rad = (y > -0.9) and 1.05 or (1.55 + (-y - 0.9) * 0.28)
-		weldTo(torso, s, CFrame.new(math.sin(a) * rad * 0.9, y, -math.cos(a) * rad * 0.62 - 0.1))
+		weldWorld(upper, s, T(math.sin(a) * rad * 0.9, y, -math.cos(a) * rad * 0.62 - 0.1))
+	end
+	-- gold cuffs
+	for _, arm in ipairs(rig.arms) do
+		local cuff = deco(model, "Cuff", Vector3.new(1.1, 0.3, 1.1), GOLD, Enum.Material.Metal)
+		weldWorld(arm, cuff, CFrame.new(arm.CFrame.Position - Vector3.new(0, arm.Size.Y / 2 - 0.35, 0)) * yaw)
 	end
 
-	-- hat: brim + stacked cone, a bent tip, a gold band and the crescent moon
+	-- hat: brim + stacked cone, bent tip, gold band, crescent moon
 	local brim = deco(model, "HatBrim", Vector3.new(0.25, 4.4, 4.4), BLUE_DEEP, Enum.Material.Fabric, Enum.PartType.Cylinder)
-	weldTo(head, brim, CFrame.new(0, 0.62, 0) * CFrame.Angles(0, 0, math.rad(90)))
+	weldWorld(head, brim, H(0, 0.62, 0, CFrame.Angles(0, 0, math.rad(90))))
 	local cone = { { 1.15, 3.0, 1.0 }, { 2.0, 2.4, 1.0 }, { 2.9, 1.8, 1.0 }, { 3.7, 1.2, 0.9 } }
 	for i, c in ipairs(cone) do
 		local p = deco(model, "HatCone" .. i, Vector3.new(c[3], c[2], c[2]), BLUE, Enum.Material.Fabric, Enum.PartType.Cylinder)
-		weldTo(head, p, CFrame.new(0.05 * i * i * 0.18, c[1], 0.0 + 0.06 * i * i * 0.2) * CFrame.Angles(0, 0, math.rad(90)))
+		weldWorld(head, p, H(0.05 * i * i * 0.18, c[1], 0.06 * i * i * 0.2, CFrame.Angles(0, 0, math.rad(90))))
 	end
 	local tip = deco(model, "HatTip", Vector3.new(0.7, 0.7, 0.7), BLUE, Enum.Material.Fabric, Enum.PartType.Ball)
-	weldTo(head, tip, CFrame.new(0.35, 4.55, 0.35))
+	weldWorld(head, tip, H(0.35, 4.55, 0.35))
 	local band = deco(model, "HatBand", Vector3.new(0.3, 3.1, 3.1), GOLD, Enum.Material.Metal, Enum.PartType.Cylinder)
-	weldTo(head, band, CFrame.new(0, 0.95, 0) * CFrame.Angles(0, 0, math.rad(90)))
+	weldWorld(head, band, H(0, 0.95, 0, CFrame.Angles(0, 0, math.rad(90))))
 	local moon = deco(model, "Moon", Vector3.new(0.18, 1.0, 1.0), GOLD, Enum.Material.Neon, Enum.PartType.Cylinder)
-	weldTo(head, moon, CFrame.new(0, 1.9, -0.98) * CFrame.Angles(0, math.rad(90), 0))
+	weldWorld(head, moon, H(0, 1.9, -0.98, CFrame.Angles(0, math.rad(90), 0)))
 	local moonCut = deco(model, "MoonCut", Vector3.new(0.2, 0.9, 0.9), BLUE, Enum.Material.Fabric, Enum.PartType.Cylinder)
-	weldTo(head, moonCut, CFrame.new(0.28, 1.95, -1.01) * CFrame.Angles(0, math.rad(90), 0))
+	weldWorld(head, moonCut, H(0.28, 1.95, -1.01, CFrame.Angles(0, math.rad(90), 0)))
 
-	-- hair and beard
+	-- white hair, eyebrows, moustache and the long beard
 	for _, sgn in ipairs({ -1, 1 }) do
 		local hair = deco(model, "HairSide", Vector3.new(0.35, 1.0, 1.05), WHITE, Enum.Material.Fabric)
-		weldTo(head, hair, CFrame.new(sgn * 1.1, 0.0, 0.05))
+		weldWorld(head, hair, H(sgn * 1.1, 0.0, 0.05))
 		local brow = deco(model, "Brow", Vector3.new(0.6, 0.18, 0.12), WHITE, Enum.Material.Fabric)
-		weldTo(head, brow, CFrame.new(sgn * 0.42, 0.28, -0.52))
+		weldWorld(head, brow, H(sgn * 0.42, 0.28, -0.52))
 		local stache = deco(model, "Moustache", Vector3.new(0.7, 0.28, 0.25), WHITE, Enum.Material.Fabric)
-		weldTo(head, stache, CFrame.new(sgn * 0.3, -0.18, -0.55) * CFrame.Angles(0, 0, sgn * math.rad(-12)))
+		weldWorld(head, stache, H(sgn * 0.3, -0.18, -0.55, CFrame.Angles(0, 0, sgn * math.rad(-12))))
 	end
-	local b1 = deco(model, "Beard1", Vector3.new(1.6, 1.0, 0.7), WHITE, Enum.Material.Fabric)
-	weldTo(head, b1, CFrame.new(0, -0.62, -0.5))
-	local b2 = deco(model, "Beard2", Vector3.new(1.4, 1.5, 0.6), WHITE, Enum.Material.Fabric)
-	weldTo(head, b2, CFrame.new(0, -1.5, -0.55))
-	local b3 = deco(model, "Beard3", Vector3.new(1.0, 1.4, 0.5), WHITE, Enum.Material.Fabric)
-	weldTo(head, b3, CFrame.new(0, -2.5, -0.6))
-	local b4 = deco(model, "Beard4", Vector3.new(0.6, 1.0, 0.4), WHITE, Enum.Material.Fabric)
-	weldTo(head, b4, CFrame.new(0, -3.4, -0.62))
+	for i, d in ipairs({ { 1.6, 1.0, 0.7, -0.62, -0.5 }, { 1.4, 1.5, 0.6, -1.5, -0.55 }, { 1.0, 1.4, 0.5, -2.5, -0.6 }, { 0.6, 1.0, 0.4, -3.4, -0.62 } }) do
+		local b = deco(model, "Beard" .. i, Vector3.new(d[1], d[2], d[3]), WHITE, Enum.Material.Fabric)
+		weldWorld(head, b, H(0, d[4], d[5]))
+	end
 
-	-- staff in the right hand: wooden shaft, gold collar, glowing crystal, spinning rune circle
-	local shaft = deco(model, "Staff", Vector3.new(11, 0.4, 0.4), WOOD, Enum.Material.Wood, Enum.PartType.Cylinder)
-	weldTo(armR, shaft, CFrame.new(0, 1.6, -0.95) * CFrame.Angles(0, 0, math.rad(90)))
+	-- the staff stands on the ground beside his right hand: shaft, gold collar, glowing crystal, rune ring
+	local base = Vector3.new(hand.CFrame.Position.X, groundY, hand.CFrame.Position.Z) + look:VectorToWorldSpace(Vector3.new(0, 0, -1.1))
+	local function S(dy: number, rot: CFrame?)
+		return CFrame.new(base + Vector3.new(0, dy, 0)) * yaw * (rot or CFrame.new())
+	end
+	local shaft = deco(model, "Staff", Vector3.new(11.5, 0.4, 0.4), WOOD, Enum.Material.Wood, Enum.PartType.Cylinder)
+	weldWorld(hand, shaft, S(5.7, CFrame.Angles(0, 0, math.rad(90))))
 	local collar = deco(model, "StaffCollar", Vector3.new(0.5, 0.75, 0.75), GOLD, Enum.Material.Metal, Enum.PartType.Cylinder)
-	weldTo(armR, collar, CFrame.new(0, 7.0, -0.95) * CFrame.Angles(0, 0, math.rad(90)))
+	weldWorld(hand, collar, S(10.9, CFrame.Angles(0, 0, math.rad(90))))
 	local crystal = deco(model, "Crystal", Vector3.new(1.1, 2.6, 1.1), Color3.fromRGB(150, 205, 255), Enum.Material.Neon)
 	crystal.Transparency = 0.15
-	weldTo(armR, crystal, CFrame.new(0, 8.6, -0.95) * CFrame.Angles(0, math.rad(45), math.rad(18)))
+	weldWorld(hand, crystal, S(12.5, CFrame.Angles(0, math.rad(45), math.rad(18))))
 	local light = Instance.new("PointLight")
 	light.Color = Color3.fromRGB(150, 205, 255)
 	light.Brightness = 2.2
@@ -204,7 +178,7 @@ function Medius.build(parent: Instance, pos: Vector3, facing: Vector3)
 	sparks.Parent = crystal
 	local rune = deco(model, "RuneRing", Vector3.new(0.15, 3.4, 3.4), GOLD, Enum.Material.Neon, Enum.PartType.Cylinder)
 	rune.Transparency = 0.6
-	weldTo(armR, rune, CFrame.new(0, 8.6, -1.4) * CFrame.Angles(0, math.rad(90), 0))
+	weldWorld(hand, rune, S(12.5, CFrame.Angles(0, math.rad(90), 0)) * CFrame.new(0, 0, 0.45))
 
 	-- name plate
 	local bb = Instance.new("BillboardGui")
@@ -240,9 +214,140 @@ function Medius.build(parent: Instance, pos: Vector3, facing: Vector3)
 	prompt.MaxActivationDistance = 13
 	prompt.RequiresLineOfSight = false
 	prompt.HoldDuration = 0
-	prompt.Parent = root
+	prompt.Parent = rig.root
+	return prompt
+end
 
-	return model, { root = root, torso = torso, rune = rune, crystal = crystal, prompt = prompt, head = head, armR = armR, bb = bb }
+--- A genuine Roblox avatar (R15 rig with the real meshes and face), coloured as the wizard. Needs the avatar
+--- service; returns nil if it is unreachable.
+local function avatar(pos: Vector3, facing: Vector3)
+	local ok, model = pcall(function()
+		local d = Instance.new("HumanoidDescription")
+		d.HeadColor = SKIN
+		d.TorsoColor, d.LeftArmColor, d.RightArmColor = BLUE, BLUE, BLUE
+		d.LeftLegColor, d.RightLegColor = BLUE_DEEP, BLUE_DEEP
+		return game:GetService("Players"):CreateHumanoidModelFromDescription(d, Enum.HumanoidRigType.R15)
+	end)
+	if not ok or typeof(model) ~= "Instance" then
+		return nil
+	end
+	model.Name = "Medius"
+	local hum = model:FindFirstChildOfClass("Humanoid")
+	if hum then
+		hum.DisplayName = "Wizard King Medius"
+		hum.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+		hum.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
+		hum.WalkSpeed = 0
+		hum.JumpPower = 0
+	end
+	local root = model:FindFirstChild("HumanoidRootPart") :: BasePart
+	local head = model:FindFirstChild("Head") :: BasePart
+	local upper = model:FindFirstChild("UpperTorso") :: BasePart
+	local hand = model:FindFirstChild("RightHand") :: BasePart
+	if not (root and head and upper and hand) then
+		model:Destroy()
+		return nil
+	end
+	return model, root, head, upper, hand, hum
+end
+
+--- Build Medius standing at `pos` (a ground point) looking along `facing`.
+function Medius.build(parent: Instance, pos: Vector3, facing: Vector3)
+	local groundY = pos.Y
+	local model, root, head, upper, hand, hum = avatar(pos, facing)
+	local rigType = "R15"
+	local arms: { BasePart } = {}
+	local usedAvatar = false
+	if model then
+		usedAvatar = pcall(function()
+			model.Parent = parent
+			for _, d in ipairs(model:GetDescendants()) do
+				if d:IsA("BasePart") then
+					d.Anchored = false
+					d.CanCollide = false
+				end
+			end
+			root.Anchored = true
+			model:PivotTo(CFrame.lookAt(pos + Vector3.new(0, 3.0, 0), pos + Vector3.new(0, 3.0, 0) + facing))
+			for _, n in ipairs({ "LeftLowerArm", "RightLowerArm" }) do
+				local a = model:FindFirstChild(n)
+				if a then
+					table.insert(arms, a)
+				end
+			end
+		end)
+		if not usedAvatar then
+			model:Destroy()
+			model = nil
+		end
+	end
+	if not usedAvatar then
+
+		-- fallback: the classic R6 layout built from parts
+		rigType = "R6"
+		model = Instance.new("Model")
+		model.Name = "Medius"
+		root = limb(model, "HumanoidRootPart", Vector3.new(2, 2, 1), BLUE)
+		root.Transparency = 1
+		root.CFrame = CFrame.lookAt(pos + Vector3.new(0, 3.0, 0), pos + Vector3.new(0, 3.0, 0) + facing)
+		local torso = limb(model, "Torso", Vector3.new(2, 2, 1), BLUE)
+		head = limb(model, "Head", Vector3.new(2, 1, 1), SKIN)
+		local armL = limb(model, "Left Arm", Vector3.new(1, 2, 1), BLUE)
+		local armR = limb(model, "Right Arm", Vector3.new(1, 2, 1), BLUE)
+		local legL = limb(model, "Left Leg", Vector3.new(1, 2, 1), BLUE_DEEP)
+		local legR = limb(model, "Right Leg", Vector3.new(1, 2, 1), BLUE_DEEP)
+		joint("RootJoint", root, torso, C(0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 1, 0), C(0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 1, 0))
+		joint("Neck", torso, head, C(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 1, 0), C(0, -0.5, 0, -1, 0, 0, 0, 0, 1, 0, 1, 0))
+		joint("Right Shoulder", torso, armR, C(1, 0.5, 0, 0, 0, 1, 0, 1, 0, -1, 0, 0), C(-0.5, 0.5, 0, 0, 0, 1, 0, 1, 0, -1, 0, 0))
+		joint("Left Shoulder", torso, armL, C(-1, 0.5, 0, 0, 0, -1, 0, 1, 0, 1, 0, 0), C(0.5, 0.5, 0, 0, 0, -1, 0, 1, 0, 1, 0, 0))
+		joint("Right Hip", torso, legR, C(1, -1, 0, 0, 0, 1, 0, 1, 0, -1, 0, 0), C(0.5, 1, 0, 0, 0, 1, 0, 1, 0, -1, 0, 0))
+		joint("Left Hip", torso, legL, C(-1, -1, 0, 0, 0, -1, 0, 1, 0, 1, 0, 0), C(-0.5, 1, 0, 0, 0, -1, 0, 1, 0, 1, 0, 0))
+		hum = Instance.new("Humanoid")
+		hum.RigType = Enum.HumanoidRigType.R6
+		hum.DisplayName = "Wizard King Medius"
+		hum.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+		hum.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
+		hum.WalkSpeed, hum.JumpPower = 0, 0
+		hum.Parent = model
+		model.PrimaryPart = root
+		for _, p in ipairs({ head, armL, armR, legL, legR, torso }) do
+			p.Anchored = false
+		end
+		root.Anchored = true
+		model.Parent = parent
+		local face = Instance.new("Decal")
+		face.Name = "face"
+		face.Texture = "rbxasset://textures/face.png"
+		face.Face = Enum.NormalId.Front
+		face.Parent = head
+		upper, hand = torso, armR
+		arms = { armL, armR }
+	end
+	-- make sure there is a face
+	if not head:FindFirstChildOfClass("Decal") then
+		local face = Instance.new("Decal")
+		face.Name = "face"
+		face.Texture = "rbxasset://textures/face.png"
+		face.Face = Enum.NormalId.Front
+		face.Parent = head
+	end
+
+	local prompt = costume({ model = model, root = root, head = head, upper = upper, hand = hand, arms = arms }, groundY)
+	local crystal = model:FindFirstChild("Crystal")
+	local rune = model:FindFirstChild("RuneRing")
+
+	-- a relaxed idle pose from Roblox's own R15 idle animation (skipped if it cannot load)
+	if rigType == "R15" and hum then
+		pcall(function()
+			local animator = hum:FindFirstChildOfClass("Animator") or Instance.new("Animator", hum)
+			local a = Instance.new("Animation")
+			a.AnimationId = "rbxassetid://507766666"
+			local track = animator:LoadAnimation(a)
+			track.Looped = true
+			track:Play()
+		end)
+	end
+	return model, { root = root, torso = upper, rune = rune, crystal = crystal, prompt = prompt, head = head, rig = rigType }
 end
 
 --- A rune circle he stands on (two spinning gold rings and a stone plinth).

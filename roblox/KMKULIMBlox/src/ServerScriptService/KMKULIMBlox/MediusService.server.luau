@@ -31,7 +31,7 @@ local model, parts = Medius.build(root3, pos + Vector3.new(0, 0.8, 0), home)
 
 -- ---------------------------------------------------------------------------- idle behaviour
 local rootPart: BasePart = parts.root
-local rootJoint = parts.torso:FindFirstChild("RootJoint") or rootPart:FindFirstChild("RootJoint")
+local rootJoint = parts.rig == "R6" and (parts.torso:FindFirstChild("RootJoint") or rootPart:FindFirstChild("RootJoint")) or nil
 local facing = home
 local acc = 0
 RunService.Heartbeat:Connect(function(dt)
