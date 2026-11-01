@@ -227,9 +227,9 @@ const restTxt=v=>v&&(v<50||v>100)?ico('warning')+' Outside the usual resting ran
 const ageOf=()=>{const p=st.p||{},a=+p.age;return(st.s.onb||p.cfm)&&a>=10&&a<=100?Math.round(a):null};
 /** Peak heart rate (highest of climb max and after) as % of 220 − age, or null. A rough estimate only. */
 function peak(hi,a,age){const pk=Math.max(okHR(hi)||0,okHR(a)||0);age=age===undefined?ageOf():age;return pk&&age?{pk,max:220-age,pct:Math.round(pk/(220-age)*100)}:pk?{pk}:null}
-function peakTxt(){const p=peak(W.cHi,W.hrA);if(!p)return'<span class="mut">Add the highest heart rate during the climb (or the after-workout number) to compare it with an estimated maximum.</span>';
-  if(!p.max)return'Peak <b>'+p.pk+'</b> BPM. <span class="mut">Add your age in the profile below to compare it with an estimated maximum.</span>';
-  return'Peak <b>'+p.pk+'</b> BPM ≈ <b>'+p.pct+'%</b> of 220 − age ('+p.max+' BPM). <span class="mut">A rough estimate: 220 − age is a common rule that was never checked in a large study.</span> '+HWCalcX.peak(p,!!W.cDev)+(typeof HWEffort!=='undefined'?HWEffort.html(p.pk,ageOf(),!!W.cDev):'')}
+function peakTxt(){const p=peak(W.cHi,W.hrA),rs=typeof HWEffort!=='undefined'?HWEffort.responseHtml(p&&p.pk,W.hrB,W.cDev,W.hrBd):'';if(!p)return'<span class="mut">Add the highest heart rate during the climb (or the after-workout number) to compare it with an estimated maximum.</span>'+rs;
+  if(!p.max)return'Peak <b>'+p.pk+'</b> BPM. <span class="mut">Add your age in the profile below to compare it with an estimated maximum.</span>'+rs;
+  return'Peak <b>'+p.pk+'</b> BPM ≈ <b>'+p.pct+'%</b> of 220 − age ('+p.max+' BPM). <span class="mut">A rough estimate: 220 − age is a common rule that was never checked in a large study.</span> '+HWCalcX.peak(p,!!W.cDev)+(typeof HWEffort!=='undefined'?HWEffort.html(p.pk,ageOf(),!!W.cDev):'')+rs}
 const cNote=()=>W.cDev&&W.cl?ico('watch',{label:'From your watch'})+' Recorded by your heart-rate device while the timer ran ('+W.cl.n+' readings).':W.cSet?'Typed in by you.':'Optional. Type them in, or connect a device: it records them while the workout timer runs.';
 function climbHR(){const f=(id,l,v)=>'<label>'+l+'<input id="'+id+'" data-in="stw" type="number" min="30" max="220" inputmode="numeric" value="'+esc(v)+'"></label>';
   return '<div class="stclimb" id="st-climb"><b>'+ico('heart')+' DURING THE CLIMB <span class="pxtag">OPTIONAL</span></b>'

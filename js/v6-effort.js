@@ -12,7 +12,15 @@
    The peak is the highest of the climb's top pulse and the pulse right after stopping, as the existing comparison already uses
    (js/v6-stairs.js peak()). The line is shown, never saved, never scored, no XP. Needs the age from the confirmed profile; without it no
    band is shown. For under-18s a note says the guideline is for adults, so the band is a rough guide only.
-   band() is pure so the tests can check worked examples. Not a diagnosis; nothing says a workout was safe or too hard. */
+   band() is pure so the tests can check worked examples. Not a diagnosis; nothing says a workout was safe or too hard.
+
+   HEART-RATE RESPONSE INDEX (Feature 9, same card, same peak): response = peak ÷ pulse before, shown to one decimal as "2.3 ×". A plain ratio of
+   two pulse numbers, nothing more: no bands, no good or bad, no VO₂, and no claim about vascular tone, arterial compliance or elasticity
+   (a pulse alone cannot show any of those; docs/FEATURE_CONSULTS.md). Resting = THIS workout's own "pulse before" only: when it or the peak
+   is missing, out of range, or the peak is below the pulse before, the index is "unavailable" and says what to add. Nothing is ever
+   substituted from another day or estimated. Uth et al. (id 'uth') is context only: the project's VO₂ estimate uses a related ratio (pulse
+   after ÷ pulse before) with a factor of 15.3 (js/v6-stairs.js projectVO2); this is the ratio alone. Shown, never saved or scored.
+   response() is pure for the tests. */
 const HWEffort=(()=>{
 const BANDS=[[96,'Near-maximal'],[77,'Vigorous'],[64,'Moderate'],[0,'Below moderate']];
 /** Tanaka's estimated maximum (BPM, rounded) for an age of 10 to 100, else null. */
@@ -33,4 +41,22 @@ function html(pk,age,dev){const r=band(pk,age);if(!r)return'';
   return '<br><span id="st-band"><b>Estimated effort: '+r.band+'</b> · about <b>'+r.pct+'%</b> of an estimated maximum of '+r.max+' BPM (208 − 0.7 × age) '+why(r,dev)
     +'<br><small class="mut">An estimate of effort from your pulse, not a measure of fuel, fitness or safety.'+(r.pct>100?' It is above the estimate, which is only an average.':'')
     +(r.age<18?' The guideline behind the bands is for adults, so for under-18s this is a rough guide only.':'')+'</small></span>'}
-return{band,maxOf,html,BANDS}})();
+/** pk = peak pulse, b = pulse before (BPM, 30–220, numbers or numeric text). null when neither is entered; {ok:false, why} when the index cannot be given;
+    {ok:true, pk, b, ratio (one decimal), exact} otherwise. Never fills a missing number in. */
+const okH=v=>{v=typeof v==='string'&&v.trim()===''?NaN:+v;return Number.isFinite(v)&&v>=30&&v<=220?Math.round(v):null};
+function response(pk,b){const p=okH(pk),r=okH(b);
+  if(p==null&&r==null)return null;
+  if(p==null||r==null)return{ok:false,pk:p,b:r,why:'Add '+(r==null?'your pulse before':'the highest pulse during the climb, or the pulse right after')+'.'};
+  if(p<r)return{ok:false,pk:p,b:r,why:'The peak ('+p+' BPM) is lower than the pulse before ('+r+' BPM), so check the numbers.'};
+  return{ok:true,pk:p,b:r,ratio:Math.round(p/r*10)/10,exact:p/r}}
+function whyHri(r,devPk,devB){return HWExplain.btn('xhri','How the heart-rate response is worked out',{ev:'hri',what:'Your highest pulse in this workout divided by the pulse you took before it: how many times your resting-style pulse it reached.',
+  inputs:[{n:'Peak heart rate (highest of the climb and just after)',v:r.pk,u:'BPM',o:devPk?'device':'you',d:0},{n:'Pulse before the workout',v:r.b,u:'BPM',o:devB?'device':'you',d:0}],
+  formula:'response = peak ÷ pulse before, shown to one decimal',steps:['Response: '+r.pk+' ÷ '+r.b+' = '+(Math.round(r.exact*100)/100)+' → '+r.ratio.toFixed(1)+' ×'],result:r.ratio.toFixed(1)+' ×',src:['uth'],
+  app:'A plain ratio of two pulse numbers, with no bands, no labels and no VO₂, vascular or fitness claim. Uth et al. is context only: the project\u2019s VO₂ estimate uses a related ratio (pulse after ÷ pulse before) with a factor of 15.3; this index is the ratio alone.',
+  limits:['The pulse before is only a resting pulse if you took it at rest.','It does not measure vascular tone, arterial compliance or elasticity, and a pulse alone cannot show those.','No range is called good or low: nothing here says what a ratio should be.','Not a diagnosis. Stop if you feel unwell.']})}
+/** The line under the peak and effort band: '' when neither number is entered, "unavailable" with what to add, or the ratio with its "?". */
+function responseHtml(pk,b,devPk,devB){const r=response(pk,b);if(!r)return'';
+  if(!r.ok)return'<br><span id="st-hri"><b>Heart-rate response: unavailable.</b> <span class="mut">'+r.why+'</span></span>';
+  return'<br><span id="st-hri"><b>Heart-rate response: '+r.ratio.toFixed(1)+' ×</b> your pulse before (peak '+r.pk+' ÷ before '+r.b+') '+whyHri(r,devPk,devB)
+    +'<br><small class="mut">A plain ratio of two pulse numbers. It does not measure vascular tone, arterial compliance or elasticity, and it is not a medical measurement.</small></span>'}
+return{band,maxOf,html,BANDS,response,responseHtml}})();
