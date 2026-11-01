@@ -22,6 +22,7 @@ step, verified clickable sources, HealthWiz's own choices kept apart from the so
 | Spire of Trials: vertical speed v = h ÷ t | `js/v6-spire.js` `overview` | formula shown on the card; no Vault entry (no source needed for a division) | none | h is the Stair Sense height n × r; a rise taken from the angle or typed is marked (est.). Boards are personal; the GPS gate (25 m) and the rank rules are HealthWiz's own and are stated on the card. |
 | Cardiac drift index = (mean pulse 2nd half − 1st half) ÷ 1st half × 100 | `js/v6-drift.js` `analyze` | help panel with the worked numbers (`xdrift`); no Vault entry | **none**: the 8:00 minimum, 2:00 warm-up, 90 readings and 15 s gap limits are HealthWiz's own and are stated on the card | Descriptive only: no alert, no 10 % / temperature trigger, no plasma-volume, dehydration or risk claim. "Constant guided pace" is the guide's pace, not a measured cadence. Temperature is optional campus-model context and never an input. |
 | Heart-rate response index (peak ÷ pulse before) | `js/v6-effort.js` `response` | worked (`xhri`) | uth, as context only (the project's VO₂ ratio uses a factor of 15.3; this is the ratio alone) | A plain ratio, no bands or labels, no VO₂ / vascular / fitness claim. Unavailable when a number is missing, out of range, or the peak is below the pulse before; never substituted. |
+| Caffeine left at bedtime (range: mg × 0.5^(hours ÷ half-life) at 2.7 h and 9.9 h) | `js/v6-nightsync.js` `residual` | worked (`xnsync`) | blanchard83 (the 2.7 to 9.9 h spread); iom2001 as an unread, owner-supplied context line |
 | Estimated fluid deficit (heat = energy × 0.8; sweat = heat ÷ (0.8 × 2426 kJ/kg)) | `js/v6-hydrate.js` `deficit` | worked (`xhydrate`) | nistwater (latent heat, pure water); 0.20 and 0.80 are HealthWiz's own assumptions, stated on the card |
 | Estimated effort band (share of 208 − 0.7 × age) | `js/v6-effort.js` `band` | worked (`xband`) | tanaka (maximum); band cut-offs 64 / 77 / 96 % come from published tables attributed to the ACSM guideline and are **not yet checked against it** | An effort level only: no fuel, EPOC or threshold claim (they need breathing-gas data). Under 64 % is one band because the lighter cut-offs differ between sources. |
 | Running calories (MET × kg × h) | `js/v6-running.js` `met`, `kcalOf` | worked (`xrun`, `xrun-<id>`) | comprun, compwalk, compendium | **Fixed:** the table held 2011 values under a 2024 label; now the 2024 values with their codes (tests/37 updated with the new arithmetic). The unsourced "±20–30%" was removed. Runs saved with a stored kcal keep it. |
@@ -58,7 +59,7 @@ one link each (the Stairs "?" holds two calculations). `ev:'none'` (no longer us
 | `xmacro` | `macro` | | `sk-<id>` | `stairkcal` |
 | `xwater` | `water` | | `xpeak` | `peak` |
 | `xband` | `effort` | | `xhri` | `hri` |
-| `xhydrate` | `hydrate` | | | |
+| `xhydrate` | `hydrate` | | `xnsync` | `nightsync` |
 | `xrun`, `xrun-<id>` | `run` | | `scorewt` | `score` |
 | `fvinfo` | `fv` | | `gvhelp` | `gravity` |
 | `sleeprange` | `sleep` | | `nutest` | `nutrients` |

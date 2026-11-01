@@ -306,3 +306,6 @@ Standalone `js/v6-nightsync.js` (the Trance file is 56 KB). For each evening ite
 
 ### Luke's lookup (already built, commit 17fe1a9)
 `food-guess` returns `caffeine_mg` and `tryptophan_mg` per part with `nutrient_source` and `nutrient_match`; a number without a citation is dropped; caffeine 0 counts as missing; null or failure shows "Luke found no source" and saves nulls. The entry keeps `trp`, `caf`, `mnsrc`, `mnm`. No USDA wording in any user-facing file (`tests/67`). The function needs the owner to deploy it.
+
+### Feature 6: built (2026-11-01)
+`js/v6-nightsync.js` and `tests/98-nightsync.test.mjs`, as planned above, on the Sleep page just above the Trance card. The night is the latest sleep entry with a bedtime between 18:00 and 06:00 (a daytime nap is skipped). The food window is the 24 h before bed. Per-item amounts are a stacked list (a five-column table broke words on a 360 px phone). Caffeine range 2.7 h to 9.9 h (`blanchard83`); the 4 to 5 h figure is shown only as a marked, unverified context line (`iom2001`). Items with no saved caffeine are "not looked up", never zero, and the range says "at least". No score, no ranking, no advice, no cause wording; nothing is saved. Vault entry `nightsync`, calculations row, README line.
