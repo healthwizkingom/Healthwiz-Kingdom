@@ -44,27 +44,29 @@ local function stroke(parent: Instance, base: CFrame, ox: number, oy: number, w:
 end
 
 --- Spell `text` (letters K M U L I and space) in 3D, left to right, centred on base's origin. Returns total width.
-local function spell(parent: Instance, base: CFrame, text: string, h: number, depth: number, thick: number, colors, gap: number)
+local function spell(parent: Instance, base: CFrame, text: string, h: number, depth: number, thick: number, colors, gap: number, maxWidth: number)
+	-- natural width, then squeeze every glyph + gap so the whole word fits on the panel beneath it
 	local total = 0
 	for i = 1, #text do
 		local ch = string.sub(text, i, i)
 		total += (ch == " " and 5 or GLYPHS[ch].w) + (i < #text and gap or 0)
 	end
-	local x = -total / 2
+	local f = math.min(1, maxWidth / total)
+	local x = -total * f / 2
 	for i = 1, #text do
 		local ch = string.sub(text, i, i)
 		if ch == " " then
-			x += 5 + gap
+			x += (5 + gap) * f
 		else
 			local g = GLYPHS[ch]
 			local col = colors[i] or CREAM
-			for _, s in ipairs(g.s) do
-				stroke(parent, base, x, 0, g.w, h, depth, thick, s, col, nil)
+			for _, st in ipairs(g.s) do
+				stroke(parent, base, x, 0, g.w * f, h, depth, thick, st, col, nil)
 			end
-			x += g.w + gap
+			x += (g.w + gap) * f
 		end
 	end
-	return total
+	return total * f
 end
 
 local function surfaceText(part: BasePart, face: Enum.NormalId, text: string, color: Color3, font: Enum.Font, pxPerStud: number?)
@@ -172,8 +174,8 @@ function Landmarks.entranceSign(parent: Instance, ox: number, oz: number)
 
 	-- 3D block letters above the panel: K M (gap) K U L I M, the first M red
 	local colors = { CREAM, RED, CREAM, CREAM, CREAM, CREAM, CREAM, CREAM }
-	local lettersBase = base * CFrame.new(0, 15.2, 0.4)
-	spell(model, lettersBase, "KM KULIM", 10, 2.2, 1.6, { CREAM, RED, CREAM, CREAM, CREAM, CREAM, CREAM, CREAM, CREAM }, 1.5)
+	local lettersBase = base * CFrame.new(0, 14.4, 0.5)
+	spell(model, lettersBase, "KM KULIM", 10, 2.2, 1.6, { CREAM, RED, CREAM, CREAM, CREAM, CREAM, CREAM, CREAM, CREAM }, 1.5, 48)
 
 	-- three tiled steps in front, with a red nosing; 3 floodlights on the lowest step
 	for i = 1, 3 do
