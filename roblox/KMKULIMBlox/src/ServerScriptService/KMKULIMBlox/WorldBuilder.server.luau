@@ -66,7 +66,7 @@ Shared.StairSpecs = Stairs.build(campus, groups)
 
 status("Placing the landmarks…", 0.74)
 Landmarks.entranceSign(campus, -259, -191)
-Landmarks.welcomeSign(campus, -278, -232)
+Landmarks.welcomeSign(campus, -278, -264)
 Landmarks.gate(campus)
 Landmarks.buildGazebos(campus)
 Landmarks.buildTowers(campus)

@@ -54,7 +54,7 @@ local function build()
 	end
 	-- reserved spots: the two entrance signs and the gate
 	table.insert(o.segs, { -259, -191, -259, -191, 70 })
-	table.insert(o.segs, { -278, -232, -278, -232, 60 })
+	table.insert(o.segs, { -278, -264, -278, -264, 60 })
 	table.insert(o.segs, { Features.Gate[1], Features.Gate[2], Features.Gate[1], Features.Gate[2], 45 })
 	obstacles = o
 	return o
