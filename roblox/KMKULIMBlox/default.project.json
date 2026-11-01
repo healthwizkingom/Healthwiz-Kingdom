@@ -1,0 +1,53 @@
+{
+  "name": "KMKULIMBlox",
+  "tree": {
+    "$className": "DataModel",
+    "Workspace": {
+      "$className": "Workspace",
+      "$properties": {
+        "StreamingEnabled": false,
+        "Gravity": 196.2,
+        "FallenPartsDestroyHeight": -500
+      }
+    },
+    "Lighting": {
+      "$className": "Lighting",
+      "$properties": {
+        "ClockTime": 17,
+        "Brightness": 3,
+        "GeographicLatitude": 5.35,
+        "ExposureCompensation": 0.15,
+        "EnvironmentDiffuseScale": 0.6,
+        "EnvironmentSpecularScale": 0.5,
+        "Ambient": [0.27, 0.30, 0.34],
+        "OutdoorAmbient": [0.45, 0.50, 0.56],
+        "ColorShift_Top": [1, 0.93, 0.8],
+        "GlobalShadows": true,
+        "ShadowSoftness": 0.2,
+        "FogEnd": 4500,
+        "FogStart": 1800
+      },
+      "$path": "src/Lighting"
+    },
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "KMKULIMBlox": { "$path": "src/ReplicatedStorage/KMKULIMBlox" }
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "KMKULIMBlox": { "$path": "src/ServerScriptService/KMKULIMBlox" }
+    },
+    "ServerStorage": {
+      "$className": "ServerStorage",
+      "KMKULIMBlox": { "$path": "src/ServerStorage/KMKULIMBlox" }
+    },
+    "StarterGui": {
+      "$className": "StarterGui",
+      "KMKULIMBloxGui": { "$path": "src/StarterGui/KMKULIMBloxGui.rbxm" }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": { "$className": "StarterPlayerScripts", "$path": "src/StarterPlayer/StarterPlayerScripts" }
+    }
+  }
+}
