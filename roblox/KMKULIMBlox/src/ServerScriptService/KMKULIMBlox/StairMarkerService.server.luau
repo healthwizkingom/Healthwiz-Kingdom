@@ -42,6 +42,7 @@ local function makePart(parent,name,shape,color,size,material)
  return p
 end
 local function addPokestopVisuals(marker,records)
+ local K=marker:GetAttribute("Scale") or 1
  local baseColor=colors.MILD
  local strongest="MILD"
  for _,record in ipairs(records) do
@@ -59,7 +60,7 @@ local function addPokestopVisuals(marker,records)
  visuals.Parent=marker
  local prism={}
  for i=1,5 do
-  local face=makePart(visuals,"PrismFace"..i,Enum.PartType.Block,baseColor,Vector3.new(1.92,3.0,0.16),Enum.Material.SmoothPlastic)
+  local face=makePart(visuals,"PrismFace"..i,Enum.PartType.Block,baseColor,Vector3.new(1.92*K,3.0*K,0.16*K),Enum.Material.SmoothPlastic)
   face.Transparency=0
   table.insert(prism,face)
  end
@@ -67,7 +68,7 @@ local function addPokestopVisuals(marker,records)
  local inner=makePart(visuals,"DiscCore",Enum.PartType.Cylinder,Color3.fromRGB(249,246,228),Vector3.new(0.15,0.1,0.1),Enum.Material.SmoothPlastic)
  local orbit={}
  for i=1,8 do
-  local dot=makePart(visuals,"OrbitDot"..i,Enum.PartType.Ball,Color3.fromRGB(255,250,232),Vector3.new(0.16,0.16,0.16),Enum.Material.Neon)
+  local dot=makePart(visuals,"OrbitDot"..i,Enum.PartType.Ball,Color3.fromRGB(255,250,232),Vector3.new(0.16*K,0.16*K,0.16*K),Enum.Material.Neon)
   table.insert(orbit,dot)
  end
  local heartParts={}
@@ -91,33 +92,33 @@ local function addPokestopVisuals(marker,records)
    local flatten=morph
    local pulse=0
    if t>=3.2 and t<=7.5 then pulse=0.065*math.sin((t-3.2)*math.pi*2/0.82) end
-   local bob=0.12+0.12*math.sin(t*math.pi*2/2.4)
+   local bob=K*(0.12+0.12*math.sin(t*math.pi*2/2.4))
    local yaw=t*math.pi*2/5
    local tumbleX=math.sin(t*math.pi*2/2.5)*0.48*(1-morph)
    local tumbleZ=math.cos(t*math.pi*2/3.2)*0.22*(1-morph)
    local tilt=flatten*math.rad(90)
    local pivot=basePivot*CFrame.new(0,bob,0)*CFrame.Angles(tilt+tumbleX,yaw,tumbleZ)
    marker:PivotTo(pivot)
-   local prismHeight=0.12+(3.0-0.12)*(1-morph)
+   local prismHeight=K*(0.12+(3.0-0.12)*(1-morph))
    local prismTransparency=morph
    for i,face in ipairs(prism) do
     local angle=(i-1)*math.pi*2/5
-    local radius=1.52
-    face.Size=Vector3.new(1.92,prismHeight,0.16)
+    local radius=1.52*K
+    face.Size=Vector3.new(1.92*K,prismHeight,0.16*K)
     face.CFrame=pivot*CFrame.new(math.sin(angle)*radius,0,math.cos(angle)*radius)*CFrame.Angles(0,-angle,0)
     face.Transparency=prismTransparency
    end
-   local diameter=0.25+3.75*morph
-   disc.Size=Vector3.new(0.14,diameter,diameter)
-   disc.CFrame=pivot*CFrame.new(0,0.22,0)*CFrame.Angles(0,0,math.rad(90))
+   local diameter=K*(0.25+3.75*morph)
+   disc.Size=Vector3.new(0.14*K,diameter,diameter)
+   disc.CFrame=pivot*CFrame.new(0,0.22*K,0)*CFrame.Angles(0,0,math.rad(90))
    disc.Transparency=1-morph
-   inner.Size=Vector3.new(0.12,diameter*0.74,diameter*0.74)
-   inner.CFrame=pivot*CFrame.new(0,0.30,0)*CFrame.Angles(0,0,math.rad(90))
+   inner.Size=Vector3.new(0.12*K,diameter*0.74,diameter*0.74)
+   inner.CFrame=pivot*CFrame.new(0,0.30*K,0)*CFrame.Angles(0,0,math.rad(90))
    inner.Transparency=1-morph
-   local orbitRadius=1.65+0.62*morph
+   local orbitRadius=K*(1.65+0.62*morph)
    for i,dot in ipairs(orbit) do
     local angle=t*math.pi*2/2.8+(i-1)*math.pi*2/#orbit
-    dot.CFrame=pivot*CFrame.new(math.cos(angle)*orbitRadius,0.38,math.sin(angle)*orbitRadius)
+    dot.CFrame=pivot*CFrame.new(math.cos(angle)*orbitRadius,0.38*K,math.sin(angle)*orbitRadius)
     dot.Transparency=1-morph
    end
    local heartAlpha=1-morph

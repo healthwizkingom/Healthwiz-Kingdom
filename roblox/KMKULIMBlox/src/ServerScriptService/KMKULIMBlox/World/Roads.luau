@@ -51,7 +51,7 @@ function Roads.buildRoads(parent: Instance)
 	local folder = Geo.folder(parent, "Roads")
 	for _, r in ipairs(Features.Roads) do
 		local width = r.major and 30 or 22
-		local pts = resample(r.pts, 20, 0.15)
+		local pts = resample(r.pts, 20, -0.3)
 		for i = 1, #pts - 1 do
 			local a, b = pts[i], pts[i + 1]
 			segment(folder, a, b, width, 1.0, { name = "Asphalt", color = ASPHALT, mat = Enum.Material.Asphalt })
@@ -75,7 +75,7 @@ function Roads.buildCovered(parent: Instance)
 		local pts = resample(flat, 16, 0)
 		for i = 1, #pts - 1 do
 			local a, b = pts[i], pts[i + 1]
-			segment(folder, a + Vector3.new(0, 0.2, 0), b + Vector3.new(0, 0.2, 0), 10, 0.9, { name = "WalkFloor", color = CONCRETE, mat = Enum.Material.Concrete })
+			segment(folder, a + Vector3.new(0, -0.35, 0), b + Vector3.new(0, -0.35, 0), 10, 0.9, { name = "WalkFloor", color = CONCRETE, mat = Enum.Material.Concrete })
 			local up = Vector3.new(0, 12.5, 0)
 			segment(folder, a + up, b + up, 13, 0.7, { name = "WalkRoof", color = ROOF_RED, mat = Enum.Material.Metal })
 			for _, sgn in ipairs({ -1, 1 }) do
@@ -226,7 +226,7 @@ function Roads.buildSquares(parent: Instance)
 		-- paved plaza: pinkish-grey pavers (triangulated polygon)
 		for _, t in ipairs(Geo.triangulate(pts)) do
 			local a, b, c = pts[t[1]], pts[t[2]], pts[t[3]]
-			Geo.triangle(folder, Vector3.new(a.X, sq.y + 0.3, a.Y), Vector3.new(b.X, sq.y + 0.3, b.Y), Vector3.new(c.X, sq.y + 0.3, c.Y), 0.7, { name = "Paving", color = Color3.fromRGB(190, 168, 160), mat = Enum.Material.Cobblestone })
+			Geo.triangle(folder, Vector3.new(a.X, sq.y - 0.05, a.Y), Vector3.new(b.X, sq.y - 0.05, b.Y), Vector3.new(c.X, sq.y - 0.05, c.Y), 0.7, { name = "Paving", color = Color3.fromRGB(190, 168, 160), mat = Enum.Material.Cobblestone })
 		end
 	end
 end

@@ -206,7 +206,7 @@ function Props.roadFurniture(parent: Instance)
 			if len > 120 and count < 14 then
 				local t = 0.5
 				local x, z = ax + (bx - ax) * t, az + (bz - az) * t
-				local y = Ground.height(x, z) + 0.7
+				local y = Ground.height(x, z) + 0.3
 				local dir = Vector3.new((bx - ax) / len, 0, (bz - az) / len)
 				local base = CFrame.lookAt(Vector3.new(x, y, z), Vector3.new(x, y, z) + dir)
 				for k = -4, 4 do

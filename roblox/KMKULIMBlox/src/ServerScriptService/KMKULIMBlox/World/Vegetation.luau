@@ -21,15 +21,15 @@ end
 local species = {}
 
 function species.rain(m, x, y, z, s, r)
-	local h = 15 * s
+	local h = 14 * s
 	trunk(m, x, y - 0.5, z, h, 1.3 * s * 0.8, Color3.fromRGB(104, 84, 64))
 	local base = Color3.fromRGB(52, 108, 46)
 	for i = 1, 6 do
 		local a = i / 6 * math.pi * 2 + r() * 0.6
-		local rad = 8 * s * (0.6 + r() * 0.5)
-		blob(m, Vector3.new(x + math.cos(a) * rad, y + h + (r() - 0.3) * 4 * s, z + math.sin(a) * rad), (13 + r() * 5) * s, g(r(), base, 0.2))
+		local rad = 5.5 * s * (0.6 + r() * 0.5)
+		blob(m, Vector3.new(x + math.cos(a) * rad, y + h + (r() - 0.3) * 4 * s, z + math.sin(a) * rad), (9 + r() * 4) * s, g(r(), base, 0.2))
 	end
-	blob(m, Vector3.new(x, y + h + 5 * s, z), 16 * s, g(r(), base, 0.2))
+	blob(m, Vector3.new(x, y + h + 4 * s, z), 11 * s, g(r(), base, 0.2))
 end
 
 function species.mango(m, x, y, z, s, r)
@@ -37,9 +37,9 @@ function species.mango(m, x, y, z, s, r)
 	trunk(m, x, y - 0.5, z, h, 1.0 * s, Color3.fromRGB(88, 70, 54))
 	for i = 1, 4 do
 		local a = i / 4 * math.pi * 2
-		blob(m, Vector3.new(x + math.cos(a) * 4 * s, y + h + 2 * s, z + math.sin(a) * 4 * s), 9 * s, g(r(), Color3.fromRGB(36, 88, 40), 0.15))
+		blob(m, Vector3.new(x + math.cos(a) * 3 * s, y + h + 2 * s, z + math.sin(a) * 3 * s), 6.5 * s, g(r(), Color3.fromRGB(36, 88, 40), 0.15))
 	end
-	blob(m, Vector3.new(x, y + h + 4 * s, z), 10 * s, g(r(), Color3.fromRGB(40, 96, 44), 0.15))
+	blob(m, Vector3.new(x, y + h + 3.5 * s, z), 7 * s, g(r(), Color3.fromRGB(40, 96, 44), 0.15))
 end
 
 function species.frangipani(m, x, y, z, s, r)
@@ -99,7 +99,7 @@ function Vegetation.populate(parent: Instance, count: number, onStep: (() -> ())
 		local y = Ground.height(x, z)
 		local name = ORDER[1 + math.floor(p[3] * #ORDER) % #ORDER]
 		local m = Geo.model(folder, name)
-		local s = 0.8 + r() * 0.9
+		local s = 0.62 + r() * 0.5
 		species[name](m, x, y, z, s, r)
 		m.Parent = folder
 		-- a few companions round the bigger trees: ferns / bushes
