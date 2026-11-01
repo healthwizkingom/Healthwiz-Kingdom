@@ -40,7 +40,8 @@ local function student(parent: Instance, girl: boolean, seed: number)
 	}
 	if girl then
 		parts.tudung = bit("Tudung", Vector3.new(1.8, 1.9, 1.8), Color3.fromRGB(150, 30, 48), Enum.PartType.Ball)
-		parts.hair.Transparency = 1
+		parts.hair:Destroy()
+		parts.hair = nil
 	end
 	m.Parent = parent
 	return m, parts
@@ -53,7 +54,9 @@ local function pose(parts, root: CFrame, phase: number)
 	local base = root * CFrame.new(0, 2.1 + bob, 0)
 	parts.torso.CFrame = base * CFrame.new(0, 1.1, 0)
 	parts.head.CFrame = base * CFrame.new(0, 2.9, 0)
-	parts.hair.CFrame = base * CFrame.new(0, 3.35, 0.1)
+	if parts.hair then
+		parts.hair.CFrame = base * CFrame.new(0, 3.35, 0.1)
+	end
 	if parts.tudung then
 		parts.tudung.CFrame = base * CFrame.new(0, 3.0, 0.05)
 	end
@@ -86,6 +89,75 @@ local function sparkle(at: Vector3, color: Color3, parent: Instance)
 	end)
 end
 
+--- The tap, as in the app: a ripple ring on the ground, and the heart opens into the stair's photo disc.
+local function ripple(at: Vector3, color: Color3, parent: Instance, delayS: number)
+	task.delay(delayS, function()
+		local ring = Instance.new("Part")
+		ring.Name = "Ripple"
+		ring.Shape = Enum.PartType.Cylinder
+		ring.Anchored, ring.CanCollide, ring.CanQuery, ring.CanTouch, ring.CastShadow = true, false, false, false, false
+		ring.Material = Enum.Material.Neon
+		ring.Color = color
+		ring.Size = Vector3.new(0.25, 4, 4)
+		ring.CFrame = CFrame.new(at + Vector3.new(0, 0.5, 0)) * CFrame.Angles(0, 0, math.rad(90))
+		ring.Transparency = 0.15
+		ring.Parent = parent
+		local info = TweenInfo.new(1.5, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out)
+		TweenService:Create(ring, info, { Size = Vector3.new(0.25, 34, 34), Transparency = 1 }):Play()
+		task.delay(1.6, function()
+			ring:Destroy()
+		end)
+	end)
+end
+
+local function photoDisc(at: Vector3, color: Color3, image: string, label: string, parent: Instance)
+	local anchor = Instance.new("Part")
+	anchor.Name = "PhotoDiscAnchor"
+	anchor.Anchored, anchor.CanCollide, anchor.CanQuery, anchor.CanTouch = true, false, false, false
+	anchor.Transparency = 1
+	anchor.Size = Vector3.one
+	anchor.Position = at
+	anchor.Parent = parent
+	local gui = Instance.new("BillboardGui")
+	gui.Size = UDim2.fromOffset(0, 0)
+	gui.StudsOffset = Vector3.new(0, 1.5, 0)
+	gui.LightInfluence = 0
+	gui.AlwaysOnTop = true
+	gui.MaxDistance = 400
+	gui.Parent = anchor
+	local img = Instance.new("ImageLabel")
+	img.Size = UDim2.fromScale(1, 1)
+	img.BackgroundColor3 = Color3.fromRGB(30, 42, 44)
+	img.Image = image
+	img.ScaleType = Enum.ScaleType.Crop
+	img.Parent = gui
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0.5, 0)
+	corner.Parent = img
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = color
+	stroke.Thickness = 5
+	stroke.Parent = img
+	if image == "" then
+		local t = Instance.new("TextLabel")
+		t.Size = UDim2.fromScale(0.8, 0.4)
+		t.Position = UDim2.fromScale(0.1, 0.3)
+		t.BackgroundTransparency = 1
+		t.Text = label
+		t.TextColor3 = Color3.new(1, 1, 1)
+		t.Font = Enum.Font.GothamBlack
+		t.TextScaled = true
+		t.Parent = img
+	end
+	TweenService:Create(gui, TweenInfo.new(0.7, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = UDim2.fromOffset(250, 250), StudsOffset = Vector3.new(0, 4.5, 0) }):Play()
+	task.delay(4.4, function()
+		TweenService:Create(gui, TweenInfo.new(0.8, Enum.EasingStyle.Quint, Enum.EasingDirection.In), { Size = UDim2.fromOffset(0, 0), StudsOffset = Vector3.new(0, 1.5, 0) }):Play()
+		task.delay(0.9, function()
+			anchor:Destroy()
+		end)
+	end)
+end
+
 local counter = 0
 
 --- Play the animation for one heart's stairs. `spec` comes from Stairs.build; `parent` holds the temporary actors.
@@ -95,36 +167,48 @@ function StairAnimator.play(spec, parent: Instance)
 	end
 	spec.busy = true
 	counter += 1
-	local girl = counter % 2 == 0
+	local startGirl = counter % 2 == 0
 	task.spawn(function()
-		-- 1) the wave of light, one step after another
+		local first = spec.records[1]
+		local color = spec.stairs[1] and spec.stairs[1].color or Color3.fromRGB(90, 205, 126)
+		-- 1) the tap: ripples on the ground and the photo disc
+		ripple(spec.position, color, parent, 0)
+		ripple(spec.position, color, parent, 0.22)
+		photoDisc(spec.position + Vector3.new(0, 9, 0), color, first and first.photoAssetId or "", first and first.id or "", parent)
+		-- 2) the wave of light, one step after another; it settles to a soft glow, then fades
 		for _, st in ipairs(spec.stairs) do
 			for i, strip in ipairs(st.strips) do
-				task.delay((i - 1) * 0.06, function()
-					if strip.Parent then
-						strip.Color = st.color
-						strip.Material = Enum.Material.Neon
-						task.delay(2.4, function()
-							if strip.Parent then
-								TweenService:Create(strip, TweenInfo.new(0.8), { Color = Color3.fromRGB(205, 203, 197) }):Play()
-								task.delay(0.8, function()
-									if strip.Parent then
-										strip.Material = Enum.Material.SmoothPlastic
-									end
-								end)
-							end
-						end)
+				task.delay(0.7 + (i - 1) * 0.07, function()
+					if not strip.Parent then
+						return
 					end
+					strip.Color = st.color
+					strip.Material = Enum.Material.Neon
+					strip.Transparency = 0
+					task.delay(1.0, function()
+						if strip.Parent then
+							TweenService:Create(strip, TweenInfo.new(0.5), { Transparency = 0.55 }):Play()
+						end
+					end)
+					task.delay(8 + (i * 0.02), function()
+						if strip.Parent then
+							TweenService:Create(strip, TweenInfo.new(1.4), { Color = Color3.fromRGB(205, 203, 197), Transparency = 0 }):Play()
+							task.delay(1.4, function()
+								if strip.Parent then
+									strip.Material = Enum.Material.SmoothPlastic
+								end
+							end)
+						end
+					end)
 				end)
 			end
 		end
-		-- 2) a student climbs the first stair
+		-- 3) a student climbs the first stair (boy and girl alternate between taps)
 		local st = spec.stairs[1]
 		if st and #st.path > 1 then
-			task.wait(0.8)
-			local model, parts = student(parent, girl, counter)
+			task.wait(1.3)
+			local modelA, partsA = student(parent, startGirl, counter)
 			local pts = st.path
-			local seg, tAlong = 1, 0
 			local speed = 8
 			local phase = 0
 			local last = os.clock()
@@ -140,27 +224,41 @@ function StairAnimator.play(spec, parent: Instance)
 				local to = pts[target]
 				local d = to - pos
 				local dist = d.Magnitude
-				local step = speed * dt
-				if dist <= step then
+				local stepLen = speed * dt
+				if dist <= stepLen then
 					pos = to
 					target += 1
 				else
-					pos += d.Unit * step
+					pos += d.Unit * stepLen
 				end
 				local flat = Vector3.new(d.X, 0, d.Z)
 				if flat.Magnitude > 0.01 then
 					phase += dt * 11
-					pose(parts, CFrame.lookAt(pos, pos + flat), phase)
+					local cf = CFrame.lookAt(pos, pos + flat)
+					pose(partsA, cf, phase)
 				end
 				task.wait(1 / 30)
 			end
 			sparkle(pts[#pts], st.color, parent)
+			ripple(pts[#pts], st.color, parent, 0)
 			task.wait(0.4)
-			model:Destroy()
+			modelA:Destroy()
 		end
-		task.wait(2.2)
+		task.wait(1.5)
 		spec.busy = false
 	end)
 end
+
+function StairAnimator.smoke(root)
+	local spec = {
+		position = Vector3.new(0, 0, 0),
+		records = { { id = "ST99", photoAssetId = "" } },
+		stairs = { { color = Color3.new(0, 1, 0), strips = {}, path = { Vector3.new(0, 1, 0), Vector3.new(0, 2, -4), Vector3.new(0, 3, -8), Vector3.new(0, 4, -12) } } },
+	}
+	StairAnimator.play(spec, root)
+end
+
+StairAnimator.student = student
+StairAnimator.pose = pose
 
 return StairAnimator

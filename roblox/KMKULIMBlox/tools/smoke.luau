@@ -13,7 +13,7 @@ workspaceStub.Name = "Workspace"
 
 local env = {}
 for _, k in
-	{ "Instance", "Vector3", "Vector2", "CFrame", "Color3", "UDim", "UDim2", "Enum", "Region3", "Rect", "NumberRange", "ColorSequence", "NumberSequence", "TweenInfo", "Random", "BrickColor", "Ray", "Font", "PhysicalProperties", "Axes", "Faces" }
+	{ "Instance", "Vector3", "Vector2", "CFrame", "Color3", "UDim", "UDim2", "Enum", "Region3", "Rect", "NumberRange", "ColorSequence", "NumberSequence", "TweenInfo", "Random", "BrickColor", "Ray", "Font", "PhysicalProperties", "Axes", "Faces", "ColorSequenceKeypoint", "NumberSequenceKeypoint" }
 do
 	env[k] = (roblox :: any)[k]
 end
@@ -89,6 +89,7 @@ env.game = {
 	end,
 }
 env.PhysicalProperties = (roblox :: any).PhysicalProperties
+env.TweenInfo = { new = function() return {} end }
 
 local cache: { [string]: any } = {}
 local stubs: { [string]: boolean } = {}
@@ -174,10 +175,21 @@ if DUMP then
 	local out = {}
 	for _, d in workspaceStub:GetDescendants() do
 		if d:IsA("BasePart") then
-			local p = (d :: any).CFrame.Position
+			local cf = (d :: any).CFrame
 			local sz = (d :: any).Size
-			local anc = d.Parent and d.Parent.Parent and d.Parent.Parent.Name or ""
-			table.insert(out, { d.Name, math.floor(p.X * 10) / 10, math.floor(p.Y * 10) / 10, math.floor(p.Z * 10) / 10, math.floor(sz.X * 10) / 10, math.floor(sz.Y * 10) / 10, math.floor(sz.Z * 10) / 10, d.Parent and d.Parent.Name or "", anc })
+			local c = { cf:GetComponents() }
+			for i, v in c do
+				c[i] = math.floor(v * 100) / 100
+			end
+			local col = (d :: any).Color
+			local shape = "p"
+			if d.ClassName == "WedgePart" then
+				shape = "w"
+			elseif d.ClassName == "Part" then
+				local sh = (d :: any).Shape
+				shape = sh == (roblox :: any).Enum.PartType.Cylinder and "c" or (sh == (roblox :: any).Enum.PartType.Ball and "b" or "p")
+			end
+			table.insert(out, { shape, c, { math.floor(sz.X * 100) / 100, math.floor(sz.Y * 100) / 100, math.floor(sz.Z * 100) / 100 }, { math.floor(col.R * 255), math.floor(col.G * 255), math.floor(col.B * 255) }, (d :: any).Transparency })
 		end
 	end
 	fs.writeFile(DUMP, serde.encode("json", out))

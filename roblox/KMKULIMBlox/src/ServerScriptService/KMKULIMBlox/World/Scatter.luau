@@ -54,8 +54,9 @@ local function build()
 	end
 	-- reserved spots: the two entrance signs and the gate
 	table.insert(o.segs, { -259, -191, -259, -191, 70 })
-	table.insert(o.segs, { -278, -232, -278, -232, 60 })
+	table.insert(o.segs, { -278, -264, -278, -264, 60 })
 	table.insert(o.segs, { Features.Gate[1], Features.Gate[2], Features.Gate[1], Features.Gate[2], 45 })
+	table.insert(o.segs, { -281, -172, -281, -172, 26 }) -- Medius and his rune circle
 	obstacles = o
 	return o
 end
@@ -96,6 +97,48 @@ function Scatter.findFree(x: number, z: number, maxR: number?): (number, number)
 		end
 	end
 	return x, z
+end
+
+-- ----------------------------------------------------------------------------- sampling
+--- `count` free points (not in buildings/roads/signs, gentle slope), at least `spacing` apart. Deterministic.
+function Scatter.sample(count: number, spacing: number, seed: number, slopeMax: number?)
+	local o = build()
+	local r = Geo.rng(seed)
+	local placed, grid = {}, {}
+	local CELL = spacing
+	local minX, maxX, minZ, maxZ = math.huge, -math.huge, math.huge, -math.huge
+	for _, p in ipairs(o.campus) do
+		minX, maxX, minZ, maxZ = math.min(minX, p.X), math.max(maxX, p.X), math.min(minZ, p.Y), math.max(maxZ, p.Y)
+	end
+	minX, maxX, minZ, maxZ = minX - 60, maxX + 60, minZ - 60, maxZ + 60
+	local tries = 0
+	while #placed < count and tries < count * 40 do
+		tries += 1
+		local x, z = minX + r() * (maxX - minX), minZ + r() * (maxZ - minZ)
+		if not blocked(x, z) and Ground.slope(x, z) < (slopeMax or 0.5) then
+			local ok = true
+			local cx, cz = math.floor(x / CELL), math.floor(z / CELL)
+			for dx = -1, 1 do
+				for dz = -1, 1 do
+					local cell = grid[(cx + dx) .. "," .. (cz + dz)]
+					if cell then
+						for _, q in ipairs(cell) do
+							if (q[1] - x) ^ 2 + (q[2] - z) ^ 2 < spacing * spacing then
+								ok = false
+							end
+						end
+					end
+				end
+			end
+			if ok then
+				local k = cx .. "," .. cz
+				grid[k] = grid[k] or {}
+				table.insert(grid[k], { x, z })
+				table.insert(placed, { x, z, r() })
+			end
+		end
+	end
+	return placed
 end
 
 -- ----------------------------------------------------------------------------- trees
@@ -278,7 +321,7 @@ function Scatter.palms(parent: Instance)
 					while d < len - 10 and n < 110 do
 						local side = (n % 2 == 0) and 1 or -1
 						local x, z = ax + dx * d - dz * side * 24, az + dz * d + dx * side * 24
-						if not blocked(x, z) or Geo.edgeDistance(Geo.points(road.pts), x, z) > 18 and not blocked(x, z) then
+						if not blocked(x, z) then
 							local y = Ground.height(x, z)
 							local h = 22 + r() * 8
 							local m = Geo.model(folder, "Palm")

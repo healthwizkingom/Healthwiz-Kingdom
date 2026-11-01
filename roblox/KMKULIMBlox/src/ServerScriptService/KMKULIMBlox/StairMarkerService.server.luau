@@ -153,6 +153,7 @@ local function bind(marker)
   if last[player.UserId] and now-last[player.UserId]<0.55 then return end
   last[player.UserId]=now
   remote:FireClient(player,records,marker.PrimaryPart)
+  if Shared.StairVisited then for _,r in ipairs(records) do Shared.StairVisited(player,r.id) end end
   local spec=Markers.specByMarker[marker]
   if spec then StairAnimator.play(spec,animFolder) end
  end

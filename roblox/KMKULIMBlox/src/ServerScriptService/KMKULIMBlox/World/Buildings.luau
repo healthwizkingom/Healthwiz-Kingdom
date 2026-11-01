@@ -157,6 +157,18 @@ local function buildOne(parent: Instance, b, index: number)
 					end
 				end
 			end
+			-- red accent stripe under the eave, and air-conditioners on the back wall of each corridor
+			if corridor and longEdge then
+				Geo.part(model, { name = "Stripe", size = Vector3.new(L + 0.8, 0.9, 0.35), cf = edgeCF(at(4.45, topY - 0.9), dir), color = RED, mat = Enum.Material.Metal })
+				local acs = math.floor(L / 34)
+				for s = 1, storeys do
+					for k = 1, acs do
+						local t = (k / (acs + 1) - 0.5) * L
+						local p = at(1.5, floorY + (s - 1) * sh + 10.2)
+						Geo.part(model, { name = "AirCon", size = Vector3.new(3.4, 2.0, 1.3), pos = Vector3.new(p.X + dir.X * t, p.Y, p.Z + dir.Y * t), cf = nil, color = Color3.fromRGB(232, 232, 228), mat = Enum.Material.Metal, collide = false })
+					end
+				end
+			end
 			-- fascia
 			Geo.part(model, { name = "Fascia", size = Vector3.new(L + 1.2, 1.4, 1.2), cf = edgeCF(at(isMosque and 0.4 or (corridor and longEdge and 4.4 or 0.4), topY + 0.7), dir), color = isMosque and Color3.fromRGB(70, 130, 90) or Geo.shade(roofColor, 0.82), mat = Enum.Material.Metal })
 		end
@@ -217,6 +229,31 @@ local function buildOne(parent: Instance, b, index: number)
 			end
 			Geo.part(model, { name = "PortalBeam", size = Vector3.new(26, 2.2, 2.2), cf = edgeCF(base + Vector3.new(0, 18.5, 0), dir), color = RED, mat = Enum.Material.Metal })
 			Geo.part(model, { name = "PortalCanopy", size = Vector3.new(26, 0.7, 9), cf = edgeCF(base + Vector3.new(nrm.X * 1.5, 19.8, nrm.Y * 1.5), dir), color = Color3.fromRGB(235, 235, 232), mat = Enum.Material.Metal })
+		end
+	end
+
+	-- a proper entrance on the longest edge: dark timber double door, glass, red canopy
+	do
+		local best, bi = 0, 1
+		for i = 1, n do
+			local L = (pts[i % n + 1] - pts[i]).Magnitude
+			if L > best then
+				best, bi = L, i
+			end
+		end
+		if best > 24 then
+			local pa, pb = pts[bi], pts[bi % n + 1]
+			local dir = (pb - pa).Unit
+			local nrm = outward(pts, pa, pb)
+			local mid = (pa + pb) / 2 + dir * (best * 0.2)
+			local off = corridor and 4.6 or 1.0
+			local base = Vector3.new(mid.X + nrm.X * off, floorY, mid.Y + nrm.Y * off)
+			Geo.part(model, { name = "DoorFrame", size = Vector3.new(9, 9, 0.6), cf = edgeCF(base + Vector3.new(0, 4.5, 0), dir), color = Color3.fromRGB(88, 56, 40), mat = Enum.Material.Wood })
+			Geo.part(model, { name = "DoorGlass", size = Vector3.new(7.4, 8, 0.2), cf = edgeCF(base + Vector3.new(nrm.X * 0.4, 4.2, nrm.Y * 0.4), dir), color = Color3.fromRGB(150, 200, 220), mat = Enum.Material.Glass, tr = 0.4, collide = false })
+			Geo.part(model, { name = "DoorCanopy", size = Vector3.new(13, 0.6, 5), cf = edgeCF(base + Vector3.new(nrm.X * 2.4, 9.8, nrm.Y * 2.4), dir), color = RED, mat = Enum.Material.Metal })
+			for _, sgn in ipairs({ -1, 1 }) do
+				Geo.part(model, { name = "CanopyPost", size = Vector3.new(0.7, 9.6, 0.7), pos = Vector3.new(base.X + dir.X * sgn * 6 + nrm.X * 4.6, base.Y + 4.8, base.Z + dir.Y * sgn * 6 + nrm.Y * 4.6), color = WHITE, mat = Enum.Material.Metal })
+			end
 		end
 	end
 
