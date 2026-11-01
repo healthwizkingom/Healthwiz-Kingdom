@@ -86,6 +86,8 @@ zones = json.load(open(ROOT / "data/elevation-zones.geojson"))
 pal = {k: v for k, v in looks["palette"].items() if v.startswith("#")}
 default = looks["default"]
 
+import re as _re0
+_re_blok = _re0.compile(r"^Asrama (?:Lelaki|Perempuan) ")  # the hostel blocks are called just "Blok A", "Blok E"...
 # ------------------------------------------------------------------ features
 buildings, roads, covered, roofs, sports, squares, towers = [], [], [], [], [], [], []
 campus, gate = None, None
@@ -101,7 +103,7 @@ for f in osm["features"]:
         roof = lk.get("roof") or default["roof"]
         wall = lk.get("wall") or pal.get(default["wall"], "#dfdbde")
         trim = lk.get("trim") or default["trim"]
-        buildings.append(dict(id=key, name=p.get("name") or lk.get("name", ""), kind=bt, poly=poly, storeys=st,
+        buildings.append(dict(id=key, name=_re_blok.sub("Blok ", p.get("name") or lk.get("name", "")), kind=bt, poly=poly, storeys=st,
                               roof=pal.get(roof, "#ea566b"), wall=wall if wall.startswith("#") else pal.get(wall, "#dfdbde"),
                               trim=trim, details=lk.get("details") or [], box=obb(poly)))
     elif k in ("road", "road_major"):
