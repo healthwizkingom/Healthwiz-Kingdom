@@ -130,8 +130,8 @@ local function floodlight(parent: Instance, base: CFrame, x: number, z: number, 
 	local at = (base * CFrame.new(x, 0.8, z)).Position
 	local housing = Geo.part(parent, { name = "Floodlight", size = Vector3.new(2.4, 1.6, 0.8), cf = CFrame.lookAt(at, at + base:VectorToWorldSpace(aim)), color = Color3.fromRGB(34, 36, 40), mat = Enum.Material.Metal })
 	local sl = Instance.new("SpotLight")
-	sl.Brightness = 6
-	sl.Range = 52
+	sl.Brightness = 2
+	sl.Range = 40
 	sl.Angle = 70
 	sl.Face = Enum.NormalId.Front
 	sl.Color = Color3.fromRGB(255, 240, 200)
@@ -201,15 +201,12 @@ end
 -- ---------------------------------------------------------------------------------------------- We ♥ KMKulim
 local function heliconia(parent: Instance, base: CFrame, x: number, z: number, seed: number)
 	local r = Geo.rng(seed)
-	for k = 1, 6 do
-		local lean = (r() - 0.5) * 0.6
-		local hgt = 6 + r() * 4
-		local ang = r() * math.pi * 2
-		local cf = base * CFrame.new(x + (r() - 0.5) * 3, hgt / 2, z + (r() - 0.5) * 3) * CFrame.Angles(lean, ang, lean * 0.5)
-		Geo.part(parent, { name = "HeliconiaLeaf", size = Vector3.new(0.3, hgt, 2.4 + r()), cf = cf, color = Color3.fromRGB(46 + r() * 30, 130 + r() * 30, 52), mat = Enum.Material.Grass, collide = false })
-		if k % 2 == 0 then
-			Geo.part(parent, { name = "HeliconiaBract", size = Vector3.new(0.8, 1.4, 0.8), cf = cf * CFrame.new(0, hgt / 2 + 0.7, 0), color = Color3.fromRGB(236, 90 + r() * 60, 40), mat = Enum.Material.SmoothPlastic, collide = false })
-		end
+	for k = 1, 5 do
+		local d = 3 + r() * 2.4
+		Geo.part(parent, { name = "HeliconiaBush", size = Vector3.new(d, d * 0.9, d), cf = base * CFrame.new(x + (r() - 0.5) * 5, d * 0.45, z + (r() - 0.5) * 5), color = Color3.fromRGB(46 + r() * 20, 108 + r() * 24, 50), mat = Enum.Material.SmoothPlastic, shape = Enum.PartType.Ball, collide = false })
+	end
+	for k = 1, 4 do
+		Geo.part(parent, { name = "HeliconiaBract", size = Vector3.new(1.1, 1.8, 1.1), cf = base * CFrame.new(x + (r() - 0.5) * 4, 3.4 + r() * 1.6, z + (r() - 0.5) * 4), color = Color3.fromRGB(236, 80 + r() * 60, 40), mat = Enum.Material.SmoothPlastic, shape = Enum.PartType.Ball, collide = false })
 	end
 end
 

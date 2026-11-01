@@ -135,7 +135,7 @@ local function addPokestopVisuals(marker,records)
  if highlight then
   highlight.FillColor=baseColor
   highlight.OutlineColor=baseColor
-  TweenService:Create(highlight,TweenInfo.new(1.45,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut,-1,true),{OutlineTransparency=0.36,FillTransparency=0.82}):Play()
+  TweenService:Create(highlight,TweenInfo.new(1.45,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut,-1,true),{OutlineTransparency=0.55,FillTransparency=1}):Play()
  end
 end
 local function bind(marker)

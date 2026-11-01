@@ -1,9 +1,4 @@
 {
   "className": "ColorCorrectionEffect",
-  "properties": {
-    "Brightness": 0.02,
-    "Contrast": 0.12,
-    "Saturation": 0.18,
-    "TintColor": [1.0, 0.97, 0.92]
-  }
+  "properties": { "Brightness": 0.0, "Contrast": 0.06, "Saturation": 0.04, "TintColor": [1.0, 1.0, 1.0] }
 }

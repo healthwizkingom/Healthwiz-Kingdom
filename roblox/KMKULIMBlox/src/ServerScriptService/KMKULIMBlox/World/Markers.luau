@@ -58,12 +58,12 @@ function Markers.build(root: Instance, specs, data)
 		marker.Name = "Marker_" .. table.concat(ids, "_")
 		marker:SetAttribute("StopIds", table.concat(ids, ","))
 		-- the app's stop is 2.4 m tall and its centre hangs 3.1 m above the ground (at 3.57 studs a metre)
-		local K = 2.15
+		local K = 1.45
 		marker:ScaleTo(K)
 		marker:SetAttribute("Scale", K)
 		local anchor = marker.PrimaryPart
-		anchor.Size = Vector3.new(7, 9, 7)
-		local hover = spec.position + Vector3.new(0, 11, 0)
+		anchor.Size = Vector3.new(5, 6.5, 5)
+		local hover = spec.position + Vector3.new(0, 8.5, 0)
 		marker:PivotTo(CFrame.new(hover))
 		for _, d in ipairs(marker:GetDescendants()) do
 			if d:IsA("BasePart") then
@@ -74,8 +74,8 @@ function Markers.build(root: Instance, specs, data)
 		local stem = Instance.new("Part")
 		stem.Name = "BeaconStem"
 		stem.Shape = Enum.PartType.Cylinder
-		stem.Size = Vector3.new(7.4, 0.9, 0.9) -- a slim grey post, like the app's
-		stem.CFrame = CFrame.new(spec.position + Vector3.new(0, 3.7, 0)) * CFrame.Angles(0, 0, math.rad(90))
+		stem.Size = Vector3.new(5.4, 0.7, 0.7) -- a slim grey post, like the app's
+		stem.CFrame = CFrame.new(spec.position + Vector3.new(0, 2.7, 0)) * CFrame.Angles(0, 0, math.rad(90))
 		stem.Color = Color3.fromRGB(96, 102, 110)
 		stem.Material = Enum.Material.Metal
 		stem.Anchored, stem.CanCollide, stem.CanTouch, stem.CanQuery, stem.CastShadow = true, false, false, false, false
@@ -97,7 +97,7 @@ function Markers.build(root: Instance, specs, data)
 		local bb = Instance.new("BillboardGui")
 		bb.Name = "StairLabel"
 		bb.Size = UDim2.fromOffset(150, 34)
-		bb.StudsOffset = Vector3.new(0, 8.4, 0)
+		bb.StudsOffset = Vector3.new(0, 6.0, 0)
 		bb.MaxDistance = 130
 		bb.AlwaysOnTop = false
 		bb.Parent = anchor
@@ -123,7 +123,7 @@ function Markers.build(root: Instance, specs, data)
 		local pool = Instance.new("Part")
 		pool.Name = "GlowPool"
 		pool.Shape = Enum.PartType.Cylinder
-		pool.Size = Vector3.new(0.2, 24, 24)
+		pool.Size = Vector3.new(0.2, 15, 15)
 		pool.CFrame = CFrame.new(spec.position + Vector3.new(0, 0.45, 0)) * CFrame.Angles(0, 0, math.rad(90))
 		pool.Color = color
 		pool.Material = Enum.Material.Neon
@@ -137,7 +137,7 @@ function Markers.build(root: Instance, specs, data)
 		glow.Adornee = marker
 		glow.FillColor = color
 		glow.OutlineColor = color
-		glow.FillTransparency = 0.85
+		glow.FillTransparency = 1
 		glow.DepthMode = Enum.HighlightDepthMode.Occluded
 		glow.Parent = marker
 

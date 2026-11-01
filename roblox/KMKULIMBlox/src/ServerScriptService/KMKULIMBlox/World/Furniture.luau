@@ -88,8 +88,8 @@ function Furniture.lamp(parent: Instance, pos: Vector3, towards: Vector3?)
 	Geo.part(model, { name = "Arm", size = Vector3.new(0.6, 0.6, 7), cf = CFrame.lookAt(pos + Vector3.new(0, 25.6, 0) + look * 3.2, pos + Vector3.new(0, 25.6, 0) + look * 6.7), color = Color3.fromRGB(88, 92, 98), mat = Enum.Material.Metal })
 	local head = Geo.part(model, { name = "LampHead", size = Vector3.new(2.6, 0.7, 1.4), cf = CFrame.lookAt(pos + Vector3.new(0, 25.1, 0) + look * 6.4, pos + Vector3.new(0, 25.1, 0) + look * 7.4), color = Color3.fromRGB(255, 244, 214), mat = Enum.Material.SmoothPlastic, shadow = false })
 	local light = Instance.new("PointLight")
-	light.Brightness = 1.6
-	light.Range = 46
+	light.Brightness = 0.7
+	light.Range = 32
 	light.Color = Color3.fromRGB(255, 226, 170)
 	light.Enabled = false
 	light.Shadows = false

@@ -174,7 +174,7 @@ function StairAnimator.play(spec, parent: Instance)
 		-- 1) the tap: ripples on the ground and the photo disc
 		ripple(spec.position, color, parent, 0)
 		ripple(spec.position, color, parent, 0.22)
-		photoDisc(spec.position + Vector3.new(0, 16, 0), color, first and first.photoAssetId or "", first and first.id or "", parent)
+		photoDisc(spec.position + Vector3.new(0, 13, 0), color, first and first.photoAssetId or "", first and first.id or "", parent)
 		-- 2) the wave of light, one step after another; it settles to a soft glow, then fades
 		for _, st in ipairs(spec.stairs) do
 			for i, strip in ipairs(st.strips) do
