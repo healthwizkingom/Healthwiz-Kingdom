@@ -27,6 +27,8 @@ The campus is **generated when the server starts** (about 15 000 parts + terrain
 | Auto-generated life: hedges and crotons along the blocks, flower beds, a fountain, bins, flagpoles with the Jalur Gemilang, 30 students strolling the walkways | `World/Decor`, `World/Students` |
 | Plant life: rain trees, mango, frangipani, bamboo, banana, flowering bushes and ferns in clumps; lotus pond with bridge; fountain | `World/Vegetation`, `World/Props` |
 | Campus life: parked motorbike sheds, bus stop, "Zon Sihat" outdoor gym (hold the prompt for coins), basketball court, KM KULIM Run jogging track round the Padang, zebra crossings and road signs, birds, butterflies, clouds | `World/Props`, `World/Sky` |
+| **Campus Observatory** (press M or the MAP button): the app's observatory as an in-game overlay. Campus map with pan/zoom, numbered bubbles that merge close stairs and x2/x3 where stairs share a coordinate, search + Mild/Moderate/Vigorous filters, details in Location / Staircase profile / Data quality, a 3D stair preview (spin/reset), Locate me, Guide me (a beam to the stair) and Go there; quest progress per category | `ObservatoryMap`, `ObservatoryService`, `Observatory/*` (generated) |
+| Progress is saved (coins, steps climbed, stairs discovered) with DataStore; every step you tread on a stair counts toward Steps | `CoinService` |
 | Collectibles and leaderboard: Semangat coins along the walkways, health hearts at the top of every stair, Coins + Stairs-discovered on the leaderboard | `CoinService`, `CollectibleSpin` |
 | Day/night cycle (14 min), street lights and sign floodlights at dusk | `LightingService` |
 

@@ -27,16 +27,86 @@ local function setup(player: Player)
 	ls.Name = "leaderstats"
 	stat(ls, "Coins")
 	stat(ls, "Stairs")
+	stat(ls, "Steps")
 	ls.Parent = player
 end
-Players.PlayerAdded:Connect(setup)
-for _, p in ipairs(Players:GetPlayers()) do
-	if not p:FindFirstChild("leaderstats") then
-		setup(p)
+
+-- ---------------------------------------------------------------------------- saving
+local DataStoreService = game:GetService("DataStoreService")
+local store = DataStoreService:GetDataStore("KMKULIMBlox_v1")
+local visited: { [Player]: { [string]: boolean } } = {}
+local loaded: { [Player]: boolean } = {}
+
+local function publishVisited(player: Player)
+	local ids = {}
+	for id in pairs(visited[player] or {}) do
+		table.insert(ids, id)
 	end
+	table.sort(ids)
+	player:SetAttribute("VisitedStairs", table.concat(ids, ","))
 end
 
-local visited: { [Player]: { [string]: boolean } } = {}
+local function load(player: Player)
+	local ok, data = pcall(function()
+		return store:GetAsync("u" .. player.UserId)
+	end)
+	local ls = player:FindFirstChild("leaderstats")
+	if ok and type(data) == "table" and ls then
+		ls.Coins.Value = tonumber(data.coins) or 0
+		ls.Steps.Value = tonumber(data.steps) or 0
+		visited[player] = {}
+		for _, id in ipairs(type(data.visited) == "table" and data.visited or {}) do
+			if typeof(id) == "string" then
+				visited[player][id] = true
+			end
+		end
+		ls.Stairs.Value = 0
+		for _ in pairs(visited[player]) do
+			ls.Stairs.Value += 1
+		end
+	end
+	loaded[player] = ok -- never overwrite a save we failed to read
+	publishVisited(player)
+end
+
+local function save(player: Player)
+	local ls = player:FindFirstChild("leaderstats")
+	if not ls or not loaded[player] then
+		return
+	end
+	local ids = {}
+	for id in pairs(visited[player] or {}) do
+		table.insert(ids, id)
+	end
+	pcall(function()
+		store:SetAsync("u" .. player.UserId, { coins = ls.Coins.Value, steps = ls.Steps.Value, visited = ids })
+	end)
+end
+
+local function onJoin(player: Player)
+	if not player:FindFirstChild("leaderstats") then
+		setup(player)
+	end
+	load(player)
+end
+Players.PlayerAdded:Connect(onJoin)
+for _, p in ipairs(Players:GetPlayers()) do
+	task.spawn(onJoin, p)
+end
+task.spawn(function()
+	while true do
+		task.wait(90)
+		for _, p in ipairs(Players:GetPlayers()) do
+			save(p)
+		end
+	end
+end)
+game:BindToClose(function()
+	for _, p in ipairs(Players:GetPlayers()) do
+		save(p)
+	end
+end)
+
 --- Called by StairMarkerService when a player opens a stair.
 Shared.StairVisited = function(player: Player, id: string)
 	local seen = visited[player]
@@ -51,10 +121,13 @@ Shared.StairVisited = function(player: Player, id: string)
 			ls.Stairs.Value += 1
 			ls.Coins.Value += 15
 		end
+		publishVisited(player)
 	end
 end
 Players.PlayerRemoving:Connect(function(p)
+	save(p)
 	visited[p] = nil
+	loaded[p] = nil
 end)
 
 -- ---------------------------------------------------------------------------- coins
@@ -161,5 +234,28 @@ local function hookExercise(pp: Instance)
 end
 for _, pp in ipairs(CollectionService:GetTagged("KMExercise")) do
 	hookExercise(pp)
+end
+-- climbing counts: every new step you tread on a stair adds to Steps (each step pays again after 30 s)
+local stepSeen: { [string]: number } = {}
+local stairsFolder = workspace:WaitForChild("KMKULIMBlox"):WaitForChild("Campus"):FindFirstChild("Stairs")
+if stairsFolder then
+	for _, d in ipairs(stairsFolder:GetDescendants()) do
+		if d:IsA("BasePart") and d.Name == "Step" then
+			d.Touched:Connect(function(hit)
+				local player = Players:GetPlayerFromCharacter(hit.Parent)
+				local n = hit.Name
+				if player and (n == "LeftFoot" or n == "RightFoot" or n == "LeftLowerLeg" or n == "RightLowerLeg" or n == "HumanoidRootPart") then
+					local key = player.UserId .. ":" .. d:GetFullName()
+					if os.clock() - (stepSeen[key] or -99) > 30 then
+						stepSeen[key] = os.clock()
+						local ls = player:FindFirstChild("leaderstats")
+						if ls then
+							ls.Steps.Value += 1
+						end
+					end
+				end
+			end)
+		end
+	end
 end
 print("KMKULIMBlox collectibles:", count)

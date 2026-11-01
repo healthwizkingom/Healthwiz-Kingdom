@@ -285,5 +285,38 @@ for sid, s_ in sorted(survey.items()):
         ",".join("{n=%d,riser=%s,tread=%s}" % (f["risers"], fmt(f["riser_cm"] or 16), fmt(f["tread_cm"] or 30)) for f in fl)))
 (OUT / "StairSurvey.luau").write_text(hdr + "-- cm per step, from data/stair-survey.json\nreturn {\n" + ",\n".join(st) + "\n}\n")
 
+# ------------------------------------------------------------------ Observatory data for the in-game map (client side)
+import re as _re
+OBS = ROOT / "roblox/KMKULIMBlox/src/ReplicatedStorage/KMKULIMBlox/Observatory"
+OBS.mkdir(parents=True, exist_ok=True)
+stair_src = (ROOT / "js/hw-02-core.js").read_text() + (ROOT / "js/v6-stairs-data.js").read_text()
+app = {}
+for m in _re.finditer(r'\{"id": "(ST\d+)", "cat": "(\w+)", "name": "([^"]*)", "floor": "([^"]*)", "angle": ([\d.]+), "lat": ([\d.]+|null), "lng": ([\d.]+|null)\}', stair_src):
+    sid, cat, name, floor, angle, lat, lng = m.groups()
+    app[sid] = dict(cat=cat, name=name, floor=floor, angle=float(angle), lat=None if lat == "null" else float(lat), lng=None if lng == "null" else float(lng))
+prof = []
+for sid in sorted(app):
+    a = app[sid]
+    sv = survey.get(sid, {})
+    fl = [f for f in sv.get("flights", []) if f.get("risers")]
+    comp = sv.get("complete", {})
+    rec = sv.get("survey") or {}
+    x, z = (world(a["lng"], a["lat"]) if a["lat"] is not None else (None, None))
+    rise = sum(f["risers"] * (f["riser_cm"] or 0) for f in fl) / 100 if fl and comp.get("flights") else None
+    prof.append("{id=%s,name=%s,cat=%s,floor=%s,angle=%.2f,%sshape=%s,flights={%s},rise=%s,by=%s,date=%s,tool=%s,posDone=%s,flightsDone=%s,recordDone=%s}" % (
+        lua_str(sid), lua_str(a["name"]), lua_str(a["cat"]), lua_str(a["floor"]), a["angle"],
+        ("lat=%s,lng=%s," % (a["lat"], a["lng"])) if a["lat"] is not None else "",
+        lua_str(sv.get("shape") or "unknown"),
+        ",".join("{n=%d,riser=%s,tread=%s}" % (f["risers"], fmt(f["riser_cm"] or 0), fmt(f["tread_cm"] or 0)) for f in fl),
+        ("%.2f" % rise) if rise else "nil", lua_str(rec.get("by") or ""), lua_str(rec.get("date") or ""), lua_str(rec.get("tool") or ""),
+        "true" if comp.get("position") else "false", "true" if comp.get("flights") else "false", "true" if comp.get("record") else "false"))
+(OBS / "StairProfiles.luau").write_text(hdr + "-- the app's stair list joined with the survey sheet\nreturn {\n" + ",\n".join(prof) + "\n}\n")
+mb = ["{%s,%s,%.3f,%s,%s}" % (fmt(b["box"][0]), fmt(b["box"][1]), b["box"][2], fmt(b["box"][3]), fmt(b["box"][4])) for b in buildings]
+mr = ["{%s,%s}" % ("true" if r["major"] else "false", flat(r["pts"])) for r in roads]
+mc = [flat(c) for c in covered]
+ms = ["{%s,%s,%.3f,%s,%s,%s}" % (fmt(obb(s_["poly"])[0]), fmt(obb(s_["poly"])[1]), obb(s_["poly"])[2], fmt(obb(s_["poly"])[3]), fmt(obb(s_["poly"])[4]), lua_str(s_["sport"] or s_["name"])) for s_ in sports]
+mq = ["{%s,%s,%.3f,%s,%s}" % tuple([fmt(obb(q)[0]), fmt(obb(q)[1]), obb(q)[2], fmt(obb(q)[3]), fmt(obb(q)[4])]) for q in squares]
+(OBS / "MapData.luau").write_text(hdr + "-- simplified campus shapes for the in-game map: boxes are {cx, cz, angle, w, h}\nreturn {\nBuildings={" + ",".join(mb) + "},\nRoads={" + ",\n".join(mr) + "},\nCovered={" + ",\n".join(mc) + "},\nSports={" + ",".join(ms) + "},\nSquares={" + ",".join(mq) + "}}\n")
+
 print("buildings", len(buildings), "roads", len(roads), "covered", len(covered), "roofs", len(roofs),
       "grid %dx%d" % (NX, NZ), "max height %.1f studs (%.1f m)" % (hmax, hmax / S), file=sys.stderr)
