@@ -89,6 +89,7 @@ env.game = {
 	end,
 }
 env.PhysicalProperties = (roblox :: any).PhysicalProperties
+env.TweenInfo = { new = function() return {} end }
 
 local cache: { [string]: any } = {}
 local stubs: { [string]: boolean } = {}

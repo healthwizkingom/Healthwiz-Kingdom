@@ -114,6 +114,19 @@ function Markers.build(root: Instance, specs, data)
 		pad.PaddingTop, pad.PaddingBottom = UDim.new(0, 4), UDim.new(0, 4)
 		pad.Parent = tl
 
+		-- a soft pulsing pool of light on the ground under the heart (the app's halo pool)
+		local pool = Instance.new("Part")
+		pool.Name = "GlowPool"
+		pool.Shape = Enum.PartType.Cylinder
+		pool.Size = Vector3.new(0.2, 15, 15)
+		pool.CFrame = CFrame.new(spec.position + Vector3.new(0, 0.45, 0)) * CFrame.Angles(0, 0, math.rad(90))
+		pool.Color = color
+		pool.Material = Enum.Material.Neon
+		pool.Transparency = 0.7
+		pool.Anchored, pool.CanCollide, pool.CanTouch, pool.CanQuery, pool.CastShadow = true, false, false, false, false
+		pool.Parent = marker
+		game:GetService("TweenService"):Create(pool, TweenInfo.new(1.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { Transparency = 0.88 }):Play()
+
 		local glow = Instance.new("Highlight")
 		glow.Name = "AnimatedBeaconGlow"
 		glow.Adornee = marker
