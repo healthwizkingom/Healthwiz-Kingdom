@@ -283,3 +283,26 @@ Also not used: the supplied MyFCD tag names, the tryptophan intake range, and th
 - **Sources recorded in `js/v6-sources.js`:** `nistwater` (checked: the enthalpy of vaporization was computed from NIST's saturation table, 2429.8 kJ/kg at 30 °C, 2422.7 at 33 °C), `blanchard83` (checked against its PubMed abstract: individual caffeine half-lives 2.7 to 9.9 h) and `iom2001` (**partly checked**: the book is real, but the sentence "about 4 to 5 hours (range 2 to 9)" was supplied by the owner and could not be read here; the record says so). A caffeine half-life must be shown as a spread, not one number.
 - **Menu estimates:** `data/menu_micronutrient_dataset.json` / `.csv` (all 152 menu rows) and `js/v6-menu-nutrients.js`. 23 rows map to one published food-composition record; the rest are unavailable. The tables used are the USDA SR Legacy release; MyFCD could not be read. **The project rule (tests/67) keeps USDA out of the app's source and Vault lists, so the provenance is kept in the data files, `tools/build_menu_nutrients.py` and this note.** If these values are ever shown to users, the owner must decide how to cite the tables (that needs `tests/67` to change).
 - Not built: Luke's live search does not return tryptophan or caffeine (its function asks only for sodium, potassium and magnesium).
+
+## Features 5 and 6: final plans, decisions and corrections (2026-11-01)
+
+### Four factual corrections to the earlier notes and the owner's brief
+1. **Caffeine half-life spread.** "3.0 to 7.0 h" came from the quotation "averaged 4.98 h (range 3.03 to 7.15 h)", which is NOT in the Blanchard & Sawers abstract. The only half-life line verified (PubMed 6832208) is **2.7 to 9.9 h**, individual values in 10 men. The IOM "4 to 5 h typical, 2 to 9 h range" was supplied by the owner and has not been read in the book. Feature 6 uses 2.7 to 9.9 h as the checked spread and shows the IOM figure only as a marked, unverified context line.
+2. **Four assumptions, not three.** Feature 5 assumes η = 0.20, α = 0.80, **all heat leaves as sweat** (convection, radiation and breath ignored), and 1 g of sweat = 1 mL.
+3. **Skin temperature.** NIST gives Lv = 2426 kJ/kg at about 31.6 °C. No source is held for a "typical skin temperature", so the wording is "the value at about 31.6 °C".
+4. **Caffeine entries.** The earlier note "the caffeine entries in `js/hw-02-core.js`" was wrong: the app has no caffeine log. The only caffeine in the app is the `caf` value Luke saves with a food entry (`js/v6-addfood.js`).
+
+### Decisions (owner, 2026-11-01)
+- **Menu-table caffeine: Option A.** Feature 6 reads ONLY `caf` values saved from Luke lookups. A static menu item with no Luke lookup says "caffeine unknown". `tests/67` is unchanged. The menu dataset's USDA provenance stays in the data files, the build tool and these docs.
+- **Feature 5 energy input:** the project's existing kJ estimate (`js/v6-stairs.js` `projectVO2`, exposed as `HWStairs.projectNow`). No second energy calculation, and no dependence on stair height.
+- **Minerals graph:** stays sodium, potassium and magnesium only. Tryptophan and caffeine are not minerals; Feature 6 presents them.
+- **Order:** Feature 5 first, then Feature 6.
+
+### Feature 5: Hydrate & Cool (built: `js/v6-hydrate.js`, `tests/98-hydrate.test.mjs`)
+heat Q = energy × (1 − 0.20); sweat S = Q ÷ (0.80 × 2426 kJ/kg). Worked: 100 kJ → 80 kJ → 0.0412 kg ≈ 41 mL. Labelled "estimated fluid deficit", with the four assumptions on the card and a worked "?" panel. No alert, no "drink now", no dehydration or heat-illness wording. Needs a confirmed profile, a resting pulse, an after pulse and a workout time; otherwise it says what to add. Memory only, no schema step. NIST water is the only source (`nistwater`); η and α are HealthWiz's own round figures and say so.
+
+### Feature 6: Nightly Alchemical Sync (plan; not built yet)
+Standalone `js/v6-nightsync.js` (the Trance file is 56 KB). For each evening item with a saved `caf`: residual = mg × 0.5^(hours ÷ half-life) at 2.7 h and 9.9 h, shown as a range (Teh O 40 mg at 16:00, bed 23:00, 7 h: about 7 to 25 mg). Items with no caffeine value are never counted as zero: the card says "caffeine unknown for N logged items" and labels the range "at least". No partial totals. Last meal time, sleep latency and N2/N3-equivalent figures come from the Trance, as logged. "Descriptive, not evidence of cause." No synergy score. Memory only.
+
+### Luke's lookup (already built, commit 17fe1a9)
+`food-guess` returns `caffeine_mg` and `tryptophan_mg` per part with `nutrient_source` and `nutrient_match`; a number without a citation is dropped; caffeine 0 counts as missing; null or failure shows "Luke found no source" and saves nulls. The entry keeps `trp`, `caf`, `mnsrc`, `mnm`. No USDA wording in any user-facing file (`tests/67`). The function needs the owner to deploy it.
