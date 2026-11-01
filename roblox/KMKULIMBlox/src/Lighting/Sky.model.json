@@ -1,0 +1,18 @@
+{
+  "className": "Sky",
+  "properties": {
+    "SunTextureContent": "rbxassetid://6196665106",
+    "SkyboxDownContent": "rbxassetid://6444884785",
+    "SkyboxFrontContent": "rbxassetid://6444884337",
+    "SkyboxRightContent": "rbxassetid://6444884337",
+    "SkyboxUpContent": "rbxassetid://6412503613",
+    "SourceAssetId": 332039975.0,
+    "SunAngularSize": 11.0,
+    "MoonTextureContent": "rbxassetid://6444320592",
+    "SerializedOverrides": {
+      "BinaryString": ""
+    },
+    "SkyboxLeftContent": "rbxassetid://6444884337",
+    "SkyboxBackContent": "rbxassetid://6444884337"
+  }
+}
