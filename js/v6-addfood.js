@@ -69,10 +69,11 @@ async function webSearch(){W.busy=1;W.err='';W.unknown=0;W.note2='';W.step='ask'
     draw()}
   catch(e){W.busy=0;W.note2=(AIERR[e.code]||AIERR.ai)+' I can still look at the canteen menu.';search()}}
 /** One part's values after the player's adjustment (x: 0 to 4 times what he found). */
-function itemVal(it){const v=it.v,x=it.x,m=k=>v[k]==null?null:v[k]*x;return{g:v.g==null?null:v.g*x,kcal:v.kcal*x,p:m('p'),c:m('c'),f:m('f'),na:m('na'),k:m('k'),mg:m('mg')}}
-// sodium, potassium and magnesium (mg): a total only when a part gave the number; null means no source had it
-const MINERALS=['na','k','mg'];
-function totals(){const t={kcal:0,p:0,c:0,f:0,g:0,miss:0,na:0,k:0,mg:0,seen:{}};W.items.forEach(it=>{if(!it.x)return;const v=itemVal(it);t.kcal+=v.kcal;['p','c','f'].forEach(k=>{if(v[k]==null)t.miss=1;else t[k]+=v[k]});if(v.g)t.g+=v.g;
+function itemVal(it){const v=it.v,x=it.x,m=k=>v[k]==null?null:v[k]*x;return{g:v.g==null?null:v.g*x,kcal:v.kcal*x,p:m('p'),c:m('c'),f:m('f'),na:m('na'),k:m('k'),mg:m('mg'),trp:m('trp'),caf:m('caf')}}
+// sodium, potassium, magnesium, tryptophan and caffeine (mg): a total only when a part gave the number; null means no search result had it.
+// The player is never asked for any of them: Luke searches for them himself and cites the best result he found (it.v.nsrc, 'exact' or 'similar' food).
+const MINERALS=['na','k','mg','trp','caf'];
+function totals(){const t={kcal:0,p:0,c:0,f:0,g:0,miss:0,na:0,k:0,mg:0,trp:0,caf:0,seen:{}};W.items.forEach(it=>{if(!it.x)return;const v=itemVal(it);t.kcal+=v.kcal;['p','c','f'].forEach(k=>{if(v[k]==null)t.miss=1;else t[k]+=v[k]});if(v.g)t.g+=v.g;
   MINERALS.forEach(k=>{if(v[k]!=null){t[k]+=v[k];t.seen[k]=1}})});
   t.kcal=Math.round(t.kcal);['p','c','f','g'].forEach(k=>t[k]=r1(t[k]));MINERALS.forEach(k=>t[k]=t.seen[k]?Math.round(t[k]):null);return t}
 
@@ -93,23 +94,24 @@ const NS=[.5,1,1.5,2,3],nt=n=>n===.5?'½':n===1.5?'1½':String(n);
 /** The values for the chosen canteen dish and amount: {kcal, p, c, f, label} or null. */
 function calc(){if(!W.sel)return null;const m=W.sel,k=Math.round(m.kcal*W.n),x=typeof estMac==='function'?estMac(m.name,k):null;
   const mn=m.mn||{},sc=v=>v==null?null:Math.round(v*W.n);
-  return{kcal:k,p:x?x.p:null,c:x?x.c:null,f:x?x.f:null,na:sc(mn.na),k:sc(mn.k),mg:sc(mn.mg),mnsrc:mn.src||'',mnbusy:!!m.mnbusy,label:nt(W.n)+' × '+m.por,menu:1}}
-/** Luke looks up sodium, potassium and magnesium for one canteen dish with the same search as the macros (food-guess), with the sources he used. Null when he cannot search. */
+  return{kcal:k,p:x?x.p:null,c:x?x.c:null,f:x?x.f:null,na:sc(mn.na),k:sc(mn.k),mg:sc(mn.mg),trp:sc(mn.trp),caf:sc(mn.caf),mnsrc:mn.src||'',mnm:mn.sim?'similar':'',mnbusy:!!m.mnbusy,mnoff:!!m.mnoff,label:nt(W.n)+' × '+m.por,menu:1}}
+/** Luke looks up sodium, potassium, magnesium, tryptophan and caffeine for one canteen dish with the same search as the macros (food-guess), citing the best result he found for each part
+    (src = the names of those results, sim = at least one is a similar food, not this exact one). Null when he cannot search (signed out, offline or the search failed). */
 async function mineralsFor(name,por){const c=CL();if(!c||!c.who()||navigator.onLine===false)return null;
   try{const r=await c.api('/functions/v1/food-guess',{method:'POST',body:{food:name+', '+por+' (one serving)'},ms:45000});
     const items=r&&r.result&&Array.isArray(r.result.items)?r.result.items:[];
     const sum=k=>{const v=items.filter(i=>i[k]!=null);return v.length?Math.round(v.reduce((a,i)=>a+i[k],0)):null};
-    const src=[...new Set(items.filter(i=>i.src).map(i=>i.src))].join('; ');
-    return{na:sum('na'),k:sum('k'),mg:sum('mg'),src}}
+    const src=[...new Set(items.filter(i=>i.nsrc||i.src).map(i=>i.nsrc||i.src))].join('; ');
+    return{na:sum('na'),k:sum('k'),mg:sum('mg'),trp:sum('trp'),caf:sum('caf'),src,sim:items.some(i=>i.nm==='similar')}}
   catch(e){return null}}
 /** One mineral row: the amount in mg; while Luke is still looking, or when no verified source had the number, it says so (never a made-up number). */
-const mineralRow=(name,v,busy)=>'<tr><th scope="row">'+name+'</th><td>'+(v!=null?fmt(v)+' mg':busy?'<span class="mut">looking up…</span>':'<span class="mut">no verified source found</span>')+'</td></tr>';
+const mineralRow=(name,v,busy,off)=>'<tr><th scope="row">'+name+'</th><td>'+(v!=null?fmt(v)+' mg':busy?'<span class="mut">Luke is looking…</span>':off?'<span class="mut">Luke looks this up when you are signed in and online</span>':'<span class="mut">Luke found no source for this</span>')+'</td></tr>';
 function card(){const c=calc();if(!c)return '<p class="mut">Choose an amount to see the values.</p>';
   const row=(n,v,unit)=>'<tr><th scope="row">'+n+'</th><td>'+(v==null?'<span class="mut">not available</span>':fmt(v)+' '+unit)+'</td></tr>';
-  const mrows=[['Sodium',c.na],['Potassium',c.k],['Magnesium',c.mg]].map(([n,v])=>mineralRow(n,v,c.mnbusy)).join('');
+  const mrows=[['Sodium',c.na],['Potassium',c.k],['Magnesium',c.mg],['Tryptophan',c.trp],['Caffeine',c.caf]].filter(([n,v])=>n!=='Caffeine'||v!=null).map(([n,v])=>mineralRow(n,v,c.mnbusy,c.mnoff)).join('');
   return '<div class="awcard'+(W.step==='done'?' reveal':'')+'"><b>'+esc(W.name||W.sel.name)+'</b><small>'+esc(c.label)+'</small><table class="awtab"><tbody>'+row('Energy',c.kcal,'kcal')+row('Protein',c.p,'g')+row('Carbohydrate',c.c,'g')+row('Fat',c.f,'g')+mrows+'</tbody></table>'
     +'<p class="mut">kcal = '+W.sel.kcal+' kcal per portion × '+nt(W.n)+' = '+c.kcal+' kcal (Kolej MARA Kulim canteen menu, 2022). Protein, carbohydrate and fat are <b>HealthWiz estimates</b> from the dish type, not measured.</p>'
-    +(c.mnsrc?'<p class="mut">Minerals: AI estimate by Google Gemini from web sources: '+esc(c.mnsrc)+'.</p>':'')+'</div>'}
+    +(c.mnsrc?'<p class="mut">Nutrients: AI estimate by Google Gemini from web search. Best result used: '+esc(c.mnsrc)+(c.mnm==='similar'?' (for a similar food: the closest match Luke found)':'')+'.</p>':'')+'</div>'}
 function portionStep(){const s=W.sel;
   const opts=s.vars.length>1?'<p>The canteen menu lists this dish '+s.vars.length+' times. Which one was it?</p><div class="awms" role="group" aria-label="Canteen portion">'
       +s.vars.map((x,i)=>'<button type="button" class="chip awm'+(s.v===i?' on':'')+'" data-a="awvar" data-i="'+i+'" aria-pressed="'+(s.v===i)+'"><span>'+esc(x.por)+'<small>'+x.kcal+' kcal</small></span></button>').join('')+'</div>'
@@ -197,11 +199,12 @@ function guessCard(){const t=totals(),edit=W.step==='guess',r=W.res||{};
       +(edit?'<span class="awadj"><button type="button" class="g sm" data-a="awadj" data-i="'+i+'" data-d="-1" aria-label="Less '+esc(it.label)+'">−</button><button type="button" class="g sm" data-a="awadj" data-i="'+i+'" data-d="1" aria-label="More '+esc(it.label)+'">+</button></span>':'')
       +(off?'':'<small class="awps">P '+fmt(v.p)+' g · C '+fmt(v.c)+' g · F '+fmt(v.f)+' g</small>'
         +'<small class="awps awref">'+(it.v.src?'Source: <b>'+esc(it.v.src)+'</b>':'<b>No source found: his own estimate</b>')+(it.v.basis?'. '+esc(it.v.basis):'')+'</small>'
+        +(MINERALS.some(k=>it.v[k]!=null)&&(it.v.nsrc||it.v.src)?'<small class="awps awref">Nutrients: <b>'+esc(it.v.nsrc||it.v.src)+'</b>'+(it.v.nm==='similar'?' (a similar food: the closest match)':'')+'</small>':'')
         +(it.v.chk?'<small class="awps awwarn">Check this one: its calories do not match its protein, carbohydrate and fat (4 × P + 4 × C + 9 × F = '+Math.round(4*(it.v.p||0)+4*(it.v.c||0)+9*(it.v.f||0))+' kcal).</small>':''))+'</li>'}).join('');
   const nosrc=W.items.filter(i=>i.x&&!i.v.src).length;
   const src=(r.sources||[]).map(s=>'<li><a href="'+esc(s.url)+'" target="_blank" rel="noopener noreferrer">'+esc(s.title||host(s.url))+'</a></li>').join('');
   return '<div class="awcard awguessc'+(W.step==='done'?' reveal':'')+'" id="awcard"><small>'+esc(r.name||W.food)+(r.portion?' · '+esc(r.portion):'')+'</small><b class="awbig">about '+t.kcal+' kcal</b>'
-    +'<table class="awtab"><tbody><tr><th scope="row">Protein</th><td>'+fmt(t.p)+' g</td></tr><tr><th scope="row">Carbohydrate</th><td>'+fmt(t.c)+' g</td></tr><tr><th scope="row">Fat</th><td>'+fmt(t.f)+' g</td></tr>'+MINERALS.map((k,i)=>mineralRow(['Sodium','Potassium','Magnesium'][i],t[k])).join('')+'</tbody></table>'
+    +'<table class="awtab"><tbody><tr><th scope="row">Protein</th><td>'+fmt(t.p)+' g</td></tr><tr><th scope="row">Carbohydrate</th><td>'+fmt(t.c)+' g</td></tr><tr><th scope="row">Fat</th><td>'+fmt(t.f)+' g</td></tr>'+MINERALS.map((k,i)=>[['Sodium','Potassium','Magnesium','Tryptophan','Caffeine'][i],t[k]]).filter(([n,v])=>n!=='Caffeine'||v!=null).map(([n,v])=>mineralRow(n,v)).join('')+'</tbody></table>'
     +'<ul class="awparts">'+rows+'</ul>'
     +(r.note?'<p class="mut">'+esc(r.note)+'</p>':'')
     +'<p class="mut awhow"><b>AI estimate</b> by Google Gemini'+(r.searched===false?' from its own knowledge (the web search was not available)':' from web sources')+', not a measurement. How sure: <b>'+esc(r.confidence||'low')+'</b>.'+(nosrc?' '+nosrc+' part'+(nosrc>1?'s have':' has')+' no source and '+(nosrc>1?'are':'is')+' his own estimate.':'')+' It can be wrong: check the sources, and adjust any part with − and +.</p>'
@@ -228,21 +231,21 @@ acts.awlog=()=>{keepName();const t=totals(),r=W.res;if(!r||!W.items.some(i=>i.x)
   const w=HWWhen.stamp({sig:'aw'+name+t.kcal});if(!w)return;
   const parts=W.items.filter(i=>i.x).map(i=>{const v=itemVal(i);return[i.label,v.g==null?null:r1(v.g),Math.round(v.kcal),i.v.src||'']});
   add('food',t.kcal,{name,por:r.portion||'Wizard\'s web estimate',qty:1,meal,src:'Luke web search (Google Gemini)',custom:1,db:'est',how:r.searched===false?'ai':'web',g:t.g,
-    p:t.miss?'':t.p,c:t.miss?'':t.c,f:t.miss?'':t.f,na:t.na,k:t.k,mg:t.mg,fb:'',parts,refs:(r.sources||[]).slice(0,5).map(s=>s.url)},'',w.d,w.t,10,'Food logged');
+    p:t.miss?'':t.p,c:t.miss?'':t.c,f:t.miss?'':t.f,na:t.na,k:t.k,mg:t.mg,trp:t.trp,caf:t.caf,fb:'',parts,refs:(r.sources||[]).slice(0,5).map(s=>s.url)},'',w.d,w.t,10,'Food logged');
   HWWhen.saved(w,'Food');W.step='done';W.done={est:1};const y=window.scrollY;render();window.scrollTo(0,y)};
 // the canteen menu
 acts.awsearch=()=>{const i=D.getElementById('awq');W.q=i?i.value:W.q;search()};
 acts.awback=()=>{W.step=W.q?'pick':'ask';W.sel=null;W.err='';if(W.step==='pick')W.menu=menuMatches(W.q);draw();const i=D.getElementById('awq');if(i)i.focus()};
 acts.awpick=d=>{const j=+String(d.k||'').slice(1),src=W.menu[j];if(!src)return;W.sel=menuSel(src.name,src.i);W.name=src.name;W.n=1;W.err='';W.step='portion';draw();fetchMinerals(W.sel)};
-/** Luke's own search for a dish's minerals, started when the dish is picked: nothing is asked of the player. */
-function fetchMinerals(sel){if(!signed())return;sel.mnbusy=true;draw();
+/** Luke's own search for a dish's nutrients, started when the dish is picked: nothing is asked of the player (they cannot know these numbers). */
+function fetchMinerals(sel){if(!signed()){sel.mnoff=true;draw();return}sel.mnbusy=true;sel.mnoff=false;draw();
   const key=sel.name+'|'+sel.por;sel.mnkey=key;
-  mineralsFor(sel.name,sel.por).then(mn=>{if(sel.mnkey!==key)return;sel.mnbusy=false;sel.mn=mn||{};if(W.sel===sel)draw()})}
+  mineralsFor(sel.name,sel.por).then(mn=>{if(sel.mnkey!==key)return;sel.mnbusy=false;sel.mn=mn||{};sel.mnoff=!mn;if(W.sel===sel)draw()})}
 acts.awvar=d=>{keepName();if(W.sel&&W.sel.vars&&W.sel.vars[+d.i])setVar(W.sel,+d.i);draw()};
 acts.awn=d=>{keepName();W.n=+d.v;draw()};
 acts.awsave=()=>{keepName();const c=calc();if(!c)return;const name=String(W.name||W.sel.name).trim().slice(0,60)||W.sel.name,meal=W.meal||S.meal;
   const w=HWWhen.stamp({sig:'aw'+name+c.kcal});if(!w)return;
-  const m=W.sel;add('food',c.kcal,{name,por:m.por,qty:W.n,pm:1,meal,src:'KOLEJ MARA KULIM',na:c.na,k:c.k,mg:c.mg,mnsrc:c.mnsrc},'',w.d,w.t,10,'Food logged');
+  const m=W.sel;add('food',c.kcal,{name,por:m.por,qty:W.n,pm:1,meal,src:'KOLEJ MARA KULIM',na:c.na,k:c.k,mg:c.mg,trp:c.trp,caf:c.caf,mnsrc:c.mnsrc,mnm:c.mnm},'',w.d,w.t,10,'Food logged');
   HWWhen.saved(w,'Food');W.step='done';W.done=c;
   const y=window.scrollY;render();window.scrollTo(0,y)};
 acts.awmore=()=>{reset();draw();const i=D.getElementById('awq');if(i)i.focus()};
