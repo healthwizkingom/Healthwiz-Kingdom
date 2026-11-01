@@ -76,6 +76,46 @@ local function buildCuts()
 	end
 end
 
+-- Stairs: the terrain may never rise above 1.4 studs under a step's surface, wherever the stairs run.
+local capGrid: { [string]: { any } } = {}
+local function buildCaps(specs)
+	table.clear(capGrid)
+	for _, spec in ipairs(specs or {}) do
+		for _, st in ipairs(spec.stairs) do
+			local half = 8.2
+			for i = 1, #st.path - 1 do
+				local a, b = st.path[i], st.path[i + 1]
+				local s = { a.X, a.Z, a.Y, b.X, b.Z, b.Y, half }
+				cellRange(math.min(a.X, b.X) - half, math.max(a.X, b.X) + half, math.min(a.Z, b.Z) - half, math.max(a.Z, b.Z) + half, function(k)
+					capGrid[k] = capGrid[k] or {}
+					table.insert(capGrid[k], s)
+				end)
+			end
+		end
+	end
+end
+
+local function capAt(x: number, z: number): number?
+	local list = capGrid[math.floor(x / CELLK) .. "," .. math.floor(z / CELLK)]
+	if not list then
+		return nil
+	end
+	local cap: number? = nil
+	for _, s in ipairs(list) do
+		local dx, dz = s[4] - s[1], s[5] - s[2]
+		local l2 = dx * dx + dz * dz
+		local t = l2 > 0 and math.clamp(((x - s[1]) * dx + (z - s[2]) * dz) / l2, 0, 1) or 0
+		local d = math.sqrt((x - s[1] - dx * t) ^ 2 + (z - s[2] - dz * t) ^ 2)
+		if d <= s[7] then
+			local y = s[3] + (s[6] - s[3]) * t - 1.4
+			if not cap or y < cap then
+				cap = y
+			end
+		end
+	end
+	return cap
+end
+
 --- How far to lower the terrain at x,z (0 .. CUT).
 local function cutAt(x: number, z: number): number
 	local k = math.floor(x / CELLK) .. "," .. math.floor(z / CELLK)
@@ -108,10 +148,11 @@ local RES = 4 -- Terrain voxel size in studs
 local CHUNK = 16 -- columns (voxels) per write
 local FLOOR_Y = -16 -- bottom of the written terrain
 
-function TerrainBuilder.build(onProgress: ((number) -> ())?)
+function TerrainBuilder.build(onProgress: ((number) -> ())?, stairSpecs)
 	local terrain = workspace.Terrain
 	terrain:Clear()
 	buildCuts()
+	buildCaps(stairSpecs)
 	terrain:SetMaterialColor(Enum.Material.Grass, Color3.fromRGB(98, 132, 52))
 	terrain:SetMaterialColor(Enum.Material.LeafyGrass, Color3.fromRGB(70, 112, 48))
 	terrain:SetMaterialColor(Enum.Material.Ground, Color3.fromRGB(122, 104, 80))
@@ -147,6 +188,10 @@ function TerrainBuilder.build(onProgress: ((number) -> ())?)
 					local x = (cx + i - 0.5) * RES
 					local z = (cz + k - 0.5) * RES
 					local h = Ground.height(x, z) - cutAt(x, z)
+					local cap = capAt(x, z)
+					if cap and h > cap then
+						h = cap
+					end
 					heights[i][k] = h
 					slopes[i][k] = Ground.slope(x, z)
 					if h > maxH then
@@ -201,7 +246,9 @@ function TerrainBuilder.smoke()
 	local sq = Features.Squares[1]
 	local sc = Geo.centroid(Geo.points(sq.poly))
 	print("cut on road", on, "far from road", off, "in plaza", cutAt(sc.X, sc.Y))
-	assert(on > 1 and off == 0 or off >= 0)
+	buildCaps({ { stairs = { { path = { Vector3.new(0, 10, 0), Vector3.new(0, 14, 20) } } } } })
+	print("cap on stair", capAt(0, 10), "beside stair", capAt(30, 10), "past the end", capAt(0, 40))
+	assert(capAt(0, 10) and capAt(0, 10) < 12 and capAt(30, 10) == nil)
 end
 
 return TerrainBuilder

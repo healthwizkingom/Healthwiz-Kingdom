@@ -170,12 +170,35 @@ local function chooseHeading(fx: number, fz: number, steps, totalRun: number)
 end
 
 --- Build every stair. `groups` = CampusData.GroupStops() output. Returns a list of marker specs.
-function Stairs.build(parent: Instance, groups)
-	local folder = Geo.folder(parent, "Stairs")
-	local specs = {}
+--- Scale a stair's flights so its total climb is `target` studs (riser stays between half a stud and 1.15).
+local function fit(flights, target: number)
+	local total, count = 0, 0
+	for _, f in ipairs(flights) do
+		total += f.n * f.riser
+		count += f.n
+	end
+	if total <= 0 or math.abs(total - target) < 0.6 then
+		return
+	end
+	local n2 = 0
+	for _, f in ipairs(flights) do
+		f.n = math.max(3, math.floor(f.n * target / total + 0.5))
+		n2 += f.n
+	end
+	local riser = math.clamp(target / n2, 0.5, 1.15)
+	for _, f in ipairs(flights) do
+		f.riser = riser
+	end
+end
+
+--- Decide every stair's heading, step count and climb, and raise the terrain so each one's top lands on ground
+--- (or on the floor of the building it leads to). Must run before the terrain is built.
+function Stairs.prepare(groups)
+	prep()
+	local raises = {}
 	for _, g in ipairs(groups) do
 		local fx, fz = g.position.X, g.position.Z
-		-- plan every stair in the group first so the heading fits the biggest one
+		local h0 = Ground.height(fx, fz)
 		local plans = {}
 		local biggestRun = 0
 		for _, rec in ipairs(g.records) do
@@ -190,13 +213,55 @@ function Stairs.build(parent: Instance, groups)
 			biggestRun = math.max(biggestRun, run)
 			plans[rec.id] = { flights = flights, steps = steps, landings = landings }
 		end
-		local firstPlan = plans[g.records[1].id]
-		local dir = chooseHeading(fx, fz, firstPlan.steps, biggestRun)
+		local dir = chooseHeading(fx, fz, plans[g.records[1].id].steps, biggestRun)
 		local look = CFrame.lookAt(Vector3.new(fx, 0, fz), Vector3.new(fx + dir.X, 0, fz + dir.Y))
 		local right = look.RightVector
+		local lateral = 0
+		for _, rec in ipairs(g.records) do
+			local pl = plans[rec.id]
+			local planned = 0
+			for _, f in ipairs(pl.flights) do
+				planned += f.n * f.riser
+			end
+			-- the climb: up to the floor of the building at the top if there is one, otherwise a modest terrace
+			local lastL = pl.landings[#pl.landings]
+			local topPt = Vector3.new(fx, 0, fz) + look.LookVector * lastL.u + right * (lateral + lastL.v)
+			local bld, d = nearestBuilding(topPt.X, topPt.Z)
+			local target = math.min(planned, 12)
+			if bld and d < 22 then
+				local floorRise = bld.y + 1.2 - h0
+				if floorRise >= 3 and floorRise <= MAX_RISE then
+					target = floorRise
+				end
+			end
+			fit(pl.flights, target)
+			pl.steps, pl.landings = layout(pl.flights)
+			lastL = pl.landings[#pl.landings]
+			topPt = Vector3.new(fx, 0, fz) + look.LookVector * lastL.u + right * (lateral + lastL.v)
+			local rise = 0
+			for _, f in ipairs(pl.flights) do
+				rise += f.n * f.riser
+			end
+			table.insert(raises, { topPt.X + look.LookVector.X * 7, topPt.Z + look.LookVector.Z * 7, h0 + rise - 0.8 })
+			lateral += WIDTH * 2 + 6
+		end
+		g._prep = { fx = fx, fz = fz, h0 = h0, plans = plans, dir = dir, look = look, right = right }
+	end
+	for _, r in ipairs(raises) do
+		Ground.raise(r[1], r[2], r[3], 12, 40)
+	end
+end
 
+function Stairs.build(parent: Instance, groups)
+	local folder = Geo.folder(parent, "Stairs")
+	local specs = {}
+	if not (groups[1] and groups[1]._prep) then
+		Stairs.prepare(groups)
+	end
+	for _, g in ipairs(groups) do
+		local P = g._prep
+		local fx, fz, plans, dir, look, right, h0 = P.fx, P.fz, P.plans, P.dir, P.look, P.right, P.h0
 		local spec = { position = nil, records = g.records, stairs = {}, key = g.key }
-		local h0 = Ground.height(fx, fz)
 		local lateral = 0
 		for _, rec in ipairs(g.records) do
 			local pl = plans[rec.id]
@@ -290,6 +355,25 @@ function Stairs.smoke(root)
 	end
 	local specs = Stairs.build(root, groups)
 	print("stairs", #specs, specs[1] and #specs[1].stairs[1].strips)
+end
+
+--- Offline check: how far each stair floats above, or is buried by, the terrain.
+function Stairs.audit(specs)
+	local worstBuried, worstFloat = 0, 0
+	for _, spec in ipairs(specs) do
+		for _, st in ipairs(spec.stairs) do
+			local buried, floating = 0, 0
+			for _, p in ipairs(st.path) do
+				local g = Ground.height(p.X, p.Z)
+				buried = math.max(buried, g - p.Y)
+				floating = math.max(floating, p.Y - g)
+			end
+			print(string.format("%s buried %.1f floating %.1f steps %d", st.id, buried, floating, st.steps))
+			worstBuried = math.max(worstBuried, buried)
+			worstFloat = math.max(worstFloat, floating)
+		end
+	end
+	print("worst buried", worstBuried, "worst floating", worstFloat)
 end
 
 return Stairs

@@ -47,10 +47,14 @@ root.Parent = workspace
 local campus = Geo.folder(root, "Campus")
 
 local t0 = os.clock()
+local groups = CampusData.GroupStops()
+Stairs.prepare(groups) -- raises the ground where stairs reach their tops, so do it before the terrain is built
 status("Shaping the hills…", 0.02)
+-- the stairs first (they raise the ground to meet their tops and tell the terrain where not to rise over them)
+Shared.StairSpecs = Stairs.build(campus, groups)
 TerrainBuilder.build(function(f)
 	workspace:SetAttribute("CampusProgress", 0.02 + f * 0.38)
-end)
+end, Shared.StairSpecs)
 
 status("Raising the buildings…", 0.42)
 Buildings.build(campus, function()
@@ -65,9 +69,9 @@ Roads.buildSquares(campus)
 Roads.buildParking(campus)
 Roads.buildFields(campus)
 
-status("Building the stairs…", 0.66)
-local groups = CampusData.GroupStops()
-Shared.StairSpecs = Stairs.build(campus, groups)
+if _G.KM_AUDIT then
+	Stairs.audit(Shared.StairSpecs)
+end
 
 status("Placing the landmarks…", 0.74)
 Landmarks.entranceSign(campus, -259, -191)

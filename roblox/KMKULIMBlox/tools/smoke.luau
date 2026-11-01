@@ -39,6 +39,7 @@ env.task = {
 	end,
 	delay = function() end,
 }
+env._G = { KM_AUDIT = true }
 env.workspace = workspaceStub
 local function proxy(p: string): any
 	return setmetatable({ __path = p }, {
