@@ -12,6 +12,7 @@ function TerrainBuilder.build(onProgress: ((number) -> ())?)
 	local terrain = workspace.Terrain
 	terrain:Clear()
 	terrain:SetMaterialColor(Enum.Material.Grass, Color3.fromRGB(98, 132, 52))
+	terrain:SetMaterialColor(Enum.Material.LeafyGrass, Color3.fromRGB(70, 112, 48))
 	terrain:SetMaterialColor(Enum.Material.Ground, Color3.fromRGB(122, 104, 80))
 	pcall(function()
 		(terrain :: any).Decoration = true
@@ -64,7 +65,10 @@ function TerrainBuilder.build(onProgress: ((number) -> ())?)
 					for k = 1, nz do
 						local o = math.clamp((heights[i][k] - yBottom) / RES, 0, 1)
 						oj[k] = o
-						mj[k] = (slopes[i][k] > 0.62 and o > 0 and Enum.Material.Ground) or Enum.Material.Grass
+						local n = math.noise((cx + i) * RES / 85, (cz + k) * RES / 85, 3.7)
+						mj[k] = (slopes[i][k] > 0.62 and o > 0 and Enum.Material.Ground)
+							or (n > 0.22 and Enum.Material.LeafyGrass)
+							or Enum.Material.Grass
 					end
 					mi[j], oi[j] = mj, oj
 				end

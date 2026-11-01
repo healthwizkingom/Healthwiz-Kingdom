@@ -98,6 +98,48 @@ function Scatter.findFree(x: number, z: number, maxR: number?): (number, number)
 	return x, z
 end
 
+-- ----------------------------------------------------------------------------- sampling
+--- `count` free points (not in buildings/roads/signs, gentle slope), at least `spacing` apart. Deterministic.
+function Scatter.sample(count: number, spacing: number, seed: number, slopeMax: number?)
+	local o = build()
+	local r = Geo.rng(seed)
+	local placed, grid = {}, {}
+	local CELL = spacing
+	local minX, maxX, minZ, maxZ = math.huge, -math.huge, math.huge, -math.huge
+	for _, p in ipairs(o.campus) do
+		minX, maxX, minZ, maxZ = math.min(minX, p.X), math.max(maxX, p.X), math.min(minZ, p.Y), math.max(maxZ, p.Y)
+	end
+	minX, maxX, minZ, maxZ = minX - 60, maxX + 60, minZ - 60, maxZ + 60
+	local tries = 0
+	while #placed < count and tries < count * 40 do
+		tries += 1
+		local x, z = minX + r() * (maxX - minX), minZ + r() * (maxZ - minZ)
+		if not blocked(x, z) and Ground.slope(x, z) < (slopeMax or 0.5) then
+			local ok = true
+			local cx, cz = math.floor(x / CELL), math.floor(z / CELL)
+			for dx = -1, 1 do
+				for dz = -1, 1 do
+					local cell = grid[(cx + dx) .. "," .. (cz + dz)]
+					if cell then
+						for _, q in ipairs(cell) do
+							if (q[1] - x) ^ 2 + (q[2] - z) ^ 2 < spacing * spacing then
+								ok = false
+							end
+						end
+					end
+				end
+			end
+			if ok then
+				local k = cx .. "," .. cz
+				grid[k] = grid[k] or {}
+				table.insert(grid[k], { x, z })
+				table.insert(placed, { x, z, r() })
+			end
+		end
+	end
+	return placed
+end
+
 -- ----------------------------------------------------------------------------- trees
 function Scatter.trees(parent: Instance, templates: Instance?, count: number, onStep: (() -> ())?)
 	local folder = Geo.folder(parent, "Trees")

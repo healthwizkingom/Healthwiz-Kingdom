@@ -138,4 +138,28 @@ for _, spec in ipairs(Shared.StairSpecs) do
 		end
 	end
 end
+-- coins round the jogging track
+if Shared.TrackPoints then
+	for i = 1, #Shared.TrackPoints, 2 do
+		collectible(Shared.TrackPoints[i], "Coin")
+		count += 1
+	end
+end
+
+-- outdoor gym stations: hold the prompt to exercise for coins (20 s cooldown each)
+local cooldown: { [string]: number } = {}
+local function hookExercise(pp: Instance)
+	if pp:IsA("ProximityPrompt") then
+		pp.Triggered:Connect(function(player)
+			local key = player.UserId .. ":" .. pp:GetFullName()
+			if os.clock() - (cooldown[key] or -99) > 20 then
+				cooldown[key] = os.clock()
+				award(player, 5)
+			end
+		end)
+	end
+end
+for _, pp in ipairs(CollectionService:GetTagged("KMExercise")) do
+	hookExercise(pp)
+end
 print("KMKULIMBlox collectibles:", count)
