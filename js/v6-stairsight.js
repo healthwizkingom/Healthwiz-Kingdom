@@ -1,14 +1,19 @@
 /* v6: Stair Sight, the step finder behind the Scrying Glass (js/v6-arcana.js). Not part of the original.
-   A simple 2D picture analysis, not 3D understanding: the camera frame is shrunk to 64 × 80 grey pixels (cropped like the stage, 4 : 5) and
+   A simple 2D picture analysis, not 3D understanding: the camera frame is shrunk to 128 × 160 grey pixels (cropped like the stage, 4 : 5) and
    each row is scored for HORIZONTAL edges (|∂I/∂y| minus 0.7 |∂I/∂x|, so walls, rails and people's legs count little) in the middle 70 %.
    The nosing of a step is a long horizontal edge, so a stairway seen from below shows as a stack of strong rows whose gaps stay even or
    shrink upward (perspective). The tracker smooths the row scores over time and only LOCKS after 3 good frames in a row; 6 bad frames
-   unlock it. Locked, it returns the step edges bottom first, each with its left and right ends, in the 64 × 80 grid.
+   unlock it. Locked, it returns the step edges bottom first, each with its left and right ends, in the 128 × 160 grid.
+   2026-11-01 tuning, checked on the app's own staircase photos (assets/stairs) and on non-stair pictures (tests/98-sight.test.mjs): the grid was
+   64 × 80, where the upper steps of a long flight are only 3 or 4 rows apart and merge, so it found about 3 to 5 edges and locked on 16 of 30
+   photos. At 128 × 160 with a 3-tap smoothing and a wider peak window it finds the upper steps too, but it also "saw" stairs in bedrooms; so
+   a stack now needs 5 real edges (it was 4) and each edge must span 60 % of the middle width (it was 30 %): 20 of 30 photos lock and none of the
+   non-stair pictures do. Still only a 2D guess: ladders, striped walls and bookshelves can fool it.
    What it cannot do: tell a stair from a ladder, a striped wall or a bookshelf; see steps in the dark, in glare, or at a steep sideways
    view. So the result is always called "seen", never measured, and nothing from it is saved. Frames are read only while the Scrying Glass
    is open, about 8 a second, and never leave the device. */
 const HWStairSight=(()=>{
-const DW=64,DH=80;
+const DW=128,DH=160;
 
 /** Row scores of one grey frame (Float32Array DW × DH, 0–255). Pure. → {prof, e} (e: the per-pixel horizontal-edge strength). */
 function rows(g,w,h){
@@ -16,21 +21,22 @@ function rows(g,w,h){
   for(let y=1;y<h-1;y++){let s=0;
     for(let x=Math.max(1,xa);x<Math.min(w-1,xb);x++){const i=y*w+x,gy=Math.abs(g[i+w]-g[i-w]),gx=Math.abs(g[i+1]-g[i-1]),v=Math.max(0,gy-.7*gx);e[i]=v;s+=v}
     prof[y]=s/(xb-xa)}
+  const q=Float32Array.from(prof);for(let y=1;y<h-1;y++)prof[y]=(q[y-1]+2*q[y]+q[y+1])/4;           // a 3-tap blur so one step's edge is one peak
   return{prof,e}}
 
 /** Step edges from a (smoothed) row profile. Pure. → {ok, edges:[{y,x0,x1,s}] bottom first, why} */
 function edges(prof,e,w,h){
   const ys=[];let m=0,n=0;for(let y=2;y<h-2;y++){m+=prof[y];n++}m/=n;let v=0;for(let y=2;y<h-2;y++)v+=(prof[y]-m)**2;const sd=Math.sqrt(v/n);
   const th=Math.max(6,m+.6*sd);
-  for(let y=2;y<h-2;y++){const p=prof[y];if(p<th)continue;let top=true;for(let d=-2;d<=2;d++)if(d&&prof[y+d]>p){top=false;break}if(top)ys.push(y)}
-  const keep=[];ys.forEach(y=>{const l=keep[keep.length-1];if(l!=null&&y-l<3){if(prof[y]>prof[l])keep[keep.length-1]=y}else keep.push(y)});
+  for(let y=2;y<h-2;y++){const p=prof[y];if(p<th)continue;let top=true;for(let d=-3;d<=3;d++)if(d&&prof[y+d]>p){top=false;break}if(top)ys.push(y)}
+  const keep=[];ys.forEach(y=>{const l=keep[keep.length-1];if(l!=null&&y-l<5){if(prof[y]>prof[l])keep[keep.length-1]=y}else keep.push(y)});
   const xa=Math.floor(w*.15),xb=Math.ceil(w*.85),out=[];
   keep.forEach(y=>{let mx=0;for(let x=xa;x<xb;x++)mx=Math.max(mx,e[y*w+x],e[(y-1)*w+x]||0,e[(y+1)*w+x]||0);
     const c=x=>Math.max(e[y*w+x],e[(y-1)*w+x]||0,e[(y+1)*w+x]||0)>.35*mx;let x0=-1,x1=-1;for(let x=xa;x<xb;x++)if(c(x)){if(x0<0)x0=x;x1=x}
-    if(x0>=0&&x1-x0>=(xb-xa)*.3)out.push({y,x0,x1:x1+1,s:prof[y]})});
+    if(x0>=0&&x1-x0>=(xb-xa)*.6)out.push({y,x0,x1:x1+1,s:prof[y]})});
   out.sort((a,b)=>b.y-a.y);                                                                   // bottom (nearest) first
   const ch=chain(out);
-  if(ch.filter(e=>!e.fill).length<4)return{ok:false,edges:ch,why:'no stack of 4 or more step edges'};
+  if(ch.filter(e=>!e.fill).length<5)return{ok:false,edges:ch,why:'no stack of 5 or more step edges'};
   return{ok:true,edges:ch,why:''}}
 
 /** The longest run of edges that looks like steps seen from below: each gap 0.45–1.35 × the one before (equal, or shrinking with
@@ -38,7 +44,7 @@ function edges(prof,e,w,h){
 function chain(L){
   let best=[];
   for(let i=0;i<L.length-1;i++)for(let j=i+1;j<L.length;j++){
-    let run=[L[i],L[j]],gap=L[i].y-L[j].y,k=j;if(gap<2)continue;
+    let run=[L[i],L[j]],gap=L[i].y-L[j].y,k=j;if(gap<3)continue;
     if(!fits(L[i],L[j]))continue;
     for(let m=k+1;m<L.length;m++){const gg=run[run.length-1].y-L[m].y,r=gg/gap;
       if(!fits(run[run.length-1],L[m])){if(r<.45)continue;break}
