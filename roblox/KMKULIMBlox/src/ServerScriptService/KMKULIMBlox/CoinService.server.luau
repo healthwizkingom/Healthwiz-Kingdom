@@ -141,6 +141,8 @@ local function award(player: Player, amount: number)
 	end
 end
 
+Shared.Award = award
+
 local function collectible(pos: Vector3, kind: string)
 	local p = Instance.new("Part")
 	p.Name = kind

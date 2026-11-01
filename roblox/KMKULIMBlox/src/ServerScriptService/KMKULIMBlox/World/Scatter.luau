@@ -56,6 +56,7 @@ local function build()
 	table.insert(o.segs, { -259, -191, -259, -191, 70 })
 	table.insert(o.segs, { -278, -264, -278, -264, 60 })
 	table.insert(o.segs, { Features.Gate[1], Features.Gate[2], Features.Gate[1], Features.Gate[2], 45 })
+	table.insert(o.segs, { -281, -172, -281, -172, 26 }) -- Medius and his rune circle
 	obstacles = o
 	return o
 end
