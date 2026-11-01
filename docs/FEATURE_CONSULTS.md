@@ -259,3 +259,14 @@ For each of features 2 to 13, reply with one of: **build as proposed**, **build 
 | 13 Drift | Build drift index with relabel |
 
 Only feature 4 is ready to build without a source. The others wait for the decision above.
+
+## Owner-supplied citations: verification (checked against public records, not yet added to js/v6-sources.js)
+
+| Citation as supplied | Result | What is safe to add |
+|---|---|---|
+| Sylow, Kleinert, Richter, Jensen. Exercise-stimulated glucose uptake, Nat Rev Endocrinol 13(3):133-148, doi 10.1038/nrendo.2016.162 | **Verified.** Online Oct 2016, issue dated 2017. | Yes, if feature 12 ever needs a mechanism source. It supports contraction-stimulated glucose uptake in muscle; it does not support any claim about this app's users. |
+| Stacoff et al. Ground reaction forces on stairs, Gait Posture 21(1):24-38, doi 10.1016/j.gaitpost.2003.11.003 | **Real, but the title was wrong:** it is "...effects of stair inclination and **age**", not "speed". The abstract gives no peak ascent force; the only figure is "average vertical load increased up to 1.6 BW" on the steep stair. | Not the supplied `key_value: 1.45`. Feature 10 is dropped, so nothing needs it. |
+| Blanchard & Sawers 1983. The absolute bioavailability of caffeine in man, Eur J Clin Pharmacol 24(1):93-98 | **Real, but the supplied DOI is wrong** (the record is 10.1007/BF00613933). The mean half-life of 5.0 h was **not confirmed**: the abstract could not be read (publisher login wall), and a search snippet suggested individual half-lives of 2.7 to 9.9 h. | Nothing yet. Feature 6 stays on hold until the abstract text is supplied or another source gives the half-life. |
+| Wenger 1996, "Biophysics and Heat Balance...", Cooper Publishing, doi 10.1016/B978-012386525-0.00003-4 | **Could not be verified.** The publisher, year and DOI pattern do not match any record found. The value 2.426 kJ/g appears in a 2018 heat-physiology chapter (Belval & Jay) but its own reference could not be confirmed, and latent heat falls with temperature (about 2.50 kJ/g at 0 C, 2.41 kJ/g at 40 C). | Nothing yet. Feature 5 stays on hold until a source for the latent heat of water at skin temperature is confirmed. |
+
+Also not used: the supplied MyFCD tag names, the tryptophan intake range, and the formula blocks (their images did not arrive). Entries added to `js/v6-sources.js` must use its existing fields (`t`, `by`, `in`, `d`, ...), not the supplied object layout.
