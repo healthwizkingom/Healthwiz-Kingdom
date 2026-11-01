@@ -124,11 +124,11 @@ function oracle(){
   if(I.drop==null)miss.push('a stair workout with the pulse "after" and "1 minute after"');
   let body;
   if(miss.length)body='<p class="arc-sc mut">The crystal is cloudy.</p><details class="arc-more"><summary>What clears it</summary><p class="mut">'+miss.map(esc).join('; ')+'.</p></details>';
-  else{const R=math.readiness(I.sleep,I.dass,I.drop),sc=Math.round(R.score),k=sc>=70?'good':sc>=50?'watch':'caution';
-    body='<p class="arc-sc"><b class="num big">'+sc+'</b> <small>/ 100 readiness index</small> '+stt(k)+'</p>'
+  else{const R=math.readiness(I.sleep,I.dass,I.drop),X=typeof HWReadiness!=='undefined'?HWReadiness.adjust(R.score):null,sc=Math.round(X?X.score:R.score),k=sc>=70?'good':sc>=50?'watch':'caution';
+    body='<p class="arc-sc"><b class="num big">'+sc+'</b> <small>/ 100 readiness index</small> '+stt(k)+'</p>'+(X?'<p class="mut">'+X.pace+'</p>':'')
       +(sc<50?'<p class="arc-warn" role="note">The Oracle suggests a mild path (below 26°) today.</p>':'')
       +'<details class="arc-more"><summary>How the Oracle reads you</summary>'+(sc<50?'<p>Medius: “Your sleep, stress check-in and heart-rate recovery are all pulling the crystal down. A vigorous climb can wait.”</p>':'')+'<ul class="arc-orl"><li>Sleep '+fx(I.sleep,1)+' h → '+Math.round(R.sleep)+' × 0.4</li><li>DASS-21 total '+I.dass+' / 63 → '+Math.round(R.stress)+' × 0.3</li><li>1-minute recovery '+I.drop+' BPM → '+Math.round(clamp(R.rec,0,100))+' × 0.3</li></ul>'
-      +'<small class="mut">Calculated from your own logs with the blueprint’s weights (40 / 30 / 30). It is a game index, not a medical measure of readiness.</small></details>';
+      +(X?X.html:'')+'<small class="mut">Calculated from your own logs with the blueprint’s weights (40 / 30 / 30). It is a game index, not a medical measure of readiness.</small></details>';
     if(sc<50)setTimeout(()=>say('arc-oracle'),0)}
   return '<div class="arc-orc" id="arc-oracle"><h4>Oracle’s crystal ball</h4><div class="arc-orbw'+(miss.length?' dim':'')+'">'+RING+'<canvas class="arc-ball" id="arc-ball" width="48" height="48" role="img" aria-label="'
     +(miss.length?'A cloudy crystal ball: not enough data':'A crystal ball glowing with the readiness index')+'"></canvas></div>'+body+'</div>'}
