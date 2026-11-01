@@ -270,3 +270,10 @@ Only feature 4 is ready to build without a source. The others wait for the decis
 | Wenger 1996, "Biophysics and Heat Balance...", Cooper Publishing, doi 10.1016/B978-012386525-0.00003-4 | **Could not be verified.** The publisher, year and DOI pattern do not match any record found. The value 2.426 kJ/g appears in a 2018 heat-physiology chapter (Belval & Jay) but its own reference could not be confirmed, and latent heat falls with temperature (about 2.50 kJ/g at 0 C, 2.41 kJ/g at 40 C). | Nothing yet. Feature 5 stays on hold until a source for the latent heat of water at skin temperature is confirmed. |
 
 Also not used: the supplied MyFCD tag names, the tryptophan intake range, and the formula blocks (their images did not arrive). Entries added to `js/v6-sources.js` must use its existing fields (`t`, `by`, `in`, `d`, ...), not the supplied object layout.
+
+### Second round (owner-supplied "verified" texts), checked against PubMed
+
+| Supplied | Result | Effect |
+|---|---|---|
+| Wenger 1972, "Heat of evaporation of sweat", J Appl Physiol 32(4):568-569, doi ...32.4.568, "2.426 x 10^6 J/kg at 30 C" | **Real paper, wrong details.** PubMed (PMID 5026491): "Heat of evaporation of sweat: thermodynamic considerations", J Appl Physiol 1972;32(4):456-9, doi 10.1152/jappl.1972.32.4.456. PubMed shows **no abstract**, so the 2.426 value and the 30 C condition cannot be confirmed from the record. (A different paper, Snellen, Mitchell and Wyndham 1970, J Appl Physiol 29:40-44, has a similar title.) | Not added. Feature 5 stays on hold until someone reads the paper's text and confirms the value. |
+| Blanchard & Sawers 1983, doi 10.1007/BF00613933, "averaged 4.98 h (range 3.03 to 7.15 h)" | **Citation and DOI correct, quotation not found.** PubMed (PMID 6832208): the abstract gives no mean half-life; its only half-life sentence is "The caffeine plasma half-lives varied from 2.7 to 9.9 h, indicating substantial inter-subject variability in its elimination." | Not added. A single 5.0 h figure is not supported by this paper's abstract. Feature 6 stays on hold; if used, it must show the 2.7 to 9.9 h spread, not one number. |
