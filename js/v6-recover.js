@@ -30,7 +30,7 @@ const html=()=>'<div class="stkc" id="rec-box" role="group" aria-label="Recover 
   +'<small class="mut recn">A guide only. The drop is two pulse numbers subtracted: it is not a medical measurement.</small></div>';
 /** the button and an empty place for the panel; the Stairs card puts it under the "1 minute after" field */
 HWUI.css('recover','.recn{display:block;margin-top:8px}#rec-box button{margin-right:6px}');
-const mount=()=>'<button type="button" class="g sm" data-a="recstart" aria-label="Recover Now: start the 2 minute rest timer">RECOVER NOW</button><div id="rec-mount"></div>';
+const mount=()=>'<button type="button" class="g sm" data-a="recstart" aria-label="Recover Now: start the 2 minute rest timer">RECOVER NOW</button>'+(typeof HWBreath!=='undefined'?HWBreath.button():'')+'<div id="rec-mount"></div>';
 function frame(){
   const c=$i('rec-clock');if(!c||!t0){stop();return}      // the card was redrawn or left: the timer ends, nothing is saved
   const s=(Date.now()-t0)/1000;c.textContent=clock(WIN-s);
