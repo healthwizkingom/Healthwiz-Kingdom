@@ -278,7 +278,7 @@ function Scatter.palms(parent: Instance)
 					while d < len - 10 and n < 110 do
 						local side = (n % 2 == 0) and 1 or -1
 						local x, z = ax + dx * d - dz * side * 24, az + dz * d + dx * side * 24
-						if not blocked(x, z) or Geo.edgeDistance(Geo.points(road.pts), x, z) > 18 and not blocked(x, z) then
+						if not blocked(x, z) then
 							local y = Ground.height(x, z)
 							local h = 22 + r() * 8
 							local m = Geo.model(folder, "Palm")

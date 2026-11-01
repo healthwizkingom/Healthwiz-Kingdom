@@ -388,6 +388,11 @@ function Vehicles.manage(model: Model)
 			end
 			seat.Disabled = false
 			seat:Sit(hum)
+			task.delay(1.5, function()
+				if not seat.Occupant then
+					seat.Disabled = true -- the sit failed; do not leave the seat open to passers-by
+				end
+			end)
 		end)
 	end
 end
