@@ -9,7 +9,9 @@ local Survey = require(script.Parent.Data.StairSurvey)
 local Stairs = {}
 
 local CM = 0.0357143 -- studs per centimetre (3.5714 studs per metre)
-local WIDTH = 9
+local WIDTH = 11
+local STEP_SCALE = 1.5 -- steps read better (and are easier to climb) a little bigger than life
+local MAX_RISE = 26 -- studs of climb per stair
 local CAT_COLOR = {
 	MILD = Color3.fromRGB(90, 205, 126),
 	MODERATE = Color3.fromRGB(245, 184, 67),
@@ -28,8 +30,8 @@ local function plan(id: string)
 			if i <= 3 then
 				table.insert(flights, {
 					n = math.clamp(f.n, 3, 50),
-					riser = math.clamp(f.riser, 13, 20) * CM,
-					tread = math.clamp(f.tread, 24, 40) * CM,
+					riser = math.clamp(f.riser, 13, 20) * CM * STEP_SCALE,
+					tread = math.clamp(f.tread, 24, 40) * CM * STEP_SCALE,
 				})
 			end
 		end
@@ -39,6 +41,15 @@ local function plan(id: string)
 	end
 	if #flights == 0 then
 		flights = { { n = 14, riser = 16.5 * CM, tread = 30 * CM } }
+	end
+	local rise = 0
+	for _, f in ipairs(flights) do
+		rise += f.n * f.riser
+	end
+	if rise > MAX_RISE then
+		for _, f in ipairs(flights) do
+			f.n = math.max(4, math.floor(f.n * MAX_RISE / rise))
+		end
 	end
 	return flights
 end
@@ -203,11 +214,11 @@ function Stairs.build(parent: Instance, groups)
 				local top = h0 + s.top
 				local mu = (s.u0 + s.u1) / 2
 				local c = at(mu, s.v, (top + bottom) / 2)
-				Geo.part(model, { name = "Step", size = Vector3.new(WIDTH, top - bottom, s.depth + 0.04), cf = CFrame.lookAt(c, c + look.LookVector * s.dir), color = CONCRETE, mat = Enum.Material.Concrete })
+				Geo.part(model, { name = "Step", size = Vector3.new(WIDTH - 0.8, top - bottom, s.depth + 0.04), cf = CFrame.lookAt(c, c + look.LookVector * s.dir), color = CONCRETE, mat = Enum.Material.Concrete })
 				local nose = at(mu + s.dir * (s.depth / 2 - 0.2), s.v, top + 0.08)
 				-- the nosing strip is on the leading edge of each tread (the edge you step up onto)
 				local lead = at(s.u0 + s.dir * 0.22, s.v, top + 0.09)
-				local st = Geo.part(model, { name = "Strip", size = Vector3.new(WIDTH - 0.5, 0.16, 0.42), cf = CFrame.lookAt(lead, lead + look.LookVector * s.dir), color = STRIP_OFF, collide = false, shadow = false })
+				local st = Geo.part(model, { name = "Strip", size = Vector3.new(WIDTH - 1.2, 0.2, 0.5), cf = CFrame.lookAt(lead, lead + look.LookVector * s.dir), color = STRIP_OFF, collide = false, shadow = false })
 				table.insert(strips, st)
 				table.insert(path, at(mu, s.v, top + 0.2))
 			end
@@ -216,6 +227,27 @@ function Stairs.build(parent: Instance, groups)
 				local c = at(l.u, l.v, (top + bottom) / 2)
 				Geo.part(model, { name = "Landing", size = Vector3.new(l.dv, top - bottom, l.du), cf = CFrame.lookAt(c, c + look.LookVector), color = CONCRETE, mat = Enum.Material.Concrete })
 				table.insert(path, at(l.u, l.v, top + 0.2))
+			end
+			-- cheek walls: a darker side face along each flight, so it reads as a staircase, not a block
+			do
+				local lastF = pl.steps[#pl.steps].flight
+				for k = 1, lastF do
+					local first, last
+					for _, st2 in ipairs(pl.steps) do
+						if st2.flight == k then
+							first = first or st2
+							last = st2
+						end
+					end
+					for _, side in ipairs({ -1, 1 }) do
+						local off = side * (WIDTH / 2 - 0.2)
+						local a = at(first.u0, first.v + off, bottom)
+						local b = at(last.u1, last.v + off, bottom)
+						local c = at(last.u1, last.v + off, h0 + last.top)
+						local d = at(first.u0, first.v + off, h0 + first.top - first.depth * 0)
+						Geo.quad(model, a, b, c, d, 0.6, { name = "Cheek", color = Color3.fromRGB(150, 146, 138), mat = Enum.Material.Concrete })
+					end
+				end
 			end
 			-- handrails
 			local lastFlight = pl.steps[#pl.steps].flight

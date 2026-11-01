@@ -159,7 +159,10 @@ function Landmarks.entranceSign(parent: Instance, ox: number, oz: number)
 	local function pv(px, py)
 		return (base * CFrame.new(px, py, 1.15)).Position
 	end
-	Geo.quad(model, pv(-17, 6.0), pv(17, 6.0), pv(21, 12.6), pv(-21, 12.6), 0.5, { name = "CreamPlate", color = CREAM, mat = Enum.Material.SmoothPlastic })
+	P(nil, { name = "CreamPlate", size = Vector3.new(36, 6.6, 0.5), cf = CFrame.new(0, 9.3, 1.15), color = CREAM, mat = Enum.Material.SmoothPlastic })
+	for _, sgn in ipairs({ -1, 1 }) do -- bevelled ends, like the photo
+		local w = P(nil, { name = "PlateBevel", class = "WedgePart", size = Vector3.new(0.5, 6.6, 3), cf = CFrame.new(sgn * 19.5, 9.3, 1.15) * CFrame.Angles(0, 0, 0) * CFrame.Angles(0, sgn * math.rad(90), 0), color = CREAM })
+	end
 	local textPart = P(nil, { name = "PlateText", size = Vector3.new(36, 5.0, 0.2), cf = CFrame.new(0, 9.3, 1.45), color = CREAM, tr = 1, collide = false, shadow = false })
 	local tl = surfaceText(textPart, Enum.NormalId.Back, "INSPIRING EXCELLENCE | EMPOWERING FUTURES", NAVY, Enum.Font.GothamBlack, 36)
 	tl.TextScaled = true
@@ -170,7 +173,7 @@ function Landmarks.entranceSign(parent: Instance, ox: number, oz: number)
 	-- 3D block letters above the panel: K M (gap) K U L I M, the first M red
 	local colors = { CREAM, RED, CREAM, CREAM, CREAM, CREAM, CREAM, CREAM }
 	local lettersBase = base * CFrame.new(0, 15.2, 0.4)
-	spell(model, lettersBase, "KM KULIM", 12, 2.6, 1.9, { CREAM, RED, CREAM, CREAM, CREAM, CREAM, CREAM, CREAM, CREAM }, 1.5)
+	spell(model, lettersBase, "KM KULIM", 10, 2.2, 1.6, { CREAM, RED, CREAM, CREAM, CREAM, CREAM, CREAM, CREAM, CREAM }, 1.5)
 
 	-- three tiled steps in front, with a red nosing; 3 floodlights on the lowest step
 	for i = 1, 3 do
@@ -188,6 +191,7 @@ function Landmarks.entranceSign(parent: Instance, ox: number, oz: number)
 			P(nil, { name = "Shrub", size = Vector3.new(4.4, 4.0, 4.4), cf = CFrame.new(sgn * 35 + (k - 1.5) * 2.4, 3.2, 6), color = Color3.fromRGB(70 + k * 6, 128, 52), mat = Enum.Material.Grass, shape = Enum.PartType.Ball })
 		end
 	end
+	Geo.scaleModel(model, base, 0.55)
 	model.Parent = parent
 	return model
 end
@@ -237,6 +241,7 @@ function Landmarks.welcomeSign(parent: Instance, ox: number, oz: number)
 	-- heliconia clumps either side
 	heliconia(model, base, -32, 4, 11)
 	heliconia(model, base, 32, 4, 29)
+	Geo.scaleModel(model, base, 0.5)
 	model.Parent = parent
 	return model
 end

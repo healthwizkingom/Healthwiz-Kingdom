@@ -163,4 +163,7 @@ function StairAnimator.play(spec, parent: Instance)
 	end)
 end
 
+StairAnimator.student = student
+StairAnimator.pose = pose
+
 return StairAnimator

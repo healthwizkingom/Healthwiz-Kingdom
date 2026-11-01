@@ -13,7 +13,7 @@ workspaceStub.Name = "Workspace"
 
 local env = {}
 for _, k in
-	{ "Instance", "Vector3", "Vector2", "CFrame", "Color3", "UDim", "UDim2", "Enum", "Region3", "Rect", "NumberRange", "ColorSequence", "NumberSequence", "TweenInfo", "Random", "BrickColor", "Ray", "Font", "PhysicalProperties", "Axes", "Faces" }
+	{ "Instance", "Vector3", "Vector2", "CFrame", "Color3", "UDim", "UDim2", "Enum", "Region3", "Rect", "NumberRange", "ColorSequence", "NumberSequence", "TweenInfo", "Random", "BrickColor", "Ray", "Font", "PhysicalProperties", "Axes", "Faces", "ColorSequenceKeypoint", "NumberSequenceKeypoint" }
 do
 	env[k] = (roblox :: any)[k]
 end

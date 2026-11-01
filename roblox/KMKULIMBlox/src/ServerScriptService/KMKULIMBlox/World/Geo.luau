@@ -237,4 +237,16 @@ function Geo.rng(seed: number)
 	end
 end
 
+--- Scale every part under `model` about `origin` (a CFrame) by k: sizes and offsets, rotations kept.
+function Geo.scaleModel(model: Instance, origin: CFrame, k: number)
+	for _, d in ipairs(model:GetDescendants()) do
+		if d:IsA("BasePart") then
+			local rel = origin:ToObjectSpace(d.CFrame)
+			local rot = CFrame.new(-rel.Position) * rel
+			d.CFrame = origin * CFrame.new(rel.Position * k) * rot
+			d.Size = d.Size * k
+		end
+	end
+end
+
 return Geo
