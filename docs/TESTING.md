@@ -37,6 +37,7 @@ compatibility tests.
 | responsive layouts | `01-original-app`, `25-matrix` (seven sizes), the 360 px checks in `13`–`23` |
 | touch | `25-matrix-input`, `26-journey`, the game tests |
 | authentication, cloud sync | `21-cloud`, `22-cloud-sync`, `39-accounts-medius` (onboarding offer, Medius AI signed in/out); SQL: `tools/test-sql.sh`; Edge Function: `40-medius-function` (Deno) |
+| security (Privacy Lock, link guard, Content-Security-Policy) | `99-security` (lock off by default, PIN never stored, cover + inert, wrong PIN, reload, five-miss wait, turn off with PIN, forgot-PIN erase, link rel and `javascript:`, no eval and no foreign script) |
 | leaderboard | `23-board`, `38-hr-runboard`, `39-accounts-medius` (Runners' Board rows follow the account) |
 | location permissions, GPS fallback | `19-gps`, `33-stairs` (GPS check-in writes the unified session) |
 | offline mode | `20-pwa`, `36-live` (weather and haze unavailable, last good copy, nothing sent while Live Data is off) |

@@ -3,47 +3,39 @@
    (prototypes/campus-observatory): OpenStreetMap data, Realistic and Fantasy modes, the illustrative terrain, markers
    with clustering, search, filters, the list and the details in three groups.
    * This classic script is the page: state, list, details, links, and the fallback. The map itself is an ES module
-     (observatory/main.js + observatory/map.js, MapLibre GL JS 4.7.1 in vendor/), loaded with a module script tag only
-     when the page opens over http(s) with WebGL. Opened from the device (file://), as the single-file build, or
-     without WebGL, the page says why and the list and details work the same, with no request for anything.
+     (observatory/main.js + observatory/map.js, MapLibre GL JS 4.7.1 in vendor/), loaded only when the page opens over
+     http(s) with WebGL. From file://, as the single-file build, or without WebGL, the page says why and the list and
+     details work the same, with no request for anything.
    * Records: js/v6-campus-data.js (STAIRS + the F21 step sizes + data/stair-survey.json). Staircases that share a stored
-     coordinate are one marker; a staircase with no coordinates is listed and selectable, never placed.
-   * The map is one element kept alive across redraws: render() replaces #main, and the element is moved back into
-     the page's slot after each one. Leaving the page frees it (map.remove(): WebGL, timers, markers).
-   * Kept for this tab in sessionStorage 'hw_obs_view' (owner decision 4): the selected staircase, the camera, the mode,
-     terrain and building switches, the open tab, the filter and the search. Refresh and Back keep the app's behaviour.
-   * FULL SCREEN (the owner's request, 2026-10-20): the map fills the whole window (a fixed layer over the app, which
-     also works on phones where the browser cannot make an element full screen); the selection bar keeps a DETAILS
-     button that leaves full screen for the details. Escape or the same button closes it; it is kept for the tab.
-   * The 3D preview (integration Phase 3): selecting a staircase (marker, list or link) opens or updates its preview at
-     the top of the details; closing it keeps the selection. observatory/viewer3d.js (Three.js r169, vendor/three) shows
-     the prototype's Blender models (assets/models/stairs: the demonstration shapes, with the measured F21 step size for
-     ST14, ST19 and ST20) or, for a staircase with complete survey flights, a model built from those flights. It is never
-     sized from an estimated angle. Labels: "Illustrative model — actual dimensions not surveyed." or "Built from survey
-     measurements · finishes illustrative". It needs what the map needs (http(s), WebGL), and is freed with the page.
-   * Fantasy look (integration Phase 4): the Blender buildings with moonlit real-time shadows, the generated pixel
-     textures, glowing paths and lanterns, particles and selection sparks (observatory/), and gold-cornered panels here.
-     All decoration: none moves a marker or changes a number, nothing animates when motion is reduced, and Realistic
-     shows plain blocks. The art is original (drawn in code or modelled in Blender for HealthWiz).
-   * Location only on tap (decision 2). With the map (integration Phase 5): the locate button (or SHOW WHERE I AM) first
-     shows the avatar that matches the profile (st.p.sex: the anime school boy or girl; owner's request, 2026-10-20). Only
-     without a sex in the profile does it ask which avatar to show: Tom, the boy or the girl. That choice is a device preference
-     (localStorage 'hw_obs_avatar', no health data) and can be changed at any time. The avatar then stands at the device's
-     GPS position and walks as it moves (observatory/locate.js, watchPosition), with the device's accuracy circle; away
-     from campus the page says how far; DEMO WALK moves it along a campus road and says the position is simulated.
-     Without the map, SHOW WHERE I AM asks once and names the nearest staircase. The position is used on this screen only:
-     never saved, never sent, not kept for the tab, forgotten when the page closes.
-   * Activity (Phase 5): only what the saved stair sessions support (HWCampusData.activity, by m.sid): sessions and steps
-     in the last 7 days and the 7 before, the staircases climbed most, a ring on the markers of staircases climbed. No new
-     XP, badges or store.
+     coordinate are one marker; one with no coordinates is listed and selectable, never placed.
+   * The map is one element kept alive across redraws: render() replaces #main and the element is moved back into the
+     page's slot. Leaving the page frees it (map.remove(): WebGL, timers, markers).
+   * Kept for this tab in sessionStorage 'hw_obs_view': the selected staircase, camera, mode, terrain and building
+     switches, open tab, filter and search.
+   * FULL SCREEN: the map fills the window (a fixed layer, which also works on phones); the selection bar keeps a DETAILS
+     button that leaves full screen. Escape or the same button closes it; kept for the tab.
+   * The 3D preview (Phase 3): selecting a staircase opens or updates its preview at the top of the details; closing it
+     keeps the selection. observatory/viewer3d.js (Three.js r169, vendor/three) shows the prototype's Blender models
+     (assets/models/stairs; measured F21 step size for ST14, ST19, ST20) or, for a staircase with complete survey
+     flights, a model built from those flights. Never sized from an estimated angle. Labels: "Illustrative model — actual
+     dimensions not surveyed." or "Built from survey measurements · finishes illustrative". Needs http(s) and WebGL.
+   * Fantasy look (Phase 4): Blender buildings with moonlit shadows, generated pixel textures, glowing paths, lanterns,
+     particles and selection sparks (observatory/), gold-cornered panels here. All decoration: none moves a marker or
+     changes a number, nothing animates when motion is reduced, Realistic shows plain blocks.
+   * Location only on tap. With the map (Phase 5): the locate button (or SHOW WHERE I AM) shows the avatar matching the
+     profile (st.p.sex: school boy or girl). Without a sex in the profile it asks: Tom, the boy or the girl; that choice
+     is a device preference (localStorage 'hw_obs_avatar', no health data). The avatar stands at the GPS position and
+     walks as it moves (observatory/locate.js, watchPosition) with the accuracy circle; away from campus the page says how
+     far; DEMO WALK moves it along a campus road and says the position is simulated. Without the map, SHOW WHERE I AM
+     asks once and names the nearest staircase. The position is used on this screen only: never saved, never sent.
+   * Activity (Phase 5): only what saved stair sessions support (HWCampusData.activity, by m.sid): sessions and steps in
+     the last 7 days and the 7 before, the staircases climbed most, a ring on the markers climbed. No new XP or badges.
    * HWCampus.focus(id): select a staircase from elsewhere (Stair Sense, a GPS check-in, the old routes): the map flies
      to it, or with no coordinates its details open without moving the map.
-   * Logging lives here (owner's request, 2026-10-20): a staircase's Details start with LOG A CLIMB HERE, the Stairs
-     forms of js/v6-stairs.js (HWStairs.logPanel): GPS check-in, a climb by hand, and the workout with heart rate, for that
-     staircase. With nothing picked, Details offer the GPS check-in, which picks the nearest staircase itself. Staircases
-     are found on the map: tap a marker, or type in the search on the map, which shows only the matching markers and
-     offers them as buttons. The Stairs section below keeps the history (js/v6-campus-stairs.js).
-   * Layout: the map spans the page's width (the side navigation stays beside it); Staircases and Details are below it. */
+   * Logging lives here: Details start with LOG A CLIMB HERE, the Stairs forms of js/v6-stairs.js (HWStairs.logPanel):
+     GPS check-in, a climb by hand, and the workout with heart rate. With nothing picked, Details offer the GPS check-in,
+     which picks the nearest staircase. The Stairs section below keeps the history (js/v6-campus-stairs.js).
+   * Layout: the map spans the page's width (side navigation beside it); Staircases and Details are below it. */
 const HWCampus=(()=>{
 const ico=(n,s)=>HWPixel.icon(n,s||1),D0=document,$id=i=>D0.getElementById(i);
 // two of the prototype's pixel sprites (js/pixel.js) for the terrain and buildings switches: one character = one pixel

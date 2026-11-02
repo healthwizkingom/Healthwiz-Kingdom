@@ -134,7 +134,7 @@ test('the Navigator\'s Compass in a staircase\'s Details: real inputs, conventio
   const r = await page.evaluate(() => { const n = document.getElementById('astral'), s = HWAstral.solar({ latitude: HWCampusData.record('ST14').latitude, longitude: HWCampusData.record('ST14').longitude, date: new Date() });
     return { txt: n.textContent.replace(/\s+/g, ' '), az: +n.querySelector('.astneedle').dataset.az, rot: n.querySelector('.astneedle').style.transform, want: s.azimuth, inDet: !!n.closest('#cmpdet'), pos: getComputedStyle(n).position,
       label: n.querySelector('.astdial').getAttribute('aria-label'), help: !!n.querySelector('.hwh, [data-a="help"]'), timer: HWAstral.timer }; });
-  near(r.az, r.want, 0.01, 'needle at the computed azimuth'); assert.equal(r.rot, 'rotate(' + r.want.toFixed(2) + 'deg)', 'CSS rotate clockwise from north (up)');
+  near(r.az, r.want, 0.01, 'needle at the computed azimuth'); assert.match(r.rot, /^rotate\(-?[\d.]+deg\)$/); near(parseFloat(r.rot.slice(7)), r.want, 0.011, 'CSS rotate clockwise from north (up), to two decimals (the last digit can round either way at a .xx5 boundary)');
   assert.equal(r.inDet, true); assert.equal(r.pos, 'static', 'in the flow of the Details, not over the map');
   assert.match(r.txt, /Sun bearing \(azimuth\)\s?15\d\.\d°/); assert.match(r.txt, /Sun height \(elevation\)/); assert.match(r.txt, /geometric/); assert.match(r.txt, /Sun above horizon/);
   assert.match(r.txt, /29 Oct 2026, 12:30 \(your device clock, UTC\+08:00, Asia\/Kuala_Lumpur\)/); assert.match(r.txt, /ST14’s stored location \(5\.35\d\d°, 100\.53\d\d°\)/);

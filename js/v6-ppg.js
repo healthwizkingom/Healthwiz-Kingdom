@@ -101,11 +101,14 @@ function stopCam(){clearInterval(tick);tick=0;if(raf)cancelAnimationFrame(raf);r
 function cancel(m){gen++;target=null;const was=phase==='run'||phase==='ask';stopCam();if(was){phase='idle';msg=m||''}paint()}
 function fail(m){gen++;target=null;stopCam();phase='idle';msg=m;paint()}
 
-async function start(){if(!supported()||phase==='ask'||phase==='run')return;closeSheet();stopCam();clearRun();R=null;msg='';target=pend;phase='ask';paint();const g=++gen;let s;
+let askT=0;
+async function start(){if(!supported()||phase==='ask'||phase==='run')return;closeSheet();stopCam();clearRun();R=null;msg='';denied=false;target=pend;phase='ask';paint();const g=++gen;let s;
+  clearTimeout(askT);askT=setTimeout(()=>{if(g===gen&&phase==='ask')fail('The camera did not answer. Check that this site may use the camera (browser Site settings), close any other app using it, then try again. You can still count your pulse by hand.')},20000);
   try{s=await N.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:160},height:{ideal:120},frameRate:{ideal:30}},audio:false})}
-  catch(e){if(g!==gen)return;const nm=e&&e.name;
+  catch(e){clearTimeout(askT);if(g!==gen)return;const nm=e&&e.name;
     if(nm==='NotAllowedError'||nm==='SecurityError'||nm==='PermissionDeniedError'){denied=true;fail('Camera permission was not given. You can still count your pulse by hand.')}
     else fail('The camera could not be started'+(nm==='NotFoundError'||nm==='OverconstrainedError'?' (no camera found)':nm==='NotReadableError'?' (another app may be using it)':'')+'. You can still count your pulse by hand.');return}
+  clearTimeout(askT);
   if(g!==gen){s.getTracks().forEach(t=>t.stop());return}
   stream=s;const tr=s.getVideoTracks()[0];
   try{const c=tr&&tr.getCapabilities&&tr.getCapabilities();if(c&&c.torch){await tr.applyConstraints({advanced:[{torch:true}]});torch=true}}catch(e){torch=false}
@@ -152,12 +155,12 @@ function helpReg(){HWHelp.reg('ppg','Pulse Wave Lab',
   +'<p class="mut">It is an estimate, not a medical measurement, and it says nothing about your heart rhythm. It is less reliable right after exercise, if you move, or in poor light. If it looks wrong, count for 15 s and multiply by 4. Video never leaves your phone and nothing is recorded.</p>','ppg')}
 function panel(){helpReg();Promise.resolve().then(draw);
   let h='<div class="ppg" id="hwppg">';
-  if(!supported())return h+'<p class="mut">Your browser can\'t use the camera here; count your pulse for 15 s and multiply by 4.</p></div>';
+  if(!supported())return h+'<p class="mut">'+(typeof isSecureContext!=='undefined'&&!isSecureContext?'The camera works only on a secure (https) address. ':'Your browser can\'t use the camera here (an in-app browser, such as one opened from a chat or an email, often can\'t: open the link in Chrome or Safari). ')+'You can still count your pulse for 15 s and multiply by 4.</p></div>';
   if(phase==='ask')h+='<div class="ppgrow"><b>'+ico('camera')+' CAMERA PULSE</b></div>'+tgtNote()+'<p role="status">Waiting for the camera… If asked, allow it so the app can read the colour of your fingertip.</p><div class="row"><button class="g" data-a="ppgcancel">CANCEL</button></div>';
   else if(phase==='run')h+=runView();
   else if(phase==='done'&&R)h+=resultView();
-  else{h+='<div class="ppgrow">'+(denied?'':'<button class="ppgbtn" data-a="ppgopen" data-k="'+(msg&&phase==='done'&&target?target:'')+'">'+ico('camera')+' '+(msg&&phase==='done'?'MEASURE AGAIN':'MEASURE WITH CAMERA')+'</button>')+HWHelp.btn('ppg')+'</div>';
-    if(msg)h+=(target?tgtNote():'')+'<p class="ppgmsg" role="status">'+esc(msg)+'</p>'+(denied?'<small class="mut">To try again, allow the camera for this site in your browser settings and reload the page.</small>':'')}
+  else{h+='<div class="ppgrow">'+('<button class="ppgbtn" data-a="ppgopen" data-k="'+(msg&&phase==='done'&&target?target:'')+'">'+ico('camera')+' '+(denied?'TRY THE CAMERA AGAIN':msg&&phase==='done'?'MEASURE AGAIN':'MEASURE WITH CAMERA')+'</button>')+HWHelp.btn('ppg')+'</div>';
+    if(msg)h+=(target?tgtNote():'')+'<p class="ppgmsg" role="status">'+esc(msg)+'</p>'+(denied?'<small class="mut">If the browser does not ask again: open the lock or settings icon beside the address, choose Permissions or Site settings, set Camera to Allow, then tap TRY THE CAMERA AGAIN.</small>':'')}
   return h+'</div>'}
 function runView(){const left=Math.max(0,Math.ceil((GOOD_MS-goodMs)/1000));
   return '<div class="ppgrow"><b>'+ico('camera')+' CAMERA PULSE</b>'+HWHelp.btn('ppg')+'</div>'

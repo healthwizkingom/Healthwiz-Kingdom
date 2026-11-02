@@ -155,7 +155,8 @@ body.onbm .v6obc{display:block}body.onbm .amb{display:none}
 body.onbm .obw>h2{color:#f6edcf;text-shadow:2px 2px 0 #0b0a26}body.onbm .obw>h2:before,body.onbm .obw>h2:after{color:#f2c14e}
 body.onbm .obpr small{color:#d9d0f5}
 body.onbm .obw .card,body.onbm .obsay .tbx{--pn:#f7ecc9;--p2:#e9d6a3;--bg:#fbf4dc;--ink:#2b2418;--mut:#5e5034;--ln:#2b2418;color:var(--ink)}
-body.onbm .obw .card{background:radial-gradient(ellipse at 50% 50%,rgba(255,250,230,0) 55%,rgba(150,105,45,.2) 100%),repeating-linear-gradient(0deg,rgba(120,85,40,.06) 0 2px,rgba(0,0,0,0) 2px 6px),linear-gradient(90deg,#efdfb4,#f7ecc9 12%,#f7ecc9 88%,#efdfb4);border-top:9px solid #6b4423;border-bottom:9px solid #6b4423;box-shadow:inset 0 3px 0 #a8743c,inset 0 -3px 0 #a8743c,4px 4px 0 #0b0a26}
+html body.onbm #main .obw .card{background:radial-gradient(ellipse at 50% 50%,rgba(255,250,230,0) 55%,rgba(150,105,45,.2) 100%),repeating-linear-gradient(0deg,rgba(120,85,40,.06) 0 2px,rgba(0,0,0,0) 2px 6px),linear-gradient(90deg,#efdfb4,#f7ecc9 12%,#f7ecc9 88%,#efdfb4);border-top:9px solid #6b4423;border-bottom:9px solid #6b4423;box-shadow:inset 0 3px 0 #a8743c,inset 0 -3px 0 #a8743c,4px 4px 0 #0b0a26}
+html body.onbm #main .obw .card :is(h3,h4){color:var(--ink)} /* headings (the plan card's gold title) stay readable on the parchment */
 .obsay{position:relative}.obsay .obz{position:relative;z-index:1}.obsay .tbx{position:relative;z-index:1}
 .v6rc{position:absolute;z-index:0;left:calc(clamp(96px,26vw,150px)*-.1);bottom:calc(clamp(96px,26vw,150px)*-.08);width:calc(clamp(96px,26vw,150px)*1.2);aspect-ratio:1;pointer-events:none}
 .v6rc svg{display:block;width:100%;height:100%;animation:chrc 60s linear infinite}

@@ -124,7 +124,8 @@ const tidy=()=>{try{const u=new URL(location.href);['code','error','error_code',
 let arrived=null;
 {const h=(location.hash||'').slice(1),q=new URLSearchParams(location.search||''),H=new URLSearchParams(h);
   if(H.get('access_token')&&H.get('refresh_token')&&configured()){setSes(H.get('access_token'),H.get('refresh_token'),H.get('expires_in'),H.get('provider_token')?'google':'email');C.ts=null;C.choose=null;C.em=null;keep();try{localStorage.removeItem(KB)}catch(e){}
-    tidy();arrived={ok:1};setTimeout(()=>HWEvents.emit('cloud:signed-in',{via:C.ses.via}),0)}
+    tidy();arrived={ok:1};const ann=()=>setTimeout(()=>HWEvents.emit('cloud:signed-in',{via:C.ses.via}),0); // after every later script has registered its listener (a timer alone can fire between two script loads)
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ann,{once:true});else ann()}
   else if(H.get('error_description')||q.get('error_description')){arrived={err:String(H.get('error_description')||q.get('error_description')).replace(/\+/g,' ')};tidy()}
   else if(q.get('code')&&C.pk&&configured()){const code=q.get('code'),v=C.pk.v;tidy();
     arrived={wait:1};arrived.p=http('/auth/v1/token?grant_type=pkce',{method:'POST',body:{auth_code:code,code_verifier:v},auth:false})

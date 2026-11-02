@@ -213,7 +213,7 @@ wqFlow=flow;
 HWUI.css('waterquest',`
 .wq.wq6{--wh:min(clamp(220px,62vw,430px),76vh);height:var(--wh);min-height:190px;background:#5c9e4a;contain:layout paint}
 .wq6 .wq6s{position:absolute;left:50%;bottom:0;width:max(100%,calc(var(--wh) * 16 / 9));height:auto;aspect-ratio:16/9;transform:translateX(-50%)}
-.wq6 .wq6l{position:absolute;left:0;top:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;pointer-events:none;display:block}
+.wq6 .wq6l{position:absolute;left:0;top:0;width:100%;height:100%;image-rendering:crisp-edges;image-rendering:pixelated;pointer-events:none;display:block}
 .wq6 .wq6l{image-rendering:pixelated}
 .wq6 .wq6fg{z-index:8}
 .wq6 .wq6cl .cl{position:absolute;display:block;opacity:.92;animation:wq6cl var(--d,90s) linear infinite}

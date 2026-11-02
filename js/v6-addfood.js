@@ -288,18 +288,18 @@ HWUI.css('addfood',`
 @keyframes awtw{from{opacity:.1}to{opacity:.95}}
 html.hw-rm .awscene::before,html.hw-rm .awscene::after,html.hw-q-performance .awscene::before,html.hw-q-performance .awscene::after,html.hw-q-performance .awfig{animation:none!important}
 @keyframes awturn{0%{background-position:${pat(POSES,'walk')} 0}12.5%{background-position:${pat(POSES,'three')} 0}25%{background-position:${pat(POSES,'side')} 0}37.5%{background-position:${pat(POSES,'back')} 0}62.5%{background-position:${pat(POSES,'side')} 0}75%{background-position:${pat(POSES,'three')} 0}87.5%{background-position:${pat(POSES,'front')} 0}100%{background-position:${pat(POSES,'walk')} 0}}
-.awprop{position:absolute;right:6%;top:6%;z-index:1;width:40px;height:40px;background:url(${PROPS}) no-repeat;background-size:280px 40px;image-rendering:pixelated;image-rendering:crisp-edges;transform:scale(1.25);transform-origin:0 100%;
+.awprop{position:absolute;right:6%;top:6%;z-index:1;width:40px;height:40px;background:url(${PROPS}) no-repeat;background-size:280px 40px;image-rendering:crisp-edges;image-rendering:pixelated;transform:scale(1.25);transform-origin:0 100%;
   filter:drop-shadow(0 0 6px rgba(246,201,79,.7));animation:awfloat 1.8s steps(2) infinite alternate}
 .awprop.orbit{animation:aworbit 2s steps(8) infinite}.awprop.flick{animation:awflick .35s steps(2) 5 alternate}
 @keyframes awfloat{to{translate:0 -5px}}@keyframes aworbit{0%{translate:0 -4px}25%{translate:12px 0}50%{translate:0 8px}75%{translate:-12px 0}100%{translate:0 -4px}}@keyframes awflick{from{rotate:-25deg}to{rotate:25deg}}
-.awh{display:flex;align-items:center;justify-content:space-between;gap:8px}.awav{flex:0 0 auto;width:28px;height:28px;background:url(${PROPS}) no-repeat;background-size:196px 28px;background-position:-168px 0;image-rendering:pixelated;image-rendering:crisp-edges}
+.awh{display:flex;align-items:center;justify-content:space-between;gap:8px}.awav{flex:0 0 auto;width:28px;height:28px;background:url(${PROPS}) no-repeat;background-size:196px 28px;background-position:-168px 0;image-rendering:crisp-edges;image-rendering:pixelated}
 .awmst{display:flex;justify-content:center;padding:10px 8px 4px;border:2px solid var(--ln);border-radius:10px;background:var(--p2)}
-.awmfig{display:block;width:240px;height:360px;max-width:100%;background:url(${POSE}) no-repeat;background-size:${POSES.length*100}% 100%;image-rendering:pixelated;image-rendering:crisp-edges;filter:drop-shadow(0 0 6px rgba(255,226,122,.45))}
+.awmfig{display:block;width:240px;height:360px;max-width:100%;background:url(${POSE}) no-repeat;background-size:${POSES.length*100}% 100%;image-rendering:crisp-edges;image-rendering:pixelated;filter:drop-shadow(0 0 6px rgba(255,226,122,.45))}
 .awmcap{margin:6px 0;text-align:center}#awmeet .row{justify-content:center}.awmt{margin:10px 0 4px}
 .awprops{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:8px;list-style:none;padding:0;margin:0 0 4px}.awprops li{display:flex;flex-direction:column;align-items:center;gap:2px}
-.awmprop{display:block;width:80px;height:80px;background:url(${PROPS}) 0 0/${PROPN.length*80}px 80px no-repeat;image-rendering:pixelated;image-rendering:crisp-edges}.awprops small{font-size:12px;color:var(--mut)}
+.awmprop{display:block;width:80px;height:80px;background:url(${PROPS}) 0 0/${PROPN.length*80}px 80px no-repeat;image-rendering:crisp-edges;image-rendering:pixelated}.awprops small{font-size:12px;color:var(--mut)}
 .awsay{position:absolute;left:3%;right:3%;bottom:3%;z-index:2;display:flex;gap:8px;align-items:flex-end;line-height:1.35}.awsay p{flex:1 1 auto}
-.awface{flex:0 0 auto;width:44px;height:44px;background:url(${FACE}) no-repeat;background-size:${FACES.length*44}px 44px;image-rendering:auto;border:2px solid #f6c94f;border-radius:8px;background-color:#1b1745}
+.awface{flex:0 0 auto;width:44px;height:44px;background:url(${FACE}) no-repeat;background-size:${FACES.length*100}% 100%;image-rendering:auto;border:2px solid #f6c94f;border-radius:8px;background-color:#1b1745}
 .awsay p{margin:0;background:rgba(18,15,51,.88);color:#fff6dc;border:1px solid #f6c94f;border-radius:10px;padding:6px 8px;font-size:13px}.awsay p b{display:block;font:12px/1.6 var(--fl);color:#f6c94f}
 @media(max-width:420px){.awsay p{font-size:12px}}
 .awq{flex-wrap:nowrap}.awq input{flex:1 1 auto;min-width:0;margin:0}.awq button{flex:0 0 auto}

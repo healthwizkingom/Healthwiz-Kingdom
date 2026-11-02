@@ -293,7 +293,7 @@ HWUI.css('orb',`
 .v6os{background:linear-gradient(180deg,#0e1330,#171236);color:#f3ecd8;border-color:#06090d}
 .v6os h3{color:#ffd86b;display:flex;align-items:center;gap:8px;line-height:1.7}
 .v6ocv{width:100%;max-width:min(100%,420px);margin:8px auto;border:4px solid #06090d;box-shadow:0 0 0 2px #3a2f70,0 0 18px rgba(127,243,255,.18);background:#0b0e28;line-height:0;transition:opacity .2s}
-.v6ocv canvas{display:block;width:100%;height:auto;aspect-ratio:${W}/${H};image-rendering:pixelated;image-rendering:crisp-edges;image-rendering:pixelated}
+.v6ocv canvas{display:block;width:100%;height:auto;aspect-ratio:${W}/${H};image-rendering:crisp-edges;image-rendering:pixelated;image-rendering:pixelated}
 .v6osm{font-size:15px;line-height:1.5;margin:8px 0;min-height:2.6em;color:#f3ecd8}
 .v6obt{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}.v6obt button{flex:1 1 200px}
 .v6oe p{font-size:15px;line-height:1.5;color:#f3ecd8}

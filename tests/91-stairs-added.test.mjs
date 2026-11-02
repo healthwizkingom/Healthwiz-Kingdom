@@ -82,6 +82,6 @@ test('survey: per-step riser and run of the new experiment, Melati and Kemboja i
   assert.deepEqual([f('ST22').riser_cm, f('ST22').tread_cm], [17.95, 31.8]);
   assert.deepEqual([f('ST32').riser_cm, f('ST32').tread_cm], [18.1, 30.73]);
   assert.equal(survey.stairs.ST01.flights.length, 2); assert.equal(survey.stairs.ST01.flights[0].turn, 'reverse');
-  // ST02, ST16 and ST29 had no coordinate in the app: the table gives one
-  for (const id of ['ST02', 'ST16', 'ST29']) assert.ok(survey.stairs[id].bottom, id);
+  // ST02, ST16 and ST29 had no coordinate in the app: the table gives one (ST29 is ST28 since ST27 was removed and the numbers moved up, 2026-10-24)
+  for (const id of ['ST02', 'ST16', 'ST28']) assert.ok(survey.stairs[id].bottom, id);
 });

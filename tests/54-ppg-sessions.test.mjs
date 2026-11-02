@@ -18,7 +18,7 @@ const fakeCam = (hz = 1.2) => p => p.addInitScript(h => {
   paint(); setInterval(paint, 33);
   const stream = () => { const s = c.captureStream(30); window.__streams.push(s); return s; };
   Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: {
-    getUserMedia: async () => { window.__asked++; if (window.__gum === 'deny') throw new DOMException('no', 'NotAllowedError'); return stream(); } } });
+    getUserMedia: async () => { window.__asked++; if (window.__gum === 'deny') throw new DOMException('no', 'NotAllowedError'); if (window.__gum === 'hang') return new Promise(() => {}); return stream(); } } });
 }, hz);
 const ended = page => page.evaluate(() => window.__streams.length > 0 && window.__streams.every(s => s.getTracks().every(t => t.readyState === 'ended')));
 
@@ -83,8 +83,14 @@ test('cancel, leaving the page and a hidden page stop every track; permission de
   await page.click('#hwppg [data-a="ppgopen"]'); await page.click('[data-a="ppgstart"]');
   await page.waitForFunction(() => /Camera permission was not given/.test(document.getElementById('hwppg').textContent));
   assert.match(await page.textContent('#hwppg'), /Camera permission was not given\. You can still count your pulse by hand\./);
-  assert.equal(await page.locator('#hwppg [data-a="ppgopen"]').count(), 0, 'no repeated prompts');
-  assert.equal(await page.evaluate(() => window.__asked), 1);
+  assert.equal(await page.evaluate(() => window.__asked), 1, 'no automatic repeat prompt');
+  assert.match(await page.locator('#hwppg [data-a="ppgopen"]').innerText(), /TRY THE CAMERA AGAIN/, 'the way back stays: the person may have allowed it since');
+  assert.match(await page.textContent('#hwppg'), /Site settings/, 'and says where to allow it');
+  await page.evaluate(() => { window.__gum = ''; });
+  await page.click('#hwppg [data-a="ppgopen"]'); await page.click('[data-a="ppgstart"]');
+  await page.waitForFunction(() => HWPPG.state === 'run');
+  assert.equal(await page.evaluate(() => window.__asked), 2, 'asked again only because they chose to');
+  await page.click('[data-a="ppgcancel"]');
   assert.equal(await page.locator('#wk-b').count(), 1, 'manual entry stays');
   assert.deepEqual(errors, []);
   await ctx.close();
@@ -92,7 +98,7 @@ test('cancel, leaving the page and a hidden page stop every track; permission de
   const u = await openApp({ before: p => p.addInitScript(() => { Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: undefined }); }) });
   await go(u.page, 'pulse');
   assert.equal(await u.page.locator('#hwppg [data-a="ppgopen"]').count(), 0);
-  assert.match(await u.page.textContent('#hwppg'), /Your browser can't use the camera here; count your pulse for 15 s and multiply by 4/);
+  assert.match(await u.page.textContent('#hwppg'), /Your browser can't use the camera here[\s\S]*Chrome or Safari[\s\S]*count your pulse for 15 s and multiply by 4/);
   assert.equal(await u.page.locator('#wk-b').count(), 1);
   assert.deepEqual(u.errors, []);
   await u.ctx.close();
@@ -143,6 +149,22 @@ test('a camera button beside every BPM option: it brings CAMERA PULSE into view,
   // the plain button does not log by itself
   await page.click('#hwppg [data-a="ppgopen"]');
   assert.doesNotMatch(await page.textContent('#mo'), /logged as/);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test('a camera prompt that never answers does not leave the card stuck: after 20 s it says so and the button is back', async () => {
+  const { page, ctx, errors } = await openApp({ before: async p => { await fakeCam()(p); } });
+  await go(page, 'pulse');
+  await page.evaluate(() => { window.__gum = 'hang'; });
+  await page.clock.install();
+  await page.click('#hwppg [data-a="ppgopen"]'); await page.click('[data-a="ppgstart"]');
+  await page.waitForFunction(() => HWPPG.state === 'ask');
+  assert.match(await page.textContent('#hwppg'), /Waiting for the camera/);
+  await page.clock.fastForward(21000);
+  await page.waitForFunction(() => /did not answer/.test(document.getElementById('hwppg').textContent));
+  assert.equal(await page.evaluate(() => HWPPG.state), 'idle');
+  assert.equal(await page.locator('#hwppg [data-a="ppgopen"]').count(), 1, 'try again is possible');
   assert.deepEqual(errors, []);
   await ctx.close();
 });

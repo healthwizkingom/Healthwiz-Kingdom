@@ -115,8 +115,11 @@ test('phone: no sideways page scroll (the month grid scrolls inside), large cont
   assert.deepEqual(errors, []);
 });
 
+// a water record in the middle of last month, so the month grid still has a water lane after stepping back, whatever today's date is
+const prevMid = () => { const d = new Date(); d.setHours(12); d.setDate(1); d.setMonth(d.getMonth() - 1); d.setDate(15); return ymd(d); };
+const SEED_PM = { ...SEED, e: [...SEED.e, E('wpm', 'water', 200, prevMid(), '09:00')] };
 test('rewind: a not-logged cell opens the page set to that day; the water is saved under that day, not today', async () => {
-  const { page, ctx, errors } = await open();
+  const { page, ctx, errors } = await open({ seed: SEED_PM });
   await page.click('[data-a="tmv"][data-v="m"]');
   const y = ago(2);   // two days ago: nothing saved on it, in the current month or the one before
   const cell = page.locator('.tmadd[data-k="water"][data-d="' + y + '"]');
@@ -134,10 +137,11 @@ test('rewind: a not-logged cell opens the page set to that day; the water is sav
 });
 
 test('rewind: a date in the week header opens that day with a LOG panel; live-measured lanes are not offered; the future is not tappable', async () => {
-  const { page, ctx, errors } = await open();
+  const { page, ctx, errors } = await open({ seed: SEED_PM });
   const y = ago(3);
   await page.click('[data-a="tmv"][data-v="d"]'); await page.click('[data-a="tmstep"][data-v="1"]');
   await page.click('[data-a="tmv"][data-v="w"]');
+  if (!(await page.locator('.tmdy[data-d="' + y + '"]').count())) await page.click('[data-a="tmstep"][data-v="1"]');   // early in the week: the day is in the week before
   const hd = page.locator('.tmdy[data-d="' + y + '"]');
   if (await hd.count()) { await hd.click(); assert.match(await page.textContent('#tmlbl'), /\d/); }
   else await page.click('[data-a="tmv"][data-v="d"]');
