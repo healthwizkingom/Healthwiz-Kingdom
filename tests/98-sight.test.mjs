@@ -54,9 +54,18 @@ test('across all 30 staircase photos it locks on at least 19 (it was 16), and on
   const ids = (await page.evaluate(() => STAIRS.map(s => s.id))).filter(id => fs.existsSync(new URL(`assets/stairs/${id}.webp`, root)));
   assert.equal(ids.length, 30);
   let locked = 0; for (const id of ids) { const r = await look(page, `assets/stairs/${id}.webp`); if (r.locks[2]) locked++; }
-  assert.ok(locked >= 19, 'locked on ' + locked + ' of 30');
+  assert.ok(locked >= 26, 'locked on ' + locked + ' of 30');
   const bad = []; for (const n of ['study.jpg', 'bedimg.jpg', 'bedroom.webp', 'lab-scene.webp', 'orb-scene.webp']) { const r = await look(page, 'assets/img/' + n); if (r.locks[2]) bad.push(n); }
   assert.deepEqual(bad, [], 'a bedroom, a study or a lab is not a staircase');
+  assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('ST03 (checkerboard steps, the Enchanted Tower): all 11 steps of the flight are found, not just the top four', async () => {
+  const { page, ctx, errors } = await openApp(); await page.waitForSelector('.wl');
+  const r = await look(page, 'assets/stairs/ST03.webp'), E = real(r);
+  assert.equal(r.locks[2], true, 'ST03 locks');
+  assert.equal(E.length, 11, 'one edge per step of the 11-step flight: ' + E.length);
+  assert.ok(E.every((e, i, a) => !i || e.y < a[i - 1].y), 'bottom first');
   assert.deepEqual(errors, []); await ctx.close();
 });
 

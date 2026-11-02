@@ -32,7 +32,9 @@ export async function start(session, o) {
   const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
   renderer.setPixelRatio(window.devicePixelRatio); renderer.setSize(innerWidth, innerHeight);
   renderer.xr.enabled = true; renderer.xr.setReferenceSpaceType('local-floor');
-  renderer.domElement.style.display = 'none'; document.body.appendChild(renderer.domElement);
+  renderer.setClearColor(0x000000, 0);                                          // see-through: the camera picture is the background
+  Object.assign(renderer.domElement.style, { position: 'fixed', left: 0, top: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0 });
+  document.body.appendChild(renderer.domElement);
   await renderer.xr.setSession(session);
   const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, .01, 50);
   scene.add(new THREE.AmbientLight(0xffffff, 1));
@@ -56,7 +58,7 @@ export async function start(session, o) {
   halo.scale.set(2, 2, 1); ghost.add(halo);                                      // relative to the ghost: twice its size
   const trailPos = [], trail = []; for (let i = 0; i < 10; i++) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glow, color: NEON, transparent: true, opacity: 0, depthTest: false, blending: THREE.AdditiveBlending })); s.scale.set(.08, .08, 1); scene.add(s); trail.push(s); }
 
-  let pts = [], frameN = 0, lockN = 0, prev = null, model = null, fwdLock = null, t0 = 0, lastStep = -1;
+  let nHits = 0, nDepth = 0, lastErr = '', pts = [], frameN = 0, lockN = 0, prev = null, model = null, fwdLock = null, t0 = 0, lastStep = -1;
   const S = { phase: 'searching', why: 'Point the phone up the stairs from the bottom and move it slowly.', depth };
   const tell = () => { try { o.onState && o.onState(Object.assign({}, S)); } catch (e) {} };
   tell();
@@ -114,7 +116,7 @@ export async function start(session, o) {
     if (fwd.lengthSq() < 1e-4) return; fwd.normalize();
     const add = p => { pts.push({ x: p.x, y: p.y, z: p.z, f: frameN }); };
     let nearest = null;
-    sources.forEach(src => { const r = frame.getHitTestResults(src)[0]; if (r) { const p = r.getPose(ref).transform.position; add(p); if (!nearest) nearest = p; } });
+    sources.forEach(src => { let r = null; try { r = frame.getHitTestResults(src)[0]; } catch (e) {} const hp = r && r.getPose(ref); if (hp) { const p = hp.transform.position; add(p); nHits++; if (!nearest) nearest = p; } });
     if (nearest) { reticle.visible = !model; reticle.position.set(nearest.x, nearest.y, nearest.z); } else reticle.visible = false;
     if (depth) for (const view of pose.views) {
       let di = null; try { di = frame.getDepthInformation(view); } catch (e) {}
@@ -123,7 +125,7 @@ export async function start(session, o) {
       for (let i = 0; i < 24; i++) {
         const v = .05 + i * .9 / 23, m = di.getDepthInMeters(.5, v); if (!(m > .2 && m < 6)) continue;
         const near = new THREE.Vector4(0, 1 - v * 2, -1, 1).applyMatrix4(inv); near.divideScalar(near.w);
-        const dir = new THREE.Vector3(near.x, near.y, near.z); const p = dir.multiplyScalar(m / -dir.z).applyMatrix4(M); add(p);
+        const dir = new THREE.Vector3(near.x, near.y, near.z); const p = dir.multiplyScalar(m / -dir.z).applyMatrix4(M); add(p); nDepth++;
       }
       break;
     }
@@ -142,7 +144,8 @@ export async function start(session, o) {
   renderer.setAnimationLoop((time, frame) => {
     if (!frame) return; frameN++;
     const ref = renderer.xr.getReferenceSpace(), pose = frame.getViewerPose(ref);
-    if (pose) sample(frame, ref, pose);
+    try { if (pose) sample(frame, ref, pose); } catch (e) { lastErr = String(e && e.message || e).slice(0, 60); }   // never let a bad frame stop the drawing
+    if (frameN % 30 === 0) { S.diag = 'frames ' + frameN + ', surface hits ' + nHits + (depth ? ', depth points ' + nDepth : '') + (lastErr ? ', error: ' + lastErr : ''); if (!model) tell(); }
     if (model) {
       // the ghost's pace: each step takes m g r ÷ P (HWStairSight.timeline), each landing 2 step-times; with no power it waits at the foot
       const SS = window.HWStairSight, p = model.T ? SS.at(model.T, (performance.now() - t0) / 1000) : null, pl = SS.place(model.flights, model.L, p);
@@ -155,7 +158,7 @@ export async function start(session, o) {
       const key = !p ? 'w' : pl.landing ? 'L' + pl.fi : k;
       if (key !== lastStep) { lastStep = key; S.step = k + 1; S.landing = !!(p && pl.landing); S.flight = pl.fi + 1; tell(); }
     }
-    renderer.render(scene, camera);
+    try { renderer.render(scene, camera); } catch (e) { lastErr = String(e && e.message || e).slice(0, 60); }
   });
 
   let ended = false;

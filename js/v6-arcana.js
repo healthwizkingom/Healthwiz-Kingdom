@@ -322,7 +322,9 @@ function towerFrame(c,q,g){
   trail(gx,by-3*ps,ps);ghost(gx,by,ps)}
 function towerStop(){cancelAnimationFrame(TV.raf);clearInterval(TV.iv);TV.raf=TV.iv=0}
 /* Stair Sight: about 8 frames a second while the camera is open */
-function sense(t){const S=Z.sight;if(!S||t-S.at<125)return;S.at=t;const g=S.smp.read($i('camera-feed'),TW/TH);S.st=g?S.trk.push(g):S.trk.state;scryTag()}
+/* a stairway never shows more step edges than it has steps (a step can give two edges, tread and riser): keep the lowest ones, at most its counted steps */
+function capEdges(st,q){if(!st.locked||!q||!counted(q))return st;const n=Math.max(2,allSteps(q));return st.edges.length>n?{locked:true,edges:st.edges.slice(0,n),why:st.why}:st}
+function sense(t){const S=Z.sight;if(!S||t-S.at<125)return;S.at=t;const g=S.smp.read($i('camera-feed'),TW/TH);S.st=capEdges(g?S.trk.push(g):S.trk.state,STAIRS.find(x=>x.id===Z.sid));scryTag()}
 function scryTag(){const e=$i('arc-scry-tag'),S=Z.sight;if(!e)return;const on=!!(S&&S.st.locked),t=!S?'SCRYING GLASS':on?'STAIRS SEEN · '+S.st.edges.length+' STEP EDGES':'LOOKING FOR STEPS…';
   if(e.textContent!==t){e.textContent=t;e.classList.toggle('seen',on);const l=$i('arc-seen');if(l)l.textContent=on?'Stair Sight sees '+S.st.edges.length+' step edges; the ghost climbs them.':S?'Stair Sight is looking for steps. Stand at the foot and point the camera up the stairs.':''}}
 function pace(){towerStop();const c=$i('arc-canvas'),q=STAIRS.find(s=>s.id===Z.sid);if(!c||!q)return;Z.path=Z.path||stairPath(q);
@@ -360,14 +362,14 @@ function halt(){Z.pace.on=0;Z.you=0;stopCam();paint()}
    hiding the app ends the session. Without support, the 2D Scrying Glass stays. */
 const XR={sup:null};
 function xrCheck(){if(XR.sup!==null)return;XR.sup=false;try{if(window.isSecureContext&&navigator.xr&&navigator.xr.isSessionSupported)
-  navigator.xr.isSessionSupported('immersive-ar').then(ok=>{XR.sup=!!ok;if(ok){const b=$i('start-xr-btn');if(b)b.hidden=false}}).catch(()=>{})}catch(e){}}
+  navigator.xr.isSessionSupported('immersive-ar').then(ok=>{XR.sup=!!ok;if(ok){const b=$i('start-xr-btn');if(b)b.hidden=false;if(/^https?:/.test(location.protocol))loadXRStairs().catch(()=>{})}}).catch(()=>{})}catch(e){}}
 function xrUI(){let u=$i('arc-xr-ui');if(!u){u=D.createElement('div');u.id='arc-xr-ui';u.className='arc-xr-ui';u.hidden=true;
     u.innerHTML='<div class="arc-xr-bar"><p id="arc-xr-st" role="status" aria-live="polite"></p><p id="arc-xr-m" class="arc-xr-m"></p><div class="arc-xr-b"><button type="button" class="g" data-a="arcxrscan">RESCAN</button><button type="button" data-a="arcxrend">HALT</button></div></div>';
     D.body.appendChild(u)}return u}
 function xrState(S){const st=$i('arc-xr-st'),m=$i('arc-xr-m'),q=STAIRS.find(x=>x.id===Z.sid),n=q?stepsOf(q):0;
   if(S.phase==='ended'){Z.xr=null;const u=$i('arc-xr-ui');if(u)u.hidden=true;paint();return}
   if(st)st.textContent=S.phase==='locked'?'Stairs found. The ghost '+(pacer()?'climbs all '+n+' steps at '+fx(+Z.P,0)+' W'+(S.landing?': on the landing after flight '+S.flight:S.step>0?': step '+S.step+' of '+n:''):'waits at the foot (no target power was typed)')+'.':S.why;
-  if(m)m.textContent=S.phase==='locked'?'AR estimate: rise ≈ '+fx(S.riser*100,1)+' cm, tread ≈ '+fx(S.tread*100,1)+' cm, angle ≈ '+fx(S.angle,1)+'°'+(q?' (survey: '+q.angle.toFixed(2)+'°)':'')+'.':(S.depth?'Using the phone\u2019s depth sensing and surface hits.':'Using surface hits (this phone gives no depth map).')}
+  if(m)m.textContent=S.phase==='locked'?'AR estimate: rise ≈ '+fx(S.riser*100,1)+' cm, tread ≈ '+fx(S.tread*100,1)+' cm, angle ≈ '+fx(S.angle,1)+'°'+(q?' (survey: '+q.angle.toFixed(2)+'°)':'')+'.':(S.depth?'Using the phone\u2019s depth sensing and surface hits.':'Using surface hits (this phone gives no depth map).')+(S.diag?' ['+S.diag+']':'')}
 /* observatory/xrstairs.js is a module that sets window.HWXRStairs; loaded like the campus map's modules (a module script tag, no import()) */
 function loadXRStairs(){if(window.HWXRStairs)return Promise.resolve(window.HWXRStairs);
   return new Promise((ok,no)=>{const s=D.createElement('script');s.type='module';s.src='observatory/xrstairs.js';
