@@ -33,8 +33,11 @@ export async function start(session, o) {
   renderer.setPixelRatio(window.devicePixelRatio); renderer.setSize(innerWidth, innerHeight);
   renderer.xr.enabled = true; renderer.xr.setReferenceSpaceType('local-floor');
   renderer.setClearColor(0x000000, 0);                                          // see-through: the camera picture is the background
-  Object.assign(renderer.domElement.style, { position: 'fixed', left: 0, top: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0 });
-  document.body.appendChild(renderer.domElement);
+  /* Chrome shows only the DOM-overlay root (and what is inside it) during an AR session, so the canvas lives INSIDE the root, behind the control bar;
+     outside it (as before, hidden or on the body) the 3D layer is not shown and the screen stays black. */
+  const root = o.root || document.getElementById('arc-xr-ui') || document.body;
+  Object.assign(renderer.domElement.style, { position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0, display: 'block' });
+  root.insertBefore(renderer.domElement, root.firstChild);
   await renderer.xr.setSession(session);
   const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, .01, 50);
   scene.add(new THREE.AmbientLight(0xffffff, 1));

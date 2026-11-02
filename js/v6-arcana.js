@@ -376,11 +376,11 @@ function loadXRStairs(){if(window.HWXRStairs)return Promise.resolve(window.HWXRS
     s.onload=()=>window.HWXRStairs?ok(window.HWXRStairs):no(new Error('no HWXRStairs'));s.onerror=()=>no(new Error('load failed'));D.head.appendChild(s)})}
 async function xr(){
   if(Z.xr||!navigator.xr)return;stopCam();const q=STAIRS.find(x=>x.id===Z.sid);if(!q)return;const ui=xrUI();
-  let session;
+  let session;ui.hidden=false;                                           /* the overlay root must be on screen when the session starts */
   try{session=await navigator.xr.requestSession('immersive-ar',{requiredFeatures:['local-floor','hit-test'],optionalFeatures:['dom-overlay','depth-sensing'],domOverlay:{root:ui},
       depthSensing:{usagePreference:['cpu-optimized'],dataFormatPreference:['luminance-alpha','float32']}})}
-  catch(e){oops('3D Scrying could not start on this phone ('+(e&&e.name||'error')+'). The 2D Scrying Glass still works.');return}
-  try{const mod=await loadXRStairs();ui.hidden=false;
+  catch(e){ui.hidden=true;oops('3D Scrying could not start on this phone ('+(e&&e.name||'error')+'). The 2D Scrying Glass still works.');return}
+  try{const mod=await loadXRStairs();
     const mi=massInfo(),path=Z.path||stairPath(q);const ctl=await mod.start(session,{n:stepsOf(q),flights:path?path.flights.map(f=>({n:f.n,turn:f.turn,land:f.land})):null,P:pacer()?+Z.P:0,m:mi?mi.kg:0,analyse:HWStairSight.profile3d,onState:xrState});Z.xr={ctl,session}}
   catch(e){try{session.end()}catch(x){}ui.hidden=true;oops('3D Scrying could not load ('+String(e&&e.message||e).slice(0,80)+'). The 2D Scrying Glass still works.')}}
 acts.arcxr=()=>xr();acts.arcxrend=()=>{if(Z.xr)Z.xr.ctl.stop()};acts.arcxrscan=()=>{if(Z.xr)Z.xr.ctl.rescan()};
