@@ -29,6 +29,7 @@ const PRECACHE = [
   'assets/fonts/PressStart2P-Latin.woff2', 'assets/fonts/PixelifySans-Latin.woff2',
   'assets/fonts/OFL-PressStart2P.txt', 'assets/fonts/OFL-PixelifySans.txt',
   'assets/audio/home-theme.mp3',
+  'assets/audio/first-light-on-the-lawn.mp3',
   'assets/icons/icon-32.png', 'assets/icons/icon-192.png', 'assets/icons/icon-512.png',
   'assets/icons/icon-maskable-512.png', 'assets/icons/apple-touch-icon.png',
 ];
