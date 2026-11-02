@@ -9,6 +9,9 @@
    photos. At 128 × 160 with a 3-tap smoothing and a wider peak window it finds the upper steps too, but it also "saw" stairs in bedrooms; so
    a stack now needs 5 real edges (it was 4) and each edge must span 60 % of the middle width (it was 30 %): 20 of 30 photos lock and none of the
    non-stair pictures do. Still only a 2D guess: ladders, striped walls and bookshelves can fool it.
+   2026-11-02: checkerboard and two-tone steps (ST03, the Enchanted Tower) have strong edges only on part of each row, so the strict 35 %-of-the-row-peak
+   test dropped 8 of its 9 real step edges. If the strict pass does not lock, a LOOSE pass (edge ends found at 10 % of the row peak) may lock, with a lower peak threshold, but only with 8 or more
+   edges in perspective: ST03 now gives all 11 steps of its flight and 23 of 30 staircase photos lock (was 20); the non-stair pictures still do not.
    What it cannot do: tell a stair from a ladder, a striped wall or a bookshelf; see steps in the dark, in glare, or at a steep sideways
    view. So the result is always called "seen", never measured, and nothing from it is saved. Frames are read only while the Scrying Glass
    is open, about 8 a second, and never leave the device. */
@@ -25,18 +28,19 @@ function rows(g,w,h){
   return{prof,e}}
 
 /** Step edges from a (smoothed) row profile. Pure. → {ok, edges:[{y,x0,x1,s}] bottom first, why} */
-function edges(prof,e,w,h){
+function edges(prof,e,w,h,loose){
   const ys=[];let m=0,n=0;for(let y=2;y<h-2;y++){m+=prof[y];n++}m/=n;let v=0;for(let y=2;y<h-2;y++)v+=(prof[y]-m)**2;const sd=Math.sqrt(v/n);
-  const th=Math.max(6,m+.6*sd);
+  const th=Math.max(6,m+(loose?.2:.6)*sd);
   for(let y=2;y<h-2;y++){const p=prof[y];if(p<th)continue;let top=true;for(let d=-3;d<=3;d++)if(d&&prof[y+d]>p){top=false;break}if(top)ys.push(y)}
   const keep=[];ys.forEach(y=>{const l=keep[keep.length-1];if(l!=null&&y-l<5){if(prof[y]>prof[l])keep[keep.length-1]=y}else keep.push(y)});
   const xa=Math.floor(w*.15),xb=Math.ceil(w*.85),out=[];
   keep.forEach(y=>{let mx=0;for(let x=xa;x<xb;x++)mx=Math.max(mx,e[y*w+x],e[(y-1)*w+x]||0,e[(y+1)*w+x]||0);
-    const c=x=>Math.max(e[y*w+x],e[(y-1)*w+x]||0,e[(y+1)*w+x]||0)>.35*mx;let x0=-1,x1=-1;for(let x=xa;x<xb;x++)if(c(x)){if(x0<0)x0=x;x1=x}
+    const c=x=>Math.max(e[y*w+x],e[(y-1)*w+x]||0,e[(y+1)*w+x]||0)>(loose?.1:.35)*mx;let x0=-1,x1=-1;for(let x=xa;x<xb;x++)if(c(x)){if(x0<0)x0=x;x1=x}
     if(x0>=0&&x1-x0>=(xb-xa)*.6)out.push({y,x0,x1:x1+1,s:prof[y]})});
   out.sort((a,b)=>b.y-a.y);                                                                   // bottom (nearest) first
   const ch=chain(out);
-  if(ch.filter(e=>!e.fill).length<5)return{ok:false,edges:ch,why:'no stack of 5 or more step edges'};
+  const need=loose?8:5;
+  if(ch.filter(e=>!e.fill).length<need)return{ok:false,edges:ch,why:'no stack of '+need+' or more step edges'};
   return{ok:true,edges:ch,why:''}}
 
 /** The longest run of edges that looks like steps seen from below: each gap 0.45–1.35 × the one before (equal, or shrinking with
@@ -117,7 +121,7 @@ function sampler(){
 function tracker(){
   let P=null,good=0,bad=0,locked=false,last=[],why='looking';
   return{push(g){const R=rows(g,DW,DH);if(!P)P=Float32Array.from(R.prof);else for(let i=0;i<DH;i++)P[i]=P[i]*.6+R.prof[i]*.4;
-      const E=edges(P,R.e,DW,DH);why=E.why;
+      let E=edges(P,R.e,DW,DH);if(!E.ok){const L=edges(P,R.e,DW,DH,1);if(L.ok)E=L}why=E.why;
       if(E.ok){good++;bad=0;last=E.edges;if(good>=3)locked=true}else{bad++;good=0;if(bad>=6){locked=false;last=[]}}
       return this.state},
     get state(){return{locked,edges:locked?last:[],why}}}}
