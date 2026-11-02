@@ -128,8 +128,11 @@ test('sensor granted: steps and cadence appear, PAUSE and FINISH stop the sensor
   // pause: sensor off, more motion changes nothing, the clock stops
   await page.click('[data-a="gvpause"]');
   assert.equal(await page.evaluate(() => HWGravity.listening), false);
+  // the display refreshes every 500 ms, so pausing shows the final count (which can be one step more than the last refresh); more motion after that changes nothing
+  const steps1 = +await num(page, '#gv-steps');
+  assert.ok(steps1 >= steps && steps1 <= steps + 1, 'pausing shows the final count: ' + steps + ' then ' + steps1);
   const t1 = await num(page, '#gv-time'); await walk(page, 1500);
-  assert.equal(+await num(page, '#gv-steps'), steps);
+  assert.equal(+await num(page, '#gv-steps'), steps1);
   assert.equal(await num(page, '#gv-time'), t1, 'paused time is not counted');
   await page.click('[data-a="gvresume"]');
   assert.equal(await page.evaluate(() => HWGravity.listening), true);

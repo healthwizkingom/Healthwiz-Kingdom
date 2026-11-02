@@ -332,7 +332,8 @@ test('midnight: late-evening and early-morning entries stay on the day chosen, i
   });
   assert.equal(r[0][1], '23:59'); assert.equal(r[1][1], '00:00');
   assert.equal(r[0][0], r[1][0]);
-  assert.notEqual(r[0][0], daysAgo(0));
+  // today in the browser's zone (Asia/Kuala_Lumpur, set above), not the test machine's: they differ for 8 hours a day on a UTC machine
+  assert.notEqual(r[0][0], new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kuala_Lumpur' }));
   assert.deepEqual(errors, []);
   await ctx.close();
 });

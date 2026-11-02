@@ -9,6 +9,8 @@ HWUI.css('campus',`
 .cmpcard[data-mode="fantasy"] .cmpstage{--panel:rgba(14,22,54,.95);--panel2:#16224f;--ink:#eef1ff;--mut:#a9b3d9;--line:rgba(140,160,230,.26);--acc:#f2c14e;--acc-ink:#1a1430;--gold:#f2c14e;--cyan:#5fe1e6;--head:var(--fl,var(--font));
   --shadow:0 0 0 1px rgba(242,193,78,.28),0 0 30px rgba(95,225,230,.10),0 12px 40px rgba(0,0,0,.5);--m1:#7ee07c;--m2:#f6c94f;--m3:#ff7b6e;--est:#ffd27a;--part:#63e6dc;--osm:#9cc0ff;--miss:#a6aed6;--ter:#d8c3ff;background:#0c2422}
 .cmpstage.cmpfull{position:fixed;inset:0;z-index:1000;height:auto;border-radius:0;border:0}html.cmp-fs,html.cmp-fs body{overflow:hidden}
+html.cmp-fs #mo{z-index:1150}html.cmp-fs #toasts,html.cmp-fs .bpop,html.cmp-fs .v6cel{z-index:1250}html.cmp-fs #tut{z-index:1300}/* dialogs, toasts, banners and the tutorial opened from inside the full-screen map (z 1000) must sit above it; the Stay Aware notice is 1200 */
+.cmpstage .hwload.inbox{pointer-events:none}/* the loading bar never swallows taps meant for the buttons and Details under it */
 .cmpfull .cmpctls{top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right))}.cmpfull .cmpmodes{top:max(10px,env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left))}
 .cmpfull .cmpleg{bottom:max(30px,env(safe-area-inset-bottom))}
 .cmpstage.cmpoff{height:auto;min-height:0;background:var(--p2);color:inherit}.cmpnomap{padding:14px;font-size:15px}.cmpnomap svg{vertical-align:-3px}
