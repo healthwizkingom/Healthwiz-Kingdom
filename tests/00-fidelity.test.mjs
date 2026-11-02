@@ -36,6 +36,9 @@ const EDITS = [
   // type scale, the Home header grid, the status colours and the title-screen sizes. The exact windows are in
   // 00-fidelity.edits.json; each must apply to exactly one place in the original, and nothing else may differ.
   ...JSON.parse(read('tests/00-fidelity.edits.json')),
+  // Security hardening (docs/ARCHITECTURE_AUDIT.md "Security hardening"): a Content-Security-Policy meta tag right after the charset.
+  // Its content is checked directive by directive in tests/99-security.test.mjs.
+  ['<meta charset="utf-8">', '<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="' + ((read('index.html').match(/http-equiv="Content-Security-Policy" content="([^"]+)"/) || [])[1] || 'MISSING') + '">'],
 ];
 
 test('markup and stylesheet are byte-identical to the original, apart from the listed deliberate edits', () => {

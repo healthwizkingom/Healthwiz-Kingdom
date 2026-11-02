@@ -1763,3 +1763,17 @@ The system and the evidence for the font choice are in `docs/PIXEL_STYLE.md` ("D
   sorted easiest first (Mild, Moderate, Vigorous, then angle; ST34 and ST36, added later, had been listed after the
   Vigorous stairs) and each row shows only its ST code and angle.
 * **Tests:** `tests/94-duel.test.mjs`, `tests/95-astral.test.mjs`.
+
+## Security hardening (`js/v6-lock.js`, `js/v6-guard.js`, CSP, `tests/99-security.test.mjs`)
+
+Findings from a review of the client and the four Edge Functions: the server side was already sound (RLS, JWT checks, per-player
+limits, size limits, the AI key kept on the server, no text logged); the gaps were on the device.
+- **Content-Security-Policy** `<meta>` in `index.html` (also inlined into the single-file build). `default-src 'self'`; scripts and styles also
+  from `https://unpkg.com` (Leaflet, with its existing SRI hash); images from OpenStreetMap tiles; requests to `*.supabase.co`, Open-Meteo
+  and OSM only; `worker-src blob:` for the map; `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`; no `unsafe-eval`.
+  `unsafe-inline` stays for script and style because pages are drawn as HTML strings with `data-a` handlers and inline `onclick`/`onerror`
+  in a few templates. No Referrer-Policy was added: OpenStreetMap's tile policy asks for a Referer.
+- **Privacy Lock**: see the README. A new device-only key `hw_lock`; nothing else changes. Scripts load just before `v6-safety.js`.
+- **Link guard**: a MutationObserver plus capture-phase click and submit handlers.
+- Left alone on purpose: CORS `*` on the Edge Functions (the app can be opened from several origins and requests need a bearer token);
+  encryption of local data (needs a passphrase or account key and a migration of every saved key); frame-ancestors (cannot be set by a meta tag).

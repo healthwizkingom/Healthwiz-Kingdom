@@ -135,6 +135,8 @@ js/v6-body.js              Body & Energy: BMI + daily energy + macros as one pag
 js/v6-log.js               Settings → ALL ENTRIES grouped by day (collapsible, totals), 14-day date chips, date picker, category filter
 js/v6-hall.js              usability: one shared 3-line header (what this is / what to enter / why) on every tracker, Health Hall tiles with today's value and the one input, a Next step line, example lines under empty inputs
 js/v6-safety.js            an error card instead of a blank screen
+js/v6-guard.js             link guard: outside links get rel="noopener noreferrer"; javascript:/vbscript:/data:text/html links never run
+js/v6-lock.js              optional Privacy Lock: PIN screen lock (salted PBKDF2 hash, wrong-PIN slowdown, auto-lock) with a Settings card
 observatory/               the Observatory's map, ES modules loaded only on the campus page over http(s) with WebGL: MapLibre map from the OSM data, both modes, illustrative terrain (from prototypes/campus-observatory)
 vendor/maplibre-gl/        MapLibre GL JS 4.7.1 (BSD-3-Clause), pinned copy; loaded only by the map; budget in tests/73-observatory-budget
 vendor/three/              Three.js r169 (MIT) and the 3D preview's add-ons, copied by tools/vendor-three.mjs (bare 'three' imports made relative)
@@ -391,6 +393,26 @@ Sync: on app start, about 10 s after a change, when the app goes to the backgrou
 says "Offline: will sync later"; otherwise "Synced at 14:32". First sign-in with data on both sides asks: KEEP THIS
 DEVICE'S DATA / KEEP CLOUD DATA / MERGE (MERGE uses the backup restore's merge). Free plan: 500 MB database, 50,000
 monthly active users; an inactive project pauses after 7 days (restore it from the dashboard, nothing is lost).
+
+## Security and privacy
+
+What protects the app and what it does not:
+
+- **Content-Security-Policy** (`<meta>` in `index.html`): scripts, styles, images and requests may come only from the app itself and the few
+  sites it uses (Supabase, Open-Meteo, OpenStreetMap tiles, the Leaflet files on unpkg, which also carry an integrity hash). No `eval`, no
+  plugins, no other `<base>` or form target. A page that is injected with a script from any other site cannot load it. Inline script
+  stays allowed because the app draws its buttons as strings; that is the one thing a stricter policy would need a rewrite for.
+- **Privacy Lock** (Settings, `js/v6-lock.js`, off by default): a 4-8 digit PIN covers the app at start, after the chosen time away, and on
+  LOCK NOW. It is a **screen lock, not encryption**: it keeps casual onlookers out; someone who can read this browser's storage can
+  still read the data. Only a salted PBKDF2-SHA256 hash is stored (150,000 rounds, key `hw_lock`, never in backups or the cloud save).
+  Five wrong PINs start a wait of 30 s that doubles up to 15 min and survives a refresh. A forgotten PIN is recovered only by
+  erasing this device's data (two taps); a signed-in account's cloud save is untouched.
+- **Link guard** (`js/v6-guard.js`): outside links always get `rel="noopener noreferrer"`; `javascript:`, `vbscript:` and `data:text/html`
+  links and form actions are stopped, whatever drew them.
+- Already in place: Row Level Security on every table, JWT checks and per-player limits in the Edge Functions, the AI key only on the server,
+  request size limits, entry sanitising on load, cloud merge and backup import (`HWSchema.cleanEntry`), no health data sent to Open-Meteo.
+- Not covered: the server CORS list is `*` (access needs the player's token, not cookies); a stricter policy without inline script; encrypted
+  local storage. See `tests/99-security.test.mjs` for what is checked.
 
 ## Medius AI (the Wizard's Counsel)
 
