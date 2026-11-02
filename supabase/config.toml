@@ -12,3 +12,7 @@ verify_jwt = true
 # food-guess answers signed-in players only, same as medius-chat.
 [functions.food-guess]
 verify_jwt = true
+
+# water-scan answers signed-in players only, same as food-guess.
+[functions.water-scan]
+verify_jwt = true
