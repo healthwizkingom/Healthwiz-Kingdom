@@ -327,7 +327,7 @@ HWEvents.on('page:viewed',e=>{if(e&&e.view!=='sleep')leave()});
 HWUI.css('sheep',`
 .v6shw{scroll-margin:12px 0 84px}
 .v6sh{position:relative;width:100%;max-width:calc((100vh - 210px) * 192 / 190);max-width:calc((100dvh - 210px) * 192 / 190);aspect-ratio:192/190;margin:0 auto 8px;border:4px solid var(--ln);background:#1a1520;overflow:hidden}
-.v6shc{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+.v6shc{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:crisp-edges;image-rendering:pixelated}
 .v6shfs{position:absolute;right:6px;bottom:6px;z-index:2;min-width:40px;min-height:40px;padding:6px;display:flex;align-items:center;justify-content:center;background:rgba(20,16,40,.72);border:2px solid #f6edcf;box-shadow:none}
 .v6shb{width:100%;display:flex;align-items:center;justify-content:center;gap:6px}
 .v6shah small{display:inline-flex;align-items:center;gap:4px}

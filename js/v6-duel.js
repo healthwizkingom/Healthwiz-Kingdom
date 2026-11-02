@@ -428,7 +428,7 @@ HWUI.css('duel',`
 .duelstair{position:absolute;inset:0 44px 0 6px;clip-path:polygon(${(()=>{const N=12,P=['0% 100%'];for(let i=0;i<N;i++){const y=(100-(i+1)/N*58).toFixed(2);P.push((i/N*100).toFixed(2)+'% '+y+'%',((i+1)/N*100).toFixed(2)+'% '+y+'%')}P.push('100% 100%');return P.join(',')})()})}
 .duelstone{position:absolute;inset:0;background:repeating-linear-gradient(0deg,#4b4470 0 7px,#3d3760 7px 8px),#443d68}
 .duelsteps{position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 calc(100%/12 - 3px),#ffffff26 calc(100%/12 - 3px) calc(100%/12))}
-.duelcv{position:absolute;left:0;top:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;pointer-events:none}
+.duelcv{position:absolute;left:0;top:0;width:100%;height:100%;image-rendering:crisp-edges;image-rendering:pixelated;pointer-events:none}
 .dueltrack.painted .duelstair{display:none}
 .duelrev{position:absolute;left:6px;right:44px;top:0;bottom:0;overflow:hidden;will-change:transform}.duelhold{position:absolute;inset:0;will-change:transform}
 .duelhold .duelcv{left:-6px;width:calc(100% + 50px)}

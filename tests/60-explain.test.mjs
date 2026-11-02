@@ -21,7 +21,7 @@ test('source records: complete, direct https links, no Wikipedia, and every cite
     if (r.k === 'project') assert.equal(r.u, '', r.id + ': the team report is not online, so no link is made up');
     else assert.match(r.u, /^https:\/\//, r.id + ' link');
     assert.doesNotMatch(r.u + r.t + r.in, /wikipedia/i, r.id);
-    assert.ok(['method', 'reference', 'guideline', 'constant', 'data', 'project'].includes(r.k), r.id + ' kind');
+    assert.ok(['study', 'review', 'method', 'reference', 'guideline', 'constant', 'data', 'project'].includes(r.k), r.id + ' kind');
   }
   // ids cited anywhere in the code: src:[…] in explanations and […].map(HWSources.cite) lists
   const ids = new Set(all.map(r => r.id)), used = new Set();

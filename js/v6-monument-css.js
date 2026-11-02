@@ -6,7 +6,7 @@ HWUI.css('monument',`
 .mntag{font:600 16px/1.3 var(--fl);color:var(--gold)}.mnlead{margin:4px 0 8px;text-align:center}
 .mndstat b{font:700 20px/1.2 var(--fn);font-variant-numeric:tabular-nums}
 .mnstage{position:relative;overflow:hidden;border-radius:12px;background:#0a0920;border:1px solid var(--edge,var(--ln));min-height:120px}
-.mncv{display:block;margin:0 auto;image-rendering:pixelated;image-rendering:crisp-edges;max-width:none}
+.mncv{display:block;margin:0 auto;image-rendering:crisp-edges;image-rendering:pixelated;max-width:none}
 .mnhud{position:absolute;left:8px;top:8px;right:8px;pointer-events:none;display:flex}
 .mnchip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:rgba(10,9,32,.82);border:1px solid rgba(246,201,79,.55);color:#fff3c0;font:600 12px/1.4 var(--fl);max-width:62%}
 .mnskip{position:absolute;right:8px;top:8px;min-height:44px;background:rgba(10,9,32,.85)!important;color:#fff3c0!important}

@@ -228,7 +228,7 @@ HWEvents.on('page:viewed',()=>{zoomed=null});
 HWUI.css('map',`
 .km.v6map{background:#2a6aa8;box-shadow:inset 0 0 0 3px rgba(255,255,255,.18)}
 .v6mz{position:absolute;inset:0;transform-origin:0 0;transition:transform .6s cubic-bezier(.3,.7,.3,1)}
-.v6mc{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges;pointer-events:none}
+.v6mc{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:crisp-edges;image-rendering:pixelated;pointer-events:none}
 .km.v6map svg.v6mold>*:not(.v6world){display:none}
 .km.v6map .v6world .v6prop>rect:not(.zt),.km.v6map .v6world .v6prop>circle,.km.v6map .v6fog{display:none}
 .v6mlife{pointer-events:none}
