@@ -91,6 +91,7 @@ js/v6-games.js             mini-game framework: scene, HUD, character, timers, r
 js/v6-water.js             well stage, earlier discoveries, ripples and sprites used by the Water Quest scene (the Well Garden game was removed)
 js/v6-rig.js               character rig: the knight and orc cut into jointed parts with pose classes; pixel-art scene painter
 js/v6-waterquest.js        Water Quest: layered valley scene by time of day and the knight's walk → drink → carry → pour sequence
+js/v6-watercam.js          SCAN MY DRINK, under ADD WATER: a camera photo of bottles and cups gives a labelled volume ESTIMATE per container (Gemini vision via water-scan, signed in, photo not stored), which the player reviews and logs through drink() as 'camera estimate' entries
 js/v6-dream.js             Dream Battle: continuous sleep → strength, torch-lit dungeon, princess, deterministic battle
 js/v6-storm.js             Storm Within: the knight's face, posture and surroundings follow the stress rating, smoothly
 js/v6-ambient.js           the living world behind every page (themed by region) and the shared finish for buttons, cards, bars
@@ -123,6 +124,7 @@ supabase/migrations/       SQL for accounts, cloud save, leaderboards and Medius
 supabase/functions/        medius-chat: the Edge Function that talks to Google Gemini for the Wizard's Counsel;
                            luna-chat: Luna's chat in Ask Luna, through Google Gemini (the same GEMINI_API_KEY as medius-chat);
                            food-guess: the Wizard's web search for calories and macros (Gemini with Google Search, the GEMINI_API_KEY secret)
+                           water-scan: the SCAN MY DRINK photo estimate (Gemini vision, the same GEMINI_API_KEY secret; deploy: supabase functions deploy water-scan)
 supabase/tests/            SQL behaviour checks (tools/test-sql.sh, local PostgreSQL) and Deno tests for medius-chat and luna-chat
 sw.js                      service worker: pre-caches the app, network first, works offline (keep PRECACHE in sync)
 manifest.webmanifest       web app manifest (name, colours, standalone display, icons)
