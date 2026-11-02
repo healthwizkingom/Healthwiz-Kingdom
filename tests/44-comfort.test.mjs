@@ -66,7 +66,7 @@ test('reduced motion: saving sleep shows the outcome still, no live battle and n
 test('Medius tour is short, every line brief, SKIP and Escape close it', async () => {
   const { page, ctx, errors } = await openApp();
   const lines = await page.evaluate(() => TS.map(s => s[2]));
-  assert.ok(lines.length <= 12, 'at most 12 stops: ' + lines.length);
+  assert.ok(lines.length <= 13, 'at most 13 stops (the 12 of the first tour plus the theme question Medius asks on the Settings step, js/v6-looks.js): ' + lines.length);
   assert.ok(lines.every(l => l.length <= 120), 'each line readable in seconds');
   assert.match(lines.join(' '), /Medius/);
   await page.evaluate(() => TUT.start());
