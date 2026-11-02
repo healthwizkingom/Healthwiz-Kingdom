@@ -54,7 +54,7 @@ test('across all 30 staircase photos it locks on at least 19 (it was 16), and on
   const ids = (await page.evaluate(() => STAIRS.map(s => s.id))).filter(id => fs.existsSync(new URL(`assets/stairs/${id}.webp`, root)));
   assert.equal(ids.length, 30);
   let locked = 0; for (const id of ids) { const r = await look(page, `assets/stairs/${id}.webp`); if (r.locks[2]) locked++; }
-  assert.ok(locked >= 23, 'locked on ' + locked + ' of 30');
+  assert.ok(locked >= 26, 'locked on ' + locked + ' of 30');
   const bad = []; for (const n of ['study.jpg', 'bedimg.jpg', 'bedroom.webp', 'lab-scene.webp', 'orb-scene.webp']) { const r = await look(page, 'assets/img/' + n); if (r.locks[2]) bad.push(n); }
   assert.deepEqual(bad, [], 'a bedroom, a study or a lab is not a staircase');
   assert.deepEqual(errors, []); await ctx.close();

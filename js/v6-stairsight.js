@@ -12,6 +12,9 @@
    2026-11-02: checkerboard and two-tone steps (ST03, the Enchanted Tower) have strong edges only on part of each row, so the strict 35 %-of-the-row-peak
    test dropped 8 of its 9 real step edges. If the strict pass does not lock, a LOOSE pass (edge ends found at 10 % of the row peak) may lock, with a lower peak threshold, but only with 8 or more
    edges in perspective: ST03 now gives all 11 steps of its flight and 23 of 30 staircase photos lock (was 20); the non-stair pictures still do not.
+   Narrow windows (same day): a band 40 % of the grid wide is also tried at 9 positions, because a stairway is often off-centre or flanked by rails, and
+   a full-width average dilutes it. A window must show 9 or more edges (the full width needs 5 strict or 8 loose), which keeps the bedroom, study and lab
+   pictures from locking; it lifts the staircase photos that lock from 23 to 26 of 30 (ST12 far off through a gate, ST22, ST27 and ST33 still do not).
    What it cannot do: tell a stair from a ladder, a striped wall or a bookshelf; see steps in the dark, in glare, or at a steep sideways
    view. So the result is always called "seen", never measured, and nothing from it is saved. Frames are read only while the Scrying Glass
    is open, about 8 a second, and never leave the device. */
@@ -24,22 +27,29 @@ function rows(g,w,h){
   for(let y=1;y<h-1;y++){let s=0;
     for(let x=Math.max(1,xa);x<Math.min(w-1,xb);x++){const i=y*w+x,gy=Math.abs(g[i+w]-g[i-w]),gx=Math.abs(g[i+1]-g[i-1]),v=Math.max(0,gy-.7*gx);e[i]=v;s+=v}
     prof[y]=s/(xb-xa)}
-  const q=Float32Array.from(prof);for(let y=1;y<h-1;y++)prof[y]=(q[y-1]+2*q[y]+q[y+1])/4;           // a 3-tap blur so one step's edge is one peak
-  return{prof,e}}
+  const blur=p=>{const q=Float32Array.from(p);for(let y=1;y<h-1;y++)p[y]=(q[y-1]+2*q[y]+q[y+1])/4;return p};          // a 3-tap blur so one step's edge is one peak
+  blur(prof);
+  /* Narrow windows: a stairway is often not in the middle (rails, a wall, a person beside it), and a full-width average dilutes it. Each window is a
+     band 40 % of the grid wide; the full-width profile above stays window 0. */
+  const ww=Math.round(w*.4),wins=[{xa,xb,prof}];
+  for(let x0=Math.round(w*.08);x0+ww<=w*.94;x0+=Math.round(w*.1)){const p=new Float32Array(h);
+    for(let y=1;y<h-1;y++){let s=0;for(let x=x0;x<x0+ww;x++)s+=e[y*w+x];p[y]=s/ww}
+    wins.push({xa:x0,xb:x0+ww,prof:blur(p)})}
+  return{prof,e,wins}}
 
 /** Step edges from a (smoothed) row profile. Pure. → {ok, edges:[{y,x0,x1,s}] bottom first, why} */
-function edges(prof,e,w,h,loose){
+function edges(prof,e,w,h,loose,xa0,xb0,min){
   const ys=[];let m=0,n=0;for(let y=2;y<h-2;y++){m+=prof[y];n++}m/=n;let v=0;for(let y=2;y<h-2;y++)v+=(prof[y]-m)**2;const sd=Math.sqrt(v/n);
   const th=Math.max(6,m+(loose?.2:.6)*sd);
   for(let y=2;y<h-2;y++){const p=prof[y];if(p<th)continue;let top=true;for(let d=-3;d<=3;d++)if(d&&prof[y+d]>p){top=false;break}if(top)ys.push(y)}
   const keep=[];ys.forEach(y=>{const l=keep[keep.length-1];if(l!=null&&y-l<5){if(prof[y]>prof[l])keep[keep.length-1]=y}else keep.push(y)});
-  const xa=Math.floor(w*.15),xb=Math.ceil(w*.85),out=[];
+  const xa=xa0==null?Math.floor(w*.15):xa0,xb=xb0==null?Math.ceil(w*.85):xb0,out=[];
   keep.forEach(y=>{let mx=0;for(let x=xa;x<xb;x++)mx=Math.max(mx,e[y*w+x],e[(y-1)*w+x]||0,e[(y+1)*w+x]||0);
     const c=x=>Math.max(e[y*w+x],e[(y-1)*w+x]||0,e[(y+1)*w+x]||0)>(loose?.1:.35)*mx;let x0=-1,x1=-1;for(let x=xa;x<xb;x++)if(c(x)){if(x0<0)x0=x;x1=x}
     if(x0>=0&&x1-x0>=(xb-xa)*.6)out.push({y,x0,x1:x1+1,s:prof[y]})});
   out.sort((a,b)=>b.y-a.y);                                                                   // bottom (nearest) first
   const ch=chain(out);
-  const need=loose?8:5;
+  const need=min||(loose?8:5);
   if(ch.filter(e=>!e.fill).length<need)return{ok:false,edges:ch,why:'no stack of '+need+' or more step edges'};
   return{ok:true,edges:ch,why:''}}
 
@@ -120,8 +130,14 @@ function sampler(){
 /** Smooths frames over time and decides when stairs are seen. push(grey) → {locked, edges, why} */
 function tracker(){
   let P=null,good=0,bad=0,locked=false,last=[],why='looking';
-  return{push(g){const R=rows(g,DW,DH);if(!P)P=Float32Array.from(R.prof);else for(let i=0;i<DH;i++)P[i]=P[i]*.6+R.prof[i]*.4;
-      let E=edges(P,R.e,DW,DH);if(!E.ok){const L=edges(P,R.e,DW,DH,1);if(L.ok)E=L}why=E.why;
+  const best=(R)=>{let B=null;                                                                  // the window (and strict or loose pass) with the most real step edges
+    const W0=R.wins[0];for(const loose of [0,1]){const E=edges(W0.sm,R.e,DW,DH,loose,W0.xa,W0.xb);if(E.ok)return E}          // the full width first: it keeps the old behaviour
+    R.wins.slice(1).forEach(W=>{const E=edges(W.sm,R.e,DW,DH,0,W.xa,W.xb,9),L=E.ok?E:edges(W.sm,R.e,DW,DH,1,W.xa,W.xb,9);if(!L.ok)return;const n=L.edges.filter(q=>!q.fill).length;if(!B||n>B.n)B={n,E:L}});
+    return B?B.E:edges(R.wins[0].sm,R.e,DW,DH)};
+  return{push(g){const R=rows(g,DW,DH);
+      if(!P)P=R.wins.map(W=>Float32Array.from(W.prof));else R.wins.forEach((W,k)=>{for(let i=0;i<DH;i++)P[k][i]=P[k][i]*.6+W.prof[i]*.4});
+      R.wins.forEach((W,k)=>{W.sm=P[k]});
+      const E=best(R);why=E.why;
       if(E.ok){good++;bad=0;last=E.edges;if(good>=3)locked=true}else{bad++;good=0;if(bad>=6){locked=false;last=[]}}
       return this.state},
     get state(){return{locked,edges:locked?last:[],why}}}}

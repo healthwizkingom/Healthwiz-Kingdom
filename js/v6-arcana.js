@@ -322,7 +322,9 @@ function towerFrame(c,q,g){
   trail(gx,by-3*ps,ps);ghost(gx,by,ps)}
 function towerStop(){cancelAnimationFrame(TV.raf);clearInterval(TV.iv);TV.raf=TV.iv=0}
 /* Stair Sight: about 8 frames a second while the camera is open */
-function sense(t){const S=Z.sight;if(!S||t-S.at<125)return;S.at=t;const g=S.smp.read($i('camera-feed'),TW/TH);S.st=g?S.trk.push(g):S.trk.state;scryTag()}
+/* a stairway never shows more step edges than it has steps (a step can give two edges, tread and riser): keep the lowest ones, at most its counted steps */
+function capEdges(st,q){if(!st.locked||!q||!counted(q))return st;const n=Math.max(2,allSteps(q));return st.edges.length>n?{locked:true,edges:st.edges.slice(0,n),why:st.why}:st}
+function sense(t){const S=Z.sight;if(!S||t-S.at<125)return;S.at=t;const g=S.smp.read($i('camera-feed'),TW/TH);S.st=capEdges(g?S.trk.push(g):S.trk.state,STAIRS.find(x=>x.id===Z.sid));scryTag()}
 function scryTag(){const e=$i('arc-scry-tag'),S=Z.sight;if(!e)return;const on=!!(S&&S.st.locked),t=!S?'SCRYING GLASS':on?'STAIRS SEEN · '+S.st.edges.length+' STEP EDGES':'LOOKING FOR STEPS…';
   if(e.textContent!==t){e.textContent=t;e.classList.toggle('seen',on);const l=$i('arc-seen');if(l)l.textContent=on?'Stair Sight sees '+S.st.edges.length+' step edges; the ghost climbs them.':S?'Stair Sight is looking for steps. Stand at the foot and point the camera up the stairs.':''}}
 function pace(){towerStop();const c=$i('arc-canvas'),q=STAIRS.find(s=>s.id===Z.sid);if(!c||!q)return;Z.path=Z.path||stairPath(q);
