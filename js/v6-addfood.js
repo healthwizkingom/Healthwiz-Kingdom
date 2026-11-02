@@ -299,7 +299,7 @@ html.hw-rm .awscene::before,html.hw-rm .awscene::after,html.hw-q-performance .aw
 .awprops{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:8px;list-style:none;padding:0;margin:0 0 4px}.awprops li{display:flex;flex-direction:column;align-items:center;gap:2px}
 .awmprop{display:block;width:80px;height:80px;background:url(${PROPS}) 0 0/${PROPN.length*80}px 80px no-repeat;image-rendering:pixelated;image-rendering:crisp-edges}.awprops small{font-size:12px;color:var(--mut)}
 .awsay{position:absolute;left:3%;right:3%;bottom:3%;z-index:2;display:flex;gap:8px;align-items:flex-end;line-height:1.35}.awsay p{flex:1 1 auto}
-.awface{flex:0 0 auto;width:44px;height:44px;background:url(${FACE}) no-repeat;background-size:${FACES.length*44}px 44px;image-rendering:auto;border:2px solid #f6c94f;border-radius:8px;background-color:#1b1745}
+.awface{flex:0 0 auto;width:44px;height:44px;background:url(${FACE}) no-repeat;background-size:${FACES.length*100}% 100%;image-rendering:auto;border:2px solid #f6c94f;border-radius:8px;background-color:#1b1745}
 .awsay p{margin:0;background:rgba(18,15,51,.88);color:#fff6dc;border:1px solid #f6c94f;border-radius:10px;padding:6px 8px;font-size:13px}.awsay p b{display:block;font:12px/1.6 var(--fl);color:#f6c94f}
 @media(max-width:420px){.awsay p{font-size:12px}}
 .awq{flex-wrap:nowrap}.awq input{flex:1 1 auto;min-width:0;margin:0}.awq button{flex:0 0 auto}
