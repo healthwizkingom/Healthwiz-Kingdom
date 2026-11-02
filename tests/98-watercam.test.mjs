@@ -13,7 +13,7 @@ test('drink(v, meta) stores the meta; a manual drink still stores {}', async () 
   const before = await page.evaluate(() => wt());
   await page.evaluate(() => { drink(250, { src: 'camera', est: true, conf: 'medium' }); drink(100); });
   const w = await waters(page);
-  assert.deepEqual(w.at(-2).m, { src: 'camera', est: true, conf: 'medium' });
+  assert.deepEqual(w.at(-2).m, { src: 'camera', est: true, conf: 'medium' });   // stored as given
   assert.deepEqual(w.at(-1).m, {});
   assert.equal(await page.evaluate(() => wt()), before + 350);
   assert.deepEqual(errors, []); await ctx.close();
@@ -141,7 +141,7 @@ test('LOG adds one camera entry per ticked container and the well fills like a m
   const w0 = await page.evaluate(() => wt());
   await shoot(page); await page.waitForSelector('.wcr'); await page.click('[data-a="wclog"]');
   const w = (await waters(page)).slice(-2);
-  assert.deepEqual(w.map(e => [e.v, e.m]), [[300, { src: 'camera', est: true, conf: 'high' }], [250, { src: 'camera', est: true, conf: 'medium' }]]);
+  assert.deepEqual(w.map(e => [e.v, e.m]), [[300, { src: 'camera', est: true, conf: 'high', i: 1 }], [250, { src: 'camera', est: true, conf: 'medium', i: 2 }]]);
   assert.equal(await page.evaluate(() => wt()), w0 + 550);
   await page.waitForSelector('#wqch.walk, #wqch.atw, #wqch.carry, #wqch.cel', { timeout: 8000 });
   assert.match(await card(page), /Logged 2 drinks/); assert.equal(await page.locator('.wcr').count(), 0);
@@ -159,7 +159,7 @@ test('two containers with the same mL both log, also when the entry is back-date
   // back-dated: the double-tap guard in HWWhen.stamp must not drop the second equal drink
   await page.evaluate(() => { const d = new Date(Date.now() - 864e5), p = n => String(n).padStart(2, '0'); HWWhen.setFor && 0; window.__y = d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); });
   const n0 = (await waters(page)).length;
-  await page.evaluate(() => { drink(250, { src: 'camera', est: true, i: 0 }); drink(250, { src: 'camera', est: true, i: 1 }); });
+  await page.evaluate(() => { drink(250, { src: 'camera', est: true, i: 1 }); drink(250, { src: 'camera', est: true, i: 2 }); });
   assert.equal((await waters(page)).length, n0 + 2);
   assert.deepEqual(errors, []); await ctx.close();
 });

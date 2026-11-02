@@ -87,7 +87,7 @@ async function shot(){
     lo:clamp(+c.lo||0,0,MAXML),hi:clamp(+c.hi||0,0,MAXML),conf:['high','medium','low'].includes(c.conf)?c.conf:'low',basis:String(c.basis||''),on:true,take:1}));
   Z.k='review';Z.msg='';draw()}
 function log(){const items=Z.list.map((c,i)=>({c,i})).filter(x=>x.c.on&&logMl(x.c)>0);if(!items.length)return;
-  items.forEach(x=>drink(logMl(x.c),{src:'camera',est:true,conf:x.c.conf,i:x.i}));
+  items.forEach(x=>drink(logMl(x.c),{src:'camera',est:true,conf:x.c.conf,i:x.i+1}));   // i = which container in the photo (1, 2, ...); it also keeps back-dated equal drinks from reading as a double tap
   const n=items.length;reset();Z.ok='Logged '+n+(n===1?' drink':' drinks')+' from your photo estimate.';draw()}
 
 acts.wcscan=scan;acts.wcshot=shot;acts.wclog=log;
@@ -102,6 +102,8 @@ document.addEventListener('change',e=>{const el=e.target;if(el&&el.dataset&&el.d
 // the card sits right below ADD WATER (js/hw-02-core.js), before the stats grid; a failure here leaves the page as it was
 {const p0=pages.water;pages.water=(...a)=>{const h=p0(...a);try{const i=h.indexOf('ADD WATER</h3>');if(i<0)return h;const j=h.indexOf('<div class="grid"><div class="t">',i);if(j<0)return h;
   setTimeout(attach,0);return h.slice(0,j)+card()+h.slice(j)}catch(e){console.error('[HWWaterCam] card failed:',e);return h}}}
+// a camera entry says so in every history list (desc() is js/hw-02-core.js's description of an entry)
+{const d0=desc;desc=function(e){const h=d0.apply(this,arguments);return e&&e.c==='water'&&e.m&&e.m.src==='camera'?h+' <span class="badge">camera estimate</span>':h}}
 HWEvents.on('page:viewed',e=>{if(!e||e.view!=='water')reset()});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&Z.k==='camera'){reset();Z.msg='The camera was closed because the app went to the background.';draw()}});
 HWEvents.on('data:reset',()=>{reset()});
