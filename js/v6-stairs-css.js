@@ -24,6 +24,7 @@ HWUI.css('stairs',`
 .sttimer{display:flex;align-items:baseline;justify-content:center;gap:10px;margin-top:8px}.sttimer small{font:var(--px-f1)/1.6 var(--fl)}.sttimer b{font:var(--px-f2)/1.3 var(--fh)}
 .sthrs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
 .sthr{padding:8px;border:var(--px-bw-c) solid var(--ln);box-shadow:var(--px-sh-c);background:var(--p2)}.sthr.b{border-top-color:var(--blue);border-top-width:6px}.sthr.a{border-top-color:var(--red);border-top-width:6px}
+.sthr.v{border-top-color:var(--grn);border-top-width:6px}.stvo{margin:4px 0}.stvo .big{font:var(--px-f2)/1.3 var(--fh)}
 .sthrh{display:flex;align-items:center;gap:6px;margin-bottom:6px}.sthrh b{font:var(--px-f1)/1.6 var(--fl)}
 .stpm{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:4px 0 6px;font-size:13px}.stpm small{font-size:13px;overflow-wrap:anywhere}
 #ststudy summary{cursor:pointer;min-height:44px;display:flex;align-items:center}#ststudy summary b{display:flex;align-items:center;gap:6px;font:var(--px-f1)/1.6 var(--fl)}

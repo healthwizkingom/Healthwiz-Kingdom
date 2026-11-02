@@ -278,6 +278,16 @@ function kcalAll(){HWHelp.reg('stkcal','Estimated energy use',kcalBox()+projBox(
   return '<div class="stkh"><b>'+ico('energy')+' ESTIMATED ENERGY USE</b>'+HWHelp.btn('stkcal')+'<small class="mut">Press ? to see the estimate and how it is worked out.</small></div>'+(W.prof?profForm():'')}
 
 
+/** VO₂ card under the heart-rate card: calculated, not typed. Uses the same counted BPM as COUNTED TODAY (logged + saved workouts) and the
+    project method (projectVO2: 15.3 × after ÷ before). Shows only data: nothing until both numbers exist and the pulse after is not below the pulse before. */
+function vo2Card(){const d=today(),b=okHR(rest(d)),a=okHR(hr(d));if(!b||!a||a<b)return'';
+  const P=profile(),v=P?projectVO2({hrB:b,hrA:a},P):null,ml=v?v.ml:UTH*a/b;
+  const tile=(c,l,n,u)=>'<div class="sthr '+c+'"><div class="sthrh"><b>'+l+'</b></div><p class="stvo"><b class="big num">'+n+'</b> <small class="mut">'+u+'</small></p></div>';
+  return '<div class="card stcard" id="stvo2"><h3>'+ico('chart')+' VO₂ <span class="pxtag">ESTIMATE</span> '+(v?HWHelp.btn('vo2c','How VO₂ is worked out','<p>'+vo2Txt(v)+'</p>'+HWCalcX.project(v,b,a,P.w),{label:'About our project\'s method',ev:'project'}):'')+'</h3><div class="sthrs">'
+    +tile('v','VO₂','≈ '+ml.toFixed(1),'mL/kg/min')+(v?tile('v','OXYGEN PER MINUTE','≈ '+v.lmin.toFixed(2),'L/min'):'')+'</div>'
+    +'<small class="mut">15.3 × '+a+' ÷ '+b+' BPM (after ÷ before, today\'s counted pulse)'+(v?' × '+(+P.w)+' kg ÷ 1000 for L/min':'')+'. Rough classroom estimate, never saved or scored.</small>'
+    +'</div>'}
+
 function workout(){const P=PACES[S.pb.pace],q=stair(),run=!!S.pb.on,ds=durW();
   let cl=climber().replace(/<small>[\s\S]*<\/small>$/,'');
   return '<div class="card stcard"><h2>PACE & BREATHE</h2>'
@@ -292,6 +302,7 @@ function workout(){const P=PACES[S.pb.pace],q=stair(),run=!!S.pb.on,ds=durW();
     +(hasPPG?HWPPG.panel():'')+(hasHR?HWHR.panel():'')
     +HWWhen.html({id:'hr',cats:['pulse'],hint:'Heart rates read from a device are logged at the time they were taken, so they can only be logged for now.'})
     +'<div class="sthrs">'+trace('b',okHR(W.hrB))+trace('a',okHR(W.hrA))+'</div><div id="st-counted">'+counted()+'</div><p id="st-delta">'+delta()+'</p><p id="st-rec" role="status">'+recTxt()+'</p>'+logged()+climbHR()+'</div>'
+    +'<div id="st-vo2">'+vo2Card()+'</div>'
     +'<div class="card stcard" id="stseal"><h3>'+ico('achievement')+' SEAL THE WORKOUT</h3>'+HWWhen.html({id:'wk',cats:['stair'],hint:'Heart rates read from a device are saved at the time they were taken, so a workout using them is saved for today.'})
     +counter('w')
     +'<label>Workout time (min)<input id="wk-d" data-in="stw" type="number" min="0.5" max="300" step="0.5" inputmode="decimal" placeholder="minutes" value="'+(ds!=null?ds:'')+'"></label><small class="mut" id="wk-dn">'+(W.durSet?'Typed in by you.':ds!=null?'From the Pace & Breathe timer.':'')+'</small>'

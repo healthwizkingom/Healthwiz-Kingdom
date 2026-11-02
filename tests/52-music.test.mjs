@@ -35,7 +35,10 @@ test('recorded theme on Home; original generated track on Sleep; off with the bu
   await go(page, 'food');
   s = await until(page, x => x.playing);
   assert.ok(s.playing, 'any other page plays the recording again');
-  await page.click('#mus');
+  await page.click('#mus');                                                       // tap 1: the second song replaces the home theme
+  s = await until(page, x => x.playing && x.track === 1);
+  assert.ok(s.mt && s.playing && s.track === 1, 'tap 1 swaps the song: ' + JSON.stringify(s));
+  await page.click('#mus');                                                       // tap 2: mute
   s = await until(page, x => !x.playing);
   assert.ok(!s.mt && !s.playing, 'the music button switches it off: ' + JSON.stringify(s));
   assert.deepEqual(errors.filter(e => !/AudioContext|autoplay/i.test(e)), []);
@@ -79,7 +82,9 @@ test('the music starts by itself when the app opens, a first tap wakes the audio
   assert.equal(await page.textContent('#mus'), '🔊');
   await page.mouse.click(5, 5);                                                   // the first touch: the browser now allows sound
   assert.equal(await page.evaluate(() => ac && ac.state), 'running');
-  await page.click('#mus');                                                       // the user switches it off
+  await page.click('#mus');                                                       // the first tap swaps the song, the second switches it off
+  assert.equal((await st(page)).mt, true);
+  await page.click('#mus');
   assert.equal((await st(page)).mt, false);
   assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('healthwiz')).s.musOff), 1);
   await page.reload(); await page.waitForSelector('.wl');
@@ -95,4 +100,22 @@ test('with Sound turned off in Settings the music does not start by itself', asy
   await page.waitForSelector('.wl'); await page.waitForTimeout(500);
   assert.equal((await st(page)).mt, false);
   assert.deepEqual(errors, []); await ctx.close();
+});
+
+test('the music button cycles: tap 1 swaps to First Light on the Lawn, tap 2 mutes, tap 3 plays the first song again', async () => {
+  const f = 'assets/audio/first-light-on-the-lawn.mp3';
+  assert.ok(fs.statSync(new URL('../' + f, import.meta.url)).size > 100e3);
+  assert.match(fs.readFileSync(new URL('../sw.js', import.meta.url), 'utf8'), /assets\/audio\/first-light-on-the-lawn\.mp3/);
+  const seed = { ...RETURNING, s: { ...RETURNING.s, sound: 1 } };
+  const { page, ctx, errors } = await openApp({ seed, url: URL_ });
+  await page.waitForSelector('.wl');
+  let s = await until(page, x => x.mt && x.playing);
+  assert.equal(s.track, 0, 'starts with the first song');
+  await page.click('#mus'); s = await until(page, x => x.playing && x.track === 1);
+  assert.ok(s.mt && s.playing && s.track === 1, 'swapped: ' + JSON.stringify(s));
+  await page.click('#mus'); s = await until(page, x => !x.playing);
+  assert.ok(!s.mt && !s.playing, 'muted: ' + JSON.stringify(s));
+  await page.click('#mus'); s = await until(page, x => x.playing && x.track === 0);
+  assert.ok(s.mt && s.playing && s.track === 0, 'the first song again: ' + JSON.stringify(s));
+  assert.deepEqual(errors.filter(e => !/AudioContext|autoplay/i.test(e)), []); await ctx.close();
 });
